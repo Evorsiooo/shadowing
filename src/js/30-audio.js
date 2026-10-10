@@ -133,9 +133,15 @@ const Mic = {
       return false;
     }
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: !!s.echoCancellation, noiseSuppression: !!s.noiseSuppression, autoGainControl: !!s.micAuto, channelCount: 1 },
-      });
+      const audio = { echoCancellation: !!s.echoCancellation, noiseSuppression: !!s.noiseSuppression, autoGainControl: !!s.micAuto, channelCount: 1 };
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({ audio: s.micDeviceId ? { ...audio, deviceId: { exact: s.micDeviceId } } : audio });
+      } catch (e) {
+        // the chosen mic is unplugged: fall back to the default one
+        if (!s.micDeviceId || (e.name !== 'OverconstrainedError' && e.name !== 'NotFoundError')) throw e;
+        this.stream = await navigator.mediaDevices.getUserMedia({ audio });
+        toast('Your chosen microphone isn’t connected, so the default one is being used.');
+      }
     } catch (e) {
       this.error = e && e.name === 'NotAllowedError'
         ? (Caps.inArtifact
@@ -181,15 +187,27 @@ const Mic = {
   adapt() {
     if (!this.gain || !settings().micAuto) return;
     const lvl = this.level;
-    if (lvl < -65) return; // silence: leave the gain alone
     const g = this.gain.gain.value;
     const raw = lvl - 20 * Math.log10(g); // level before our gain
+    // background noise: follows quiet chunks fast, loud ones very slowly
+    this.noise = this.noise == null ? raw : raw < this.noise ? this.noise * 0.7 + raw * 0.3 : this.noise * 0.998 + raw * 0.002;
+    if (lvl < -65 || raw < this.noise + 12) return; // only speech, well above the room's noise, sets the volume
     // follow loud stretches quickly, quiet ones slowly, so only speech sets the level
     this.speech = this.speech == null ? raw : raw > this.speech ? this.speech * 0.7 + raw * 0.3 : this.speech * 0.995 + raw * 0.005;
     const want = clamp(10 ** ((-20 - this.speech) / 20), 1, 30);
     const next = g + (want - g) * 0.08;
     this.gain.gain.value = next;
     this.autoGain = next;
+  },
+  async reopen() {
+    const listeners = this.listeners;
+    const wasOpen = !!this.stream;
+    this.close();
+    this.listeners = listeners;
+    if (wasOpen) await this.open();
+  },
+  async devices() {
+    try { return (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput'); } catch { return []; }
   },
   setGain(x) {
     if (this.gain) this.gain.gain.value = x;
@@ -201,6 +219,7 @@ const Mic = {
     if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
     this.stream = this.source = this.gain = this.proc = this.sink = this.dest = null;
     this.level = -100;
+    this.noise = null;
   },
   on(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); },
 };
@@ -221,7 +240,23 @@ function micControl() {
     if (!e.target.checked) Mic.setGain(settings().micGain);
     if (Mic.stream) toast('Re-open the microphone (next pass) for the browser part of automatic volume to change.');
   } }), 'Automatic volume');
-  const el = h('div', { class: 'mic-control' }, icon('mic'), meter, auto, slider, val);
+  const pick = h('select', { id: 'micDevice', 'aria-label': 'Microphone', class: 'mic-select', onchange: async (e) => {
+    saveSettings({ micDeviceId: e.target.value || null });
+    if (Mic.stream) {
+      if (Session.rec) { toast('The new microphone is used from the next pass.'); return; }
+      await Mic.reopen();
+    }
+  } }, h('option', { value: '' }, 'Default microphone'));
+  const fillDevices = async () => {
+    const list = await Mic.devices();
+    const cur = settings().micDeviceId || '';
+    mount(pick, h('option', { value: '' }, 'Default microphone'),
+      list.filter((d) => d.deviceId && d.deviceId !== 'default').map((d, i) => h('option', { value: d.deviceId, selected: d.deviceId === cur }, d.label || `Microphone ${i + 1}`)));
+  };
+  fillDevices();
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener('devicechange', () => { if (pick.isConnected) fillDevices(); });
+  pick.addEventListener('focus', fillDevices); // names appear once the browser has mic permission
+  const el = h('div', { class: 'mic-control' }, icon('mic'), pick, meter, auto, slider, val);
   const tick = () => {
     if (!el.isConnected) return;
     const pct = clamp((Mic.level + 60) / 60, 0, 1) * 100;

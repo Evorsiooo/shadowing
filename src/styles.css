@@ -397,3 +397,4 @@ body.calm .toast { animation: none; }
 .mic-meter { width: 120px; height: 10px; }
 .mic-meter > i { transition: none; }
 .mic-control input[type="range"] { width: 110px; }
+.mic-control select.mic-select { width: auto; max-width: 220px; padding: 5px 8px; font-size: 0.85rem; }

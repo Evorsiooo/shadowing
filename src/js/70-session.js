@@ -125,14 +125,17 @@ const Session = {
       }
     }
     this.clipZero = [];
+    this.zero = null;
+    this.lastTickT = null;
     Panel.live = null;
+    // land on the clip start before anything is timed against it
+    await Player.seekAndWait(clip.start);
     if (this.recordingThisPass || this.liveThisPass) {
       this.rec = new Recording();
       this.rec.start();
       Panel.live = { clipId: clip.id, points: [], frames: 0, ref: (Store.get('meta', 'voice') || {}).refHz || null, f0s: [], userOnset: null, shift: 0 };
       this.liveOff = Mic.on(() => this.liveAnalyse());
     }
-    Player.seek(clip.start);
     this.phase = this.recordingThisPass ? 'recording' : 'playing';
     document.body.classList.toggle('calm', st.speak);
     renderSession();
@@ -148,7 +151,13 @@ const Session = {
     if (!S.active || (S.phase !== 'playing' && S.phase !== 'recording')) return;
     const clip = S.clip();
     if (!clip) return;
-    if (S.rec && !Player.v.paused) S.clipZero.push(AudioEng.getCtx().currentTime - (t - clip.start) / (Player.v.playbackRate || 1));
+    // when did the clip start, on the audio clock? Sample only while the video is really advancing,
+    // then freeze the estimate so every point of your line is timed against the same zero.
+    if (S.rec && S.zero == null && !Player.v.paused && S.lastTickT != null && t > S.lastTickT && t > clip.start + 0.02) {
+      S.clipZero.push(AudioEng.getCtx().currentTime - (t - clip.start) / (Player.v.playbackRate || 1));
+      if (S.clipZero.length >= 12) S.zero = median(S.clipZero);
+    }
+    S.lastTickT = t;
     if (t >= clip.end - 0.02) S.endPass();
   },
   async endPass() {
@@ -163,7 +172,7 @@ const Session = {
       if (this.liveOff) { this.liveOff(); this.liveOff = null; }
       const res = await this.rec.stop();
       this.rec = null;
-      const an = analysePass(res, clip, median(this.clipZero), Player.v.playbackRate || 1);
+      const an = analysePass(res, clip, this.zero != null ? this.zero : median(this.clipZero), Player.v.playbackRate || 1, Panel.live);
       if (an) {
         entry.lag = an.lag;
         Panel.lastPass = { ...an, clipId: clip.id };
@@ -207,13 +216,11 @@ const Session = {
   },
   liveAnalyse() {
     const L = Panel.live;
-    if (!L || !this.rec) return;
+    if (!L || !this.rec || this.zero == null || this.rec.startCtx == null) return; // samples wait in the buffer until timing is known
     const clip = this.clip();
     const x = this.rec.liveSamples();
     const diff = new Float32Array(Math.floor(SR / F0_MIN) + 2);
     const rate = Player.v.playbackRate || 1;
-    const zero = this.clipZero.length ? median(this.clipZero.slice(-30)) : null;
-    if (zero == null || this.rec.startCtx == null) return;
     const maxFrame = Math.floor((x.length - WIN - Math.floor(SR / F0_MIN)) / HOP);
     for (let i = L.frames; i < maxFrame; i++) {
       const db = DSP.rmsDb(x, i * HOP, WIN);
@@ -226,12 +233,17 @@ const Session = {
         L.f0s.push(f);
         if (!L.ref && L.f0s.length > 40) L.ref = median(L.f0s);
         const ref = L.ref || median(L.f0s);
-        // light smoothing: median of the last three readings keeps the line from jittering
-        L.recent = (L.recent || []).concat(12 * Math.log2(f / ref)).slice(-3);
-        st = median(L.recent);
+        let v = 12 * Math.log2(f / ref);
+        // octave slips show up as jumps of about 12 semitones: fold them back
+        if (v > 9 && v - 12 > -6) v -= 12;
+        else if (v < -9 && v + 12 < 6) v += 12;
+        if (Math.abs(v) <= 12) {
+          L.recent = (L.recent || []).concat(v).slice(-3);
+          st = median(L.recent);
+        } else L.recent = [];
       } else L.recent = [];
-      const ct = (this.rec.startCtx + i * HOP_S - zero) * rate;
-      // rough live sync: line up the moment you start speaking with the speaker's first sound
+      // raw clip time; the live sync shift is applied when drawing, so it moves the whole line at once
+      const ct = (this.rec.startCtx + i * HOP_S - this.zero) * rate;
       if (L.userOnset == null && db > Math.max(L.floor + 15, -65)) {
         L.loudRun = (L.loudRun || 0) + 1;
         if (L.loudRun >= 5) {
@@ -240,7 +252,7 @@ const Session = {
           L.shift = clamp(L.userOnset - m, -0.5, 1.5);
         }
       } else if (L.userOnset == null) L.loudRun = 0;
-      L.points.push({ t: ct - (L.shift || 0), st, db });
+      L.points.push({ t: ct, st, db });
     }
     L.frames = Math.max(L.frames, maxFrame);
   },
@@ -384,7 +396,7 @@ const Session = {
 };
 
 /* align a recorded pass against the model and measure the lag */
-function analysePass(res, clip, clipZero, rate) {
+function analysePass(res, clip, clipZero, rate, live) {
   if (!res || !res.samples || res.samples.length < SR || !clip) return null;
   const s = settings();
   const a = DSP.analyse(res.samples);
@@ -413,6 +425,8 @@ function analysePass(res, clip, clipZero, rate) {
     score = round(r.score, 2);
     if (r.score > 0.3 && r.margin > 0.03) lagClip = r.lag * m.hop;
   }
+  // auto-alignment unsure: fall back to the live start detection, then to the manual offset
+  if (lagClip == null && s.alignMode === 'auto' && live && live.userOnset != null && zeroOK) lagClip = live.shift;
   if (lagClip == null) { lagClip = (s.manualOffsetMs / 1000) * rate; manual = true; }
   const lag = round(lagClip / rate - s.latencyMs / 1000, 2);
   return {
@@ -449,6 +463,7 @@ function renderSession() {
       btn(`Start ${st.name.toLowerCase()}`, () => S.go(), { kind: 'primary', size: 'big', icon: 'play' }),
     ];
   } else if (S.phase === 'armed') {
+    if (!Mic.stream && !Mic.error) Mic.open().then((ok) => { if (!ok) renderSession(); });
     main = [
       h('div', { class: 'grow stack' },
         h('h3', null, st.recordLast === 'final' ? 'Final recorded pass' : 'Recorded pass'),
@@ -570,7 +585,7 @@ function passReviewCard() {
       btn('Both together', () => playBoth(clip, R.url, an), { size: 'sm' }),
       btn('', () => { Player2.stop(); Player.v.pause(); Session.preview = null; }, { size: 'sm', icon: 'stop', title: 'Stop playback' })),
     step3 ? h('div', { class: 'row' }, h('span', { class: 'small muted grow' }, 'Compare with your step 3 recording from this session:'),
-      btn('Compare side by side', () => openCompare(step3.id, R.recId, R.url), { size: 'sm', kind: 'blue' })) : null,
+      btn('Compare overlaid', () => openCompare(step3.id, R.recId, R.url), { size: 'sm', kind: 'blue' })) : null,
     noteForm({ clipId: clip.id, sessionId: S.doc.id, recId: R.recId, pass: S.pass, step: S.step().key }),
     h('div', { class: 'row' },
       btn('Redo this pass', () => S.repeatPass(), { kind: 'ghost', icon: 'replay' }),

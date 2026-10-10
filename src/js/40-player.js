@@ -85,6 +85,17 @@ const Player = {
     } else this.pause();
   },
   seek(t) { const d = this.duration(); this.v.currentTime = clamp(t, 0, d || t); this.paintHead(); },
+  /* seek and wait until the video has actually landed there (or 1.5 s pass) */
+  seekAndWait(t) {
+    return new Promise((res) => {
+      const v = this.v;
+      const done = () => { clearTimeout(timer); v.removeEventListener('seeked', done); res(); };
+      const timer = setTimeout(done, 1500);
+      v.addEventListener('seeked', done);
+      this.seek(t);
+      if (Math.abs(v.currentTime - t) < 0.01 && !v.seeking) done();
+    });
+  },
   replayLoop() {
     const r = activeRange();
     if (!r) { this.seek(Math.max(0, this.time() - 3)); this.play(); return; }
