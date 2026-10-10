@@ -218,8 +218,9 @@ function noteCard(n) {
 }
 
 /* ---------- compare & history ---------- */
-function miniLanes(clip, series, label) {
-  const c = h('canvas', { style: { height: '150px' } });
+/* one chart with several voices overlaid on the clip's time axis (pitch or loudness) */
+function overlayChart(clip, layers, view = 'pitch') {
+  const c = h('canvas', { style: { height: '220px', width: '100%', display: 'block', borderRadius: '11px', background: 'var(--surface-2)' }, 'aria-label': `${view === 'pitch' ? 'Pitch' : 'Loudness'} of ${layers.map((l) => l.label).join(', ')} on one chart` });
   const draw = () => {
     if (!c.isConnected) return;
     const { W, H, dpr } = sizeCanvas(c);
@@ -227,26 +228,42 @@ function miniLanes(clip, series, label) {
     g.clearRect(0, 0, W, H);
     const dur = clip.end - clip.start;
     const X = (t) => (t / dur) * W;
-    const plot = (top, hh, st, hop, off, color) => {
-      g.strokeStyle = color; g.lineWidth = 2.5 * dpr; g.beginPath();
-      let pen = false;
-      st.forEach((v, i) => {
-        const t = off + i * hop;
-        if (v == null || t < 0 || t > dur) { pen = false; return; }
-        const y = top + hh / 2 - (clamp(v, -12, 12) / 12) * (hh / 2 - 4 * dpr);
-        if (!pen) { g.moveTo(X(t), y); pen = true; } else g.lineTo(X(t), y);
-      });
-      g.stroke();
-    };
     g.fillStyle = cssVar('--line');
-    g.fillRect(0, H / 4, W, dpr); g.fillRect(0, (3 * H) / 4, W, dpr);
-    if (clip.model) plot(0, H / 2, clip.model.st, clip.model.hop, 0, cssVar('--green'));
-    if (series) plot(H / 2, H / 2, series.st, series.hop, series.offset, cssVar('--sky'));
-    g.fillStyle = cssVar('--muted');
-    g.font = `800 ${10 * dpr}px Nunito, sans-serif`;
-    g.fillText('Speaker', 6 * dpr, 12 * dpr);
-    g.fillText(label || 'You', 6 * dpr, H / 2 + 12 * dpr);
+    g.fillRect(0, H / 2, W, dpr);
+    for (let s = 1; s < dur; s++) g.fillRect(X(s), 0, dpr, H);
+    for (const L of layers) {
+      const sr = L.series;
+      if (!sr || L.hidden) continue;
+      g.globalAlpha = L.alpha ?? 1;
+      if (view === 'pitch') {
+        g.strokeStyle = L.color; g.lineWidth = (L.width || 2.5) * dpr; g.lineJoin = 'round'; g.lineCap = 'round'; g.beginPath();
+        let pen = false, prev = null;
+        sr.st.forEach((v, i) => {
+          const t = (sr.offset || 0) + i * sr.hop;
+          if (v == null || t < 0 || t > dur || Math.abs(v) > 12) { pen = false; prev = null; return; }
+          if (prev != null && Math.abs(v - prev) > 4) pen = false;
+          prev = v;
+          const y = H / 2 - (v / 12) * (H / 2 - 6 * dpr);
+          if (!pen) { g.moveTo(X(t), y); pen = true; } else g.lineTo(X(t), y);
+        });
+        g.stroke();
+      } else {
+        const db = sr.db || [];
+        const peak = percentile(db.filter((v) => v != null), 0.98);
+        g.fillStyle = L.color;
+        g.globalAlpha = (L.alpha ?? 1) * 0.45;
+        const bw = Math.max(1, X(sr.hop) - 0.5);
+        db.forEach((v, i) => {
+          const t = (sr.offset || 0) + i * sr.hop;
+          if (v == null || t < 0 || t > dur) return;
+          const hh = clamp((v - (peak - 45)) / 45, 0, 1) * (H / 2 - 4 * dpr);
+          g.fillRect(X(t), H / 2 - hh, bw, hh * 2);
+        });
+      }
+      g.globalAlpha = 1;
+    }
   };
+  c.redraw = draw;
   requestAnimationFrame(() => requestAnimationFrame(draw));
   return c;
 }
@@ -260,15 +277,32 @@ async function openCompare(idA, idB, urlB) {
   const A = Store.get('recordings', idA), B = Store.get('recordings', idB);
   const clip = Store.get('clips', (A || B || {}).clipId || Session.clipId);
   if (!clip) return;
-  const col = async (rec, title, url) => h('div', { class: 'card' },
-    h('h3', null, title),
-    h('p', { class: 'small muted' }, rec ? `${fmtDay(dayKey(new Date(rec.created)))} · ${fmtLag(rec.lag)}` : ''),
-    await recAudio(rec, url),
-    miniLanes(clip, rec && rec.analysis));
+  const css = (v) => cssVar(v);
+  const layers = [
+    { key: 'speaker', label: 'Speaker', color: css('--green'), width: 5, alpha: 0.55, series: clip.model ? { st: clip.model.st, db: clip.model.db, hop: clip.model.hop, offset: 0 } : null },
+    { key: 'step3', label: 'Step 3', color: css('--ochre'), width: 2.5, series: A && A.analysis, rec: A },
+    { key: 'final', label: 'Final', color: css('--sky'), width: 3, series: B && B.analysis, rec: B, url: urlB },
+  ];
+  let view = 'pitch';
+  const holder = h('div');
+  const drawChart = () => mount(holder, overlayChart(clip, layers, view));
+  const legend = h('div', { class: 'row' }, layers.map((L) => h('label', { class: 'check', for: `cmp-${L.key}` },
+    h('input', { type: 'checkbox', id: `cmp-${L.key}`, checked: !L.hidden, disabled: !L.series, onchange: (e) => { L.hidden = !e.target.checked; drawChart(); } }),
+    h('span', { style: { display: 'inline-block', width: '14px', height: '4px', borderRadius: '2px', background: L.color } }), L.label)));
+  const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'View' },
+    ['pitch', 'wave'].map((v) => h('button', { type: 'button', class: v === view ? 'on' : '', onclick: (e) => { view = v; [...seg.children].forEach((b) => b.classList.toggle('on', b === e.currentTarget)); drawChart(); } }, v === 'pitch' ? 'Pitch' : 'Waveform')));
+  const players = await Promise.all(layers.slice(1).map(async (L) => h('div', { class: 'audio-row' },
+    h('span', { style: { display: 'inline-block', width: '14px', height: '4px', borderRadius: '2px', background: L.color } }),
+    h('strong', { class: 'small', style: { minWidth: '56px' } }, L.label),
+    await recAudio(L.rec, L.url),
+    h('span', { class: 'small muted' }, L.rec ? fmtLag(L.rec.lag) : ''))));
+  drawChart();
   openModal([
     modalHead('Step 3 vs final pass', clipName(clip)),
-    h('div', { class: 'cards' }, await col(A, 'Step 3 recording'), await col(B, 'Final recording', urlB)),
-    h('p', { class: 'small muted' }, 'Listen for the same differences in both. A shape that moves closer to the speaker’s line, or a smaller lag, is progress.'),
+    h('div', { class: 'row' }, seg, h('span', { class: 'spacer' }), legend),
+    holder,
+    h('div', { class: 'stack' }, players),
+    h('p', { class: 'small muted' }, 'Each line is shown against that voice’s own average pitch. A final line that follows the speaker’s shape more closely than step 3, or a smaller lag, is progress.'),
   ]);
 }
 
@@ -331,7 +365,7 @@ async function openHistory(clipId) {
         await recAudio(r),
         h('span', { class: 'small muted' }, fmtLag(r.lag)))))) : null,
       h('div', { class: 'row' },
-        s.recs && s.recs.step3 && s.recs.final ? btn('Compare side by side', () => openCompare(s.recs.step3, s.recs.final), { size: 'sm', kind: 'blue' }) : null,
+        s.recs && s.recs.step3 && s.recs.final ? btn('Compare step 3 and final', () => openCompare(s.recs.step3, s.recs.final), { size: 'sm', kind: 'blue' }) : null,
         h('span', { class: 'spacer' }),
         deleteSessionButton(s.id, () => openHistory(clipId))),
       ns.map(noteCard));

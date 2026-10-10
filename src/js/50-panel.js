@@ -157,12 +157,15 @@ Panel.drawAnalysis = function (t) {
       const range = 12; // ± semitones
       g.strokeStyle = color; g.lineWidth = width * dpr; g.lineJoin = 'round'; g.lineCap = 'round'; g.globalAlpha = alpha;
       g.beginPath();
-      let pen = false;
+      let pen = false, prev = null;
       for (let i = 0; i < series.st.length; i++) {
         const v = series.st[i];
         const ct = offset + i * hop;
-        if (v == null || ct < 0 || ct > dur) { pen = false; continue; }
-        const y = L.top + L.h / 2 - (clamp(v, -range, range) / range) * (L.h / 2 - 6 * dpr);
+        // gaps, out-of-range readings and sudden jumps break the line instead of drawing a straight connector
+        if (v == null || ct < 0 || ct > dur || Math.abs(v) > range) { pen = false; prev = null; continue; }
+        if (prev != null && Math.abs(v - prev) > 4) pen = false;
+        prev = v;
+        const y = L.top + L.h / 2 - (v / range) * (L.h / 2 - 6 * dpr);
         if (!pen) { g.moveTo(x(ct), y); pen = true; } else g.lineTo(x(ct), y);
       }
       g.stroke();
@@ -186,18 +189,20 @@ Panel.drawAnalysis = function (t) {
 
   // you: live trace during a pass, otherwise the last analysed pass for this clip
   if (this.live && this.live.clipId === clip.id && this.live.points.length) {
-    const pts = this.live.points;
+    const sh = this.live.shift || 0;
+    const pts = this.live.points.map((p) => ({ t: p.t - sh, st: p.st, db: p.db }));
     const series = { st: pts.map((p) => p.st), db: pts.map((p) => p.db) };
     // live points are irregular in time; draw as polyline
     if (UI.view === 'pitch') {
       g.strokeStyle = lanes[1].color; g.lineWidth = 3 * dpr; g.lineJoin = 'round'; g.beginPath();
-      let pen = false, prevT = -1;
+      let pen = false, prevT = -1, prevV = null;
       for (const p of pts) {
-        if (p.st == null || p.t < 0 || p.t > dur || p.t - prevT > 0.08) { pen = false; }
+        if (p.st == null || p.t < 0 || p.t > dur || p.t - prevT > 0.08 || (prevV != null && Math.abs(p.st - prevV) > 4)) pen = false;
         prevT = p.t;
+        prevV = p.st;
         if (p.st == null || p.t < 0 || p.t > dur) continue;
         const L = lanes[1];
-        const y = L.top + L.h / 2 - (clamp(p.st, -12, 12) / 12) * (L.h / 2 - 6 * dpr);
+        const y = L.top + L.h / 2 - (p.st / 12) * (L.h / 2 - 6 * dpr);
         if (!pen) { g.moveTo(x(p.t), y); pen = true; } else g.lineTo(x(p.t), y);
       }
       g.stroke();

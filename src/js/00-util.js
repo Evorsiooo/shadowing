@@ -76,7 +76,8 @@ const ICONS = {
 function icon(name, extra = '') {
   const span = document.createElement('span');
   span.style.display = 'contents';
-  span.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${ICONS[name] || ''}</svg>`;
+  const size = /width=/.test(extra) ? '' : 'width="18" height="18"';
+  span.innerHTML = `<svg ${size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${ICONS[name] || ''}</svg>`;
   return span.firstChild;
 }
 function btn(label, onclick, opts = {}) {

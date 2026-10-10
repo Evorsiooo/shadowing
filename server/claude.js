@@ -2,7 +2,7 @@
 // The API key lives only in the server's secrets (ANTHROPIC_API_KEY).
 import Anthropic from '@anthropic-ai/sdk';
 
-const MODEL = 'claude-opus-5-5';
+const MODEL = 'claude-haiku-5-5';
 
 const SYSTEM = `You help Adrien with shadowing practice. Adrien is 18, a French-Australian heritage speaker of English: his comprehension is native-level and he hears his own errors well, but he only started speaking English regularly at 17 and a half. He is moving his accent towards General Australian English (his model speaker is Oscar Piastri). His differences are mostly in rhythm, stress and melody rather than individual words.
 
@@ -38,11 +38,9 @@ What he was aiming for: ${String(aim).slice(0, 500) || '(not given)'}
 Issue names he already tracks: ${issues.length ? issues.slice(0, 60).map(String).join('; ') : '(none yet)'}`;
   let res;
   try {
-    res = await client.beta.messages.create({
+    res = await client.messages.create({
       model: env.CLAUDE_MODEL || MODEL,
       max_tokens: 4000,
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
       output_config: { effort: 'medium', format: { type: 'json_schema', schema: NOTE_SCHEMA } },
       system: SYSTEM,
       messages: [{ role: 'user', content: user }],
