@@ -1,0 +1,7 @@
+{
+  "name": "shadowing-practice",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Daily shadowing practice app (Claude artifact + standalone page)",
+  "scripts": { "build": "node scripts/build.mjs" }
+}
