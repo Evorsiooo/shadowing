@@ -197,8 +197,12 @@ async function checkVideoSound() {
   const v = Player.current();
   if (!v) return { state: '', msg: 'Open a video first.' };
   VideoAudio.cache.delete(v.id);
-  const r = await VideoAudio.load(v);
-  if (r.status === 'ready') return { state: 'ok', msg: `The app can read the sound of “${v.title}” (${fmtTime(r.samples.length / SR)} decoded). Pitch and waveform will work.` };
+  const t0 = performance.now();
+  const r = await VideoAudio.ensure(v, 0, 10);
+  const secs = ((performance.now() - t0) / 1000).toFixed(1);
+  if (r.status === 'ready') return { state: 'ok', msg: r.method === 'partial'
+    ? `The app reads just the part of “${v.title}” it needs (10 s of sound in ${secs} s). Pitch and waveform will work.`
+    : `The app can read the sound of “${v.title}”, but has to download the whole file each visit (${secs} s here)${r.mp4Failed ? `: ${r.mp4Failed}` : ''}.` };
   return { state: 'fail', msg: r.error };
 }
 async function checkClaude() {

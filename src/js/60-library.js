@@ -199,6 +199,7 @@ function clipList(v) {
         h('div', { class: 'cmeta' }, `${fmtTime(c.start)}–${fmtTime(c.end)} · ${fmtSec(c.end - c.start)}${c.noisy ? ' · noisy' : ''}${queued ? ` · #${UI.queue.indexOf(c.id) + 1} in queue` : ''}`)),
       h('div', { class: 'row', style: { gap: '2px', flexWrap: 'nowrap' } },
         h('span', { class: `tick ${c.done ? 'done' : ''}`, title: c.done ? `Done ${fmtDay(c.doneAt)}` : 'Not done yet' }, c.done ? icon('check', 'stroke-width="3.4"') : null),
+        !c.archived ? btn('', () => { editClip(c.id); closeDrawer(); }, { size: 'sm', kind: 'ghost', icon: 'edit', title: 'Edit clip (start, end, length, label)', disabled: Session.active }) : null,
         btn('', () => openClipMenu(c), { size: 'sm', kind: 'ghost', icon: 'menu', title: 'Clip options' })));
   };
   return h('div', { class: 'clist' },

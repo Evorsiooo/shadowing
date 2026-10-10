@@ -94,6 +94,14 @@ function fmtTime(s, dec = 0) {
   const sec = dec ? r.toFixed(dec).padStart(3 + dec, '0') : String(Math.floor(r)).padStart(2, '0');
   return `${m}:${sec}`;
 }
+/* "3:35.2", "1:02:03" or "215.2" -> seconds; null if unreadable */
+function parseTime(raw) {
+  const t = String(raw || '').trim().replace(',', '.');
+  if (!t) return null;
+  const parts = t.split(':');
+  if (parts.some((p) => p === '' || isNaN(+p))) return null;
+  return parts.reduce((acc, p) => acc * 60 + +p, 0);
+}
 function fmtSec(s, dec = 1) { return `${(+s).toFixed(dec)} s`; }
 function fmtLag(lag) {
   if (lag == null || !isFinite(lag)) return '—';

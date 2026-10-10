@@ -34,66 +34,102 @@ const AudioEng = {
 
 /* reading a video's soundtrack (needs CORS from the host, a stored copy, or a local file) */
 const VideoAudio = {
-  cache: new Map(), // videoId -> {status, samples, error, progress}
+  cache: new Map(), // videoId -> {status, segments: [{t0, t1, samples}], full, error, progress, mp4Failed, chain}
   state(videoId) { return this.cache.get(videoId) || { status: 'idle' }; },
-  async load(video, onProgress) {
-    const cur = this.cache.get(video.id);
-    if (cur && (cur.status === 'ready' || cur.status === 'loading')) return cur.promise || cur;
-    const entry = { status: 'loading', progress: 0 };
-    this.cache.set(video.id, entry);
-    entry.promise = (async () => {
-      try {
-        let buf;
-        const local = LocalFiles.get(video.id);
-        if (local) buf = await local.arrayBuffer();
-        else {
-          const src = videoSrc(video);
-          let resp;
-          try {
-            resp = await fetch(src, src.startsWith('/') ? { credentials: 'same-origin' } : { mode: 'cors', credentials: 'omit' });
-          } catch (e) {
-            throw Object.assign(new Error('blocked'), { code: 'blocked' });
-          }
-          if (!resp.ok) throw Object.assign(new Error(`HTTP ${resp.status}`), { code: 'http' });
-          const total = +resp.headers.get('content-length') || 0;
-          if (resp.body && total) {
-            const reader = resp.body.getReader();
-            const parts = [];
-            let got = 0;
-            for (;;) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              parts.push(value); got += value.length;
-              entry.progress = got / total;
-              onProgress && onProgress(entry.progress);
-            }
-            const all = new Uint8Array(got);
-            let o = 0;
-            for (const p of parts) { all.set(p, o); o += p.length; }
-            buf = all.buffer;
-          } else buf = await resp.arrayBuffer();
-        }
-        entry.status = 'decoding';
-        onProgress && onProgress(1);
-        entry.samples = await AudioEng.decode(buf);
-        entry.status = 'ready';
-      } catch (e) {
-        entry.status = 'error';
-        entry.error = e.code === 'blocked'
-          ? "This video's host doesn't let the app read its sound (no CORS permission, or the page's security rules block it). Playback still works if the video plays. For the waveform and pitch line, load a copy of the video file from this device."
-          : e.code === 'http' ? `The video link answered with an error (${e.message}).` : `The sound couldn't be decoded (${e.message || 'unknown error'}).`;
-      }
-      Bus.emit('videoaudio', video.id);
-      return entry;
-    })();
-    return entry.promise;
+  entry(videoId) {
+    if (!this.cache.has(videoId)) this.cache.set(videoId, { status: 'idle', segments: [], full: null, chain: Promise.resolve() });
+    return this.cache.get(videoId);
   },
+  /* samples for [t0, t1] if already decoded, else null */
   slice(videoId, t0, t1) {
     const e = this.cache.get(videoId);
-    if (!e || e.status !== 'ready') return null;
-    const a = clamp(Math.floor(t0 * SR), 0, e.samples.length);
-    const b = clamp(Math.floor(t1 * SR), 0, e.samples.length);
-    return e.samples.subarray(a, b);
+    if (!e) return null;
+    if (e.full) {
+      const a = clamp(Math.floor(t0 * SR), 0, e.full.length), b = clamp(Math.floor(t1 * SR), 0, e.full.length);
+      return e.full.subarray(a, b);
+    }
+    const seg = e.segments.find((g) => g.t0 <= t0 + 0.02 && g.t1 >= t1 - 0.02);
+    if (!seg) return null;
+    const a = clamp(Math.round((t0 - seg.t0) * SR), 0, seg.samples.length), b = clamp(Math.round((t1 - seg.t0) * SR), 0, seg.samples.length);
+    return seg.samples.subarray(a, b);
+  },
+  /* make sure [t0, t1] is decoded: reads only that stretch of an MP4; falls back to the whole file */
+  ensure(video, t0, t1, onProgress) {
+    const e = this.entry(video.id);
+    t0 = Math.max(0, t0);
+    const job = e.chain.then(async () => {
+      if (this.slice(video.id, t0, t1)) return e;
+      e.status = 'loading'; e.progress = 0;
+      Bus.emit('videoaudio', video.id);
+      const local = LocalFiles.get(video.id);
+      const src = local || videoSrc(video);
+      if (!e.mp4Failed) {
+        try {
+          // a little extra either side, so small edge nudges don't need another fetch
+          const want0 = Math.max(0, t0 - 1), want1 = t1 + 1;
+          const r = await Mp4Audio.extract(`${video.id}|${local ? local.name : src}`, src, want0, want1, (f) => { e.progress = f; onProgress && onProgress(f); });
+          // pad with silence where the file has no audio (before the track starts, past the end), so the span is fully covered
+          const pre = Math.max(0, Math.round((r.t0 - want0) * SR)), post = Math.max(0, Math.round((want1 - r.t1) * SR));
+          const samples = new Float32Array(pre + r.samples.length + post);
+          samples.set(r.samples, pre);
+          e.segments.push({ t0: Math.min(want0, r.t0), t1: Math.max(want1, r.t1), samples });
+          if (e.segments.length > 24) e.segments.shift();
+          e.status = 'ready'; e.error = null; e.method = 'partial';
+          Bus.emit('videoaudio', video.id);
+          return e;
+        } catch (err) {
+          e.mp4Failed = err.message || String(err);
+          console.info('partial audio read unavailable, decoding the whole file:', e.mp4Failed);
+        }
+      }
+      await this.decodeWhole(video, e, onProgress);
+      Bus.emit('videoaudio', video.id);
+      return e;
+    });
+    e.chain = job.catch(() => {});
+    return job;
+  },
+  async decodeWhole(video, entry, onProgress) {
+    try {
+      let buf;
+      const local = LocalFiles.get(video.id);
+      if (local) buf = await local.arrayBuffer();
+      else {
+        const src = videoSrc(video);
+        let resp;
+        try {
+          resp = await fetch(src, src.startsWith('/') ? { credentials: 'same-origin' } : { mode: 'cors', credentials: 'omit' });
+        } catch (e) {
+          throw Object.assign(new Error('blocked'), { code: 'blocked' });
+        }
+        if (!resp.ok) throw Object.assign(new Error(`HTTP ${resp.status}`), { code: 'http' });
+        const total = +resp.headers.get('content-length') || 0;
+        if (resp.body && total) {
+          const reader = resp.body.getReader();
+          const parts = [];
+          let got = 0;
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            parts.push(value); got += value.length;
+            entry.progress = got / total;
+            onProgress && onProgress(entry.progress);
+          }
+          const all = new Uint8Array(got);
+          let o = 0;
+          for (const p of parts) { all.set(p, o); o += p.length; }
+          buf = all.buffer;
+        } else buf = await resp.arrayBuffer();
+      }
+      entry.status = 'decoding';
+      entry.full = await AudioEng.decode(buf);
+      entry.status = 'ready'; entry.error = null; entry.method = 'whole';
+    } catch (e) {
+      entry.status = 'error';
+      entry.error = e.code === 'blocked'
+        ? "This video's host doesn't let the app read its sound (no CORS permission, or the page's security rules block it). Playback still works if the video plays. For the waveform and pitch line, load a copy of the video file from this device."
+        : e.code === 'http' ? `The video link answered with an error (${e.message}).` : `The sound couldn't be decoded (${e.message || 'unknown error'}).`;
+    }
   },
 };
 
