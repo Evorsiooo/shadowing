@@ -40,7 +40,11 @@ function renderPanel() {
 }
 
 function panelEmpty() {
-  if (UI.cutMode) return h('div', { class: 'panel-msg' }, h('h3', null, 'Clip mode'), h('p', null, 'Drag along the timeline to select a clip, or press I and O while the video plays. Esc or Cut clips leaves clip mode.'));
+  if (UI.cutMode) return [
+    h('div', { class: 'panel-head' }, h('h3', null, 'New clip'), h('span', { class: 'spacer' }), btn('Done', () => setCutMode(false), { size: 'sm', kind: 'ghost', title: 'Leave clip mode (Esc)' })),
+    h('div', { class: 'newclip-box' },
+      h('p', null, h('strong', null, 'Select a part of the video on the scrub bar'), ' by dragging along it.'),
+      h('p', { class: 'muted' }, 'Or play the video and press ', h('strong', null, 'Start'), ' (I) under the video where the sentence begins, then ', h('strong', null, 'End'), ' (O) where it finishes.'))];
   return h('div', { class: 'panel-msg' },
     h('h3', null, 'Analysis panel'),
     h('p', null, 'Select a clip to see the speaker’s pitch line, or press Cut clips under the video to make a new one.'));
@@ -50,7 +54,7 @@ function panelEmpty() {
 function buildAnalysis(clip) {
   const vid = Store.get('videos', clip.videoId);
   const audio = VideoAudio.state(clip.videoId);
-  const canvas = h('canvas', { 'aria-label': UI.overlay ? 'Pitch or loudness of the speaker and you on one chart' : 'Pitch or loudness lanes: speaker on top, you below' });
+  const canvas = h('canvas', { class: 'analysis', 'aria-label': UI.overlay ? 'Pitch or loudness of the speaker and you on one chart' : 'Pitch or loudness lanes: speaker on top, you below' });
   Panel.canvas = canvas;
   const head = h('div', { class: 'panel-head' },
     h('div', { class: 'seg', role: 'group', 'aria-label': 'View' },

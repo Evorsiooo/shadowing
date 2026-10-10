@@ -14,25 +14,27 @@
 <div class="banners" id="banners"></div>
 
 <main class="layout">
-  <section class="stage" aria-label="Practice">
-    <div class="player" id="player">
+  <div class="player" id="player">
+    <div class="vidwrap">
       <video id="video" playsinline preload="auto"></video>
       <div class="player-empty" id="playerEmpty"></div>
       <div class="player-error" id="playerError" hidden></div>
-      <div class="controls" id="controls">
-        <div class="scrubber" id="scrubber" aria-label="Video timeline">
-          <div class="scrub-track" id="scrubTrack"><div class="scrub-progress" id="scrubProgress"></div></div>
-          <div id="scrubClips"></div>
-          <div class="scrub-sel" id="scrubSel" hidden></div>
-          <div class="scrub-head" id="scrubHead"></div>
-          <div class="hover-time" id="hoverTime" hidden></div>
-        </div>
-        <div class="ctrl-row" id="ctrlRow"></div>
-      </div>
     </div>
+    <div class="controls" id="controls">
+      <div class="scrubber" id="scrubber" aria-label="Video timeline">
+        <div class="scrub-track" id="scrubTrack"><div class="scrub-progress" id="scrubProgress"></div></div>
+        <div id="scrubClips"></div>
+        <div class="scrub-sel" id="scrubSel" hidden></div>
+        <div class="scrub-head" id="scrubHead"></div>
+        <div class="hover-time" id="hoverTime" hidden></div>
+      </div>
+      <div class="ctrl-row" id="ctrlRow"></div>
+    </div>
+  </div>
+  <div class="below" id="below">
     <div class="session" id="session"></div>
     <div class="panel" id="panel"></div>
-  </section>
+  </div>
   <div class="side" id="side">
     <div id="sideSlot"></div>
     <aside class="sidebar" id="sidebar" aria-label="Video library"></aside>
