@@ -304,10 +304,19 @@ button.chip { font-family: inherit; cursor: pointer; }
 .warnline { color: var(--red); font-weight: 700; font-size: 0.86rem; }
 
 /* ---------- sidebar ---------- */
+.side { display: flex; flex-direction: column; gap: 14px; min-width: 0; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 76px); }
 .sidebar {
   background: var(--surface); border: 2px solid var(--line); border-radius: var(--r-lg); padding: 14px; display: flex; flex-direction: column; gap: 12px;
-  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 76px); max-height: calc(100vh - 96px); overflow: auto; box-shadow: var(--shadow);
+  max-height: calc(100vh - 96px); overflow: auto; box-shadow: var(--shadow);
 }
+/* during a session the session card takes the right column (and the library steps aside) */
+.layout.in-session { grid-template-columns: minmax(0, 1fr) 400px; }
+.layout.in-session .side .sidebar { display: none; }
+.side .session { max-height: calc(100vh - 96px); overflow: auto; }
+/* keep the panel under the player in view while cutting or practising */
+.layout.in-session .player video, .layout.cutting .player video { max-height: 46vh; }
+.side .session .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.side .session .counter { font-size: 1.6rem; }
 .vlist { display: flex; flex-direction: column; gap: 8px; }
 .vitem { border: 2px solid var(--line); border-radius: var(--r-md); padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--surface); }
 .vitem.open { border-color: var(--green); background: var(--green-soft); }
@@ -383,7 +392,9 @@ body.calm .toast { animation: none; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
-  .layout { grid-template-columns: minmax(0, 1fr); }
+  .layout, .layout.in-session { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; }
+  .layout.in-session .side .sidebar { display: flex; }
   .only-phone { display: inline-flex !important; }
   .sidebar {
     position: fixed; top: 0; right: 0; bottom: 0; width: min(360px, 88vw); max-height: none; z-index: 40; border-radius: var(--r-lg) 0 0 var(--r-lg);
@@ -441,7 +452,10 @@ input.time-in { width: 84px; padding: 5px 8px; height: 32px; }
     <div class="session" id="session"></div>
     <div class="panel" id="panel"></div>
   </section>
-  <aside class="sidebar" id="sidebar" aria-label="Video library"></aside>
+  <div class="side" id="side">
+    <div id="sideSlot"></div>
+    <aside class="sidebar" id="sidebar" aria-label="Video library"></aside>
+  </div>
 </main>
 <div class="drawer-back" id="drawerBack" hidden></div>
 <div id="modalRoot"></div>
@@ -780,7 +794,7 @@ const Api = {
       if (!(r.headers.get('content-type') || '').includes('application/json')) return false;
       const d = await r.json();
       if (!r.ok) { this.problem = d.error || `Server error ${r.status}`; return false; }
-      this.on = true; this.email = d.email; this.claude = !!d.claude;
+      this.on = true; this.email = d.email; this.claude = !!d.claude; this.claudeModel = d.claudeModel || null;
       return true;
     } catch { return false; } finally { clearTimeout(timer); }
   },
@@ -2368,19 +2382,21 @@ const Panel = {
 };
 
 function renderPanel() {
+  applyLayout();
   const el = $('#panel');
   const vid = Player.current();
   const clip = Store.get('clips', UI.clipId);
   let key;
   if (UI.sel && vid) key = `editor:${UI.sel.clipId || 'new'}:${VideoAudio.state(vid.id).status}`;
+  else if (UI.cutMode && !Session.active) key = 'empty-cut';
   else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
-  else key = 'empty';
+  else key = UI.cutMode ? 'empty-cut' : 'empty';
 
   if (key !== Panel.key) {
     Panel.key = key;
     Panel.canvas = null;
     Panel.refs = {};
-    if (key === 'empty') mount(el, panelEmpty());
+    if (key.startsWith('empty')) mount(el, panelEmpty());
     else if (key.startsWith('editor')) mount(el, buildEditor(vid));
     else mount(el, buildAnalysis(clip));
   }
@@ -2390,6 +2406,7 @@ function renderPanel() {
 }
 
 function panelEmpty() {
+  if (UI.cutMode) return h('div', { class: 'panel-msg' }, h('h3', null, 'Clip mode'), h('p', null, 'Drag along the timeline to select a clip, or press I and O while the video plays. Esc or Cut clips leaves clip mode.'));
   return h('div', { class: 'panel-msg' },
     h('h3', null, 'Analysis panel'),
     h('p', null, 'Select a clip to see the speaker’s pitch line, or press Cut clips under the video to make a new one.'));
@@ -2447,6 +2464,20 @@ function updateAnalysisHead(clip) {
   if (rel && clip.model) rel.textContent = clip.model.reliability < 0.55 || clip.noisy ? 'Pitch line unreliable in places' : '';
 }
 
+/* tiny "higher / lower" marks so it's clear which way is up on a pitch chart */
+function pitchHints(g, W, dpr, lanes, color) {
+  g.save();
+  g.fillStyle = color;
+  g.globalAlpha = 0.75;
+  g.font = `700 ${9.5 * dpr}px Nunito, system-ui, sans-serif`;
+  g.textAlign = 'right';
+  for (const L of lanes) {
+    g.fillText('▲ higher', W - 8 * dpr, L.top + 13 * dpr);
+    g.fillText('▼ lower', W - 8 * dpr, L.top + L.h - 6 * dpr);
+  }
+  g.restore();
+}
+
 function sizeCanvas(c) {
   const r = c.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
@@ -2498,6 +2529,7 @@ Panel.drawAnalysis = function (t) {
     }
     g.textAlign = 'left';
   }
+  if (UI.view === 'pitch') pitchHints(g, W, dpr, ov ? [{ top: 0, h: H }] : lanes, muted);
   // time ticks
   g.globalAlpha = 0.5;
   for (let s = 1; s < dur; s++) { g.fillStyle = line; g.fillRect(x(s), 0, 1 * dpr, H); }
@@ -3510,6 +3542,7 @@ function analysePass(res, clip, clipZero, rate, live) {
 
 /* ---------- session strip ---------- */
 function renderSession() {
+  applyLayout();
   const el = $('#session');
   el.classList.toggle('active', Session.active);
   if (!Session.active) { mount(el, idleSession()); return; }
@@ -3608,34 +3641,34 @@ async function uploadPassRecording(file) {
 /* playback options after a recorded pass */
 function playOriginal(clip, then) {
   Player2.stop();
+  Player.v.muted = UI.volume === 0;
   Session.preview = { stopAt: clip.end, then };
   Player.seek(clip.start);
   Player.play();
 }
-function playMine(url, then) {
-  Player.v.pause();
-  Player2.stop();
-  const a = new window.Audio(url);
-  Player2.el = a;
-  a.onended = () => then && then();
-  a.play().catch(() => toast('The recording couldn’t play.', 'bad'));
-  return a;
-}
-function playBoth(clip, url, analysis) {
+/* play your recording lined up with the clip: the video runs alongside (muted for "Mine",
+   audible for "Both together"), so the scrub bar and the chart's playhead follow along */
+function playSynced(clip, url, analysis, { withOriginal = false, then } = {}) {
   Player2.stop();
   const a = new window.Audio(url);
   Player2.el = a;
   const rate = Player.v.playbackRate || 1;
   const startAt = analysis ? -analysis.offset / rate : 0; // seconds into the recording that line up with the clip start
-  const go = () => {
-    Session.preview = { stopAt: clip.end, then: () => a.pause() };
-    Player.seek(clip.start);
+  const restoreMute = () => { Player.v.muted = UI.volume === 0; };
+  const go = async () => {
+    Player.v.muted = !withOriginal || UI.volume === 0;
+    Session.preview = { stopAt: clip.end, then: () => { a.pause(); restoreMute(); then && then(); } };
+    await Player.seekAndWait(clip.start);
     Player.play();
-    if (startAt >= 0) { a.currentTime = startAt; a.play(); } else setTimeout(() => a.play(), -startAt * 1000);
+    if (startAt >= 0) { a.currentTime = startAt; a.play().catch(() => {}); } else setTimeout(() => a.play().catch(() => {}), -startAt * 1000);
   };
+  a.addEventListener('error', () => { restoreMute(); toast('The recording couldn’t play.', 'bad'); }, { once: true });
   if (a.readyState >= 1) go(); else a.addEventListener('loadedmetadata', go, { once: true });
   a.load();
+  return a;
 }
+function playMine(clip, url, analysis, then) { return playSynced(clip, url, analysis, { then }); }
+function playBoth(clip, url, analysis) { return playSynced(clip, url, analysis, { withOriginal: true }); }
 
 function passReviewCard() {
   const S = Session;
@@ -3650,10 +3683,10 @@ function passReviewCard() {
       an && an.manual ? h('span', { class: 'small muted' }, settings().alignMode === 'manual' ? '(manual offset)' : '(auto-alignment unsure; manual offset used)') : null),
     h('div', { class: 'row' },
       btn('Original', () => playOriginal(clip), { size: 'sm', icon: 'play' }),
-      btn('Mine', () => playMine(R.url), { size: 'sm', icon: 'mic' }),
-      btn('Original then mine', () => playOriginal(clip, () => playMine(R.url)), { size: 'sm' }),
+      btn('Mine', () => playMine(clip, R.url, an), { size: 'sm', icon: 'mic' }),
+      btn('Original then mine', () => playOriginal(clip, () => setTimeout(() => playMine(clip, R.url, an), 300)), { size: 'sm' }),
       btn('Both together', () => playBoth(clip, R.url, an), { size: 'sm' }),
-      btn('', () => { Player2.stop(); Player.v.pause(); Session.preview = null; }, { size: 'sm', icon: 'stop', title: 'Stop playback' })),
+      btn('', () => { Player2.stop(); Player.v.pause(); Player.v.muted = UI.volume === 0; Session.preview = null; }, { size: 'sm', icon: 'stop', title: 'Stop playback' })),
     step3 ? h('div', { class: 'row' }, h('span', { class: 'small muted grow' }, 'Compare with your step 3 recording from this session:'),
       btn('Compare overlaid', () => openCompare(step3.id, R.recId, R.url), { size: 'sm', kind: 'blue' })) : null,
     noteForm({ clipId: clip.id, sessionId: S.doc.id, recId: R.recId, pass: S.pass, step: S.step().key }),
@@ -3959,6 +3992,7 @@ function overlayChart(clip, layers, view = 'pitch') {
     g.fillStyle = cssVar('--line');
     g.fillRect(0, H / 2, W, dpr);
     for (let s = 1; s < dur; s++) g.fillRect(X(s), 0, dpr, H);
+    if (view === 'pitch') pitchHints(g, W, dpr, [{ top: 0, h: H }], cssVar('--muted'));
     for (const L of layers) {
       const sr = L.series;
       if (!sr || L.hidden) continue;
@@ -4874,7 +4908,7 @@ async function checkClaude() {
   if (Store.mode === 'cloud') {
     if (!Api.claude) return { state: 'fail', msg: 'The server has no Claude API key yet. Add the ANTHROPIC_API_KEY secret to the Cloudflare project.' };
     const { reply } = await Api.req('POST', '/api/claude', { sentence: 'Go and grab the car.', off: 'the vowel in go sounds too pure', aim: '', issues: [] });
-    return reply && (reply.feature || reply.text || reply.unsure) ? { state: 'ok', msg: 'Claude answered. Feedback on notes uses your Claude API key.' } : { state: 'warn', msg: 'Claude answered in an unexpected format.' };
+    return reply && (reply.feature || reply.text || reply.unsure) ? { state: 'ok', msg: `Claude answered (model: ${Api.claudeModel || 'unknown'}). Feedback on notes uses your Claude API key.` } : { state: 'warn', msg: 'Claude answered in an unexpected format.' };
   }
   if (!Caps.sample) return { state: 'fail', msg: Caps.inArtifact ? 'Claude access isn’t available in this view.' : 'This standalone version can’t reach Claude. Notes offer “Copy prompt for Claude” instead.' };
   const r = await Caps.sample('Reply with just the word OK.', { modelTier: 'quick', cache: false });
@@ -4918,7 +4952,24 @@ function openShortcuts() {
 
 /* ---- 99-main.js ---- */
 /* ---------- boot, global rendering, keyboard ---------- */
+/* what shows where depends on what you're doing:
+   browsing -> today's card under the player; cutting -> the clip editor there;
+   in a session -> session card in the right column, pitch/waveform under the player */
+const wideLayout = window.matchMedia ? matchMedia('(min-width: 901px)') : { matches: true };
+function applyLayout() {
+  const mode = Session.active ? 'session' : UI.cutMode || UI.sel ? 'cut' : 'idle';
+  const layout = $('.layout'), sess = $('#session'), panel = $('#panel');
+  layout.classList.toggle('in-session', mode === 'session');
+  layout.classList.toggle('cutting', mode === 'cut');
+  if (mode === 'session' && wideLayout.matches) { if (sess.parentElement !== $('#sideSlot')) $('#sideSlot').appendChild(sess); }
+  else if (sess.parentElement !== $('.stage')) $('.stage').insertBefore(sess, panel);
+  sess.hidden = mode === 'cut';
+  panel.hidden = mode === 'idle';
+  if (UI.layoutMode !== mode) { UI.layoutMode = mode; requestAnimationFrame(() => Panel.onTime(Player.time())); }
+}
+
 function renderAll() {
+  applyLayout();
   renderChips();
   renderBanners();
   renderControls();
@@ -4983,6 +5034,7 @@ async function boot() {
   Bus.on('videoaudio', () => { Panel.editor = null; renderPanel(); });
   Bus.on('signedout', () => renderBanners());
   window.addEventListener('resize', () => Panel.onTime(Player.time()));
+  if (wideLayout.addEventListener) wideLayout.addEventListener('change', () => applyLayout());
   window.addEventListener('beforeunload', () => { Store.flushAll(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) Store.flushAll(); });
   // first launch: the baseline must come before the first practice

@@ -2,7 +2,7 @@
 import { verifyAccess } from '../../server/auth.js';
 import { json, error, validCol, validId, validKey, uuid, extFor, cleanType } from '../../server/util.js';
 import { allDocs, putDoc, deleteDoc, serveFile } from '../../server/store.js';
-import { noteFeedback, claudeConfigured } from '../../server/claude.js';
+import { noteFeedback, claudeConfigured, claudeModel } from '../../server/claude.js';
 
 const PART_MAX = 95 * 1024 * 1024; // Workers request bodies are capped at 100 MB
 const SINGLE_MAX = 95 * 1024 * 1024;
@@ -16,7 +16,7 @@ export async function onRequest(ctx) {
   try {
     const [head, ...rest] = path;
     if (head === 'health' && method === 'GET') {
-      return json({ ok: true, email: auth.email, claude: claudeConfigured(env), files: !!env.FILES, db: !!env.DB });
+      return json({ ok: true, email: auth.email, claude: claudeConfigured(env), claudeModel: claudeModel(env), files: !!env.FILES, db: !!env.DB });
     }
     if (head === 'docs') return await docsRoute(env, method, rest, request);
     if (head === 'files') return await filesRoute(env, method, rest, request);
