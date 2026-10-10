@@ -294,27 +294,25 @@ function buildEditor(vid) {
   if (audio.status === 'loading' || audio.status === 'decoding') msg = h('p', { class: 'small muted', id: 'audioMsg' }, 'Reading the video’s sound for the zoomed waveform…');
   else if (audio.status === 'error') msg = h('div', { class: 'row small' }, h('p', { class: 'grow muted' }, audio.error + ' You can still cut the clip with the nudge buttons and by ear.'), filePickButton('Load the file', 'video/*,audio/*', (f) => useLocalFile(vid, f), { size: 'sm', icon: 'folder' }));
   const editing = UI.sel.clipId;
+  const field = (label, forId, ...kids) => h('div', { class: 'efield' }, h('label', { class: 'label', for: forId }, label), h('div', { class: 'nudge' }, ...kids));
   return [
     h('div', { class: 'panel-head' },
       h('h3', null, editing ? 'Edit clip' : 'New clip'),
       R.len,
-      h('span', { class: 'small muted' }, `target ${s.clipMin}–${s.clipMax} s`),
+      h('span', { class: 'small muted' }, `aim for ${s.clipMin}–${s.clipMax} s`),
       h('span', { class: 'spacer' }),
-      (R.playSel = btn('Play selection', () => togglePlaySelection(), { icon: 'play', size: 'sm', id: 'playSelBtn' }))),
+      (R.playSel = btn('Play selection', () => togglePlaySelection(), { icon: 'play', size: 'sm', id: 'playSelBtn' })),
+      btn('Cancel', () => { UI.sel = null; renderAll(); }, { kind: 'ghost', size: 'sm' }),
+      btn('Save and shadow', () => saveSelection(true), { kind: 'blue', icon: 'mic', size: 'sm', title: 'Save the clip and start a session with it' }),
+      btn(editing ? 'Save changes' : 'Save clip', () => saveSelection(false), { kind: 'primary', icon: 'check', size: 'sm' })),
     msg,
     canvas,
     R.warn,
-    h('div', { class: 'editor-grid' },
-      h('div', { class: 'stack' }, h('label', { class: 'label', for: 'selStart' }, 'Start'),
-        h('div', { class: 'nudge' }, R.startT, btn('−0.1 s', nudge('start', -0.1), { size: 'sm' }), btn('+0.1 s', nudge('start', 0.1), { size: 'sm' }), btn('Snap to gap', () => snapEdge('start'), { size: 'sm', title: 'Move the start into the nearest pause' }))),
-      h('div', { class: 'stack' }, h('label', { class: 'label', for: 'selEnd' }, 'End'),
-        h('div', { class: 'nudge' }, R.endT, btn('−0.1 s', nudge('end', -0.1), { size: 'sm' }), btn('+0.1 s', nudge('end', 0.1), { size: 'sm' }), btn('Snap to gap', () => snapEdge('end'), { size: 'sm' }))),
-      h('div', { class: 'stack' }, h('label', { class: 'label', for: 'selLen' }, 'Length (s)'), h('div', { class: 'nudge' }, R.lenT)),
-      h('label', { class: 'field', for: 'clipLabel' }, 'Label', R.label)),
-    h('div', { class: 'row', style: { marginTop: '12px' } },
-      btn(editing ? 'Save changes' : 'Save clip', () => saveSelection(false), { kind: 'primary', icon: 'check' }),
-      btn('Save and shadow now', () => saveSelection(true), { kind: 'blue', icon: 'mic' }),
-      btn('Cancel', () => { UI.sel = null; renderAll(); }, { kind: 'ghost' })),
+    h('div', { class: 'editor-row' },
+      field('Start', 'selStart', R.startT, btn('−0.1', nudge('start', -0.1), { size: 'sm', title: 'Start 0.1 s earlier' }), btn('+0.1', nudge('start', 0.1), { size: 'sm', title: 'Start 0.1 s later' }), btn('Snap', () => snapEdge('start'), { size: 'sm', title: 'Move the start into the nearest pause' })),
+      field('End', 'selEnd', R.endT, btn('−0.1', nudge('end', -0.1), { size: 'sm', title: 'End 0.1 s earlier' }), btn('+0.1', nudge('end', 0.1), { size: 'sm', title: 'End 0.1 s later' }), btn('Snap', () => snapEdge('end'), { size: 'sm', title: 'Move the end into the nearest pause' })),
+      field('Length (s)', 'selLen', R.lenT),
+      h('div', { class: 'efield grow' }, h('label', { class: 'label', for: 'clipLabel' }, 'Label'), R.label)),
   ];
 }
 
