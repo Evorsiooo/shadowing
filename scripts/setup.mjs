@@ -1,9 +1,15 @@
-// One-shot Cloudflare setup + deploy. Safe to re-run: every step skips what already exists.
+// One-shot Cloudflare setup for the GitHub-connected Pages project. Safe to re-run:
+// every step skips what already exists. Cloudflare builds and deploys the site itself
+// on every push to main; this script sets up everything around it.
+//
+// Before running: connect the GitHub repo in the Cloudflare dashboard (see README).
 //
 //   CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... node scripts/setup.mjs --email you@example.com
 //
 // Optional: ANTHROPIC_API_KEY in the environment is stored as a Pages secret.
-// Flags: --project <name> (default "shadowing"), --new-mcp-token, --skip-access, --skip-deploy
+// Flags: --project <name> (default "shadowing"), --new-mcp-token, --skip-access
+//
+// Afterwards commit wrangler.toml (database id + Access settings) and merge it to main.
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
@@ -69,11 +75,16 @@ step('R2 bucket');
 const out = wrangler(['r2', 'bucket', 'create', BUCKET], { allowFail: true });
 console.log(/already exists/i.test(out) ? '  exists' : '  created');
 
-// 3. Pages project
+// 3. Pages project (created by connecting the GitHub repo in the dashboard)
 step('Pages project');
-const pOut = wrangler(['pages', 'project', 'create', PROJECT, '--production-branch', 'main'], { allowFail: true });
-console.log(/already exists|A project with this name already exists/i.test(pOut) ? '  exists' : '  created');
-const host = `${PROJECT}.pages.dev`;
+let project;
+try { project = await cf('GET', `/accounts/${ACCOUNT}/pages/projects/${PROJECT}`); } catch {
+  die(`No Pages project called "${PROJECT}" yet. In the Cloudflare dashboard: Workers & Pages → Create → Pages → Connect to Git → pick the shadowing repo, name it "${PROJECT}", production branch main, build command "npm run build", output directory "dist". Then re-run this script.`);
+}
+const host = project.subdomain;
+console.log(`  found: https://${host}${project.source ? ` (builds from ${project.source.config.owner}/${project.source.config.repo_name})` : ''}`);
+toml = toml.replace(/^name = ".*"$/m, `name = "${PROJECT}"`);
+writeFileSync(tomlPath, toml);
 
 // 4. Cloudflare Access: lock the site to your email, let /mcp/* through (it has its own secret)
 if (!flag('skip-access')) {
@@ -96,6 +107,7 @@ if (!flag('skip-access')) {
     const cur = apps.find((a) => a.name === name);
     return cur ? cf('PUT', `/accounts/${ACCOUNT}/access/apps/${cur.id}`, body) : cf('POST', `/accounts/${ACCOUNT}/access/apps`, body);
   };
+  // *.host covers preview deployments of other branches
   const app = await ensureApp(`${PROJECT} app`, [host, `*.${host}`], allow, { session_duration: '720h' });
   await ensureApp(`${PROJECT} MCP`, [`${host}/mcp`], bypass);
   setVar('ACCESS_TEAM_DOMAIN', team);
@@ -120,11 +132,8 @@ if (process.env.ANTHROPIC_API_KEY) {
   console.log('  ANTHROPIC_API_KEY set');
 } else console.log('  ANTHROPIC_API_KEY not in the environment; Claude feedback stays off until you add it');
 
-// 6. Build and deploy
-if (!flag('skip-deploy')) {
-  step('Build and deploy');
-  execFileSync('node', ['scripts/build.mjs'], { cwd: root, stdio: 'inherit' });
-  wrangler(['pages', 'deploy', '--project-name', PROJECT, '--branch', 'main', '--commit-dirty=true']);
-}
 writeFileSync(join(secretsDir, 'mcp-url.txt'), `https://${host}/mcp/${mcpToken}\n`, { mode: 0o600 });
-console.log(`\n✓ Done.\n  App:  https://${host}\n  MCP:  saved in .secrets/mcp-url.txt (add it in claude.ai → Settings → Connectors → Add custom connector)\n`);
+console.log(`\n✓ Done.
+  App:  https://${host}
+  MCP:  saved in .secrets/mcp-url.txt (add it in claude.ai → Settings → Connectors → Add custom connector)
+  Next: commit wrangler.toml and merge it to main. Cloudflare redeploys with the database, storage and Access settings.\n`);

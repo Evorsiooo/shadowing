@@ -45,23 +45,34 @@ All routes need a valid Access sign-in.
 
 ## Setting it up
 
-1. **Cloudflare account.** In the dashboard, open **Zero Trust** once, pick a team name and choose the **Free** plan.
-2. **API token** (My Profile → API Tokens → Create Token → Custom), limited to your account, with:
+The site deploys from GitHub: Cloudflare rebuilds it on every push to `main`. Database, storage, Access and secrets are set up once by `scripts/setup.mjs`.
+
+1. **Zero Trust.** In the Cloudflare dashboard, open **Zero Trust** once, pick a team name and choose the **Free** plan.
+2. **Connect the repo.** Go to **Workers & Pages → Create → Pages → Connect to Git**, authorise GitHub and pick this repo, then fill in:
+   - Project name: `shadowing`
+   - Production branch: `main`
+   - Framework preset: None
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+
+   The first build may fail because the database doesn't exist yet. That's expected.
+3. **API token** (My Profile → API Tokens → Create Token → Custom), limited to your account, with:
    - Cloudflare Pages: Edit
    - Workers Scripts: Edit
    - D1: Edit
    - Workers R2 Storage: Edit
    - Access: Apps and Policies: Edit
    - Access: Organizations, Identity Providers, and Groups: Read
-3. **Run setup** (re-runnable; it skips anything that already exists):
+4. **Run setup** (re-runnable; it skips anything that already exists):
    ```
    npm install
    CLOUDFLARE_API_TOKEN=… CLOUDFLARE_ACCOUNT_ID=… ANTHROPIC_API_KEY=… npm run setup -- --email you@example.com
    ```
-   It creates the database, bucket, Pages project and Access lock, sets the secrets, then builds and deploys. It prints the app URL, and saves the MCP URL in `.secrets/mcp-url.txt` (git-ignored).
-4. **Connect Claude:** claude.ai → Settings → Connectors → Add custom connector, and paste the MCP URL.
+   It creates the D1 database and R2 bucket, locks the site with Access and sets the secrets. It also writes the database id and Access settings into `wrangler.toml`, and saves the MCP URL in `.secrets/mcp-url.txt` (git-ignored).
+5. **Commit `wrangler.toml` and merge it to `main`.** Cloudflare redeploys with everything connected.
+6. **Connect Claude:** claude.ai → Settings → Connectors → Add custom connector, and paste the MCP URL.
 
-Later deploys: `npm run deploy`.
+From then on, merging to `main` deploys. Other branches get preview links, also behind Access.
 
 ### Local development
 
@@ -83,7 +94,7 @@ npm run dev        # http://localhost:8788
 | `server/auth.js` | Cloudflare Access token check |
 | `server/store.js` | D1 documents, R2 file streaming |
 | `server/claude.js` | Claude API call for note feedback |
-| `scripts/setup.mjs` | One-shot Cloudflare setup and deploy |
+| `scripts/setup.mjs` | One-shot Cloudflare setup (database, storage, Access, secrets) |
 | `scripts/build.mjs` | Builds `dist/index.html` |
 
 
