@@ -1,7 +1,10 @@
 /* ---------- read just a stretch of audio from an MP4, without downloading the whole video ----------
    Finds the audio track's sample table in the file's index (moov box), fetches only the byte
    ranges that hold the audio for the requested time span, and decodes them with WebCodecs.
-   Throws on anything it can't handle (not MP4, not AAC, no WebCodecs), so callers can fall back. */
+   Decodes with WebCodecs where the browser has it, otherwise wraps the AAC frames as an ADTS stream
+   for the ordinary audio decoder. Errors marked .permanent mean this file can't be read in pieces
+   here; anything else (a network blip) is worth retrying. */
+const permanent = (msg) => Object.assign(new Error(msg), { permanent: true });
 const Mp4Audio = {
   tables: new Map(), // cache key -> parsed audio track (sample table etc.)
 
@@ -13,7 +16,7 @@ const Mp4Audio = {
     let total = null;
     const read = async (a, b) => {
       const r = await fetch(src, { headers: { range: `bytes=${a}-${b}` }, credentials: 'same-origin' });
-      if (r.status !== 206) throw new Error(r.ok ? 'no range support' : `HTTP ${r.status}`);
+      if (r.status !== 206) throw r.ok ? permanent('no range support') : new Error(`HTTP ${r.status}`);
       const cr = r.headers.get('content-range');
       if (cr && total == null) total = +cr.split('/')[1];
       return new Uint8Array(await r.arrayBuffer());
@@ -33,11 +36,11 @@ const Mp4Audio = {
       const type = String.fromCharCode(hb[4], hb[5], hb[6], hb[7]);
       if (size === 1) size = Number(dv.getBigUint64(8));
       else if (size === 0) size = total - off;
-      if (size < 8) throw new Error('bad box');
+      if (size < 8) throw permanent('bad box');
       if (type === 'moov') { moov = await rd.read(off, off + size - 1); break; }
       off += size;
     }
-    if (!moov) throw new Error('no moov');
+    if (!moov) throw permanent('no moov');
     const t = this.parseMoov(moov);
     this.tables.set(key, t);
     return t;
@@ -114,12 +117,12 @@ const Mp4Audio = {
       }
       return { timescale, mediaStart, sizes, offsets, dts, count, ...cfg };
     }
-    throw new Error('no audio track');
+    throw permanent('no audio track');
   },
 
   audioConfig(u8, dv, stsd) {
     const entry = this.boxes(u8, stsd.body + 8, stsd.end)[0];
-    if (!entry || (entry.type !== 'mp4a' && entry.type !== 'Opus')) throw new Error(`audio codec ${entry && entry.type} not supported`);
+    if (!entry || (entry.type !== 'mp4a' && entry.type !== 'Opus')) throw permanent(`audio codec ${entry && entry.type} not supported`);
     const b = entry.body;
     const version = dv.getUint16(b + 8);
     const channels = dv.getUint16(b + 16);
@@ -127,38 +130,43 @@ const Mp4Audio = {
     const childStart = b + 28 + (version === 1 ? 16 : version === 2 ? 36 : 0);
     if (entry.type === 'Opus') return { codec: 'opus', channels, rate: 48000, asc: undefined };
     const esds = this.boxes(u8, childStart, entry.end).find((x) => x.type === 'esds');
-    if (!esds) throw new Error('no esds');
+    if (!esds) throw permanent('no esds');
     // walk the MPEG-4 descriptors down to DecoderSpecificInfo (the AudioSpecificConfig)
     let p = esds.body + 4;
     const desc = () => { const tag = u8[p++]; let len = 0, c; do { c = u8[p++]; len = (len << 7) | (c & 0x7f); } while (c & 0x80); return { tag, len }; };
     let d = desc();
-    if (d.tag !== 3) throw new Error('bad esds');
+    if (d.tag !== 3) throw permanent('bad esds');
     p += 2; const flags = u8[p++];
     if (flags & 0x80) p += 2;
     if (flags & 0x40) p += 1 + u8[p];
     if (flags & 0x20) p += 2;
     d = desc();
-    if (d.tag !== 4) throw new Error('bad esds');
+    if (d.tag !== 4) throw permanent('bad esds');
     const oti = u8[p];
-    if (oti !== 0x40 && oti !== 0x66 && oti !== 0x67) throw new Error('not AAC');
+    if (oti !== 0x40 && oti !== 0x66 && oti !== 0x67) throw permanent('not AAC');
     p += 13;
     d = desc();
-    if (d.tag !== 5) throw new Error('no AudioSpecificConfig');
+    if (d.tag !== 5) throw permanent('no AudioSpecificConfig');
     const asc = u8.slice(p, p + d.len);
     let aot = asc[0] >> 3;
     if (aot === 31) aot = 32 + (((asc[0] & 7) << 3) | (asc[1] >> 5));
     return { codec: `mp4a.40.${aot}`, channels, rate, asc };
   },
 
-  /* decode [t0, t1] seconds to mono 16 kHz */
-  async extract(key, src, t0, t1, onProgress) {
-    if (typeof AudioDecoder === 'undefined') throw new Error('no WebCodecs');
-    const rd = this.reader(src);
-    const T = await this.track(key, rd);
+  /* can this browser decode the track with WebCodecs? */
+  async webCodecs(T) {
+    if (typeof AudioDecoder === 'undefined') return null;
     const cfg = { codec: T.codec, sampleRate: T.rate, numberOfChannels: T.channels };
     if (T.asc) cfg.description = T.asc;
-    const sup = await AudioDecoder.isConfigSupported(cfg);
-    if (!sup.supported) throw new Error(`${T.codec} not decodable here`);
+    try { return (await AudioDecoder.isConfigSupported(cfg)).supported ? cfg : null; } catch { return null; }
+  },
+
+  /* decode [t0, t1] seconds to mono 16 kHz */
+  async extract(key, src, t0, t1, onProgress) {
+    const rd = this.reader(src);
+    const T = await this.track(key, rd);
+    const cfg = await this.webCodecs(T);
+    if (!cfg && !T.asc) throw permanent(`${T.codec} audio can't be decoded in pieces in this browser`);
     const secOf = (i) => (T.dts[i] - T.mediaStart) / T.timescale;
     let i0 = 0, i1 = T.count - 1;
     while (i0 < T.count - 1 && secOf(i0 + 1) <= t0) i0++;
@@ -182,10 +190,29 @@ const Mp4Audio = {
       }
     };
     await Promise.all(Array.from({ length: Math.min(6, ranges.length) }, worker));
-    // decode
+    const frames = [];
+    ranges.forEach((r, k) => {
+      for (let i = r.i0; i <= r.i1; i++) { const o = T.offsets[i] - r.a; frames.push({ i, data: bufs[k].subarray(o, o + T.sizes[i]) }); }
+    });
     const startSec = secOf(i0);
+    let mono, rate, via = 'WebCodecs';
+    if (cfg) {
+      try { ({ mono, rate } = await this.decodeWebCodecs(T, cfg, frames, startSec, secOf(i1))); } catch (e) { if (!T.asc) throw e; }
+    }
+    if (!mono) {
+      const adts = this.adts(T, frames);
+      try { mono = await AudioEng.decode(adts.buffer); } catch (e) { throw permanent(`AAC can't be decoded in this browser (${e.message || e.name})`); }
+      rate = SR; via = 'ADTS';
+    }
+    // trim to the asked span and resample
+    const a = clamp(Math.round((t0 - startSec) * rate), 0, mono.length);
+    const b = clamp(Math.round((t1 - startSec) * rate), a, mono.length);
+    return { samples: rate === SR ? mono.slice(a, b) : DSP.resample(mono.subarray(a, b), rate, SR), t0: startSec + a / rate, t1: startSec + b / rate, via };
+  },
+
+  async decodeWebCodecs(T, cfg, frames, startSec, endSec) {
     const outRate = T.rate;
-    const total = Math.ceil((secOf(i1) - startSec + 0.2) * outRate);
+    const total = Math.ceil((endSec - startSec + 0.2) * outRate);
     const mono = new Float32Array(total);
     let err = null;
     const dec = new AudioDecoder({
@@ -202,18 +229,32 @@ const Mp4Audio = {
       error: (e) => { err = e; },
     });
     dec.configure(cfg);
-    ranges.forEach((r, k) => {
-      for (let i = r.i0; i <= r.i1; i++) {
-        const o = T.offsets[i] - r.a;
-        dec.decode(new EncodedAudioChunk({ type: 'key', timestamp: Math.round(secOf(i) * 1e6), data: bufs[k].subarray(o, o + T.sizes[i]) }));
-      }
-    });
+    const secOf = (i) => (T.dts[i] - T.mediaStart) / T.timescale;
+    for (const f of frames) dec.decode(new EncodedAudioChunk({ type: 'key', timestamp: Math.round(secOf(f.i) * 1e6), data: f.data }));
     await dec.flush();
     dec.close();
     if (err) throw err;
-    // trim to the asked span and resample
-    const a = Math.max(0, Math.round((t0 - startSec) * outRate));
-    const b = Math.min(total, Math.round((t1 - startSec) * outRate));
-    return { samples: DSP.resample(mono.subarray(a, b), outRate, SR), t0: startSec + a / outRate, t1: startSec + b / outRate };
+    return { mono, rate: outRate };
+  },
+
+  /* AAC frames -> an ADTS stream (what .aac files are), which every browser's audio decoder reads */
+  adts(T, frames) {
+    const asc = T.asc;
+    const aot = asc[0] >> 3, sfi = ((asc[0] & 7) << 1) | (asc[1] >> 7), chans = (asc[1] >> 3) & 15;
+    if (aot < 1 || aot > 4 || sfi > 12 || !chans) throw permanent('this AAC flavour can’t be decoded in pieces in this browser');
+    const out = new Uint8Array(frames.reduce((n, f) => n + f.data.length + 7, 0));
+    let p = 0;
+    for (const f of frames) {
+      const len = f.data.length + 7;
+      out[p] = 0xff; out[p + 1] = 0xf1;
+      out[p + 2] = ((aot - 1) << 6) | (sfi << 2) | (chans >> 2);
+      out[p + 3] = ((chans & 3) << 6) | (len >> 11);
+      out[p + 4] = (len >> 3) & 0xff;
+      out[p + 5] = ((len & 7) << 5) | 0x1f;
+      out[p + 6] = 0xfc;
+      out.set(f.data, p + 7);
+      p += len;
+    }
+    return out;
   },
 };

@@ -282,6 +282,12 @@ function renderControls() {
     btn('', () => openShortcuts(), { icon: 'keyboard', title: 'Keyboard shortcuts (?)', id: 'kbBtn' }));
 }
 
+/* Cancel / Esc while cutting: drop the selection and leave clip mode in one go */
+function cancelCut() {
+  UI.sel = null;
+  if (UI.cutMode) setCutMode(false); else renderAll();
+}
+
 function setCutMode(on) {
   if (Session.active && on) return;
   UI.cutMode = on;

@@ -20,8 +20,8 @@ function applyLayout() {
    page doesn't reshuffle when you press a button:
    - the video gets the window height minus a fixed allowance for the panel underneath;
    - the right column takes the width the video doesn't need (within limits);
-   - the panel underneath fills down to the bottom of the window;
-   - in a session the session card matches the player's height. */
+   - the library or session card beside the player matches its height;
+   - the full-width panel underneath fills down to the bottom of the window. */
 const BELOW_ALLOWANCE = 250;
 let fitQueued = false;
 function scheduleFit() {
@@ -31,11 +31,9 @@ function scheduleFit() {
 }
 function fitLayout() {
   const L = $('.layout');
-  const sess = $('#session'), below = $('#below');
   if (!wideLayout.matches) {
     L.classList.remove('fit');
-    ['--side-w', '--video-h', '--below-h'].forEach((v) => L.style.removeProperty(v));
-    sess.style.height = '';
+    ['--side-w', '--video-h', '--below-h', '--top-h'].forEach((v) => L.style.removeProperty(v));
     return;
   }
   L.classList.add('fit');
@@ -54,7 +52,7 @@ function fitLayout() {
   L.style.setProperty('--video-h', `${Math.floor(vh)}px`);
   const playerH = $('#player').offsetHeight;
   L.style.setProperty('--below-h', `${Math.max(BELOW_ALLOWANCE, Math.floor(avail - playerH - gapY))}px`);
-  sess.style.height = Session.active && sess.parentElement === $('#sideSlot') ? `${playerH}px` : '';
+  L.style.setProperty('--top-h', `${playerH}px`); // library / session card: same height as the player
   Panel.onTime(Player.time()); // the chart may have changed size
 }
 
@@ -90,7 +88,7 @@ function onKey(e) {
   else if (k === 'ArrowRight') { e.preventDefault(); Player.seek(Player.time() + 2); }
   else if (k === 'Enter' && Session.active && (Session.phase === 'intro' || Session.phase === 'armed')) Session.go();
   else if (k === 'c' || k === 'C') { if (Player.current() && !Session.active) setCutMode(!UI.cutMode); }
-  else if (k === 'Escape') { if (UI.drawer) closeDrawer(); else if (UI.sel && !Session.active) { UI.sel = null; renderAll(); } else if (UI.cutMode) setCutMode(false); }
+  else if (k === 'Escape') { if (UI.drawer) closeDrawer(); else if ((UI.sel || UI.cutMode) && !Session.active) cancelCut(); }
   else if (k === '?') openShortcuts();
 }
 
