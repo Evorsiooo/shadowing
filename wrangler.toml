@@ -8,15 +8,15 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 # Cloudflare Access: team domain (e.g. "adrien.cloudflareaccess.com") and the
 # application's Audience (AUD) tag. Every /api request is checked against these.
-ACCESS_TEAM_DOMAIN = ""
-ACCESS_AUD = ""
+ACCESS_TEAM_DOMAIN = "sonaris.cloudflareaccess.com"
+ACCESS_AUD = "c891bd70aa751c76b05d072742cf32ace01c84bdd466808f162da2fb8ff6959f"
 # Optional: comma-separated emails allowed in (on top of the Access policy).
-ALLOWED_EMAIL = ""
+ALLOWED_EMAIL = "evorsio1@gmail.com"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "shadowing"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "fe8dc4c5-4122-44b1-b4da-fcbeda64ac41"
 migrations_dir = "migrations"
 
 [[r2_buckets]]
