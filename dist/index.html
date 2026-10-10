@@ -201,6 +201,7 @@ input[type="range"] { accent-color: var(--green); }
   background: var(--surface-2); font-weight: 800; font-size: 0.85rem; border: 2px solid transparent;
 }
 .chip { color: var(--fg); }
+button.chip { font-family: inherit; cursor: pointer; }
 .chip svg { width: 18px; height: 18px; color: var(--green); }
 .chip.streak svg { color: var(--ochre); }
 .chip.streak.cold svg { color: var(--muted); }
@@ -401,6 +402,13 @@ body.calm .toast { animation: none; }
   .counter { font-size: 1.6rem; }
   .vol { display: none; }
 }
+
+/* ---------- mic control ---------- */
+.mic-control { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.85rem; }
+.mic-control > svg { width: 18px; height: 18px; color: var(--muted); }
+.mic-meter { width: 120px; height: 10px; }
+.mic-meter > i { transition: none; }
+.mic-control input[type="range"] { width: 110px; }
 
 </style>
 
@@ -1021,6 +1029,7 @@ const DEFAULT_SETTINGS = {
   review: false, reviewAfterDays: 2, reviewShadowPasses: 5,
   keepAllPassRecordings: false,
   echoCancellation: false, noiseSuppression: false,
+  micAuto: true, micGain: 2,
   pitchSmoothing: 5,
   programmeStart: null,
   defaultView: 'pitch',
@@ -1451,9 +1460,11 @@ function videoSrc(v) {
 
 /* ---------- microphone ---------- */
 const Mic = {
-  stream: null, source: null, proc: null, sink: null,
+  stream: null, source: null, gain: null, proc: null, sink: null, dest: null,
   listeners: new Set(),
   error: null,
+  level: -100, // last chunk's loudness (dBFS, after gain)
+  speech: null, // running estimate of speech loudness, for automatic gain
   async open() {
     if (this.stream && this.stream.active) return true;
     const s = settings();
@@ -1464,7 +1475,7 @@ const Mic = {
     }
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: !!s.echoCancellation, noiseSuppression: !!s.noiseSuppression, autoGainControl: false, channelCount: 1 },
+        audio: { echoCancellation: !!s.echoCancellation, noiseSuppression: !!s.noiseSuppression, autoGainControl: !!s.micAuto, channelCount: 1 },
       });
     } catch (e) {
       this.error = e && e.name === 'NotAllowedError'
@@ -1475,17 +1486,27 @@ const Mic = {
       return false;
     }
     this.error = null;
+    // mic → gain (sensitivity) → analysis + recording
     this.source = ctx.createMediaStreamSource(this.stream);
+    this.gain = ctx.createGain();
+    this.gain.gain.value = s.micAuto ? (this.autoGain || 1) : s.micGain;
+    this.dest = ctx.createMediaStreamDestination();
     this.proc = ctx.createScriptProcessor(2048, 1, 1);
     this.sink = ctx.createGain();
     this.sink.gain.value = 0;
-    this.source.connect(this.proc);
+    this.source.connect(this.gain);
+    this.gain.connect(this.proc);
+    this.gain.connect(this.dest);
     this.proc.connect(this.sink);
     this.sink.connect(ctx.destination);
     let carry = new Float32Array(0);
     this.proc.onaudioprocess = (e) => {
       const input = e.inputBuffer.getChannelData(0);
       const t = ctx.currentTime - input.length / ctx.sampleRate; // approx. capture time of first sample
+      let sum = 0;
+      for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
+      this.level = 20 * Math.log10(Math.sqrt(sum / input.length) + 1e-6);
+      this.adapt();
       // resample with carry-over so chunks join cleanly
       const joined = new Float32Array(carry.length + input.length);
       joined.set(carry); joined.set(input, carry.length);
@@ -1497,13 +1518,62 @@ const Mic = {
     };
     return true;
   },
+  /* automatic sensitivity: nudge the gain so speech sits around -20 dBFS */
+  adapt() {
+    if (!this.gain || !settings().micAuto) return;
+    const lvl = this.level;
+    if (lvl < -65) return; // silence: leave the gain alone
+    const g = this.gain.gain.value;
+    const raw = lvl - 20 * Math.log10(g); // level before our gain
+    // follow loud stretches quickly, quiet ones slowly, so only speech sets the level
+    this.speech = this.speech == null ? raw : raw > this.speech ? this.speech * 0.7 + raw * 0.3 : this.speech * 0.995 + raw * 0.005;
+    const want = clamp(10 ** ((-20 - this.speech) / 20), 1, 30);
+    const next = g + (want - g) * 0.08;
+    this.gain.gain.value = next;
+    this.autoGain = next;
+  },
+  setGain(x) {
+    if (this.gain) this.gain.gain.value = x;
+  },
+  /* stream for MediaRecorder: the boosted signal when available */
+  recordStream() { return this.dest ? this.dest.stream : this.stream; },
   close() {
-    try { this.proc && this.proc.disconnect(); this.source && this.source.disconnect(); this.sink && this.sink.disconnect(); } catch { /* already closed */ }
+    try { [this.proc, this.source, this.gain, this.sink].forEach((n) => n && n.disconnect()); } catch { /* already closed */ }
     if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
-    this.stream = this.source = this.proc = this.sink = null;
+    this.stream = this.source = this.gain = this.proc = this.sink = this.dest = null;
+    this.level = -100;
   },
   on(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); },
 };
+
+/* a small mic control: live level meter, automatic volume on/off, manual boost */
+function micControl() {
+  const s = settings();
+  const fill = h('i', { style: { width: '0%' } });
+  const meter = h('div', { class: 'bar mic-meter', title: 'Microphone level' }, fill);
+  const val = h('span', { class: 'small muted num' });
+  const slider = h('input', { type: 'range', id: 'micGain', min: 0.5, max: 12, step: 0.5, value: s.micGain, 'aria-label': 'Microphone boost', disabled: s.micAuto,
+    oninput: (e) => { const x = +e.target.value; saveSettings({ micGain: x }); Mic.setGain(x); val.textContent = `${x}x`; } });
+  val.textContent = s.micAuto ? 'auto' : `${s.micGain}x`;
+  const auto = h('label', { class: 'check', for: 'micAuto' }, h('input', { type: 'checkbox', id: 'micAuto', checked: s.micAuto, onchange: (e) => {
+    saveSettings({ micAuto: e.target.checked });
+    slider.disabled = e.target.checked;
+    val.textContent = e.target.checked ? 'auto' : `${settings().micGain}x`;
+    if (!e.target.checked) Mic.setGain(settings().micGain);
+    if (Mic.stream) toast('Re-open the microphone (next pass) for the browser part of automatic volume to change.');
+  } }), 'Automatic volume');
+  const el = h('div', { class: 'mic-control' }, icon('mic'), meter, auto, slider, val);
+  const tick = () => {
+    if (!el.isConnected) return;
+    const pct = clamp((Mic.level + 60) / 60, 0, 1) * 100;
+    fill.style.width = pct + '%';
+    fill.style.background = Mic.level > -3 ? 'var(--red)' : Mic.level > -35 ? 'var(--green)' : 'var(--wattle)';
+    if (settings().micAuto && Mic.gain) val.textContent = `auto ${Mic.gain.gain.value.toFixed(1)}x`;
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  return el;
+}
 
 /* a recording: compressed file (for keeping) + 16 kHz samples (for analysis) */
 function pickMime() {
@@ -1515,7 +1585,7 @@ class Recording {
   constructor() { this.chunks = []; this.pcm = []; this.startCtx = null; this.len = 0; }
   start() {
     const mime = pickMime();
-    this.rec = new MediaRecorder(Mic.stream, mime ? { mimeType: mime } : undefined);
+    this.rec = new MediaRecorder(Mic.recordStream(), mime ? { mimeType: mime } : undefined);
     this.rec.ondataavailable = (e) => e.data && e.data.size && this.chunks.push(e.data);
     this.off = Mic.on((samples, t) => {
       if (this.startCtx == null) this.startCtx = t;
@@ -1587,6 +1657,7 @@ const UI = {
   editVideo: null,
   showArchivedClips: false,
   cutMode: false,
+  showAllClips: {},
   overlay: lsGet('overlay', false),
 };
 
@@ -2152,7 +2223,7 @@ Panel.drawAnalysis = function (t) {
       g.strokeStyle = lanes[1].color; g.lineWidth = 3 * dpr; g.lineJoin = 'round'; g.beginPath();
       let pen = false, prevT = -1;
       for (const p of pts) {
-        if (p.st == null || p.t < 0 || p.t > dur || p.t - prevT > 0.06) { pen = false; }
+        if (p.st == null || p.t < 0 || p.t > dur || p.t - prevT > 0.08) { pen = false; }
         prevT = p.t;
         if (p.st == null || p.t < 0 || p.t > dur) continue;
         const L = lanes[1];
@@ -2599,6 +2670,15 @@ function editVideoForm(v) {
   h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary sm' }, h('span', null, 'Save')), btn('Cancel', () => { UI.editVideoId = null; renderSidebar(); }, { size: 'sm', kind: 'ghost' })));
 }
 
+const CLIP_LIMIT = 5;
+/* a long clip list is cut to the ones that matter now: selected, queued, then not-done, in timeline order */
+function visibleClips(v, live) {
+  if (live.length <= CLIP_LIMIT || UI.showAllClips[v.id]) return live;
+  const score = (c) => (c.id === UI.clipId ? 0 : UI.queue.includes(c.id) ? 1 : !c.done ? 2 : 3);
+  const keep = new Set(live.slice().sort((a, b) => score(a) - score(b) || a.start - b.start).slice(0, CLIP_LIMIT).map((c) => c.id));
+  return live.filter((c) => keep.has(c.id));
+}
+
 function clipList(v) {
   const all = videoClips(v.id);
   const live = all.filter((c) => !c.archived);
@@ -2618,7 +2698,8 @@ function clipList(v) {
         btn('', () => openClipMenu(c), { size: 'sm', kind: 'ghost', icon: 'menu', title: 'Clip options' })));
   };
   return h('div', { class: 'clist' },
-    live.length ? live.map(item) : h('p', { class: 'small muted' }, 'No clips yet. Press Cut clips under the video, then drag along the timeline.'),
+    live.length ? visibleClips(v, live).map((c) => item(c, live.indexOf(c))) : h('p', { class: 'small muted' }, 'No clips yet. Press Cut clips under the video, then drag along the timeline.'),
+    live.length > CLIP_LIMIT ? btn(UI.showAllClips[v.id] ? 'Show fewer' : `Show all ${live.length} clips`, () => { UI.showAllClips[v.id] = !UI.showAllClips[v.id]; renderSidebar(); }, { size: 'sm', kind: 'ghost' }) : null,
     UI.queue.length ? h('div', { class: 'row small' }, h('span', { class: 'muted grow' }, `${UI.queue.length} queued`), btn('Clear queue', () => { UI.queue = []; renderSidebar(); renderSession(); }, { size: 'sm', kind: 'ghost' })) : null,
     arch.length ? h('details', { class: 'archived', open: UI.showArchivedClips, ontoggle: (e) => { UI.showArchivedClips = e.target.open; } }, h('summary', null, `Archived clips (${arch.length})`), h('div', { class: 'clist' }, arch.map(item))) : null);
 }
@@ -2857,17 +2938,22 @@ const Session = {
     const maxFrame = Math.floor((x.length - WIN - Math.floor(SR / F0_MIN)) / HOP);
     for (let i = L.frames; i < maxFrame; i++) {
       const db = DSP.rmsDb(x, i * HOP, WIN);
+      // noise floor follows quiet stretches, so speech is judged against your room, not a fixed level
+      L.floor = L.floor == null ? db : db < L.floor ? L.floor * 0.8 + db * 0.2 : L.floor * 0.999 + db * 0.001;
+      const voiceGate = Math.max(L.floor + 8, -75);
       const [f, c] = DSP.yin(x, i * HOP, diff);
       let st = null;
-      if (c > 0.82 && f >= F0_MIN && f <= F0_MAX && db > -55) {
+      if (c > 0.75 && f >= F0_MIN && f <= F0_MAX && db > voiceGate) {
         L.f0s.push(f);
         if (!L.ref && L.f0s.length > 40) L.ref = median(L.f0s);
         const ref = L.ref || median(L.f0s);
-        st = 12 * Math.log2(f / ref);
-      }
+        // light smoothing: median of the last three readings keeps the line from jittering
+        L.recent = (L.recent || []).concat(12 * Math.log2(f / ref)).slice(-3);
+        st = median(L.recent);
+      } else L.recent = [];
       const ct = (this.rec.startCtx + i * HOP_S - zero) * rate;
       // rough live sync: line up the moment you start speaking with the speaker's first sound
-      if (L.userOnset == null && db > -45) {
+      if (L.userOnset == null && db > Math.max(L.floor + 15, -65)) {
         L.loudRun = (L.loudRun || 0) + 1;
         if (L.loudRun >= 5) {
           L.userOnset = ct - 4 * HOP_S;
@@ -3088,6 +3174,7 @@ function renderSession() {
       h('div', { class: 'grow stack' },
         h('h3', null, st.recordLast === 'final' ? 'Final recorded pass' : 'Recorded pass'),
         h('p', { class: 'row session-hint' }, icon('headphones'), 'Headphones on (wired is best), or the microphone will pick up the clip.'),
+        micControl(),
         Mic.error ? h('p', { class: 'warnline' }, Mic.error) : null),
       Mic.error ? h('div', { class: 'row' },
         filePickButton('Upload a recording', 'audio/*,video/*', (f) => uploadPassRecording(f), { icon: 'upload' }),
@@ -3102,7 +3189,7 @@ function renderSession() {
       counter,
       h('div', { class: 'grow' },
         h('p', { class: 'session-hint' }, paused ? 'Paused. Press play (or Space) to restart this pass.' : S.phase === 'recording' ? 'Recording… shadow along now.' : S.phase === 'gap' ? `Next pass in a moment · ${left} to go` : st.speak ? 'Speak along with the speaker.' : 'Listen only.'),
-        S.liveThisPass || S.phase === 'recording' ? h('p', { class: 'small muted' }, 'Your pitch line is drawing in the panel below.') : null),
+        S.liveThisPass || S.phase === 'recording' ? [h('p', { class: 'small muted' }, 'Your pitch line is drawing in the panel below.'), micControl()] : null),
       btn('', () => S.togglePause(), { icon: paused ? 'play' : 'pause', title: paused ? 'Resume (Space)' : 'Pause (Space)', kind: paused ? 'primary' : '' }),
       btn('', () => S.repeatPass(), { icon: 'replay', title: 'Repeat this pass without counting it (R)' }),
     ];
@@ -3268,7 +3355,9 @@ function showSessionSummary(sum, streakBefore, nextClipId) {
     recs.length === 2 ? btn('Compare step 3 with your final pass', () => openCompare(sum.recs.step3, sum.recs.final), { kind: 'blue' }) : null,
     h('div', { class: 'row' },
       nextClipId ? btn('Next clip in the queue', () => { closeModal(); Session.begin(nextClipId, sum.mode === 'review' ? 'review' : 'full'); }, { kind: 'primary', size: 'big', icon: 'play' }) : btn('Done', () => closeModal(), { kind: 'primary', size: 'big' }),
-      btn('Clip history', () => openHistory(sum.clipId), { icon: 'history' })),
+      btn('Clip history', () => openHistory(sum.clipId), { icon: 'history' }),
+      h('span', { class: 'spacer' }),
+      deleteSessionButton(sum.sessionId, () => closeModal())),
   ], { narrow: true });
 }
 
@@ -3547,6 +3636,45 @@ async function openCompare(idA, idB, urlB) {
   ]);
 }
 
+/* delete button with an in-place confirm */
+function deleteSessionButton(sessionId, after) {
+  const wrap = h('span', { class: 'row' });
+  const normal = () => mount(wrap, btn('Delete session', () => ask(), { size: 'sm', kind: 'ghost' }));
+  const ask = () => mount(wrap,
+    h('span', { class: 'small', style: { fontWeight: 800 } }, 'Delete this session, its recordings and notes?'),
+    btn('Delete', async () => { await deleteSession(sessionId); after && after(); }, { size: 'sm', kind: 'danger' }),
+    btn('Keep it', normal, { size: 'sm', kind: 'ghost' }));
+  normal();
+  return wrap;
+}
+
+async function deleteSession(sessionId) {
+  const sess = Store.get('sessions', sessionId);
+  if (!sess) return;
+  const drop = (col, id) => { delete Store.data[col][id]; Store.schedule(col, id, 0); };
+  for (const r of Store.all('recordings').filter((x) => x.sessionId === sessionId)) {
+    await Store.deleteBlob(r.ref);
+    drop('recordings', r.id);
+  }
+  const noteIds = new Set(Store.all('notes').filter((n) => n.sessionId === sessionId).map((n) => n.id));
+  for (const id of noteIds) drop('notes', id);
+  for (const i of Store.all('issues')) {
+    if ((i.noteIds || []).some((id) => noteIds.has(id))) Store.patch('issues', i.id, { noteIds: i.noteIds.filter((id) => !noteIds.has(id)) });
+  }
+  drop('sessions', sessionId);
+  // the clip keeps its tick only if another complete full session remains
+  const clip = Store.get('clips', sess.clipId);
+  if (clip) {
+    const rest = Store.all('sessions').filter((x) => x.clipId === clip.id && !x.empty);
+    const stillDone = rest.some((x) => x.complete && x.mode === 'full');
+    const last = rest.map((x) => x.date).sort().pop() || null;
+    if (clip.done && !stillDone && sess.complete && sess.mode === 'full') Store.patch('clips', clip.id, { done: false, doneAt: null, lastPractised: last });
+    else Store.patch('clips', clip.id, { lastPractised: last });
+  }
+  toast('Session deleted.');
+  renderAll();
+}
+
 async function openHistory(clipId) {
   const clip = Store.get('clips', clipId);
   if (!clip) return;
@@ -3566,7 +3694,10 @@ async function openHistory(clipId) {
         h('span', { class: 'small', style: { minWidth: '120px', fontWeight: 800 } }, r.slot === 'step3' ? 'Step 3' : r.slot === 'final' ? 'Final' : `Pass ${r.pass}`),
         await recAudio(r),
         h('span', { class: 'small muted' }, fmtLag(r.lag)))))) : null,
-      s.recs && s.recs.step3 && s.recs.final ? btn('Compare side by side', () => openCompare(s.recs.step3, s.recs.final), { size: 'sm', kind: 'blue' }) : null,
+      h('div', { class: 'row' },
+        s.recs && s.recs.step3 && s.recs.final ? btn('Compare side by side', () => openCompare(s.recs.step3, s.recs.final), { size: 'sm', kind: 'blue' }) : null,
+        h('span', { class: 'spacer' }),
+        deleteSessionButton(s.id, () => openHistory(clipId))),
       ns.map(noteCard));
   }));
   openModal([
@@ -3614,7 +3745,7 @@ function renderChips() {
   mount($('#chips'),
     h('span', { class: `chip streak ${s.practisedToday ? '' : 'cold'}`, title: 'Day streak (one rest day in a row is allowed)' }, icon('flame'), `${s.streak} day${s.streak === 1 ? '' : 's'}`),
     h('span', { class: 'chip', title: 'Days practised this week' }, icon('calendar'), `${s.weekCount}/${target} this week`),
-    h('span', { class: 'chip mode', title: storageTitle() }, icon(Store.mode === 'cloud' || Store.mode === 'artifact' ? 'check' : 'folder'), Store.mode === 'cloud' || Store.mode === 'artifact' ? 'Synced' : Store.mode === 'local' ? 'This browser' : 'Not saved'));
+    h('button', { type: 'button', class: 'chip mode', title: storageTitle(), onclick: () => toast(storageTitle(), '', 6000) }, icon(Store.mode === 'cloud' || Store.mode === 'artifact' ? 'check' : 'folder'), Store.mode === 'cloud' || Store.mode === 'artifact' ? 'Synced' : Store.mode === 'local' ? 'This browser' : 'Not saved'));
   mount($('#topnav'),
     btn('Library', () => openDrawer(), { icon: 'menu', size: 'sm', kind: 'ghost', aria: 'Library', title: 'Video library' }),
     btn('Progress', () => openProgress('habit'), { icon: 'chart', size: 'sm', aria: 'Progress', title: 'Progress' }),
@@ -3881,6 +4012,7 @@ function openCheckinRecorder(week) {
   draw();
   openModal([
     modalHead(week === 0 ? 'Week 0 baseline' : `Week ${week} check-in`, 'Use the same microphone and room each time. Headphones aren’t needed here.'),
+    micControl(),
     body,
     h('div', { class: 'row' }, btn('Back to check-ins', () => openCheckins(), { kind: 'ghost' })),
   ], { onClose: () => { renderBanners(); } });
@@ -4152,6 +4284,8 @@ const SETTING_GROUPS = [
     ['latencyMs', 'Device delay correction (ms); subtracted from every lag', -500, 1000, 5],
     ['livePitchAllPasses', 'Show my live pitch line on every shadow pass (not just recorded ones)', 'bool'],
     ['keepAllPassRecordings', 'Keep every pass recording (uses more storage)', 'bool'],
+    ['micAuto', 'Automatic microphone volume (recommended)', 'bool'],
+    ['micGain', 'Microphone boost when automatic volume is off (×)', 0.5, 12, 0.5],
     ['echoCancellation', 'Echo cancellation (only if you can’t use headphones)', 'bool'],
     ['noiseSuppression', 'Noise suppression', 'bool'],
     ['pitchSmoothing', 'Pitch line smoothing (frames)', 1, 15, 2],

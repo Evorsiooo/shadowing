@@ -17,6 +17,8 @@ const SETTING_GROUPS = [
     ['latencyMs', 'Device delay correction (ms); subtracted from every lag', -500, 1000, 5],
     ['livePitchAllPasses', 'Show my live pitch line on every shadow pass (not just recorded ones)', 'bool'],
     ['keepAllPassRecordings', 'Keep every pass recording (uses more storage)', 'bool'],
+    ['micAuto', 'Automatic microphone volume (recommended)', 'bool'],
+    ['micGain', 'Microphone boost when automatic volume is off (×)', 0.5, 12, 0.5],
     ['echoCancellation', 'Echo cancellation (only if you can’t use headphones)', 'bool'],
     ['noiseSuppression', 'Noise suppression', 'bool'],
     ['pitchSmoothing', 'Pitch line smoothing (frames)', 1, 15, 2],

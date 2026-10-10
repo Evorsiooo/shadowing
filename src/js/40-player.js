@@ -15,6 +15,7 @@ const UI = {
   editVideo: null,
   showArchivedClips: false,
   cutMode: false,
+  showAllClips: {},
   overlay: lsGet('overlay', false),
 };
 

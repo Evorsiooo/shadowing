@@ -36,7 +36,7 @@ function renderChips() {
   mount($('#chips'),
     h('span', { class: `chip streak ${s.practisedToday ? '' : 'cold'}`, title: 'Day streak (one rest day in a row is allowed)' }, icon('flame'), `${s.streak} day${s.streak === 1 ? '' : 's'}`),
     h('span', { class: 'chip', title: 'Days practised this week' }, icon('calendar'), `${s.weekCount}/${target} this week`),
-    h('span', { class: 'chip mode', title: storageTitle() }, icon(Store.mode === 'cloud' || Store.mode === 'artifact' ? 'check' : 'folder'), Store.mode === 'cloud' || Store.mode === 'artifact' ? 'Synced' : Store.mode === 'local' ? 'This browser' : 'Not saved'));
+    h('button', { type: 'button', class: 'chip mode', title: storageTitle(), onclick: () => toast(storageTitle(), '', 6000) }, icon(Store.mode === 'cloud' || Store.mode === 'artifact' ? 'check' : 'folder'), Store.mode === 'cloud' || Store.mode === 'artifact' ? 'Synced' : Store.mode === 'local' ? 'This browser' : 'Not saved'));
   mount($('#topnav'),
     btn('Library', () => openDrawer(), { icon: 'menu', size: 'sm', kind: 'ghost', aria: 'Library', title: 'Video library' }),
     btn('Progress', () => openProgress('habit'), { icon: 'chart', size: 'sm', aria: 'Progress', title: 'Progress' }),
@@ -303,6 +303,7 @@ function openCheckinRecorder(week) {
   draw();
   openModal([
     modalHead(week === 0 ? 'Week 0 baseline' : `Week ${week} check-in`, 'Use the same microphone and room each time. Headphones aren’t needed here.'),
+    micControl(),
     body,
     h('div', { class: 'row' }, btn('Back to check-ins', () => openCheckins(), { kind: 'ghost' })),
   ], { onClose: () => { renderBanners(); } });

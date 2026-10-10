@@ -272,6 +272,45 @@ async function openCompare(idA, idB, urlB) {
   ]);
 }
 
+/* delete button with an in-place confirm */
+function deleteSessionButton(sessionId, after) {
+  const wrap = h('span', { class: 'row' });
+  const normal = () => mount(wrap, btn('Delete session', () => ask(), { size: 'sm', kind: 'ghost' }));
+  const ask = () => mount(wrap,
+    h('span', { class: 'small', style: { fontWeight: 800 } }, 'Delete this session, its recordings and notes?'),
+    btn('Delete', async () => { await deleteSession(sessionId); after && after(); }, { size: 'sm', kind: 'danger' }),
+    btn('Keep it', normal, { size: 'sm', kind: 'ghost' }));
+  normal();
+  return wrap;
+}
+
+async function deleteSession(sessionId) {
+  const sess = Store.get('sessions', sessionId);
+  if (!sess) return;
+  const drop = (col, id) => { delete Store.data[col][id]; Store.schedule(col, id, 0); };
+  for (const r of Store.all('recordings').filter((x) => x.sessionId === sessionId)) {
+    await Store.deleteBlob(r.ref);
+    drop('recordings', r.id);
+  }
+  const noteIds = new Set(Store.all('notes').filter((n) => n.sessionId === sessionId).map((n) => n.id));
+  for (const id of noteIds) drop('notes', id);
+  for (const i of Store.all('issues')) {
+    if ((i.noteIds || []).some((id) => noteIds.has(id))) Store.patch('issues', i.id, { noteIds: i.noteIds.filter((id) => !noteIds.has(id)) });
+  }
+  drop('sessions', sessionId);
+  // the clip keeps its tick only if another complete full session remains
+  const clip = Store.get('clips', sess.clipId);
+  if (clip) {
+    const rest = Store.all('sessions').filter((x) => x.clipId === clip.id && !x.empty);
+    const stillDone = rest.some((x) => x.complete && x.mode === 'full');
+    const last = rest.map((x) => x.date).sort().pop() || null;
+    if (clip.done && !stillDone && sess.complete && sess.mode === 'full') Store.patch('clips', clip.id, { done: false, doneAt: null, lastPractised: last });
+    else Store.patch('clips', clip.id, { lastPractised: last });
+  }
+  toast('Session deleted.');
+  renderAll();
+}
+
 async function openHistory(clipId) {
   const clip = Store.get('clips', clipId);
   if (!clip) return;
@@ -291,7 +330,10 @@ async function openHistory(clipId) {
         h('span', { class: 'small', style: { minWidth: '120px', fontWeight: 800 } }, r.slot === 'step3' ? 'Step 3' : r.slot === 'final' ? 'Final' : `Pass ${r.pass}`),
         await recAudio(r),
         h('span', { class: 'small muted' }, fmtLag(r.lag)))))) : null,
-      s.recs && s.recs.step3 && s.recs.final ? btn('Compare side by side', () => openCompare(s.recs.step3, s.recs.final), { size: 'sm', kind: 'blue' }) : null,
+      h('div', { class: 'row' },
+        s.recs && s.recs.step3 && s.recs.final ? btn('Compare side by side', () => openCompare(s.recs.step3, s.recs.final), { size: 'sm', kind: 'blue' }) : null,
+        h('span', { class: 'spacer' }),
+        deleteSessionButton(s.id, () => openHistory(clipId))),
       ns.map(noteCard));
   }));
   openModal([

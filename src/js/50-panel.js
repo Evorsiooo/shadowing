@@ -193,7 +193,7 @@ Panel.drawAnalysis = function (t) {
       g.strokeStyle = lanes[1].color; g.lineWidth = 3 * dpr; g.lineJoin = 'round'; g.beginPath();
       let pen = false, prevT = -1;
       for (const p of pts) {
-        if (p.st == null || p.t < 0 || p.t > dur || p.t - prevT > 0.06) { pen = false; }
+        if (p.st == null || p.t < 0 || p.t > dur || p.t - prevT > 0.08) { pen = false; }
         prevT = p.t;
         if (p.st == null || p.t < 0 || p.t > dur) continue;
         const L = lanes[1];

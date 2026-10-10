@@ -189,6 +189,7 @@ input[type="range"] { accent-color: var(--green); }
   background: var(--surface-2); font-weight: 800; font-size: 0.85rem; border: 2px solid transparent;
 }
 .chip { color: var(--fg); }
+button.chip { font-family: inherit; cursor: pointer; }
 .chip svg { width: 18px; height: 18px; color: var(--green); }
 .chip.streak svg { color: var(--ochre); }
 .chip.streak.cold svg { color: var(--muted); }
@@ -389,3 +390,10 @@ body.calm .toast { animation: none; }
   .counter { font-size: 1.6rem; }
   .vol { display: none; }
 }
+
+/* ---------- mic control ---------- */
+.mic-control { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.85rem; }
+.mic-control > svg { width: 18px; height: 18px; color: var(--muted); }
+.mic-meter { width: 120px; height: 10px; }
+.mic-meter > i { transition: none; }
+.mic-control input[type="range"] { width: 110px; }

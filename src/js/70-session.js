@@ -217,17 +217,22 @@ const Session = {
     const maxFrame = Math.floor((x.length - WIN - Math.floor(SR / F0_MIN)) / HOP);
     for (let i = L.frames; i < maxFrame; i++) {
       const db = DSP.rmsDb(x, i * HOP, WIN);
+      // noise floor follows quiet stretches, so speech is judged against your room, not a fixed level
+      L.floor = L.floor == null ? db : db < L.floor ? L.floor * 0.8 + db * 0.2 : L.floor * 0.999 + db * 0.001;
+      const voiceGate = Math.max(L.floor + 8, -75);
       const [f, c] = DSP.yin(x, i * HOP, diff);
       let st = null;
-      if (c > 0.82 && f >= F0_MIN && f <= F0_MAX && db > -55) {
+      if (c > 0.75 && f >= F0_MIN && f <= F0_MAX && db > voiceGate) {
         L.f0s.push(f);
         if (!L.ref && L.f0s.length > 40) L.ref = median(L.f0s);
         const ref = L.ref || median(L.f0s);
-        st = 12 * Math.log2(f / ref);
-      }
+        // light smoothing: median of the last three readings keeps the line from jittering
+        L.recent = (L.recent || []).concat(12 * Math.log2(f / ref)).slice(-3);
+        st = median(L.recent);
+      } else L.recent = [];
       const ct = (this.rec.startCtx + i * HOP_S - zero) * rate;
       // rough live sync: line up the moment you start speaking with the speaker's first sound
-      if (L.userOnset == null && db > -45) {
+      if (L.userOnset == null && db > Math.max(L.floor + 15, -65)) {
         L.loudRun = (L.loudRun || 0) + 1;
         if (L.loudRun >= 5) {
           L.userOnset = ct - 4 * HOP_S;
@@ -448,6 +453,7 @@ function renderSession() {
       h('div', { class: 'grow stack' },
         h('h3', null, st.recordLast === 'final' ? 'Final recorded pass' : 'Recorded pass'),
         h('p', { class: 'row session-hint' }, icon('headphones'), 'Headphones on (wired is best), or the microphone will pick up the clip.'),
+        micControl(),
         Mic.error ? h('p', { class: 'warnline' }, Mic.error) : null),
       Mic.error ? h('div', { class: 'row' },
         filePickButton('Upload a recording', 'audio/*,video/*', (f) => uploadPassRecording(f), { icon: 'upload' }),
@@ -462,7 +468,7 @@ function renderSession() {
       counter,
       h('div', { class: 'grow' },
         h('p', { class: 'session-hint' }, paused ? 'Paused. Press play (or Space) to restart this pass.' : S.phase === 'recording' ? 'Recording… shadow along now.' : S.phase === 'gap' ? `Next pass in a moment · ${left} to go` : st.speak ? 'Speak along with the speaker.' : 'Listen only.'),
-        S.liveThisPass || S.phase === 'recording' ? h('p', { class: 'small muted' }, 'Your pitch line is drawing in the panel below.') : null),
+        S.liveThisPass || S.phase === 'recording' ? [h('p', { class: 'small muted' }, 'Your pitch line is drawing in the panel below.'), micControl()] : null),
       btn('', () => S.togglePause(), { icon: paused ? 'play' : 'pause', title: paused ? 'Resume (Space)' : 'Pause (Space)', kind: paused ? 'primary' : '' }),
       btn('', () => S.repeatPass(), { icon: 'replay', title: 'Repeat this pass without counting it (R)' }),
     ];
@@ -628,6 +634,8 @@ function showSessionSummary(sum, streakBefore, nextClipId) {
     recs.length === 2 ? btn('Compare step 3 with your final pass', () => openCompare(sum.recs.step3, sum.recs.final), { kind: 'blue' }) : null,
     h('div', { class: 'row' },
       nextClipId ? btn('Next clip in the queue', () => { closeModal(); Session.begin(nextClipId, sum.mode === 'review' ? 'review' : 'full'); }, { kind: 'primary', size: 'big', icon: 'play' }) : btn('Done', () => closeModal(), { kind: 'primary', size: 'big' }),
-      btn('Clip history', () => openHistory(sum.clipId), { icon: 'history' })),
+      btn('Clip history', () => openHistory(sum.clipId), { icon: 'history' }),
+      h('span', { class: 'spacer' }),
+      deleteSessionButton(sum.sessionId, () => closeModal())),
   ], { narrow: true });
 }
