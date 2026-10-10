@@ -410,6 +410,7 @@ body.calm .toast { animation: none; }
 .mic-meter > i { transition: none; }
 .mic-control input[type="range"] { width: 110px; }
 .mic-control select.mic-select { width: auto; max-width: 220px; padding: 5px 8px; font-size: 0.85rem; }
+input.time-in { width: 84px; padding: 5px 8px; height: 32px; }
 
 </style>
 
@@ -544,6 +545,14 @@ function fmtTime(s, dec = 0) {
   const r = s - m * 60;
   const sec = dec ? r.toFixed(dec).padStart(3 + dec, '0') : String(Math.floor(r)).padStart(2, '0');
   return `${m}:${sec}`;
+}
+/* "3:35.2", "1:02:03" or "215.2" -> seconds; null if unreadable */
+function parseTime(raw) {
+  const t = String(raw || '').trim().replace(',', '.');
+  if (!t) return null;
+  const parts = t.split(':');
+  if (parts.some((p) => p === '' || isNaN(+p))) return null;
+  return parts.reduce((acc, p) => acc * 60 + +p, 0);
 }
 function fmtSec(s, dec = 1) { return `${(+s).toFixed(dec)} s`; }
 function fmtLag(lag) {
@@ -1340,6 +1349,227 @@ const DSP = {
   },
 };
 
+/* ---- 25-mp4audio.js ---- */
+/* ---------- read just a stretch of audio from an MP4, without downloading the whole video ----------
+   Finds the audio track's sample table in the file's index (moov box), fetches only the byte
+   ranges that hold the audio for the requested time span, and decodes them with WebCodecs.
+   Throws on anything it can't handle (not MP4, not AAC, no WebCodecs), so callers can fall back. */
+const Mp4Audio = {
+  tables: new Map(), // cache key -> parsed audio track (sample table etc.)
+
+  /* a byte reader over a URL (HTTP Range) or a local File */
+  reader(src) {
+    if (src instanceof Blob) {
+      return { size: async () => src.size, read: async (a, b) => new Uint8Array(await src.slice(a, b + 1).arrayBuffer()) };
+    }
+    let total = null;
+    const read = async (a, b) => {
+      const r = await fetch(src, { headers: { range: `bytes=${a}-${b}` }, credentials: 'same-origin' });
+      if (r.status !== 206) throw new Error(r.ok ? 'no range support' : `HTTP ${r.status}`);
+      const cr = r.headers.get('content-range');
+      if (cr && total == null) total = +cr.split('/')[1];
+      return new Uint8Array(await r.arrayBuffer());
+    };
+    return { read, size: async () => { if (total == null) await read(0, 15); return total; } };
+  },
+
+  async track(key, rd) {
+    if (this.tables.has(key)) return this.tables.get(key);
+    const total = await rd.size();
+    // walk the top-level boxes until we reach moov (often at the end of downloaded videos)
+    let off = 0, moov = null;
+    while (off < total) {
+      const hb = await rd.read(off, Math.min(total - 1, off + 15));
+      const dv = new DataView(hb.buffer, hb.byteOffset, hb.byteLength);
+      let size = dv.getUint32(0);
+      const type = String.fromCharCode(hb[4], hb[5], hb[6], hb[7]);
+      if (size === 1) size = Number(dv.getBigUint64(8));
+      else if (size === 0) size = total - off;
+      if (size < 8) throw new Error('bad box');
+      if (type === 'moov') { moov = await rd.read(off, off + size - 1); break; }
+      off += size;
+    }
+    if (!moov) throw new Error('no moov');
+    const t = this.parseMoov(moov);
+    this.tables.set(key, t);
+    return t;
+  },
+
+  boxes(u8, start, end) {
+    const out = [];
+    const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+    let p = start;
+    while (p + 8 <= end) {
+      let size = dv.getUint32(p), hdr = 8;
+      const type = String.fromCharCode(u8[p + 4], u8[p + 5], u8[p + 6], u8[p + 7]);
+      if (size === 1) { size = Number(dv.getBigUint64(p + 8)); hdr = 16; } else if (size === 0) size = end - p;
+      if (size < hdr) break;
+      out.push({ type, start: p, body: p + hdr, end: Math.min(end, p + size) });
+      p += size;
+    }
+    return out;
+  },
+  child(u8, box, type) { return this.boxes(u8, box.body, box.end).find((b) => b.type === type); },
+
+  parseMoov(u8) {
+    const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+    const moov = this.boxes(u8, 0, u8.length)[0];
+    for (const trak of this.boxes(u8, moov.body, moov.end).filter((b) => b.type === 'trak')) {
+      const mdia = this.child(u8, trak, 'mdia');
+      const hdlr = mdia && this.child(u8, mdia, 'hdlr');
+      if (!hdlr || String.fromCharCode(...u8.subarray(hdlr.body + 8, hdlr.body + 12)) !== 'soun') continue;
+      const mdhd = this.child(u8, mdia, 'mdhd');
+      const timescale = u8[mdhd.body] === 1 ? dv.getUint32(mdhd.body + 20) : dv.getUint32(mdhd.body + 12);
+      // edit list: media time where the track starts (skips encoder priming)
+      let mediaStart = 0;
+      const edts = this.child(u8, trak, 'edts');
+      const elst = edts && this.child(u8, edts, 'elst');
+      if (elst) {
+        const v = u8[elst.body], n = dv.getUint32(elst.body + 4);
+        for (let i = 0, p = elst.body + 8; i < n; i++) {
+          const mt = v === 1 ? Number(dv.getBigInt64(p + 8)) : dv.getInt32(p + 4);
+          p += v === 1 ? 20 : 12;
+          if (mt >= 0) { mediaStart = mt; break; }
+        }
+      }
+      const stbl = this.child(u8, this.child(u8, mdia, 'minf'), 'stbl');
+      const cfg = this.audioConfig(u8, dv, this.child(u8, stbl, 'stsd'));
+      // sample sizes
+      const stsz = this.child(u8, stbl, 'stsz');
+      const fixed = dv.getUint32(stsz.body + 4), count = dv.getUint32(stsz.body + 8);
+      const sizes = new Uint32Array(count);
+      for (let i = 0; i < count; i++) sizes[i] = fixed || dv.getUint32(stsz.body + 12 + i * 4);
+      // chunk offsets
+      const stco = this.child(u8, stbl, 'stco'), co64 = this.child(u8, stbl, 'co64');
+      const cb = stco || co64, nChunks = dv.getUint32(cb.body + 4);
+      const chunkOff = new Float64Array(nChunks);
+      for (let i = 0; i < nChunks; i++) chunkOff[i] = co64 ? Number(dv.getBigUint64(cb.body + 8 + i * 8)) : dv.getUint32(cb.body + 8 + i * 4);
+      // samples per chunk -> byte offset of every sample
+      const stsc = this.child(u8, stbl, 'stsc'), nStsc = dv.getUint32(stsc.body + 4);
+      const offsets = new Float64Array(count);
+      let s = 0;
+      for (let e = 0; e < nStsc; e++) {
+        const first = dv.getUint32(stsc.body + 8 + e * 12) - 1, per = dv.getUint32(stsc.body + 12 + e * 12);
+        const last = e + 1 < nStsc ? dv.getUint32(stsc.body + 8 + (e + 1) * 12) - 1 : nChunks;
+        for (let c = first; c < last && s < count; c++) {
+          let o = chunkOff[c];
+          for (let k = 0; k < per && s < count; k++) { offsets[s] = o; o += sizes[s]; s++; }
+        }
+      }
+      // decode times
+      const stts = this.child(u8, stbl, 'stts'), nStts = dv.getUint32(stts.body + 4);
+      const dts = new Float64Array(count);
+      let t = 0; s = 0;
+      for (let e = 0; e < nStts; e++) {
+        const n = dv.getUint32(stts.body + 8 + e * 8), d = dv.getUint32(stts.body + 12 + e * 8);
+        for (let k = 0; k < n && s < count; k++) { dts[s++] = t; t += d; }
+      }
+      return { timescale, mediaStart, sizes, offsets, dts, count, ...cfg };
+    }
+    throw new Error('no audio track');
+  },
+
+  audioConfig(u8, dv, stsd) {
+    const entry = this.boxes(u8, stsd.body + 8, stsd.end)[0];
+    if (!entry || (entry.type !== 'mp4a' && entry.type !== 'Opus')) throw new Error(`audio codec ${entry && entry.type} not supported`);
+    const b = entry.body;
+    const version = dv.getUint16(b + 8);
+    const channels = dv.getUint16(b + 16);
+    const rate = dv.getUint32(b + 24) >>> 16;
+    const childStart = b + 28 + (version === 1 ? 16 : version === 2 ? 36 : 0);
+    if (entry.type === 'Opus') return { codec: 'opus', channels, rate: 48000, asc: undefined };
+    const esds = this.boxes(u8, childStart, entry.end).find((x) => x.type === 'esds');
+    if (!esds) throw new Error('no esds');
+    // walk the MPEG-4 descriptors down to DecoderSpecificInfo (the AudioSpecificConfig)
+    let p = esds.body + 4;
+    const desc = () => { const tag = u8[p++]; let len = 0, c; do { c = u8[p++]; len = (len << 7) | (c & 0x7f); } while (c & 0x80); return { tag, len }; };
+    let d = desc();
+    if (d.tag !== 3) throw new Error('bad esds');
+    p += 2; const flags = u8[p++];
+    if (flags & 0x80) p += 2;
+    if (flags & 0x40) p += 1 + u8[p];
+    if (flags & 0x20) p += 2;
+    d = desc();
+    if (d.tag !== 4) throw new Error('bad esds');
+    const oti = u8[p];
+    if (oti !== 0x40 && oti !== 0x66 && oti !== 0x67) throw new Error('not AAC');
+    p += 13;
+    d = desc();
+    if (d.tag !== 5) throw new Error('no AudioSpecificConfig');
+    const asc = u8.slice(p, p + d.len);
+    let aot = asc[0] >> 3;
+    if (aot === 31) aot = 32 + (((asc[0] & 7) << 3) | (asc[1] >> 5));
+    return { codec: `mp4a.40.${aot}`, channels, rate, asc };
+  },
+
+  /* decode [t0, t1] seconds to mono 16 kHz */
+  async extract(key, src, t0, t1, onProgress) {
+    if (typeof AudioDecoder === 'undefined') throw new Error('no WebCodecs');
+    const rd = this.reader(src);
+    const T = await this.track(key, rd);
+    const cfg = { codec: T.codec, sampleRate: T.rate, numberOfChannels: T.channels };
+    if (T.asc) cfg.description = T.asc;
+    const sup = await AudioDecoder.isConfigSupported(cfg);
+    if (!sup.supported) throw new Error(`${T.codec} not decodable here`);
+    const secOf = (i) => (T.dts[i] - T.mediaStart) / T.timescale;
+    let i0 = 0, i1 = T.count - 1;
+    while (i0 < T.count - 1 && secOf(i0 + 1) <= t0) i0++;
+    i0 = Math.max(0, i0 - 2); // a little pre-roll for the decoder
+    while (i1 > i0 && secOf(i1) > t1) i1--;
+    // group samples into byte ranges (audio sits in chunks between video data)
+    const ranges = [];
+    for (let i = i0; i <= i1; i++) {
+      const a = T.offsets[i], b = a + T.sizes[i] - 1;
+      const last = ranges[ranges.length - 1];
+      if (last && a - last.b <= 16384) { last.b = Math.max(last.b, b); last.i1 = i; } else ranges.push({ a, b, i0: i, i1: i });
+    }
+    const bufs = new Array(ranges.length);
+    let done = 0, next = 0;
+    const worker = async () => {
+      while (next < ranges.length) {
+        const k = next++;
+        bufs[k] = await rd.read(ranges[k].a, ranges[k].b);
+        done++;
+        onProgress && onProgress(done / ranges.length);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(6, ranges.length) }, worker));
+    // decode
+    const startSec = secOf(i0);
+    const outRate = T.rate;
+    const total = Math.ceil((secOf(i1) - startSec + 0.2) * outRate);
+    const mono = new Float32Array(total);
+    let err = null;
+    const dec = new AudioDecoder({
+      output: (ad) => {
+        const n = ad.numberOfFrames, ch = ad.numberOfChannels;
+        const at = Math.round((ad.timestamp / 1e6 - startSec) * outRate);
+        const tmp = new Float32Array(n);
+        for (let c = 0; c < ch; c++) {
+          ad.copyTo(tmp, { planeIndex: c, format: 'f32-planar' });
+          for (let j = 0; j < n; j++) if (at + j >= 0 && at + j < total) mono[at + j] += tmp[j] / ch;
+        }
+        ad.close();
+      },
+      error: (e) => { err = e; },
+    });
+    dec.configure(cfg);
+    ranges.forEach((r, k) => {
+      for (let i = r.i0; i <= r.i1; i++) {
+        const o = T.offsets[i] - r.a;
+        dec.decode(new EncodedAudioChunk({ type: 'key', timestamp: Math.round(secOf(i) * 1e6), data: bufs[k].subarray(o, o + T.sizes[i]) }));
+      }
+    });
+    await dec.flush();
+    dec.close();
+    if (err) throw err;
+    // trim to the asked span and resample
+    const a = Math.max(0, Math.round((t0 - startSec) * outRate));
+    const b = Math.min(total, Math.round((t1 - startSec) * outRate));
+    return { samples: DSP.resample(mono.subarray(a, b), outRate, SR), t0: startSec + a / outRate, t1: startSec + b / outRate };
+  },
+};
+
 /* ---- 30-audio.js ---- */
 /* ---------- audio plumbing: context, reading video audio, microphone, recording ---------- */
 const AudioEng = {
@@ -1377,66 +1607,102 @@ const AudioEng = {
 
 /* reading a video's soundtrack (needs CORS from the host, a stored copy, or a local file) */
 const VideoAudio = {
-  cache: new Map(), // videoId -> {status, samples, error, progress}
+  cache: new Map(), // videoId -> {status, segments: [{t0, t1, samples}], full, error, progress, mp4Failed, chain}
   state(videoId) { return this.cache.get(videoId) || { status: 'idle' }; },
-  async load(video, onProgress) {
-    const cur = this.cache.get(video.id);
-    if (cur && (cur.status === 'ready' || cur.status === 'loading')) return cur.promise || cur;
-    const entry = { status: 'loading', progress: 0 };
-    this.cache.set(video.id, entry);
-    entry.promise = (async () => {
-      try {
-        let buf;
-        const local = LocalFiles.get(video.id);
-        if (local) buf = await local.arrayBuffer();
-        else {
-          const src = videoSrc(video);
-          let resp;
-          try {
-            resp = await fetch(src, src.startsWith('/') ? { credentials: 'same-origin' } : { mode: 'cors', credentials: 'omit' });
-          } catch (e) {
-            throw Object.assign(new Error('blocked'), { code: 'blocked' });
-          }
-          if (!resp.ok) throw Object.assign(new Error(`HTTP ${resp.status}`), { code: 'http' });
-          const total = +resp.headers.get('content-length') || 0;
-          if (resp.body && total) {
-            const reader = resp.body.getReader();
-            const parts = [];
-            let got = 0;
-            for (;;) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              parts.push(value); got += value.length;
-              entry.progress = got / total;
-              onProgress && onProgress(entry.progress);
-            }
-            const all = new Uint8Array(got);
-            let o = 0;
-            for (const p of parts) { all.set(p, o); o += p.length; }
-            buf = all.buffer;
-          } else buf = await resp.arrayBuffer();
-        }
-        entry.status = 'decoding';
-        onProgress && onProgress(1);
-        entry.samples = await AudioEng.decode(buf);
-        entry.status = 'ready';
-      } catch (e) {
-        entry.status = 'error';
-        entry.error = e.code === 'blocked'
-          ? "This video's host doesn't let the app read its sound (no CORS permission, or the page's security rules block it). Playback still works if the video plays. For the waveform and pitch line, load a copy of the video file from this device."
-          : e.code === 'http' ? `The video link answered with an error (${e.message}).` : `The sound couldn't be decoded (${e.message || 'unknown error'}).`;
-      }
-      Bus.emit('videoaudio', video.id);
-      return entry;
-    })();
-    return entry.promise;
+  entry(videoId) {
+    if (!this.cache.has(videoId)) this.cache.set(videoId, { status: 'idle', segments: [], full: null, chain: Promise.resolve() });
+    return this.cache.get(videoId);
   },
+  /* samples for [t0, t1] if already decoded, else null */
   slice(videoId, t0, t1) {
     const e = this.cache.get(videoId);
-    if (!e || e.status !== 'ready') return null;
-    const a = clamp(Math.floor(t0 * SR), 0, e.samples.length);
-    const b = clamp(Math.floor(t1 * SR), 0, e.samples.length);
-    return e.samples.subarray(a, b);
+    if (!e) return null;
+    if (e.full) {
+      const a = clamp(Math.floor(t0 * SR), 0, e.full.length), b = clamp(Math.floor(t1 * SR), 0, e.full.length);
+      return e.full.subarray(a, b);
+    }
+    const seg = e.segments.find((g) => g.t0 <= t0 + 0.02 && g.t1 >= t1 - 0.02);
+    if (!seg) return null;
+    const a = clamp(Math.round((t0 - seg.t0) * SR), 0, seg.samples.length), b = clamp(Math.round((t1 - seg.t0) * SR), 0, seg.samples.length);
+    return seg.samples.subarray(a, b);
+  },
+  /* make sure [t0, t1] is decoded: reads only that stretch of an MP4; falls back to the whole file */
+  ensure(video, t0, t1, onProgress) {
+    const e = this.entry(video.id);
+    t0 = Math.max(0, t0);
+    const job = e.chain.then(async () => {
+      if (this.slice(video.id, t0, t1)) return e;
+      e.status = 'loading'; e.progress = 0;
+      Bus.emit('videoaudio', video.id);
+      const local = LocalFiles.get(video.id);
+      const src = local || videoSrc(video);
+      if (!e.mp4Failed) {
+        try {
+          // a little extra either side, so small edge nudges don't need another fetch
+          const want0 = Math.max(0, t0 - 1), want1 = t1 + 1;
+          const r = await Mp4Audio.extract(`${video.id}|${local ? local.name : src}`, src, want0, want1, (f) => { e.progress = f; onProgress && onProgress(f); });
+          // pad with silence where the file has no audio (before the track starts, past the end), so the span is fully covered
+          const pre = Math.max(0, Math.round((r.t0 - want0) * SR)), post = Math.max(0, Math.round((want1 - r.t1) * SR));
+          const samples = new Float32Array(pre + r.samples.length + post);
+          samples.set(r.samples, pre);
+          e.segments.push({ t0: Math.min(want0, r.t0), t1: Math.max(want1, r.t1), samples });
+          if (e.segments.length > 24) e.segments.shift();
+          e.status = 'ready'; e.error = null; e.method = 'partial';
+          Bus.emit('videoaudio', video.id);
+          return e;
+        } catch (err) {
+          e.mp4Failed = err.message || String(err);
+          console.info('partial audio read unavailable, decoding the whole file:', e.mp4Failed);
+        }
+      }
+      await this.decodeWhole(video, e, onProgress);
+      Bus.emit('videoaudio', video.id);
+      return e;
+    });
+    e.chain = job.catch(() => {});
+    return job;
+  },
+  async decodeWhole(video, entry, onProgress) {
+    try {
+      let buf;
+      const local = LocalFiles.get(video.id);
+      if (local) buf = await local.arrayBuffer();
+      else {
+        const src = videoSrc(video);
+        let resp;
+        try {
+          resp = await fetch(src, src.startsWith('/') ? { credentials: 'same-origin' } : { mode: 'cors', credentials: 'omit' });
+        } catch (e) {
+          throw Object.assign(new Error('blocked'), { code: 'blocked' });
+        }
+        if (!resp.ok) throw Object.assign(new Error(`HTTP ${resp.status}`), { code: 'http' });
+        const total = +resp.headers.get('content-length') || 0;
+        if (resp.body && total) {
+          const reader = resp.body.getReader();
+          const parts = [];
+          let got = 0;
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            parts.push(value); got += value.length;
+            entry.progress = got / total;
+            onProgress && onProgress(entry.progress);
+          }
+          const all = new Uint8Array(got);
+          let o = 0;
+          for (const p of parts) { all.set(p, o); o += p.length; }
+          buf = all.buffer;
+        } else buf = await resp.arrayBuffer();
+      }
+      entry.status = 'decoding';
+      entry.full = await AudioEng.decode(buf);
+      entry.status = 'ready'; entry.error = null; entry.method = 'whole';
+    } catch (e) {
+      entry.status = 'error';
+      entry.error = e.code === 'blocked'
+        ? "This video's host doesn't let the app read its sound (no CORS permission, or the page's security rules block it). Playback still works if the video plays. For the waveform and pitch line, load a copy of the video file from this device."
+        : e.code === 'http' ? `The video link answered with an error (${e.message}).` : `The sound couldn't be decoded (${e.message || 'unknown error'}).`;
+    }
   },
 };
 
@@ -1883,7 +2149,7 @@ const Player = {
         if (UI.sel.end - UI.sel.start < 1) UI.sel.end = UI.sel.start + Math.max(settings().clipMin, 1);
         this.seek(UI.sel.start);
         renderAll();
-        VideoAudio.load(this.current()).then(() => renderPanel());
+        loadSelAudio();
       } else if (e.type === 'pointerup') this.seek(tAt(e.clientX));
     };
     sc.addEventListener('pointerup', end);
@@ -1908,7 +2174,8 @@ function useLocalFile(vid, file) {
   Player.reloadSrc();
   Player.hideError();
   toast(`Playing “${file.name}” from this device. Pick it again next visit.`, 'good');
-  VideoAudio.load(vid).then(() => { ensureModels(vid); renderPanel(); });
+  ensureModels(vid).then(() => renderPanel());
+  loadSelAudio();
 }
 
 async function storeVideoCopy(vid, file) {
@@ -1988,7 +2255,7 @@ function markEdge(which) {
   }
   toast(which === 'start' ? `Clip start marked at ${fmtTime(t, 1)}` : `Clip end marked at ${fmtTime(t, 1)}`);
   renderScrubber(); renderPanel();
-  VideoAudio.load(Player.current()).then(() => renderPanel());
+  loadSelAudio();
 }
 
 /* ---------- render: scrubber brackets ---------- */
@@ -2050,22 +2317,29 @@ function editClip(id) {
   UI.sel = { start: c.start, end: c.end, clipId: c.id, label: c.label || '' };
   Player.seek(c.start);
   renderAll();
-  VideoAudio.load(Store.get('videos', c.videoId)).then(() => renderPanel());
+  loadSelAudio();
 }
 
 /* work out (and store) the model line for clips that don't have one yet */
 async function ensureModels(vid) {
   if (!vid) return;
   const missing = videoClips(vid.id).filter((c) => !c.model && !c.archived);
-  if (!missing.length) return;
-  const st = await VideoAudio.load(vid);
-  if (!st || st.status !== 'ready') return;
   for (const c of missing) {
-    await sleep(20);
-    computeModel(c);
+    // only the clip's own stretch of audio is fetched and decoded
+    const st = await VideoAudio.ensure(vid, c.start, c.end);
+    if (!st || st.status === 'error') break;
+    await sleep(10);
+    computeModel(Store.get('clips', c.id) || c);
   }
   renderPanel();
 }
+/* audio around the selection being edited (the zoomed editor shows a margin either side) */
+function loadSelAudio() {
+  const vid = Player.current();
+  if (!vid || !UI.sel) return Promise.resolve();
+  return VideoAudio.ensure(vid, UI.sel.start - 4, UI.sel.end + 4).then(() => renderPanel());
+}
+
 function computeModel(c) {
   const x = VideoAudio.slice(c.videoId, c.start, c.end);
   if (!x || x.length < SR) return false;
@@ -2099,7 +2373,7 @@ function renderPanel() {
   const clip = Store.get('clips', UI.clipId);
   let key;
   if (UI.sel && vid) key = `editor:${UI.sel.clipId || 'new'}:${VideoAudio.state(vid.id).status}`;
-  else if (clip) key = `clip:${clip.id}:${UI.view}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
+  else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
   else key = 'empty';
 
   if (key !== Panel.key) {
@@ -2137,6 +2411,7 @@ function buildAnalysis(clip) {
     h('span', { class: 'lag', id: 'lagLabel' }),
     h('span', { class: 'spacer' }),
     h('span', { class: 'small muted', id: 'relLabel' }),
+    !Session.active ? btn('Edit clip', () => editClip(clip.id), { icon: 'scissors', title: 'Change the clip’s start, end, length or label' }) : null,
     btn(clip.noisy ? 'Flagged noisy' : 'Too noisy?', () => { Store.patch('clips', clip.id, { noisy: !clip.noisy }); toast(clip.noisy ? 'Clip flagged as too noisy. Its pitch line is shown faded.' : 'Noisy flag removed.'); renderPanel(); renderSidebar(); },
       { icon: 'flag', on: clip.noisy, title: 'Flag this clip as too noisy for a reliable pitch line' }));
   if (!clip.model) {
@@ -2329,8 +2604,21 @@ function buildEditor(vid) {
   };
   R.len = h('span', { class: 'len' });
   R.warn = h('div', { class: 'warnline', role: 'status' });
-  R.startT = h('span', { class: 'num small' });
-  R.endT = h('span', { class: 'num small' });
+  // typed times: m:ss.s or plain seconds; length moves the end
+  const applyTyped = (which, raw) => {
+    const v = parseTime(raw);
+    if (v == null) { toast('Type a time like 3:35.2 or a number of seconds.'); updateEditor(); return; }
+    const d = Player.duration() || 1e9;
+    if (which === 'start') UI.sel.start = clamp(round(v, 2), 0, UI.sel.end - 0.5);
+    else if (which === 'end') UI.sel.end = clamp(round(v, 2), UI.sel.start + 0.5, d);
+    else UI.sel.end = clamp(round(UI.sel.start + Math.max(0.5, v), 2), UI.sel.start + 0.5, d);
+    Panel.editor = null; updateEditor(); renderScrubber(); loadSelAudio();
+  };
+  const timeInput = (which, id) => h('input', { type: 'text', id, class: 'num time-in', inputmode: 'decimal', 'aria-label': which,
+    onchange: (e) => applyTyped(which, e.target.value), onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } });
+  R.startT = timeInput('start', 'selStart');
+  R.endT = timeInput('end', 'selEnd');
+  R.lenT = timeInput('length', 'selLen');
   R.label = h('input', { type: 'text', id: 'clipLabel', placeholder: 'A few words of what’s said (optional)', value: UI.sel.label || '', oninput: (e) => { UI.sel.label = e.target.value; } });
   let msg = null;
   if (audio.status === 'loading' || audio.status === 'decoding') msg = h('p', { class: 'small muted', id: 'audioMsg' }, 'Reading the video’s sound for the zoomed waveform…');
@@ -2347,10 +2635,11 @@ function buildEditor(vid) {
     canvas,
     R.warn,
     h('div', { class: 'editor-grid' },
-      h('div', { class: 'stack' }, h('span', { class: 'label' }, 'Start ', R.startT),
-        h('div', { class: 'nudge' }, btn('−0.1 s', nudge('start', -0.1), { size: 'sm' }), btn('+0.1 s', nudge('start', 0.1), { size: 'sm' }), btn('Snap to gap', () => snapEdge('start'), { size: 'sm', title: 'Move the start into the nearest pause' }))),
-      h('div', { class: 'stack' }, h('span', { class: 'label' }, 'End ', R.endT),
-        h('div', { class: 'nudge' }, btn('−0.1 s', nudge('end', -0.1), { size: 'sm' }), btn('+0.1 s', nudge('end', 0.1), { size: 'sm' }), btn('Snap to gap', () => snapEdge('end'), { size: 'sm' }))),
+      h('div', { class: 'stack' }, h('label', { class: 'label', for: 'selStart' }, 'Start'),
+        h('div', { class: 'nudge' }, R.startT, btn('−0.1 s', nudge('start', -0.1), { size: 'sm' }), btn('+0.1 s', nudge('start', 0.1), { size: 'sm' }), btn('Snap to gap', () => snapEdge('start'), { size: 'sm', title: 'Move the start into the nearest pause' }))),
+      h('div', { class: 'stack' }, h('label', { class: 'label', for: 'selEnd' }, 'End'),
+        h('div', { class: 'nudge' }, R.endT, btn('−0.1 s', nudge('end', -0.1), { size: 'sm' }), btn('+0.1 s', nudge('end', 0.1), { size: 'sm' }), btn('Snap to gap', () => snapEdge('end'), { size: 'sm' }))),
+      h('div', { class: 'stack' }, h('label', { class: 'label', for: 'selLen' }, 'Length (s)'), h('div', { class: 'nudge' }, R.lenT)),
       h('label', { class: 'field', for: 'clipLabel' }, 'Label', R.label)),
     h('div', { class: 'row', style: { marginTop: '12px' } },
       btn(editing ? 'Save changes' : 'Save clip', () => saveSelection(false), { kind: 'primary', icon: 'check' }),
@@ -2383,7 +2672,12 @@ function editorData(vid) {
   // keep a wider window so small nudges don't recompute
   const W0 = Math.max(0, w0 - 2), W1 = Math.min(Player.duration() || w1 + 2, w1 + 2);
   const x = VideoAudio.slice(vid.id, W0, W1);
-  if (!x || x.length < WIN * 2) { Panel.editor = { vid: vid.id, w0: W0, w1: W1, ready: false }; return Panel.editor; }
+  if (!x || x.length < WIN * 2) {
+    // not decoded yet: fetch just this window, then the editor redraws
+    if (VideoAudio.state(vid.id).status !== 'loading' && VideoAudio.state(vid.id).status !== 'error') VideoAudio.ensure(vid, W0, W1);
+    Panel.editor = { vid: vid.id, w0: W0, w1: W1, ready: false };
+    return Panel.editor;
+  }
   const n = Math.floor((x.length - WIN) / HOP);
   const db = new Float32Array(n);
   for (let i = 0; i < n; i++) db[i] = DSP.rmsDb(x, i * HOP, WIN);
@@ -2429,8 +2723,10 @@ function updateEditor() {
   const cls = len >= lo && len <= hi ? 'good' : len >= lo - slack && len <= hi + slack ? 'warn' : 'bad';
   R.len.className = `len ${cls}`;
   R.len.textContent = fmtSec(len);
-  R.startT.textContent = fmtTime(sel.start, 1);
-  R.endT.textContent = fmtTime(sel.end, 1);
+  // don't overwrite a field while it's being typed in
+  if (document.activeElement !== R.startT) R.startT.value = fmtTime(sel.start, 1);
+  if (document.activeElement !== R.endT) R.endT.value = fmtTime(sel.end, 1);
+  if (document.activeElement !== R.lenT) R.lenT.value = len.toFixed(1);
   const E = editorData(Player.current());
   const warns = [];
   if (E.ready) {
@@ -2538,8 +2834,7 @@ function saveSelection(shadowNow) {
     clip = Store.put('clips', { videoId: vid.id, start: round(sel.start, 2), end: round(sel.end, 2), label: (sel.label || '').trim(), done: false, archived: false, noisy: false, created: new Date().toISOString() });
     toast('Clip saved. Cut another, or shadow it now.', 'good');
   }
-  if (VideoAudio.state(vid.id).status === 'ready') computeModel(clip);
-  else ensureModels(vid);
+  if (!computeModel(clip)) ensureModels(vid);
   UI.sel = null;
   UI.clipId = clip.id;
   renderAll();
@@ -2748,6 +3043,7 @@ function clipList(v) {
         h('div', { class: 'cmeta' }, `${fmtTime(c.start)}–${fmtTime(c.end)} · ${fmtSec(c.end - c.start)}${c.noisy ? ' · noisy' : ''}${queued ? ` · #${UI.queue.indexOf(c.id) + 1} in queue` : ''}`)),
       h('div', { class: 'row', style: { gap: '2px', flexWrap: 'nowrap' } },
         h('span', { class: `tick ${c.done ? 'done' : ''}`, title: c.done ? `Done ${fmtDay(c.doneAt)}` : 'Not done yet' }, c.done ? icon('check', 'stroke-width="3.4"') : null),
+        !c.archived ? btn('', () => { editClip(c.id); closeDrawer(); }, { size: 'sm', kind: 'ghost', icon: 'edit', title: 'Edit clip (start, end, length, label)', disabled: Session.active }) : null,
         btn('', () => openClipMenu(c), { size: 'sm', kind: 'ghost', icon: 'menu', title: 'Clip options' })));
   };
   return h('div', { class: 'clist' },
@@ -4299,7 +4595,7 @@ async function exportListenerPack() {
   for (const c of clips) {
     if (items.filter((i) => i.kind === 'model').length >= 2) break;
     const v = Store.get('videos', c.videoId);
-    const st = await VideoAudio.load(v);
+    const st = await VideoAudio.ensure(v, c.start, Math.min(c.end, c.start + 20));
     if (!st || st.status !== 'ready') continue;
     items.push({ kind: 'model', clipId: c.id, samples: VideoAudio.slice(v.id, c.start, Math.min(c.end, c.start + 20)) });
   }
@@ -4566,8 +4862,12 @@ async function checkVideoSound() {
   const v = Player.current();
   if (!v) return { state: '', msg: 'Open a video first.' };
   VideoAudio.cache.delete(v.id);
-  const r = await VideoAudio.load(v);
-  if (r.status === 'ready') return { state: 'ok', msg: `The app can read the sound of “${v.title}” (${fmtTime(r.samples.length / SR)} decoded). Pitch and waveform will work.` };
+  const t0 = performance.now();
+  const r = await VideoAudio.ensure(v, 0, 10);
+  const secs = ((performance.now() - t0) / 1000).toFixed(1);
+  if (r.status === 'ready') return { state: 'ok', msg: r.method === 'partial'
+    ? `The app reads just the part of “${v.title}” it needs (10 s of sound in ${secs} s). Pitch and waveform will work.`
+    : `The app can read the sound of “${v.title}”, but has to download the whole file each visit (${secs} s here)${r.mp4Failed ? `: ${r.mp4Failed}` : ''}.` };
   return { state: 'fail', msg: r.error };
 }
 async function checkClaude() {

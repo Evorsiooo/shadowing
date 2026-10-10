@@ -488,7 +488,7 @@ async function exportListenerPack() {
   for (const c of clips) {
     if (items.filter((i) => i.kind === 'model').length >= 2) break;
     const v = Store.get('videos', c.videoId);
-    const st = await VideoAudio.load(v);
+    const st = await VideoAudio.ensure(v, c.start, Math.min(c.end, c.start + 20));
     if (!st || st.status !== 'ready') continue;
     items.push({ kind: 'model', clipId: c.id, samples: VideoAudio.slice(v.id, c.start, Math.min(c.end, c.start + 20)) });
   }

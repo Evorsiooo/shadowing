@@ -204,7 +204,7 @@ const Player = {
         if (UI.sel.end - UI.sel.start < 1) UI.sel.end = UI.sel.start + Math.max(settings().clipMin, 1);
         this.seek(UI.sel.start);
         renderAll();
-        VideoAudio.load(this.current()).then(() => renderPanel());
+        loadSelAudio();
       } else if (e.type === 'pointerup') this.seek(tAt(e.clientX));
     };
     sc.addEventListener('pointerup', end);
@@ -229,7 +229,8 @@ function useLocalFile(vid, file) {
   Player.reloadSrc();
   Player.hideError();
   toast(`Playing “${file.name}” from this device. Pick it again next visit.`, 'good');
-  VideoAudio.load(vid).then(() => { ensureModels(vid); renderPanel(); });
+  ensureModels(vid).then(() => renderPanel());
+  loadSelAudio();
 }
 
 async function storeVideoCopy(vid, file) {
@@ -309,7 +310,7 @@ function markEdge(which) {
   }
   toast(which === 'start' ? `Clip start marked at ${fmtTime(t, 1)}` : `Clip end marked at ${fmtTime(t, 1)}`);
   renderScrubber(); renderPanel();
-  VideoAudio.load(Player.current()).then(() => renderPanel());
+  loadSelAudio();
 }
 
 /* ---------- render: scrubber brackets ---------- */
@@ -371,22 +372,29 @@ function editClip(id) {
   UI.sel = { start: c.start, end: c.end, clipId: c.id, label: c.label || '' };
   Player.seek(c.start);
   renderAll();
-  VideoAudio.load(Store.get('videos', c.videoId)).then(() => renderPanel());
+  loadSelAudio();
 }
 
 /* work out (and store) the model line for clips that don't have one yet */
 async function ensureModels(vid) {
   if (!vid) return;
   const missing = videoClips(vid.id).filter((c) => !c.model && !c.archived);
-  if (!missing.length) return;
-  const st = await VideoAudio.load(vid);
-  if (!st || st.status !== 'ready') return;
   for (const c of missing) {
-    await sleep(20);
-    computeModel(c);
+    // only the clip's own stretch of audio is fetched and decoded
+    const st = await VideoAudio.ensure(vid, c.start, c.end);
+    if (!st || st.status === 'error') break;
+    await sleep(10);
+    computeModel(Store.get('clips', c.id) || c);
   }
   renderPanel();
 }
+/* audio around the selection being edited (the zoomed editor shows a margin either side) */
+function loadSelAudio() {
+  const vid = Player.current();
+  if (!vid || !UI.sel) return Promise.resolve();
+  return VideoAudio.ensure(vid, UI.sel.start - 4, UI.sel.end + 4).then(() => renderPanel());
+}
+
 function computeModel(c) {
   const x = VideoAudio.slice(c.videoId, c.start, c.end);
   if (!x || x.length < SR) return false;

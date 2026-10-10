@@ -21,7 +21,7 @@ function renderPanel() {
   const clip = Store.get('clips', UI.clipId);
   let key;
   if (UI.sel && vid) key = `editor:${UI.sel.clipId || 'new'}:${VideoAudio.state(vid.id).status}`;
-  else if (clip) key = `clip:${clip.id}:${UI.view}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
+  else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
   else key = 'empty';
 
   if (key !== Panel.key) {
@@ -59,6 +59,7 @@ function buildAnalysis(clip) {
     h('span', { class: 'lag', id: 'lagLabel' }),
     h('span', { class: 'spacer' }),
     h('span', { class: 'small muted', id: 'relLabel' }),
+    !Session.active ? btn('Edit clip', () => editClip(clip.id), { icon: 'scissors', title: 'Change the clip’s start, end, length or label' }) : null,
     btn(clip.noisy ? 'Flagged noisy' : 'Too noisy?', () => { Store.patch('clips', clip.id, { noisy: !clip.noisy }); toast(clip.noisy ? 'Clip flagged as too noisy. Its pitch line is shown faded.' : 'Noisy flag removed.'); renderPanel(); renderSidebar(); },
       { icon: 'flag', on: clip.noisy, title: 'Flag this clip as too noisy for a reliable pitch line' }));
   if (!clip.model) {
@@ -251,8 +252,21 @@ function buildEditor(vid) {
   };
   R.len = h('span', { class: 'len' });
   R.warn = h('div', { class: 'warnline', role: 'status' });
-  R.startT = h('span', { class: 'num small' });
-  R.endT = h('span', { class: 'num small' });
+  // typed times: m:ss.s or plain seconds; length moves the end
+  const applyTyped = (which, raw) => {
+    const v = parseTime(raw);
+    if (v == null) { toast('Type a time like 3:35.2 or a number of seconds.'); updateEditor(); return; }
+    const d = Player.duration() || 1e9;
+    if (which === 'start') UI.sel.start = clamp(round(v, 2), 0, UI.sel.end - 0.5);
+    else if (which === 'end') UI.sel.end = clamp(round(v, 2), UI.sel.start + 0.5, d);
+    else UI.sel.end = clamp(round(UI.sel.start + Math.max(0.5, v), 2), UI.sel.start + 0.5, d);
+    Panel.editor = null; updateEditor(); renderScrubber(); loadSelAudio();
+  };
+  const timeInput = (which, id) => h('input', { type: 'text', id, class: 'num time-in', inputmode: 'decimal', 'aria-label': which,
+    onchange: (e) => applyTyped(which, e.target.value), onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } });
+  R.startT = timeInput('start', 'selStart');
+  R.endT = timeInput('end', 'selEnd');
+  R.lenT = timeInput('length', 'selLen');
   R.label = h('input', { type: 'text', id: 'clipLabel', placeholder: 'A few words of what’s said (optional)', value: UI.sel.label || '', oninput: (e) => { UI.sel.label = e.target.value; } });
   let msg = null;
   if (audio.status === 'loading' || audio.status === 'decoding') msg = h('p', { class: 'small muted', id: 'audioMsg' }, 'Reading the video’s sound for the zoomed waveform…');
@@ -269,10 +283,11 @@ function buildEditor(vid) {
     canvas,
     R.warn,
     h('div', { class: 'editor-grid' },
-      h('div', { class: 'stack' }, h('span', { class: 'label' }, 'Start ', R.startT),
-        h('div', { class: 'nudge' }, btn('−0.1 s', nudge('start', -0.1), { size: 'sm' }), btn('+0.1 s', nudge('start', 0.1), { size: 'sm' }), btn('Snap to gap', () => snapEdge('start'), { size: 'sm', title: 'Move the start into the nearest pause' }))),
-      h('div', { class: 'stack' }, h('span', { class: 'label' }, 'End ', R.endT),
-        h('div', { class: 'nudge' }, btn('−0.1 s', nudge('end', -0.1), { size: 'sm' }), btn('+0.1 s', nudge('end', 0.1), { size: 'sm' }), btn('Snap to gap', () => snapEdge('end'), { size: 'sm' }))),
+      h('div', { class: 'stack' }, h('label', { class: 'label', for: 'selStart' }, 'Start'),
+        h('div', { class: 'nudge' }, R.startT, btn('−0.1 s', nudge('start', -0.1), { size: 'sm' }), btn('+0.1 s', nudge('start', 0.1), { size: 'sm' }), btn('Snap to gap', () => snapEdge('start'), { size: 'sm', title: 'Move the start into the nearest pause' }))),
+      h('div', { class: 'stack' }, h('label', { class: 'label', for: 'selEnd' }, 'End'),
+        h('div', { class: 'nudge' }, R.endT, btn('−0.1 s', nudge('end', -0.1), { size: 'sm' }), btn('+0.1 s', nudge('end', 0.1), { size: 'sm' }), btn('Snap to gap', () => snapEdge('end'), { size: 'sm' }))),
+      h('div', { class: 'stack' }, h('label', { class: 'label', for: 'selLen' }, 'Length (s)'), h('div', { class: 'nudge' }, R.lenT)),
       h('label', { class: 'field', for: 'clipLabel' }, 'Label', R.label)),
     h('div', { class: 'row', style: { marginTop: '12px' } },
       btn(editing ? 'Save changes' : 'Save clip', () => saveSelection(false), { kind: 'primary', icon: 'check' }),
@@ -305,7 +320,12 @@ function editorData(vid) {
   // keep a wider window so small nudges don't recompute
   const W0 = Math.max(0, w0 - 2), W1 = Math.min(Player.duration() || w1 + 2, w1 + 2);
   const x = VideoAudio.slice(vid.id, W0, W1);
-  if (!x || x.length < WIN * 2) { Panel.editor = { vid: vid.id, w0: W0, w1: W1, ready: false }; return Panel.editor; }
+  if (!x || x.length < WIN * 2) {
+    // not decoded yet: fetch just this window, then the editor redraws
+    if (VideoAudio.state(vid.id).status !== 'loading' && VideoAudio.state(vid.id).status !== 'error') VideoAudio.ensure(vid, W0, W1);
+    Panel.editor = { vid: vid.id, w0: W0, w1: W1, ready: false };
+    return Panel.editor;
+  }
   const n = Math.floor((x.length - WIN) / HOP);
   const db = new Float32Array(n);
   for (let i = 0; i < n; i++) db[i] = DSP.rmsDb(x, i * HOP, WIN);
@@ -351,8 +371,10 @@ function updateEditor() {
   const cls = len >= lo && len <= hi ? 'good' : len >= lo - slack && len <= hi + slack ? 'warn' : 'bad';
   R.len.className = `len ${cls}`;
   R.len.textContent = fmtSec(len);
-  R.startT.textContent = fmtTime(sel.start, 1);
-  R.endT.textContent = fmtTime(sel.end, 1);
+  // don't overwrite a field while it's being typed in
+  if (document.activeElement !== R.startT) R.startT.value = fmtTime(sel.start, 1);
+  if (document.activeElement !== R.endT) R.endT.value = fmtTime(sel.end, 1);
+  if (document.activeElement !== R.lenT) R.lenT.value = len.toFixed(1);
   const E = editorData(Player.current());
   const warns = [];
   if (E.ready) {
@@ -460,8 +482,7 @@ function saveSelection(shadowNow) {
     clip = Store.put('clips', { videoId: vid.id, start: round(sel.start, 2), end: round(sel.end, 2), label: (sel.label || '').trim(), done: false, archived: false, noisy: false, created: new Date().toISOString() });
     toast('Clip saved. Cut another, or shadow it now.', 'good');
   }
-  if (VideoAudio.state(vid.id).status === 'ready') computeModel(clip);
-  else ensureModels(vid);
+  if (!computeModel(clip)) ensureModels(vid);
   UI.sel = null;
   UI.clipId = clip.id;
   renderAll();
