@@ -1,5 +1,22 @@
 /* ---------- boot, global rendering, keyboard ---------- */
+/* what shows where depends on what you're doing:
+   browsing -> today's card under the player; cutting -> the clip editor there;
+   in a session -> session card in the right column, pitch/waveform under the player */
+const wideLayout = window.matchMedia ? matchMedia('(min-width: 901px)') : { matches: true };
+function applyLayout() {
+  const mode = Session.active ? 'session' : UI.cutMode || UI.sel ? 'cut' : 'idle';
+  const layout = $('.layout'), sess = $('#session'), panel = $('#panel');
+  layout.classList.toggle('in-session', mode === 'session');
+  layout.classList.toggle('cutting', mode === 'cut');
+  if (mode === 'session' && wideLayout.matches) { if (sess.parentElement !== $('#sideSlot')) $('#sideSlot').appendChild(sess); }
+  else if (sess.parentElement !== $('.stage')) $('.stage').insertBefore(sess, panel);
+  sess.hidden = mode === 'cut';
+  panel.hidden = mode === 'idle';
+  if (UI.layoutMode !== mode) { UI.layoutMode = mode; requestAnimationFrame(() => Panel.onTime(Player.time())); }
+}
+
 function renderAll() {
+  applyLayout();
   renderChips();
   renderBanners();
   renderControls();
@@ -64,6 +81,7 @@ async function boot() {
   Bus.on('videoaudio', () => { Panel.editor = null; renderPanel(); });
   Bus.on('signedout', () => renderBanners());
   window.addEventListener('resize', () => Panel.onTime(Player.time()));
+  if (wideLayout.addEventListener) wideLayout.addEventListener('change', () => applyLayout());
   window.addEventListener('beforeunload', () => { Store.flushAll(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) Store.flushAll(); });
   // first launch: the baseline must come before the first practice

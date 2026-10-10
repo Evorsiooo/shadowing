@@ -231,6 +231,7 @@ function overlayChart(clip, layers, view = 'pitch') {
     g.fillStyle = cssVar('--line');
     g.fillRect(0, H / 2, W, dpr);
     for (let s = 1; s < dur; s++) g.fillRect(X(s), 0, dpr, H);
+    if (view === 'pitch') pitchHints(g, W, dpr, [{ top: 0, h: H }], cssVar('--muted'));
     for (const L of layers) {
       const sr = L.series;
       if (!sr || L.hidden) continue;

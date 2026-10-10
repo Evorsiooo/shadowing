@@ -440,6 +440,7 @@ function analysePass(res, clip, clipZero, rate, live) {
 
 /* ---------- session strip ---------- */
 function renderSession() {
+  applyLayout();
   const el = $('#session');
   el.classList.toggle('active', Session.active);
   if (!Session.active) { mount(el, idleSession()); return; }
@@ -538,34 +539,34 @@ async function uploadPassRecording(file) {
 /* playback options after a recorded pass */
 function playOriginal(clip, then) {
   Player2.stop();
+  Player.v.muted = UI.volume === 0;
   Session.preview = { stopAt: clip.end, then };
   Player.seek(clip.start);
   Player.play();
 }
-function playMine(url, then) {
-  Player.v.pause();
-  Player2.stop();
-  const a = new window.Audio(url);
-  Player2.el = a;
-  a.onended = () => then && then();
-  a.play().catch(() => toast('The recording couldn’t play.', 'bad'));
-  return a;
-}
-function playBoth(clip, url, analysis) {
+/* play your recording lined up with the clip: the video runs alongside (muted for "Mine",
+   audible for "Both together"), so the scrub bar and the chart's playhead follow along */
+function playSynced(clip, url, analysis, { withOriginal = false, then } = {}) {
   Player2.stop();
   const a = new window.Audio(url);
   Player2.el = a;
   const rate = Player.v.playbackRate || 1;
   const startAt = analysis ? -analysis.offset / rate : 0; // seconds into the recording that line up with the clip start
-  const go = () => {
-    Session.preview = { stopAt: clip.end, then: () => a.pause() };
-    Player.seek(clip.start);
+  const restoreMute = () => { Player.v.muted = UI.volume === 0; };
+  const go = async () => {
+    Player.v.muted = !withOriginal || UI.volume === 0;
+    Session.preview = { stopAt: clip.end, then: () => { a.pause(); restoreMute(); then && then(); } };
+    await Player.seekAndWait(clip.start);
     Player.play();
-    if (startAt >= 0) { a.currentTime = startAt; a.play(); } else setTimeout(() => a.play(), -startAt * 1000);
+    if (startAt >= 0) { a.currentTime = startAt; a.play().catch(() => {}); } else setTimeout(() => a.play().catch(() => {}), -startAt * 1000);
   };
+  a.addEventListener('error', () => { restoreMute(); toast('The recording couldn’t play.', 'bad'); }, { once: true });
   if (a.readyState >= 1) go(); else a.addEventListener('loadedmetadata', go, { once: true });
   a.load();
+  return a;
 }
+function playMine(clip, url, analysis, then) { return playSynced(clip, url, analysis, { then }); }
+function playBoth(clip, url, analysis) { return playSynced(clip, url, analysis, { withOriginal: true }); }
 
 function passReviewCard() {
   const S = Session;
@@ -580,10 +581,10 @@ function passReviewCard() {
       an && an.manual ? h('span', { class: 'small muted' }, settings().alignMode === 'manual' ? '(manual offset)' : '(auto-alignment unsure; manual offset used)') : null),
     h('div', { class: 'row' },
       btn('Original', () => playOriginal(clip), { size: 'sm', icon: 'play' }),
-      btn('Mine', () => playMine(R.url), { size: 'sm', icon: 'mic' }),
-      btn('Original then mine', () => playOriginal(clip, () => playMine(R.url)), { size: 'sm' }),
+      btn('Mine', () => playMine(clip, R.url, an), { size: 'sm', icon: 'mic' }),
+      btn('Original then mine', () => playOriginal(clip, () => setTimeout(() => playMine(clip, R.url, an), 300)), { size: 'sm' }),
       btn('Both together', () => playBoth(clip, R.url, an), { size: 'sm' }),
-      btn('', () => { Player2.stop(); Player.v.pause(); Session.preview = null; }, { size: 'sm', icon: 'stop', title: 'Stop playback' })),
+      btn('', () => { Player2.stop(); Player.v.pause(); Player.v.muted = UI.volume === 0; Session.preview = null; }, { size: 'sm', icon: 'stop', title: 'Stop playback' })),
     step3 ? h('div', { class: 'row' }, h('span', { class: 'small muted grow' }, 'Compare with your step 3 recording from this session:'),
       btn('Compare overlaid', () => openCompare(step3.id, R.recId, R.url), { size: 'sm', kind: 'blue' })) : null,
     noteForm({ clipId: clip.id, sessionId: S.doc.id, recId: R.recId, pass: S.pass, step: S.step().key }),

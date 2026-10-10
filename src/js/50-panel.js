@@ -16,19 +16,21 @@ const Panel = {
 };
 
 function renderPanel() {
+  applyLayout();
   const el = $('#panel');
   const vid = Player.current();
   const clip = Store.get('clips', UI.clipId);
   let key;
   if (UI.sel && vid) key = `editor:${UI.sel.clipId || 'new'}:${VideoAudio.state(vid.id).status}`;
+  else if (UI.cutMode && !Session.active) key = 'empty-cut';
   else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
-  else key = 'empty';
+  else key = UI.cutMode ? 'empty-cut' : 'empty';
 
   if (key !== Panel.key) {
     Panel.key = key;
     Panel.canvas = null;
     Panel.refs = {};
-    if (key === 'empty') mount(el, panelEmpty());
+    if (key.startsWith('empty')) mount(el, panelEmpty());
     else if (key.startsWith('editor')) mount(el, buildEditor(vid));
     else mount(el, buildAnalysis(clip));
   }
@@ -38,6 +40,7 @@ function renderPanel() {
 }
 
 function panelEmpty() {
+  if (UI.cutMode) return h('div', { class: 'panel-msg' }, h('h3', null, 'Clip mode'), h('p', null, 'Drag along the timeline to select a clip, or press I and O while the video plays. Esc or Cut clips leaves clip mode.'));
   return h('div', { class: 'panel-msg' },
     h('h3', null, 'Analysis panel'),
     h('p', null, 'Select a clip to see the speaker’s pitch line, or press Cut clips under the video to make a new one.'));
@@ -95,6 +98,20 @@ function updateAnalysisHead(clip) {
   if (rel && clip.model) rel.textContent = clip.model.reliability < 0.55 || clip.noisy ? 'Pitch line unreliable in places' : '';
 }
 
+/* tiny "higher / lower" marks so it's clear which way is up on a pitch chart */
+function pitchHints(g, W, dpr, lanes, color) {
+  g.save();
+  g.fillStyle = color;
+  g.globalAlpha = 0.75;
+  g.font = `700 ${9.5 * dpr}px Nunito, system-ui, sans-serif`;
+  g.textAlign = 'right';
+  for (const L of lanes) {
+    g.fillText('▲ higher', W - 8 * dpr, L.top + 13 * dpr);
+    g.fillText('▼ lower', W - 8 * dpr, L.top + L.h - 6 * dpr);
+  }
+  g.restore();
+}
+
 function sizeCanvas(c) {
   const r = c.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
@@ -146,6 +163,7 @@ Panel.drawAnalysis = function (t) {
     }
     g.textAlign = 'left';
   }
+  if (UI.view === 'pitch') pitchHints(g, W, dpr, ov ? [{ top: 0, h: H }] : lanes, muted);
   // time ticks
   g.globalAlpha = 0.5;
   for (let s = 1; s < dur; s++) { g.fillStyle = line; g.fillRect(x(s), 0, 1 * dpr, H); }

@@ -292,10 +292,19 @@ button.chip { font-family: inherit; cursor: pointer; }
 .warnline { color: var(--red); font-weight: 700; font-size: 0.86rem; }
 
 /* ---------- sidebar ---------- */
+.side { display: flex; flex-direction: column; gap: 14px; min-width: 0; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 76px); }
 .sidebar {
   background: var(--surface); border: 2px solid var(--line); border-radius: var(--r-lg); padding: 14px; display: flex; flex-direction: column; gap: 12px;
-  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 76px); max-height: calc(100vh - 96px); overflow: auto; box-shadow: var(--shadow);
+  max-height: calc(100vh - 96px); overflow: auto; box-shadow: var(--shadow);
 }
+/* during a session the session card takes the right column (and the library steps aside) */
+.layout.in-session { grid-template-columns: minmax(0, 1fr) 400px; }
+.layout.in-session .side .sidebar { display: none; }
+.side .session { max-height: calc(100vh - 96px); overflow: auto; }
+/* keep the panel under the player in view while cutting or practising */
+.layout.in-session .player video, .layout.cutting .player video { max-height: 46vh; }
+.side .session .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.side .session .counter { font-size: 1.6rem; }
 .vlist { display: flex; flex-direction: column; gap: 8px; }
 .vitem { border: 2px solid var(--line); border-radius: var(--r-md); padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--surface); }
 .vitem.open { border-color: var(--green); background: var(--green-soft); }
@@ -371,7 +380,9 @@ body.calm .toast { animation: none; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
-  .layout { grid-template-columns: minmax(0, 1fr); }
+  .layout, .layout.in-session { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; }
+  .layout.in-session .side .sidebar { display: flex; }
   .only-phone { display: inline-flex !important; }
   .sidebar {
     position: fixed; top: 0; right: 0; bottom: 0; width: min(360px, 88vw); max-height: none; z-index: 40; border-radius: var(--r-lg) 0 0 var(--r-lg);

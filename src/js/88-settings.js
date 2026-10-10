@@ -209,7 +209,7 @@ async function checkClaude() {
   if (Store.mode === 'cloud') {
     if (!Api.claude) return { state: 'fail', msg: 'The server has no Claude API key yet. Add the ANTHROPIC_API_KEY secret to the Cloudflare project.' };
     const { reply } = await Api.req('POST', '/api/claude', { sentence: 'Go and grab the car.', off: 'the vowel in go sounds too pure', aim: '', issues: [] });
-    return reply && (reply.feature || reply.text || reply.unsure) ? { state: 'ok', msg: 'Claude answered. Feedback on notes uses your Claude API key.' } : { state: 'warn', msg: 'Claude answered in an unexpected format.' };
+    return reply && (reply.feature || reply.text || reply.unsure) ? { state: 'ok', msg: `Claude answered (model: ${Api.claudeModel || 'unknown'}). Feedback on notes uses your Claude API key.` } : { state: 'warn', msg: 'Claude answered in an unexpected format.' };
   }
   if (!Caps.sample) return { state: 'fail', msg: Caps.inArtifact ? 'Claude access isn’t available in this view.' : 'This standalone version can’t reach Claude. Notes offer “Copy prompt for Claude” instead.' };
   const r = await Caps.sample('Reply with just the word OK.', { modelTier: 'quick', cache: false });

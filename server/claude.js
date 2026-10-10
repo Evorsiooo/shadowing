@@ -29,6 +29,7 @@ const NOTE_SCHEMA = {
 };
 
 export function claudeConfigured(env) { return !!env.ANTHROPIC_API_KEY; }
+export function claudeModel(env) { return env.CLAUDE_MODEL || MODEL; }
 
 export async function noteFeedback(env, { sentence = '', off = '', aim = '', issues = [] }) {
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, baseURL: env.ANTHROPIC_BASE_URL || undefined });
