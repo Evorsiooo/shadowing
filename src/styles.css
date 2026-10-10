@@ -207,14 +207,14 @@ button.chip { font-family: inherit; cursor: pointer; }
 .banner p { flex: 1 1 260px; min-width: 0; }
 
 /* ---------- layout ---------- */
-/* Two fixed columns: player (and the panel under it) on the left, library or session card on the right.
+/* Top row: the player, and beside it the library (or the session card) at the same height.
+   Bottom row, full width: today's card, the clip editor or the pitch panel.
    On wide screens fitLayout() sets the right column's width and the video's height from the window size only,
-   so they stay put whatever you're doing. In a session the pitch panel runs full width under both. */
+   so they stay put whatever you're doing. */
 .layout {
   display: grid; grid-template-columns: minmax(0, 1fr) var(--side-w, 340px); gap: 14px 16px; padding: 14px 16px 16px;
-  grid-template-areas: "player side" "below side"; align-items: start;
+  grid-template-areas: "player side" "below below"; align-items: start;
 }
-.layout.in-session { grid-template-areas: "player side" "below below"; }
 .player { grid-area: player; min-width: 0; }
 .below { grid-area: below; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 #sideSlot:empty { display: none; }
@@ -320,6 +320,10 @@ button.chip { font-family: inherit; cursor: pointer; }
 }
 /* during a session the session card takes the right column (and the library steps aside) */
 .layout.in-session .side .sidebar { display: none; }
+.layout.fit .side { position: static; height: var(--top-h, auto); }
+.layout.fit .side > .sidebar { flex: 1 1 auto; min-height: 0; max-height: none; }
+.layout.fit #sideSlot { height: 100%; }
+.layout.fit #sideSlot > .session { height: 100%; }
 .side .session { overflow: auto; }
 .side .session .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .side .session .counter { font-size: 1.6rem; }
@@ -430,3 +434,4 @@ body.calm .toast { animation: none; }
 input.time-in { width: 76px; padding: 5px 8px; height: 32px; }
 .newclip-box { border: 2px dashed var(--line); border-radius: var(--r-md); padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; gap: 6px; min-height: 90px; align-items: center; text-align: center; background: var(--surface-2); }
 .layout.fit .below > .panel > .newclip-box { flex: 1 1 auto; }
+.efield.grow input { height: 32px; padding: 5px 10px; }

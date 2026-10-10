@@ -64,23 +64,43 @@ const VideoAudio = {
       const local = LocalFiles.get(video.id);
       const src = local || videoSrc(video);
       if (!e.mp4Failed) {
-        try {
-          // a little extra either side, so small edge nudges don't need another fetch
-          const want0 = Math.max(0, t0 - 1), want1 = t1 + 1;
-          const r = await Mp4Audio.extract(`${video.id}|${local ? local.name : src}`, src, want0, want1, (f) => { e.progress = f; onProgress && onProgress(f); });
-          // pad with silence where the file has no audio (before the track starts, past the end), so the span is fully covered
-          const pre = Math.max(0, Math.round((r.t0 - want0) * SR)), post = Math.max(0, Math.round((want1 - r.t1) * SR));
-          const samples = new Float32Array(pre + r.samples.length + post);
-          samples.set(r.samples, pre);
-          e.segments.push({ t0: Math.min(want0, r.t0), t1: Math.max(want1, r.t1), samples });
-          if (e.segments.length > 24) e.segments.shift();
-          e.status = 'ready'; e.error = null; e.method = 'partial';
+        // a little extra either side, so small edge nudges don't need another fetch
+        const want0 = Math.max(0, t0 - 1), want1 = t1 + 1;
+        let lastErr = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            const r = await Mp4Audio.extract(`${video.id}|${local ? local.name : src}`, src, want0, want1, (f) => { e.progress = f; onProgress && onProgress(f); });
+            // pad with silence where the file has no audio (before the track starts, past the end), so the span is fully covered
+            const pre = Math.max(0, Math.round((r.t0 - want0) * SR)), post = Math.max(0, Math.round((want1 - r.t1) * SR));
+            const samples = new Float32Array(pre + r.samples.length + post);
+            samples.set(r.samples, pre);
+            e.segments.push({ t0: Math.min(want0, r.t0), t1: Math.max(want1, r.t1), samples });
+            if (e.segments.length > 24) e.segments.shift();
+            e.status = 'ready'; e.error = null; e.method = 'partial'; e.via = r.via;
+            Bus.emit('videoaudio', video.id);
+            return e;
+          } catch (err) {
+            lastErr = err;
+            if (err.permanent) break;
+            await sleep(600 * (attempt + 1)); // a network blip: try again rather than falling back to the whole file
+          }
+        }
+        if (!lastErr.permanent) {
+          e.status = 'error';
+          e.error = `Couldn't read the video's sound (${lastErr.message || 'network error'}). Try again in a moment.`;
           Bus.emit('videoaudio', video.id);
           return e;
-        } catch (err) {
-          e.mp4Failed = err.message || String(err);
-          console.info('partial audio read unavailable, decoding the whole file:', e.mp4Failed);
         }
+        e.mp4Failed = lastErr.message || String(lastErr);
+        console.info('partial audio read unavailable, decoding the whole file:', e.mp4Failed);
+      }
+      // reading the whole file is only sensible for small files; a long video would mean downloading hundreds of MB
+      const size = local ? 0 : video.size || 0;
+      if (size > 150 * 1024 * 1024) {
+        e.status = 'error';
+        e.error = `This video's sound can't be read in pieces in this browser (${e.mp4Failed}), and the file is too big (${Math.round(size / 1048576)} MB) to read whole. Chrome or Edge can read it.`;
+        Bus.emit('videoaudio', video.id);
+        return e;
       }
       await this.decodeWhole(video, e, onProgress);
       Bus.emit('videoaudio', video.id);

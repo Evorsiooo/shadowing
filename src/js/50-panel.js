@@ -302,7 +302,7 @@ function buildEditor(vid) {
       h('span', { class: 'small muted' }, `aim for ${s.clipMin}–${s.clipMax} s`),
       h('span', { class: 'spacer' }),
       (R.playSel = btn('Play selection', () => togglePlaySelection(), { icon: 'play', size: 'sm', id: 'playSelBtn' })),
-      btn('Cancel', () => { UI.sel = null; renderAll(); }, { kind: 'ghost', size: 'sm' }),
+      btn('Cancel', () => cancelCut(), { kind: 'ghost', size: 'sm', title: 'Discard the selection and leave clip mode (Esc)' }),
       btn('Save and shadow', () => saveSelection(true), { kind: 'blue', icon: 'mic', size: 'sm', title: 'Save the clip and start a session with it' }),
       btn(editing ? 'Save changes' : 'Save clip', () => saveSelection(false), { kind: 'primary', icon: 'check', size: 'sm' })),
     msg,
