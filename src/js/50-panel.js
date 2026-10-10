@@ -21,7 +21,7 @@ function renderPanel() {
   const clip = Store.get('clips', UI.clipId);
   let key;
   if (UI.sel && vid) key = `editor:${UI.sel.clipId || 'new'}:${VideoAudio.state(vid.id).status}`;
-  else if (clip) key = `clip:${clip.id}:${UI.view}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
+  else if (clip) key = `clip:${clip.id}:${UI.view}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
   else key = 'empty';
 
   if (key !== Panel.key) {
@@ -40,24 +40,27 @@ function renderPanel() {
 function panelEmpty() {
   return h('div', { class: 'panel-msg' },
     h('h3', null, 'Analysis panel'),
-    h('p', null, 'Select a clip to see the speaker’s pitch line, or drag along the timeline to cut a new clip.'));
+    h('p', null, 'Select a clip to see the speaker’s pitch line, or press Cut clips under the video to make a new one.'));
 }
 
 /* ---------- analysis view ---------- */
 function buildAnalysis(clip) {
   const vid = Store.get('videos', clip.videoId);
   const audio = VideoAudio.state(clip.videoId);
-  const canvas = h('canvas', { 'aria-label': 'Pitch and loudness lanes: model on top, you below' });
+  const canvas = h('canvas', { 'aria-label': UI.overlay ? 'Pitch or loudness of the speaker and you on one chart' : 'Pitch or loudness lanes: speaker on top, you below' });
   Panel.canvas = canvas;
   const head = h('div', { class: 'panel-head' },
     h('div', { class: 'seg', role: 'group', 'aria-label': 'View' },
       h('button', { type: 'button', class: UI.view === 'pitch' ? 'on' : '', onclick: () => { UI.view = 'pitch'; renderPanel(); } }, 'Pitch'),
       h('button', { type: 'button', class: UI.view === 'wave' ? 'on' : '', onclick: () => { UI.view = 'wave'; renderPanel(); } }, 'Waveform')),
+    h('div', { class: 'seg', role: 'group', 'aria-label': 'Layout' },
+      h('button', { type: 'button', class: UI.overlay ? '' : 'on', title: 'Speaker on top, you below', onclick: () => setOverlay(false) }, 'Separate'),
+      h('button', { type: 'button', class: UI.overlay ? 'on' : '', title: 'Both lines on one chart', onclick: () => setOverlay(true) }, 'Overlaid')),
     h('span', { class: 'lag', id: 'lagLabel' }),
     h('span', { class: 'spacer' }),
     h('span', { class: 'small muted', id: 'relLabel' }),
     btn(clip.noisy ? 'Flagged noisy' : 'Too noisy?', () => { Store.patch('clips', clip.id, { noisy: !clip.noisy }); toast(clip.noisy ? 'Clip flagged as too noisy. Its pitch line is shown faded.' : 'Noisy flag removed.'); renderPanel(); renderSidebar(); },
-      { icon: 'flag', size: 'sm', on: clip.noisy, title: 'Flag this clip as too noisy for a reliable pitch line' }));
+      { icon: 'flag', on: clip.noisy, title: 'Flag this clip as too noisy for a reliable pitch line' }));
   if (!clip.model) {
     let msg;
     if (audio.status === 'loading' || audio.status === 'decoding') msg = h('p', null, `Reading the video’s sound… ${audio.progress ? Math.round(audio.progress * 100) + '%' : ''}`);
@@ -67,6 +70,12 @@ function buildAnalysis(clip) {
   }
   bindAnalysisCanvas(canvas, clip);
   return [head, canvas];
+}
+
+function setOverlay(on) {
+  UI.overlay = on;
+  lsSet('overlay', on);
+  renderPanel();
 }
 
 function bindAnalysisCanvas(canvas, clip) {
@@ -94,6 +103,7 @@ function sizeCanvas(c) {
 }
 function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 
+/* draws the speaker and you either in two lanes, or overlaid on one chart */
 Panel.drawAnalysis = function (t) {
   const c = this.canvas;
   const clip = Store.get('clips', UI.clipId);
@@ -103,22 +113,36 @@ Panel.drawAnalysis = function (t) {
   g.clearRect(0, 0, W, H);
   const dur = clip.end - clip.start;
   const x = (ct) => (ct / dur) * W;
-  const lanes = [{ top: 0, h: H / 2 - 2 * dpr, name: 'Speaker', color: cssVar('--green') }, { top: H / 2 + 2 * dpr, h: H / 2 - 2 * dpr, name: 'You', color: cssVar('--sky') }];
+  const ov = !!UI.overlay;
+  const green = cssVar('--green'), sky = cssVar('--sky');
+  const lanes = ov
+    ? [{ top: 0, h: H, name: 'Speaker', color: green }, { top: 0, h: H, name: 'You', color: sky }]
+    : [{ top: 0, h: H / 2 - 2 * dpr, name: 'Speaker', color: green }, { top: H / 2 + 2 * dpr, h: H / 2 - 2 * dpr, name: 'You', color: sky }];
   const muted = cssVar('--muted'), line = cssVar('--line');
   g.font = `800 ${11 * dpr}px Nunito, system-ui, sans-serif`;
-  for (const L of lanes) {
+  for (const L of ov ? lanes.slice(0, 1) : lanes) {
     g.fillStyle = line;
     g.globalAlpha = 0.6;
     g.fillRect(0, L.top + L.h / 2, W, 1 * dpr);
     g.globalAlpha = 1;
-    g.fillStyle = muted;
-    g.fillText(L.name, 8 * dpr, L.top + 14 * dpr);
   }
+  if (ov) {
+    // legend: coloured names
+    let lx = 8 * dpr;
+    for (const L of lanes) {
+      g.fillStyle = L.color; g.fillRect(lx, 7 * dpr, 10 * dpr, 4 * dpr);
+      g.fillStyle = muted; g.fillText(L.name, lx + 14 * dpr, 14 * dpr);
+      lx += g.measureText(L.name).width + 30 * dpr;
+    }
+  } else for (const L of lanes) { g.fillStyle = muted; g.fillText(L.name, 8 * dpr, L.top + 14 * dpr); }
   if (UI.view === 'pitch') {
     g.fillStyle = muted;
     g.textAlign = 'right';
-    g.fillText('speaker’s average', W - 8 * dpr, lanes[0].top + lanes[0].h / 2 - 5 * dpr);
-    g.fillText('your average', W - 8 * dpr, lanes[1].top + lanes[1].h / 2 - 5 * dpr);
+    if (ov) g.fillText('each voice’s own average', W - 8 * dpr, H / 2 - 5 * dpr);
+    else {
+      g.fillText('speaker’s average', W - 8 * dpr, lanes[0].top + lanes[0].h / 2 - 5 * dpr);
+      g.fillText('your average', W - 8 * dpr, lanes[1].top + lanes[1].h / 2 - 5 * dpr);
+    }
     g.textAlign = 'left';
   }
   // time ticks
@@ -128,10 +152,10 @@ Panel.drawAnalysis = function (t) {
 
   const m = clip.model;
   const faded = clip.noisy || m.reliability < 0.4;
-  const drawSeries = (L, series, hop, offset, color, alpha = 1) => {
+  const drawSeries = (L, series, hop, offset, color, alpha = 1, width = 3) => {
     if (UI.view === 'pitch') {
       const range = 12; // ± semitones
-      g.strokeStyle = color; g.lineWidth = 3 * dpr; g.lineJoin = 'round'; g.lineCap = 'round'; g.globalAlpha = alpha;
+      g.strokeStyle = color; g.lineWidth = width * dpr; g.lineJoin = 'round'; g.lineCap = 'round'; g.globalAlpha = alpha;
       g.beginPath();
       let pen = false;
       for (let i = 0; i < series.st.length; i++) {
@@ -146,7 +170,7 @@ Panel.drawAnalysis = function (t) {
     } else {
       const db = series.db;
       const peak = percentile(db.filter((v) => v != null), 0.98);
-      g.fillStyle = color; g.globalAlpha = alpha * 0.85;
+      g.fillStyle = color; g.globalAlpha = alpha * (ov ? 0.5 : 0.85);
       const bw = Math.max(1, x(hop) - 0.5);
       for (let i = 0; i < db.length; i++) {
         const ct = offset + i * hop;
@@ -158,7 +182,7 @@ Panel.drawAnalysis = function (t) {
       g.globalAlpha = 1;
     }
   };
-  drawSeries(lanes[0], m, m.hop, 0, lanes[0].color, faded ? 0.45 : 1);
+  drawSeries(lanes[0], m, m.hop, 0, lanes[0].color, (faded ? 0.45 : 1) * (ov ? 0.6 : 1), ov ? 5 : 3);
 
   // you: live trace during a pass, otherwise the last analysed pass for this clip
   if (this.live && this.live.clipId === clip.id && this.live.points.length) {
@@ -180,12 +204,14 @@ Panel.drawAnalysis = function (t) {
     } else {
       const peak = percentile(series.db, 0.98);
       g.fillStyle = lanes[1].color;
+      if (ov) g.globalAlpha = 0.5;
       for (const p of pts) {
         if (p.t < 0 || p.t > dur) continue;
         const a = clamp((p.db - (peak - 45)) / 45, 0, 1);
         const L = lanes[1], hh = a * (L.h / 2 - 4 * dpr);
         g.fillRect(x(p.t), L.top + L.h / 2 - hh, Math.max(1, x(0.012)), hh * 2);
       }
+      g.globalAlpha = 1;
     }
   } else if (this.lastPass && this.lastPass.clipId === clip.id) {
     const p = this.lastPass;
@@ -193,7 +219,7 @@ Panel.drawAnalysis = function (t) {
   } else {
     g.fillStyle = muted;
     g.textAlign = 'center';
-    g.fillText(Mic.error && Session.active ? 'Microphone unavailable' : 'Your line appears here when you record a pass', W / 2, lanes[1].top + lanes[1].h * 0.25);
+    g.fillText(Mic.error && Session.active ? 'Microphone unavailable' : 'Your line appears here when you record a pass', W / 2, ov ? H - 12 * dpr : lanes[1].top + lanes[1].h * 0.25);
     g.textAlign = 'left';
   }
 
@@ -233,7 +259,7 @@ function buildEditor(vid) {
       R.len,
       h('span', { class: 'small muted' }, `target ${s.clipMin}–${s.clipMax} s`),
       h('span', { class: 'spacer' }),
-      btn('Play selection', () => { Player.seek(UI.sel.start); Player.play(); }, { icon: 'play', size: 'sm' })),
+      (R.playSel = btn('Play selection', () => togglePlaySelection(), { icon: 'play', size: 'sm', id: 'playSelBtn' }))),
     msg,
     canvas,
     R.warn,
@@ -248,6 +274,22 @@ function buildEditor(vid) {
       btn('Save and shadow now', () => saveSelection(true), { kind: 'blue', icon: 'mic' }),
       btn('Cancel', () => { UI.sel = null; renderAll(); }, { kind: 'ghost' })),
   ];
+}
+
+function togglePlaySelection() {
+  if (!UI.sel) return;
+  if (!Player.v.paused || Player.waitingLoop) { Player.pause(); return; }
+  if (Player.time() < UI.sel.start - 0.05 || Player.time() >= UI.sel.end - 0.05) Player.seek(UI.sel.start);
+  Player.play();
+}
+/* keep the editor's play button in step with the player */
+function syncPlaySelButton() {
+  const b = $('#playSelBtn');
+  if (!b) return;
+  const playing = !Player.v.paused || Player.waitingLoop;
+  const next = btn(playing ? 'Stop' : 'Play selection', () => togglePlaySelection(), { icon: playing ? 'stop' : 'play', size: 'sm', id: 'playSelBtn' });
+  b.replaceWith(next);
+  Panel.refs.playSel = next;
 }
 
 function editorData(vid) {

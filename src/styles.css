@@ -126,8 +126,10 @@ a { color: var(--sky); }
   color: var(--b-fg);
   font: 800 0.88rem/1 var(--font-body);
   letter-spacing: 0.02em;
-  padding: 9px 14px 8px;
+  height: 40px;
+  padding: 0 14px;
   border-radius: var(--r-sm);
+  flex: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -138,24 +140,27 @@ a { color: var(--sky); }
   text-decoration: none;
 }
 .btn:hover { filter: brightness(1.04); }
-.btn:active { transform: translateY(2px); border-bottom-width: 2px; margin-bottom: 2px; }
+.btn:active { transform: translateY(2px); filter: brightness(0.96); }
 .btn[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; }
 .btn svg { width: 18px; height: 18px; flex: none; }
 .btn.primary { --b-bg: var(--green); --b-fg: var(--on-green); --b-edge: var(--green-dark); }
 .btn.blue { --b-bg: var(--sky); --b-fg: #fff; --b-edge: var(--sky-dark); }
 .btn.wattle { --b-bg: var(--wattle); --b-fg: #2a2000; --b-edge: var(--wattle-dark); }
 .btn.danger { --b-bg: var(--surface); --b-fg: var(--red); --b-edge: var(--red); }
-.btn.ghost { border-color: transparent; background: transparent; border-bottom-width: 2px; padding: 7px 9px; }
-.btn.ghost:active { margin-bottom: 0; }
-.btn.big { font-size: 1rem; padding: 13px 22px 11px; border-radius: var(--r-md); }
-.btn.icon { padding: 7px; }
-.btn.sm { padding: 6px 10px 5px; font-size: 0.8rem; }
+.btn.ghost { border-color: transparent; background: transparent; border-bottom-width: 2px; padding: 0 10px; }
+/* three sizes, each a fixed height, so buttons in a row always line up */
+.btn.sm { height: 32px; padding: 0 10px; font-size: 0.8rem; border-bottom-width: 3px; }
+.btn.big { height: 50px; padding: 0 22px; font-size: 1rem; border-radius: var(--r-md); }
+.btn.icon { width: 40px; padding: 0; }
+.btn.icon.sm { width: 32px; }
+.btn.icon.big { width: 50px; }
 .btn.on { --b-bg: var(--green-soft); --b-edge: var(--green); --b-fg: var(--green-ink); }
 .seg { display: inline-flex; border: 2px solid var(--line); border-radius: var(--r-sm); overflow: hidden; }
 .seg button {
   appearance: none; border: 0; background: var(--surface); color: var(--fg); font: 800 0.8rem/1 var(--font-body);
-  padding: 7px 10px; cursor: pointer;
+  height: 36px; padding: 0 11px; cursor: pointer;
 }
+.seg.sm button { height: 28px; padding: 0 9px; }
 .seg button + button { border-left: 2px solid var(--line); }
 .seg button.on { background: var(--green); color: var(--on-green); }
 
@@ -183,10 +188,10 @@ input[type="range"] { accent-color: var(--green); }
   display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px;
   background: var(--surface-2); font-weight: 800; font-size: 0.85rem; border: 2px solid transparent;
 }
-.chip svg { width: 18px; height: 18px; }
-.chip.streak { color: var(--ochre); }
-.chip.streak.cold { color: var(--muted); }
-.chip.mode { font-size: 0.75rem; color: var(--muted); }
+.chip { color: var(--fg); }
+.chip svg { width: 18px; height: 18px; color: var(--green); }
+.chip.streak svg { color: var(--ochre); }
+.chip.streak.cold svg { color: var(--muted); }
 .topnav { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
 .only-phone { display: none !important; }
 
@@ -225,6 +230,8 @@ input[type="range"] { accent-color: var(--green); }
 .scrub-track { position: absolute; left: 0; right: 0; top: 19px; height: 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.25); }
 .scrub-progress { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ochre); border-radius: 4px; }
 .scrub-head { position: absolute; top: 14px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: #fff; border: 3px solid var(--ochre); pointer-events: none; }
+.player.cutting .scrubber { cursor: crosshair; }
+.player.cutting .scrub-track { background: rgba(76, 178, 242, 0.45); }
 .scrub-sel { position: absolute; top: 10px; height: 24px; background: rgba(76, 178, 242, 0.35); border: 2px solid var(--sky); border-radius: 6px; pointer-events: none; }
 .bracket {
   position: absolute; top: 9px; height: 26px; min-width: 12px; border: 3px solid var(--wattle); border-top-width: 3px;

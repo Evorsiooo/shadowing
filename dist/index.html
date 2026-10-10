@@ -138,8 +138,10 @@ a { color: var(--sky); }
   color: var(--b-fg);
   font: 800 0.88rem/1 var(--font-body);
   letter-spacing: 0.02em;
-  padding: 9px 14px 8px;
+  height: 40px;
+  padding: 0 14px;
   border-radius: var(--r-sm);
+  flex: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -150,24 +152,27 @@ a { color: var(--sky); }
   text-decoration: none;
 }
 .btn:hover { filter: brightness(1.04); }
-.btn:active { transform: translateY(2px); border-bottom-width: 2px; margin-bottom: 2px; }
+.btn:active { transform: translateY(2px); filter: brightness(0.96); }
 .btn[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; }
 .btn svg { width: 18px; height: 18px; flex: none; }
 .btn.primary { --b-bg: var(--green); --b-fg: var(--on-green); --b-edge: var(--green-dark); }
 .btn.blue { --b-bg: var(--sky); --b-fg: #fff; --b-edge: var(--sky-dark); }
 .btn.wattle { --b-bg: var(--wattle); --b-fg: #2a2000; --b-edge: var(--wattle-dark); }
 .btn.danger { --b-bg: var(--surface); --b-fg: var(--red); --b-edge: var(--red); }
-.btn.ghost { border-color: transparent; background: transparent; border-bottom-width: 2px; padding: 7px 9px; }
-.btn.ghost:active { margin-bottom: 0; }
-.btn.big { font-size: 1rem; padding: 13px 22px 11px; border-radius: var(--r-md); }
-.btn.icon { padding: 7px; }
-.btn.sm { padding: 6px 10px 5px; font-size: 0.8rem; }
+.btn.ghost { border-color: transparent; background: transparent; border-bottom-width: 2px; padding: 0 10px; }
+/* three sizes, each a fixed height, so buttons in a row always line up */
+.btn.sm { height: 32px; padding: 0 10px; font-size: 0.8rem; border-bottom-width: 3px; }
+.btn.big { height: 50px; padding: 0 22px; font-size: 1rem; border-radius: var(--r-md); }
+.btn.icon { width: 40px; padding: 0; }
+.btn.icon.sm { width: 32px; }
+.btn.icon.big { width: 50px; }
 .btn.on { --b-bg: var(--green-soft); --b-edge: var(--green); --b-fg: var(--green-ink); }
 .seg { display: inline-flex; border: 2px solid var(--line); border-radius: var(--r-sm); overflow: hidden; }
 .seg button {
   appearance: none; border: 0; background: var(--surface); color: var(--fg); font: 800 0.8rem/1 var(--font-body);
-  padding: 7px 10px; cursor: pointer;
+  height: 36px; padding: 0 11px; cursor: pointer;
 }
+.seg.sm button { height: 28px; padding: 0 9px; }
 .seg button + button { border-left: 2px solid var(--line); }
 .seg button.on { background: var(--green); color: var(--on-green); }
 
@@ -195,10 +200,10 @@ input[type="range"] { accent-color: var(--green); }
   display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px;
   background: var(--surface-2); font-weight: 800; font-size: 0.85rem; border: 2px solid transparent;
 }
-.chip svg { width: 18px; height: 18px; }
-.chip.streak { color: var(--ochre); }
-.chip.streak.cold { color: var(--muted); }
-.chip.mode { font-size: 0.75rem; color: var(--muted); }
+.chip { color: var(--fg); }
+.chip svg { width: 18px; height: 18px; color: var(--green); }
+.chip.streak svg { color: var(--ochre); }
+.chip.streak.cold svg { color: var(--muted); }
 .topnav { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
 .only-phone { display: none !important; }
 
@@ -237,6 +242,8 @@ input[type="range"] { accent-color: var(--green); }
 .scrub-track { position: absolute; left: 0; right: 0; top: 19px; height: 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.25); }
 .scrub-progress { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ochre); border-radius: 4px; }
 .scrub-head { position: absolute; top: 14px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: #fff; border: 3px solid var(--ochre); pointer-events: none; }
+.player.cutting .scrubber { cursor: crosshair; }
+.player.cutting .scrub-track { background: rgba(76, 178, 242, 0.45); }
 .scrub-sel { position: absolute; top: 10px; height: 24px; background: rgba(76, 178, 242, 0.35); border: 2px solid var(--sky); border-radius: 6px; pointer-events: none; }
 .bracket {
   position: absolute; top: 9px; height: 26px; min-width: 12px; border: 3px solid var(--wattle); border-top-width: 3px;
@@ -1579,6 +1586,8 @@ const UI = {
   editVideoId: null,
   editVideo: null,
   showArchivedClips: false,
+  cutMode: false,
+  overlay: lsGet('overlay', false),
 };
 
 /* ---------- video player with custom controls ---------- */
@@ -1596,8 +1605,8 @@ const Player = {
     v.preservesPitch = true; v.mozPreservesPitch = true; v.webkitPreservesPitch = true;
     v.volume = UI.volume;
     v.addEventListener('loadedmetadata', () => { this.durationKnown = v.duration; this.hideError(); renderScrubber(); renderControls(); renderPanel(); });
-    v.addEventListener('play', () => { this.startRaf(); renderControls(); });
-    v.addEventListener('pause', () => renderControls());
+    v.addEventListener('play', () => { this.startRaf(); renderControls(); syncPlaySelButton(); });
+    v.addEventListener('pause', () => { renderControls(); setTimeout(syncPlaySelButton, 0); });
     v.addEventListener('ratechange', () => renderControls());
     v.addEventListener('error', () => this.showError());
     v.addEventListener('timeupdate', () => { if (!this.rafOn) this.paintHead(); });
@@ -1637,7 +1646,7 @@ const Player = {
     AudioEng.getCtx();
     try { await this.v.play(); return true; } catch (e) { if (e.name !== 'AbortError') this.showError(e); return false; }
   },
-  pause() { this.v.pause(); clearTimeout(this.loopTimer); this.waitingLoop = false; },
+  pause() { this.v.pause(); clearTimeout(this.loopTimer); this.waitingLoop = false; syncPlaySelButton(); },
   toggle() {
     if (Session.active) { Session.togglePause(); return; }
     if (this.v.paused) {
@@ -1724,35 +1733,42 @@ const Player = {
     const sc = $('#scrubber');
     let down = null;
     const tAt = (x) => { const r = sc.getBoundingClientRect(); return clamp((x - r.left) / r.width, 0, 1) * this.duration(); };
+    // normal mode: press and drag to scrub through the video
+    // clip mode: press and drag to select a new clip (a plain click still seeks)
     sc.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('.bracket-hit') || !this.duration()) return;
-      down = { x: e.clientX, t: tAt(e.clientX), drag: false };
+      if (e.target.closest('.bracket-hit') || !this.duration() || Session.active) return;
+      down = { x: e.clientX, t: tAt(e.clientX), drag: false, cut: UI.cutMode };
       sc.setPointerCapture(e.pointerId);
+      if (!down.cut) this.seek(down.t);
     });
     sc.addEventListener('pointermove', (e) => {
       const ht = $('#hoverTime');
       const r = sc.getBoundingClientRect();
       if (this.duration()) { ht.hidden = false; ht.style.left = clamp(e.clientX - r.left, 0, r.width) + 'px'; ht.textContent = fmtTime(tAt(e.clientX)); }
       if (!down) return;
-      if (!down.drag && Math.abs(e.clientX - down.x) > 6 && !Session.active) down.drag = true;
-      if (down.drag) {
-        const t = tAt(e.clientX);
-        UI.sel = { start: Math.min(down.t, t), end: Math.max(down.t, t), label: '' };
-        UI.clipId = null;
-        renderScrubber();
-      }
+      if (!down.drag && Math.abs(e.clientX - down.x) > 6) down.drag = true;
+      if (!down.drag) return;
+      const t = tAt(e.clientX);
+      if (!down.cut) { this.seek(t); return; }
+      UI.sel = { start: Math.min(down.t, t), end: Math.max(down.t, t), label: '' };
+      UI.clipId = null;
+      renderScrubber();
     });
     sc.addEventListener('pointerleave', () => { $('#hoverTime').hidden = true; });
-    sc.addEventListener('pointerup', (e) => {
+    const end = (e) => {
       if (!down) return;
-      if (down.drag) {
-        if (UI.sel && UI.sel.end - UI.sel.start < 1) UI.sel.end = UI.sel.start + Math.max(settings().clipMin, 1);
+      const d = down;
+      down = null;
+      if (!d.cut) return;
+      if (d.drag && UI.sel) {
+        if (UI.sel.end - UI.sel.start < 1) UI.sel.end = UI.sel.start + Math.max(settings().clipMin, 1);
         this.seek(UI.sel.start);
         renderAll();
         VideoAudio.load(this.current()).then(() => renderPanel());
-      } else if (!Session.active) this.seek(tAt(e.clientX));
-      down = null;
-    });
+      } else if (e.type === 'pointerup') this.seek(tAt(e.clientX));
+    };
+    sc.addEventListener('pointerup', end);
+    sc.addEventListener('pointercancel', end);
   },
 };
 
@@ -1819,13 +1835,24 @@ function renderControls() {
     btn('', () => Player.setVolume(UI.volume === 0 ? 1 : 0), { icon: volIcon, title: 'Mute' }),
     h('input', { type: 'range', class: 'vol', min: 0, max: 1, step: 0.05, value: UI.volume, 'aria-label': 'Volume', oninput: (e) => Player.setVolume(+e.target.value) }),
     h('span', { class: 'spacer' }),
-    btn('Start', () => markEdge('start'), { icon: 'scissors', title: 'Mark clip start at the playhead (I or [)', disabled: dis || Session.active, size: 'sm' }),
-    btn('End', () => markEdge('end'), { title: 'Mark clip end at the playhead (O or ])', disabled: dis || Session.active, size: 'sm' }),
+    btn('Cut clips', () => setCutMode(!UI.cutMode), { icon: 'scissors', on: UI.cutMode, pressed: UI.cutMode, title: 'Clip mode: drag on the timeline to select a new clip (C)', disabled: dis || Session.active }),
+    UI.cutMode ? btn('Start', () => markEdge('start'), { title: 'Mark clip start at the playhead (I or [)', disabled: dis || Session.active }) : null,
+    UI.cutMode ? btn('End', () => markEdge('end'), { title: 'Mark clip end at the playhead (O or ])', disabled: dis || Session.active }) : null,
     btn('', () => openShortcuts(), { icon: 'keyboard', title: 'Keyboard shortcuts (?)' }));
+}
+
+function setCutMode(on) {
+  if (Session.active && on) return;
+  UI.cutMode = on;
+  if (!on && UI.sel && !UI.sel.clipId) UI.sel = null;
+  $('#player').classList.toggle('cutting', on);
+  if (on) toast('Clip mode: drag on the timeline to select a clip, or press I and O while it plays.');
+  renderAll();
 }
 
 function markEdge(which) {
   if (!Player.current() || Session.active) return;
+  if (!UI.cutMode) { UI.cutMode = true; $('#player').classList.add('cutting'); }
   const t = Player.time();
   const s = settings();
   if (!UI.sel) {
@@ -1870,7 +1897,7 @@ function renderPlayerEmpty() {
   const any = Store.all('videos').some((v) => !v.archived);
   mount($('#playerEmpty'),
     h('h2', null, any ? 'Pick a video from your library' : 'Add your first video'),
-    h('p', null, any ? 'Open a video on the right, then choose a clip or drag along the timeline to cut a new one.' : 'Paste a direct link to an .mp4 file, for example an Oscar Piastri interview.'),
+    h('p', null, any ? 'Open a video on the right, then choose a clip, or press Cut clips to make a new one.' : 'Paste a direct link to an .mp4 file, for example an Oscar Piastri interview.'),
     btn(any ? 'Open the library' : 'Add a video', () => { UI.addOpen = !any; openDrawer(); renderSidebar(); setTimeout(() => { const f = $('#addUrl'); if (f) f.focus(); }, 60); }, { kind: 'primary', size: 'big', icon: any ? 'menu' : 'plus' }));
 }
 
@@ -1953,7 +1980,7 @@ function renderPanel() {
   const clip = Store.get('clips', UI.clipId);
   let key;
   if (UI.sel && vid) key = `editor:${UI.sel.clipId || 'new'}:${VideoAudio.state(vid.id).status}`;
-  else if (clip) key = `clip:${clip.id}:${UI.view}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
+  else if (clip) key = `clip:${clip.id}:${UI.view}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
   else key = 'empty';
 
   if (key !== Panel.key) {
@@ -1972,24 +1999,27 @@ function renderPanel() {
 function panelEmpty() {
   return h('div', { class: 'panel-msg' },
     h('h3', null, 'Analysis panel'),
-    h('p', null, 'Select a clip to see the speaker’s pitch line, or drag along the timeline to cut a new clip.'));
+    h('p', null, 'Select a clip to see the speaker’s pitch line, or press Cut clips under the video to make a new one.'));
 }
 
 /* ---------- analysis view ---------- */
 function buildAnalysis(clip) {
   const vid = Store.get('videos', clip.videoId);
   const audio = VideoAudio.state(clip.videoId);
-  const canvas = h('canvas', { 'aria-label': 'Pitch and loudness lanes: model on top, you below' });
+  const canvas = h('canvas', { 'aria-label': UI.overlay ? 'Pitch or loudness of the speaker and you on one chart' : 'Pitch or loudness lanes: speaker on top, you below' });
   Panel.canvas = canvas;
   const head = h('div', { class: 'panel-head' },
     h('div', { class: 'seg', role: 'group', 'aria-label': 'View' },
       h('button', { type: 'button', class: UI.view === 'pitch' ? 'on' : '', onclick: () => { UI.view = 'pitch'; renderPanel(); } }, 'Pitch'),
       h('button', { type: 'button', class: UI.view === 'wave' ? 'on' : '', onclick: () => { UI.view = 'wave'; renderPanel(); } }, 'Waveform')),
+    h('div', { class: 'seg', role: 'group', 'aria-label': 'Layout' },
+      h('button', { type: 'button', class: UI.overlay ? '' : 'on', title: 'Speaker on top, you below', onclick: () => setOverlay(false) }, 'Separate'),
+      h('button', { type: 'button', class: UI.overlay ? 'on' : '', title: 'Both lines on one chart', onclick: () => setOverlay(true) }, 'Overlaid')),
     h('span', { class: 'lag', id: 'lagLabel' }),
     h('span', { class: 'spacer' }),
     h('span', { class: 'small muted', id: 'relLabel' }),
     btn(clip.noisy ? 'Flagged noisy' : 'Too noisy?', () => { Store.patch('clips', clip.id, { noisy: !clip.noisy }); toast(clip.noisy ? 'Clip flagged as too noisy. Its pitch line is shown faded.' : 'Noisy flag removed.'); renderPanel(); renderSidebar(); },
-      { icon: 'flag', size: 'sm', on: clip.noisy, title: 'Flag this clip as too noisy for a reliable pitch line' }));
+      { icon: 'flag', on: clip.noisy, title: 'Flag this clip as too noisy for a reliable pitch line' }));
   if (!clip.model) {
     let msg;
     if (audio.status === 'loading' || audio.status === 'decoding') msg = h('p', null, `Reading the video’s sound… ${audio.progress ? Math.round(audio.progress * 100) + '%' : ''}`);
@@ -1999,6 +2029,12 @@ function buildAnalysis(clip) {
   }
   bindAnalysisCanvas(canvas, clip);
   return [head, canvas];
+}
+
+function setOverlay(on) {
+  UI.overlay = on;
+  lsSet('overlay', on);
+  renderPanel();
 }
 
 function bindAnalysisCanvas(canvas, clip) {
@@ -2026,6 +2062,7 @@ function sizeCanvas(c) {
 }
 function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 
+/* draws the speaker and you either in two lanes, or overlaid on one chart */
 Panel.drawAnalysis = function (t) {
   const c = this.canvas;
   const clip = Store.get('clips', UI.clipId);
@@ -2035,22 +2072,36 @@ Panel.drawAnalysis = function (t) {
   g.clearRect(0, 0, W, H);
   const dur = clip.end - clip.start;
   const x = (ct) => (ct / dur) * W;
-  const lanes = [{ top: 0, h: H / 2 - 2 * dpr, name: 'Speaker', color: cssVar('--green') }, { top: H / 2 + 2 * dpr, h: H / 2 - 2 * dpr, name: 'You', color: cssVar('--sky') }];
+  const ov = !!UI.overlay;
+  const green = cssVar('--green'), sky = cssVar('--sky');
+  const lanes = ov
+    ? [{ top: 0, h: H, name: 'Speaker', color: green }, { top: 0, h: H, name: 'You', color: sky }]
+    : [{ top: 0, h: H / 2 - 2 * dpr, name: 'Speaker', color: green }, { top: H / 2 + 2 * dpr, h: H / 2 - 2 * dpr, name: 'You', color: sky }];
   const muted = cssVar('--muted'), line = cssVar('--line');
   g.font = `800 ${11 * dpr}px Nunito, system-ui, sans-serif`;
-  for (const L of lanes) {
+  for (const L of ov ? lanes.slice(0, 1) : lanes) {
     g.fillStyle = line;
     g.globalAlpha = 0.6;
     g.fillRect(0, L.top + L.h / 2, W, 1 * dpr);
     g.globalAlpha = 1;
-    g.fillStyle = muted;
-    g.fillText(L.name, 8 * dpr, L.top + 14 * dpr);
   }
+  if (ov) {
+    // legend: coloured names
+    let lx = 8 * dpr;
+    for (const L of lanes) {
+      g.fillStyle = L.color; g.fillRect(lx, 7 * dpr, 10 * dpr, 4 * dpr);
+      g.fillStyle = muted; g.fillText(L.name, lx + 14 * dpr, 14 * dpr);
+      lx += g.measureText(L.name).width + 30 * dpr;
+    }
+  } else for (const L of lanes) { g.fillStyle = muted; g.fillText(L.name, 8 * dpr, L.top + 14 * dpr); }
   if (UI.view === 'pitch') {
     g.fillStyle = muted;
     g.textAlign = 'right';
-    g.fillText('speaker’s average', W - 8 * dpr, lanes[0].top + lanes[0].h / 2 - 5 * dpr);
-    g.fillText('your average', W - 8 * dpr, lanes[1].top + lanes[1].h / 2 - 5 * dpr);
+    if (ov) g.fillText('each voice’s own average', W - 8 * dpr, H / 2 - 5 * dpr);
+    else {
+      g.fillText('speaker’s average', W - 8 * dpr, lanes[0].top + lanes[0].h / 2 - 5 * dpr);
+      g.fillText('your average', W - 8 * dpr, lanes[1].top + lanes[1].h / 2 - 5 * dpr);
+    }
     g.textAlign = 'left';
   }
   // time ticks
@@ -2060,10 +2111,10 @@ Panel.drawAnalysis = function (t) {
 
   const m = clip.model;
   const faded = clip.noisy || m.reliability < 0.4;
-  const drawSeries = (L, series, hop, offset, color, alpha = 1) => {
+  const drawSeries = (L, series, hop, offset, color, alpha = 1, width = 3) => {
     if (UI.view === 'pitch') {
       const range = 12; // ± semitones
-      g.strokeStyle = color; g.lineWidth = 3 * dpr; g.lineJoin = 'round'; g.lineCap = 'round'; g.globalAlpha = alpha;
+      g.strokeStyle = color; g.lineWidth = width * dpr; g.lineJoin = 'round'; g.lineCap = 'round'; g.globalAlpha = alpha;
       g.beginPath();
       let pen = false;
       for (let i = 0; i < series.st.length; i++) {
@@ -2078,7 +2129,7 @@ Panel.drawAnalysis = function (t) {
     } else {
       const db = series.db;
       const peak = percentile(db.filter((v) => v != null), 0.98);
-      g.fillStyle = color; g.globalAlpha = alpha * 0.85;
+      g.fillStyle = color; g.globalAlpha = alpha * (ov ? 0.5 : 0.85);
       const bw = Math.max(1, x(hop) - 0.5);
       for (let i = 0; i < db.length; i++) {
         const ct = offset + i * hop;
@@ -2090,7 +2141,7 @@ Panel.drawAnalysis = function (t) {
       g.globalAlpha = 1;
     }
   };
-  drawSeries(lanes[0], m, m.hop, 0, lanes[0].color, faded ? 0.45 : 1);
+  drawSeries(lanes[0], m, m.hop, 0, lanes[0].color, (faded ? 0.45 : 1) * (ov ? 0.6 : 1), ov ? 5 : 3);
 
   // you: live trace during a pass, otherwise the last analysed pass for this clip
   if (this.live && this.live.clipId === clip.id && this.live.points.length) {
@@ -2112,12 +2163,14 @@ Panel.drawAnalysis = function (t) {
     } else {
       const peak = percentile(series.db, 0.98);
       g.fillStyle = lanes[1].color;
+      if (ov) g.globalAlpha = 0.5;
       for (const p of pts) {
         if (p.t < 0 || p.t > dur) continue;
         const a = clamp((p.db - (peak - 45)) / 45, 0, 1);
         const L = lanes[1], hh = a * (L.h / 2 - 4 * dpr);
         g.fillRect(x(p.t), L.top + L.h / 2 - hh, Math.max(1, x(0.012)), hh * 2);
       }
+      g.globalAlpha = 1;
     }
   } else if (this.lastPass && this.lastPass.clipId === clip.id) {
     const p = this.lastPass;
@@ -2125,7 +2178,7 @@ Panel.drawAnalysis = function (t) {
   } else {
     g.fillStyle = muted;
     g.textAlign = 'center';
-    g.fillText(Mic.error && Session.active ? 'Microphone unavailable' : 'Your line appears here when you record a pass', W / 2, lanes[1].top + lanes[1].h * 0.25);
+    g.fillText(Mic.error && Session.active ? 'Microphone unavailable' : 'Your line appears here when you record a pass', W / 2, ov ? H - 12 * dpr : lanes[1].top + lanes[1].h * 0.25);
     g.textAlign = 'left';
   }
 
@@ -2165,7 +2218,7 @@ function buildEditor(vid) {
       R.len,
       h('span', { class: 'small muted' }, `target ${s.clipMin}–${s.clipMax} s`),
       h('span', { class: 'spacer' }),
-      btn('Play selection', () => { Player.seek(UI.sel.start); Player.play(); }, { icon: 'play', size: 'sm' })),
+      (R.playSel = btn('Play selection', () => togglePlaySelection(), { icon: 'play', size: 'sm', id: 'playSelBtn' }))),
     msg,
     canvas,
     R.warn,
@@ -2180,6 +2233,22 @@ function buildEditor(vid) {
       btn('Save and shadow now', () => saveSelection(true), { kind: 'blue', icon: 'mic' }),
       btn('Cancel', () => { UI.sel = null; renderAll(); }, { kind: 'ghost' })),
   ];
+}
+
+function togglePlaySelection() {
+  if (!UI.sel) return;
+  if (!Player.v.paused || Player.waitingLoop) { Player.pause(); return; }
+  if (Player.time() < UI.sel.start - 0.05 || Player.time() >= UI.sel.end - 0.05) Player.seek(UI.sel.start);
+  Player.play();
+}
+/* keep the editor's play button in step with the player */
+function syncPlaySelButton() {
+  const b = $('#playSelBtn');
+  if (!b) return;
+  const playing = !Player.v.paused || Player.waitingLoop;
+  const next = btn(playing ? 'Stop' : 'Play selection', () => togglePlaySelection(), { icon: playing ? 'stop' : 'play', size: 'sm', id: 'playSelBtn' });
+  b.replaceWith(next);
+  Panel.refs.playSel = next;
 }
 
 function editorData(vid) {
@@ -2419,7 +2488,7 @@ function finishAdd(fields) {
   UI.addOpen = false;
   Player.load(v.id);
   renderSidebar();
-  toast('Video added. Drag along the timeline to cut your first clip.', 'good');
+  toast('Video added. Press Cut clips, then drag along the timeline to make your first clip.', 'good');
 }
 
 function progressBar(label) {
@@ -2549,7 +2618,7 @@ function clipList(v) {
         btn('', () => openClipMenu(c), { size: 'sm', kind: 'ghost', icon: 'menu', title: 'Clip options' })));
   };
   return h('div', { class: 'clist' },
-    live.length ? live.map(item) : h('p', { class: 'small muted' }, 'No clips yet. Drag along the timeline, or press I and O while it plays.'),
+    live.length ? live.map(item) : h('p', { class: 'small muted' }, 'No clips yet. Press Cut clips under the video, then drag along the timeline.'),
     UI.queue.length ? h('div', { class: 'row small' }, h('span', { class: 'muted grow' }, `${UI.queue.length} queued`), btn('Clear queue', () => { UI.queue = []; renderSidebar(); renderSession(); }, { size: 'sm', kind: 'ghost' })) : null,
     arch.length ? h('details', { class: 'archived', open: UI.showArchivedClips, ontoggle: (e) => { UI.showArchivedClips = e.target.open; } }, h('summary', null, `Archived clips (${arch.length})`), h('div', { class: 'clist' }, arch.map(item))) : null);
 }
@@ -2639,6 +2708,8 @@ const Session = {
     const clip = Store.get('clips', clipId);
     if (!clip) return;
     UI.sel = null;
+    UI.cutMode = false;
+    $('#player').classList.remove('cutting');
     if (clip.videoId !== UI.videoId) Player.load(clip.videoId, { keepClip: true });
     UI.clipId = clip.id;
     this.active = true;
@@ -3543,7 +3614,7 @@ function renderChips() {
   mount($('#chips'),
     h('span', { class: `chip streak ${s.practisedToday ? '' : 'cold'}`, title: 'Day streak (one rest day in a row is allowed)' }, icon('flame'), `${s.streak} day${s.streak === 1 ? '' : 's'}`),
     h('span', { class: 'chip', title: 'Days practised this week' }, icon('calendar'), `${s.weekCount}/${target} this week`),
-    h('span', { class: 'chip mode', title: storageTitle() }, Store.mode === 'cloud' || Store.mode === 'artifact' ? 'Synced' : Store.mode === 'local' ? 'This browser' : 'Not saved'));
+    h('span', { class: 'chip mode', title: storageTitle() }, icon(Store.mode === 'cloud' || Store.mode === 'artifact' ? 'check' : 'folder'), Store.mode === 'cloud' || Store.mode === 'artifact' ? 'Synced' : Store.mode === 'local' ? 'This browser' : 'Not saved'));
   mount($('#topnav'),
     btn('Library', () => openDrawer(), { icon: 'menu', size: 'sm', kind: 'ghost', aria: 'Library', title: 'Video library' }),
     btn('Progress', () => openProgress('habit'), { icon: 'chart', size: 'sm', aria: 'Progress', title: 'Progress' }),
@@ -3720,8 +3791,8 @@ const QUESTIONS = [
 ];
 const TASKS = [
   { key: 'read', name: 'Read aloud', secs: null, help: 'Read these sentences aloud at a natural pace. They are the same at every check-in.' },
-  { key: 'retell', name: 'Retelling (60 s)', secs: 60, help: 'Retell something you watched recently (a race, a video, an episode) for about 60 seconds.' },
-  { key: 'answer', name: 'Unseen question (60 s)', secs: 60, help: 'Reveal a question you haven’t seen and answer it for about 60 seconds. No preparing.' },
+  { key: 'retell', name: 'Retelling (about 60 s)', secs: 60, help: 'Retell something you watched recently (a race, a video, an episode) for about 60 seconds.' },
+  { key: 'answer', name: 'Unseen question (about 60 s)', secs: 60, help: 'Reveal a question you haven’t seen and answer it for about 60 seconds. No preparing.' },
 ];
 
 function programmeStart() {
@@ -3781,7 +3852,21 @@ function openCheckinRecorder(week) {
     const cur = checkinFor(week);
     const cards = await Promise.all(TASKS.map(async (t) => {
       const ids = (cur && cur.recs && cur.recs[t.key]) || [];
-      const takes = await Promise.all(ids.map(async (id, i) => { const r = Store.get('recordings', id); return h('div', { class: 'audio-row' }, h('span', { class: 'small', style: { fontWeight: 800 } }, `Take ${i + 1}`), await recAudio(r)); }));
+      const takes = await Promise.all(ids.map(async (id, i) => {
+        const r = Store.get('recordings', id);
+        const row = h('div', { class: 'audio-row' });
+        const normal = async () => mount(row,
+          h('span', { class: 'small', style: { fontWeight: 800 } }, `Take ${i + 1}`),
+          await recAudio(r),
+          r && r.durationSec ? h('span', { class: 'small muted num' }, fmtTime(r.durationSec)) : null,
+          btn('Delete', () => confirmRow(), { size: 'sm', kind: 'ghost', title: `Delete take ${i + 1}` }));
+        const confirmRow = () => mount(row,
+          h('span', { class: 'small', style: { fontWeight: 800 } }, `Delete take ${i + 1}? This can’t be undone.`),
+          btn('Delete', async () => { await deleteCheckinTake(week, t.key, id); draw(); }, { size: 'sm', kind: 'danger' }),
+          btn('Keep it', () => normal(), { size: 'sm', kind: 'ghost' }));
+        await normal();
+        return row;
+      }));
       const q = t.key === 'answer' ? cur && cur.questions && cur.questions[cur.questions.length - 1] : null;
       return h('div', { class: 'card' },
         h('div', { class: 'row' }, h('h3', { class: 'grow' }, t.name), ids.length ? h('span', { class: 'tick done' }, icon('check', 'stroke-width="3.4"')) : null),
@@ -3836,8 +3921,11 @@ function checkinRecordControls(week, task, redraw) {
     mount(wrap, btn('Stop and save', stop, { kind: 'danger', icon: 'stop' }), status);
     timer = setInterval(() => {
       const s = (performance.now() - t0) / 1000;
-      status.textContent = task.secs ? `${Math.max(0, Math.ceil(task.secs - s))} s left` : `${fmtTime(s)} recording`;
-      if (task.secs && s >= task.secs) stop();
+      // the target is soft: going over is fine, so finish the sentence; a hard stop only at 3x the target
+      if (!task.secs) status.textContent = `${fmtTime(s)} recording`;
+      else if (s < task.secs) status.textContent = `${Math.ceil(task.secs - s)} s left`;
+      else { status.textContent = `Time’s up: finish your sentence, then stop (+${fmtTime(s - task.secs)})`; status.style.color = 'var(--ochre)'; status.style.fontWeight = '800'; }
+      if (task.secs && s >= task.secs * 3) stop();
     }, 250);
   };
   wrap.append(
@@ -3845,6 +3933,31 @@ function checkinRecordControls(week, task, redraw) {
     filePickButton('Upload a file', 'audio/*,video/*', async (f) => { try { const samples = await AudioEng.decodeBlob(f); await saveCheckinTake(week, task.key, f, samples); toast('Saved.', 'good'); redraw(); } catch (e) { toast(`That file couldn’t be read (${e.message || 'error'}).`, 'bad'); } }, { size: 'sm', kind: 'ghost', icon: 'upload' }),
     status);
   return wrap;
+}
+
+async function deleteCheckinTake(week, key, recId) {
+  const c = checkinFor(week);
+  if (!c) return;
+  const list = c.recs[key] || [];
+  const idx = list.indexOf(recId);
+  if (idx < 0) return;
+  const rec = Store.get('recordings', recId);
+  const recs = { ...c.recs, [key]: list.filter((x) => x !== recId) };
+  const fields = { recs };
+  // each answer take has its own question; drop it too (it stays marked as seen)
+  if (key === 'answer' && c.questions) fields.questions = c.questions.filter((_, i) => i !== idx);
+  // measures follow the latest remaining take
+  const measures = { ...(c.measures || {}) };
+  const last = Store.get('recordings', recs[key].slice(-1)[0]);
+  if (last && last.measures) measures[key] = last.measures; else delete measures[key];
+  fields.measures = measures;
+  Store.patch('checkins', c.id, fields);
+  if (rec) {
+    await Store.deleteBlob(rec.ref);
+    delete Store.data.recordings[recId];
+    Store.schedule('recordings', recId, 0);
+  }
+  toast('Take deleted.');
 }
 
 function pickQuestion() {
@@ -4255,6 +4368,7 @@ function openShortcuts() {
     h('div', { class: 'keys' },
       h('span', null, K('Space')), h('span', null, 'Play / pause (pauses the session too)'),
       h('span', null, K('R')), h('span', null, 'Replay the loop from the start (repeats the pass in a session)'),
+      h('span', null, K('C')), h('span', null, 'Clip mode on / off (drag on the timeline to select a clip)'),
       h('span', null, K('I'), ' ', K('[')), h('span', null, 'Mark clip start at the playhead'),
       h('span', null, K('O'), ' ', K(']')), h('span', null, 'Mark clip end at the playhead'),
       h('span', null, K(','), ' ', K('.')), h('span', null, 'Slower / faster (0.5x, 0.75x, 1x)'),
@@ -4298,7 +4412,8 @@ function onKey(e) {
   else if (k === 'ArrowLeft') { e.preventDefault(); Player.seek(Player.time() - 2); }
   else if (k === 'ArrowRight') { e.preventDefault(); Player.seek(Player.time() + 2); }
   else if (k === 'Enter' && Session.active && (Session.phase === 'intro' || Session.phase === 'armed')) Session.go();
-  else if (k === 'Escape') { if (UI.drawer) closeDrawer(); else if (UI.sel && !Session.active) { UI.sel = null; renderAll(); } }
+  else if (k === 'c' || k === 'C') { if (Player.current() && !Session.active) setCutMode(!UI.cutMode); }
+  else if (k === 'Escape') { if (UI.drawer) closeDrawer(); else if (UI.sel && !Session.active) { UI.sel = null; renderAll(); } else if (UI.cutMode) setCutMode(false); }
   else if (k === '?') openShortcuts();
 }
 

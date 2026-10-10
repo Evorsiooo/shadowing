@@ -14,6 +14,8 @@ const UI = {
   editVideoId: null,
   editVideo: null,
   showArchivedClips: false,
+  cutMode: false,
+  overlay: lsGet('overlay', false),
 };
 
 /* ---------- video player with custom controls ---------- */
@@ -31,8 +33,8 @@ const Player = {
     v.preservesPitch = true; v.mozPreservesPitch = true; v.webkitPreservesPitch = true;
     v.volume = UI.volume;
     v.addEventListener('loadedmetadata', () => { this.durationKnown = v.duration; this.hideError(); renderScrubber(); renderControls(); renderPanel(); });
-    v.addEventListener('play', () => { this.startRaf(); renderControls(); });
-    v.addEventListener('pause', () => renderControls());
+    v.addEventListener('play', () => { this.startRaf(); renderControls(); syncPlaySelButton(); });
+    v.addEventListener('pause', () => { renderControls(); setTimeout(syncPlaySelButton, 0); });
     v.addEventListener('ratechange', () => renderControls());
     v.addEventListener('error', () => this.showError());
     v.addEventListener('timeupdate', () => { if (!this.rafOn) this.paintHead(); });
@@ -72,7 +74,7 @@ const Player = {
     AudioEng.getCtx();
     try { await this.v.play(); return true; } catch (e) { if (e.name !== 'AbortError') this.showError(e); return false; }
   },
-  pause() { this.v.pause(); clearTimeout(this.loopTimer); this.waitingLoop = false; },
+  pause() { this.v.pause(); clearTimeout(this.loopTimer); this.waitingLoop = false; syncPlaySelButton(); },
   toggle() {
     if (Session.active) { Session.togglePause(); return; }
     if (this.v.paused) {
@@ -159,35 +161,42 @@ const Player = {
     const sc = $('#scrubber');
     let down = null;
     const tAt = (x) => { const r = sc.getBoundingClientRect(); return clamp((x - r.left) / r.width, 0, 1) * this.duration(); };
+    // normal mode: press and drag to scrub through the video
+    // clip mode: press and drag to select a new clip (a plain click still seeks)
     sc.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('.bracket-hit') || !this.duration()) return;
-      down = { x: e.clientX, t: tAt(e.clientX), drag: false };
+      if (e.target.closest('.bracket-hit') || !this.duration() || Session.active) return;
+      down = { x: e.clientX, t: tAt(e.clientX), drag: false, cut: UI.cutMode };
       sc.setPointerCapture(e.pointerId);
+      if (!down.cut) this.seek(down.t);
     });
     sc.addEventListener('pointermove', (e) => {
       const ht = $('#hoverTime');
       const r = sc.getBoundingClientRect();
       if (this.duration()) { ht.hidden = false; ht.style.left = clamp(e.clientX - r.left, 0, r.width) + 'px'; ht.textContent = fmtTime(tAt(e.clientX)); }
       if (!down) return;
-      if (!down.drag && Math.abs(e.clientX - down.x) > 6 && !Session.active) down.drag = true;
-      if (down.drag) {
-        const t = tAt(e.clientX);
-        UI.sel = { start: Math.min(down.t, t), end: Math.max(down.t, t), label: '' };
-        UI.clipId = null;
-        renderScrubber();
-      }
+      if (!down.drag && Math.abs(e.clientX - down.x) > 6) down.drag = true;
+      if (!down.drag) return;
+      const t = tAt(e.clientX);
+      if (!down.cut) { this.seek(t); return; }
+      UI.sel = { start: Math.min(down.t, t), end: Math.max(down.t, t), label: '' };
+      UI.clipId = null;
+      renderScrubber();
     });
     sc.addEventListener('pointerleave', () => { $('#hoverTime').hidden = true; });
-    sc.addEventListener('pointerup', (e) => {
+    const end = (e) => {
       if (!down) return;
-      if (down.drag) {
-        if (UI.sel && UI.sel.end - UI.sel.start < 1) UI.sel.end = UI.sel.start + Math.max(settings().clipMin, 1);
+      const d = down;
+      down = null;
+      if (!d.cut) return;
+      if (d.drag && UI.sel) {
+        if (UI.sel.end - UI.sel.start < 1) UI.sel.end = UI.sel.start + Math.max(settings().clipMin, 1);
         this.seek(UI.sel.start);
         renderAll();
         VideoAudio.load(this.current()).then(() => renderPanel());
-      } else if (!Session.active) this.seek(tAt(e.clientX));
-      down = null;
-    });
+      } else if (e.type === 'pointerup') this.seek(tAt(e.clientX));
+    };
+    sc.addEventListener('pointerup', end);
+    sc.addEventListener('pointercancel', end);
   },
 };
 
@@ -254,13 +263,24 @@ function renderControls() {
     btn('', () => Player.setVolume(UI.volume === 0 ? 1 : 0), { icon: volIcon, title: 'Mute' }),
     h('input', { type: 'range', class: 'vol', min: 0, max: 1, step: 0.05, value: UI.volume, 'aria-label': 'Volume', oninput: (e) => Player.setVolume(+e.target.value) }),
     h('span', { class: 'spacer' }),
-    btn('Start', () => markEdge('start'), { icon: 'scissors', title: 'Mark clip start at the playhead (I or [)', disabled: dis || Session.active, size: 'sm' }),
-    btn('End', () => markEdge('end'), { title: 'Mark clip end at the playhead (O or ])', disabled: dis || Session.active, size: 'sm' }),
+    btn('Cut clips', () => setCutMode(!UI.cutMode), { icon: 'scissors', on: UI.cutMode, pressed: UI.cutMode, title: 'Clip mode: drag on the timeline to select a new clip (C)', disabled: dis || Session.active }),
+    UI.cutMode ? btn('Start', () => markEdge('start'), { title: 'Mark clip start at the playhead (I or [)', disabled: dis || Session.active }) : null,
+    UI.cutMode ? btn('End', () => markEdge('end'), { title: 'Mark clip end at the playhead (O or ])', disabled: dis || Session.active }) : null,
     btn('', () => openShortcuts(), { icon: 'keyboard', title: 'Keyboard shortcuts (?)' }));
+}
+
+function setCutMode(on) {
+  if (Session.active && on) return;
+  UI.cutMode = on;
+  if (!on && UI.sel && !UI.sel.clipId) UI.sel = null;
+  $('#player').classList.toggle('cutting', on);
+  if (on) toast('Clip mode: drag on the timeline to select a clip, or press I and O while it plays.');
+  renderAll();
 }
 
 function markEdge(which) {
   if (!Player.current() || Session.active) return;
+  if (!UI.cutMode) { UI.cutMode = true; $('#player').classList.add('cutting'); }
   const t = Player.time();
   const s = settings();
   if (!UI.sel) {
@@ -305,7 +325,7 @@ function renderPlayerEmpty() {
   const any = Store.all('videos').some((v) => !v.archived);
   mount($('#playerEmpty'),
     h('h2', null, any ? 'Pick a video from your library' : 'Add your first video'),
-    h('p', null, any ? 'Open a video on the right, then choose a clip or drag along the timeline to cut a new one.' : 'Paste a direct link to an .mp4 file, for example an Oscar Piastri interview.'),
+    h('p', null, any ? 'Open a video on the right, then choose a clip, or press Cut clips to make a new one.' : 'Paste a direct link to an .mp4 file, for example an Oscar Piastri interview.'),
     btn(any ? 'Open the library' : 'Add a video', () => { UI.addOpen = !any; openDrawer(); renderSidebar(); setTimeout(() => { const f = $('#addUrl'); if (f) f.focus(); }, 60); }, { kind: 'primary', size: 'big', icon: any ? 'menu' : 'plus' }));
 }
 

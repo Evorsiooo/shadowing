@@ -36,7 +36,7 @@ function renderChips() {
   mount($('#chips'),
     h('span', { class: `chip streak ${s.practisedToday ? '' : 'cold'}`, title: 'Day streak (one rest day in a row is allowed)' }, icon('flame'), `${s.streak} day${s.streak === 1 ? '' : 's'}`),
     h('span', { class: 'chip', title: 'Days practised this week' }, icon('calendar'), `${s.weekCount}/${target} this week`),
-    h('span', { class: 'chip mode', title: storageTitle() }, Store.mode === 'cloud' || Store.mode === 'artifact' ? 'Synced' : Store.mode === 'local' ? 'This browser' : 'Not saved'));
+    h('span', { class: 'chip mode', title: storageTitle() }, icon(Store.mode === 'cloud' || Store.mode === 'artifact' ? 'check' : 'folder'), Store.mode === 'cloud' || Store.mode === 'artifact' ? 'Synced' : Store.mode === 'local' ? 'This browser' : 'Not saved'));
   mount($('#topnav'),
     btn('Library', () => openDrawer(), { icon: 'menu', size: 'sm', kind: 'ghost', aria: 'Library', title: 'Video library' }),
     btn('Progress', () => openProgress('habit'), { icon: 'chart', size: 'sm', aria: 'Progress', title: 'Progress' }),
@@ -213,8 +213,8 @@ const QUESTIONS = [
 ];
 const TASKS = [
   { key: 'read', name: 'Read aloud', secs: null, help: 'Read these sentences aloud at a natural pace. They are the same at every check-in.' },
-  { key: 'retell', name: 'Retelling (60 s)', secs: 60, help: 'Retell something you watched recently (a race, a video, an episode) for about 60 seconds.' },
-  { key: 'answer', name: 'Unseen question (60 s)', secs: 60, help: 'Reveal a question you haven’t seen and answer it for about 60 seconds. No preparing.' },
+  { key: 'retell', name: 'Retelling (about 60 s)', secs: 60, help: 'Retell something you watched recently (a race, a video, an episode) for about 60 seconds.' },
+  { key: 'answer', name: 'Unseen question (about 60 s)', secs: 60, help: 'Reveal a question you haven’t seen and answer it for about 60 seconds. No preparing.' },
 ];
 
 function programmeStart() {
@@ -274,7 +274,21 @@ function openCheckinRecorder(week) {
     const cur = checkinFor(week);
     const cards = await Promise.all(TASKS.map(async (t) => {
       const ids = (cur && cur.recs && cur.recs[t.key]) || [];
-      const takes = await Promise.all(ids.map(async (id, i) => { const r = Store.get('recordings', id); return h('div', { class: 'audio-row' }, h('span', { class: 'small', style: { fontWeight: 800 } }, `Take ${i + 1}`), await recAudio(r)); }));
+      const takes = await Promise.all(ids.map(async (id, i) => {
+        const r = Store.get('recordings', id);
+        const row = h('div', { class: 'audio-row' });
+        const normal = async () => mount(row,
+          h('span', { class: 'small', style: { fontWeight: 800 } }, `Take ${i + 1}`),
+          await recAudio(r),
+          r && r.durationSec ? h('span', { class: 'small muted num' }, fmtTime(r.durationSec)) : null,
+          btn('Delete', () => confirmRow(), { size: 'sm', kind: 'ghost', title: `Delete take ${i + 1}` }));
+        const confirmRow = () => mount(row,
+          h('span', { class: 'small', style: { fontWeight: 800 } }, `Delete take ${i + 1}? This can’t be undone.`),
+          btn('Delete', async () => { await deleteCheckinTake(week, t.key, id); draw(); }, { size: 'sm', kind: 'danger' }),
+          btn('Keep it', () => normal(), { size: 'sm', kind: 'ghost' }));
+        await normal();
+        return row;
+      }));
       const q = t.key === 'answer' ? cur && cur.questions && cur.questions[cur.questions.length - 1] : null;
       return h('div', { class: 'card' },
         h('div', { class: 'row' }, h('h3', { class: 'grow' }, t.name), ids.length ? h('span', { class: 'tick done' }, icon('check', 'stroke-width="3.4"')) : null),
@@ -329,8 +343,11 @@ function checkinRecordControls(week, task, redraw) {
     mount(wrap, btn('Stop and save', stop, { kind: 'danger', icon: 'stop' }), status);
     timer = setInterval(() => {
       const s = (performance.now() - t0) / 1000;
-      status.textContent = task.secs ? `${Math.max(0, Math.ceil(task.secs - s))} s left` : `${fmtTime(s)} recording`;
-      if (task.secs && s >= task.secs) stop();
+      // the target is soft: going over is fine, so finish the sentence; a hard stop only at 3x the target
+      if (!task.secs) status.textContent = `${fmtTime(s)} recording`;
+      else if (s < task.secs) status.textContent = `${Math.ceil(task.secs - s)} s left`;
+      else { status.textContent = `Time’s up: finish your sentence, then stop (+${fmtTime(s - task.secs)})`; status.style.color = 'var(--ochre)'; status.style.fontWeight = '800'; }
+      if (task.secs && s >= task.secs * 3) stop();
     }, 250);
   };
   wrap.append(
@@ -338,6 +355,31 @@ function checkinRecordControls(week, task, redraw) {
     filePickButton('Upload a file', 'audio/*,video/*', async (f) => { try { const samples = await AudioEng.decodeBlob(f); await saveCheckinTake(week, task.key, f, samples); toast('Saved.', 'good'); redraw(); } catch (e) { toast(`That file couldn’t be read (${e.message || 'error'}).`, 'bad'); } }, { size: 'sm', kind: 'ghost', icon: 'upload' }),
     status);
   return wrap;
+}
+
+async function deleteCheckinTake(week, key, recId) {
+  const c = checkinFor(week);
+  if (!c) return;
+  const list = c.recs[key] || [];
+  const idx = list.indexOf(recId);
+  if (idx < 0) return;
+  const rec = Store.get('recordings', recId);
+  const recs = { ...c.recs, [key]: list.filter((x) => x !== recId) };
+  const fields = { recs };
+  // each answer take has its own question; drop it too (it stays marked as seen)
+  if (key === 'answer' && c.questions) fields.questions = c.questions.filter((_, i) => i !== idx);
+  // measures follow the latest remaining take
+  const measures = { ...(c.measures || {}) };
+  const last = Store.get('recordings', recs[key].slice(-1)[0]);
+  if (last && last.measures) measures[key] = last.measures; else delete measures[key];
+  fields.measures = measures;
+  Store.patch('checkins', c.id, fields);
+  if (rec) {
+    await Store.deleteBlob(rec.ref);
+    delete Store.data.recordings[recId];
+    Store.schedule('recordings', recId, 0);
+  }
+  toast('Take deleted.');
 }
 
 function pickQuestion() {

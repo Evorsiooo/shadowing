@@ -68,6 +68,8 @@ const Session = {
     const clip = Store.get('clips', clipId);
     if (!clip) return;
     UI.sel = null;
+    UI.cutMode = false;
+    $('#player').classList.remove('cutting');
     if (clip.videoId !== UI.videoId) Player.load(clip.videoId, { keepClip: true });
     UI.clipId = clip.id;
     this.active = true;

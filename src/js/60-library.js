@@ -63,7 +63,7 @@ function finishAdd(fields) {
   UI.addOpen = false;
   Player.load(v.id);
   renderSidebar();
-  toast('Video added. Drag along the timeline to cut your first clip.', 'good');
+  toast('Video added. Press Cut clips, then drag along the timeline to make your first clip.', 'good');
 }
 
 function progressBar(label) {
@@ -193,7 +193,7 @@ function clipList(v) {
         btn('', () => openClipMenu(c), { size: 'sm', kind: 'ghost', icon: 'menu', title: 'Clip options' })));
   };
   return h('div', { class: 'clist' },
-    live.length ? live.map(item) : h('p', { class: 'small muted' }, 'No clips yet. Drag along the timeline, or press I and O while it plays.'),
+    live.length ? live.map(item) : h('p', { class: 'small muted' }, 'No clips yet. Press Cut clips under the video, then drag along the timeline.'),
     UI.queue.length ? h('div', { class: 'row small' }, h('span', { class: 'muted grow' }, `${UI.queue.length} queued`), btn('Clear queue', () => { UI.queue = []; renderSidebar(); renderSession(); }, { size: 'sm', kind: 'ghost' })) : null,
     arch.length ? h('details', { class: 'archived', open: UI.showArchivedClips, ontoggle: (e) => { UI.showArchivedClips = e.target.open; } }, h('summary', null, `Archived clips (${arch.length})`), h('div', { class: 'clist' }, arch.map(item))) : null);
 }

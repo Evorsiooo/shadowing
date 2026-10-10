@@ -233,6 +233,7 @@ function openShortcuts() {
     h('div', { class: 'keys' },
       h('span', null, K('Space')), h('span', null, 'Play / pause (pauses the session too)'),
       h('span', null, K('R')), h('span', null, 'Replay the loop from the start (repeats the pass in a session)'),
+      h('span', null, K('C')), h('span', null, 'Clip mode on / off (drag on the timeline to select a clip)'),
       h('span', null, K('I'), ' ', K('[')), h('span', null, 'Mark clip start at the playhead'),
       h('span', null, K('O'), ' ', K(']')), h('span', null, 'Mark clip end at the playhead'),
       h('span', null, K(','), ' ', K('.')), h('span', null, 'Slower / faster (0.5x, 0.75x, 1x)'),
