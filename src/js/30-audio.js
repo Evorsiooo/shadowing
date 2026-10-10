@@ -119,9 +119,11 @@ function videoSrc(v) {
 
 /* ---------- microphone ---------- */
 const Mic = {
-  stream: null, source: null, proc: null, sink: null,
+  stream: null, source: null, gain: null, proc: null, sink: null, dest: null,
   listeners: new Set(),
   error: null,
+  level: -100, // last chunk's loudness (dBFS, after gain)
+  speech: null, // running estimate of speech loudness, for automatic gain
   async open() {
     if (this.stream && this.stream.active) return true;
     const s = settings();
@@ -132,7 +134,7 @@ const Mic = {
     }
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: !!s.echoCancellation, noiseSuppression: !!s.noiseSuppression, autoGainControl: false, channelCount: 1 },
+        audio: { echoCancellation: !!s.echoCancellation, noiseSuppression: !!s.noiseSuppression, autoGainControl: !!s.micAuto, channelCount: 1 },
       });
     } catch (e) {
       this.error = e && e.name === 'NotAllowedError'
@@ -143,17 +145,27 @@ const Mic = {
       return false;
     }
     this.error = null;
+    // mic → gain (sensitivity) → analysis + recording
     this.source = ctx.createMediaStreamSource(this.stream);
+    this.gain = ctx.createGain();
+    this.gain.gain.value = s.micAuto ? (this.autoGain || 1) : s.micGain;
+    this.dest = ctx.createMediaStreamDestination();
     this.proc = ctx.createScriptProcessor(2048, 1, 1);
     this.sink = ctx.createGain();
     this.sink.gain.value = 0;
-    this.source.connect(this.proc);
+    this.source.connect(this.gain);
+    this.gain.connect(this.proc);
+    this.gain.connect(this.dest);
     this.proc.connect(this.sink);
     this.sink.connect(ctx.destination);
     let carry = new Float32Array(0);
     this.proc.onaudioprocess = (e) => {
       const input = e.inputBuffer.getChannelData(0);
       const t = ctx.currentTime - input.length / ctx.sampleRate; // approx. capture time of first sample
+      let sum = 0;
+      for (let i = 0; i < input.length; i++) sum += input[i] * input[i];
+      this.level = 20 * Math.log10(Math.sqrt(sum / input.length) + 1e-6);
+      this.adapt();
       // resample with carry-over so chunks join cleanly
       const joined = new Float32Array(carry.length + input.length);
       joined.set(carry); joined.set(input, carry.length);
@@ -165,13 +177,62 @@ const Mic = {
     };
     return true;
   },
+  /* automatic sensitivity: nudge the gain so speech sits around -20 dBFS */
+  adapt() {
+    if (!this.gain || !settings().micAuto) return;
+    const lvl = this.level;
+    if (lvl < -65) return; // silence: leave the gain alone
+    const g = this.gain.gain.value;
+    const raw = lvl - 20 * Math.log10(g); // level before our gain
+    // follow loud stretches quickly, quiet ones slowly, so only speech sets the level
+    this.speech = this.speech == null ? raw : raw > this.speech ? this.speech * 0.7 + raw * 0.3 : this.speech * 0.995 + raw * 0.005;
+    const want = clamp(10 ** ((-20 - this.speech) / 20), 1, 30);
+    const next = g + (want - g) * 0.08;
+    this.gain.gain.value = next;
+    this.autoGain = next;
+  },
+  setGain(x) {
+    if (this.gain) this.gain.gain.value = x;
+  },
+  /* stream for MediaRecorder: the boosted signal when available */
+  recordStream() { return this.dest ? this.dest.stream : this.stream; },
   close() {
-    try { this.proc && this.proc.disconnect(); this.source && this.source.disconnect(); this.sink && this.sink.disconnect(); } catch { /* already closed */ }
+    try { [this.proc, this.source, this.gain, this.sink].forEach((n) => n && n.disconnect()); } catch { /* already closed */ }
     if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
-    this.stream = this.source = this.proc = this.sink = null;
+    this.stream = this.source = this.gain = this.proc = this.sink = this.dest = null;
+    this.level = -100;
   },
   on(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); },
 };
+
+/* a small mic control: live level meter, automatic volume on/off, manual boost */
+function micControl() {
+  const s = settings();
+  const fill = h('i', { style: { width: '0%' } });
+  const meter = h('div', { class: 'bar mic-meter', title: 'Microphone level' }, fill);
+  const val = h('span', { class: 'small muted num' });
+  const slider = h('input', { type: 'range', id: 'micGain', min: 0.5, max: 12, step: 0.5, value: s.micGain, 'aria-label': 'Microphone boost', disabled: s.micAuto,
+    oninput: (e) => { const x = +e.target.value; saveSettings({ micGain: x }); Mic.setGain(x); val.textContent = `${x}x`; } });
+  val.textContent = s.micAuto ? 'auto' : `${s.micGain}x`;
+  const auto = h('label', { class: 'check', for: 'micAuto' }, h('input', { type: 'checkbox', id: 'micAuto', checked: s.micAuto, onchange: (e) => {
+    saveSettings({ micAuto: e.target.checked });
+    slider.disabled = e.target.checked;
+    val.textContent = e.target.checked ? 'auto' : `${settings().micGain}x`;
+    if (!e.target.checked) Mic.setGain(settings().micGain);
+    if (Mic.stream) toast('Re-open the microphone (next pass) for the browser part of automatic volume to change.');
+  } }), 'Automatic volume');
+  const el = h('div', { class: 'mic-control' }, icon('mic'), meter, auto, slider, val);
+  const tick = () => {
+    if (!el.isConnected) return;
+    const pct = clamp((Mic.level + 60) / 60, 0, 1) * 100;
+    fill.style.width = pct + '%';
+    fill.style.background = Mic.level > -3 ? 'var(--red)' : Mic.level > -35 ? 'var(--green)' : 'var(--wattle)';
+    if (settings().micAuto && Mic.gain) val.textContent = `auto ${Mic.gain.gain.value.toFixed(1)}x`;
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  return el;
+}
 
 /* a recording: compressed file (for keeping) + 16 kHz samples (for analysis) */
 function pickMime() {
@@ -183,7 +244,7 @@ class Recording {
   constructor() { this.chunks = []; this.pcm = []; this.startCtx = null; this.len = 0; }
   start() {
     const mime = pickMime();
-    this.rec = new MediaRecorder(Mic.stream, mime ? { mimeType: mime } : undefined);
+    this.rec = new MediaRecorder(Mic.recordStream(), mime ? { mimeType: mime } : undefined);
     this.rec.ondataavailable = (e) => e.data && e.data.size && this.chunks.push(e.data);
     this.off = Mic.on((samples, t) => {
       if (this.startCtx == null) this.startCtx = t;

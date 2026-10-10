@@ -353,6 +353,7 @@ const DEFAULT_SETTINGS = {
   review: false, reviewAfterDays: 2, reviewShadowPasses: 5,
   keepAllPassRecordings: false,
   echoCancellation: false, noiseSuppression: false,
+  micAuto: true, micGain: 2,
   pitchSmoothing: 5,
   programmeStart: null,
   defaultView: 'pitch',
