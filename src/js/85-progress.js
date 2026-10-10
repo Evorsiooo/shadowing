@@ -36,7 +36,7 @@ function renderChips() {
   mount($('#chips'),
     h('span', { class: `chip streak ${s.practisedToday ? '' : 'cold'}`, title: 'Day streak (one rest day in a row is allowed)' }, icon('flame'), `${s.streak} day${s.streak === 1 ? '' : 's'}`),
     h('span', { class: 'chip', title: 'Days practised this week' }, icon('calendar'), `${s.weekCount}/${target} this week`),
-    h('span', { class: 'chip mode', title: storageTitle() }, Store.mode === 'artifact' ? 'Synced' : Store.mode === 'local' ? 'This browser' : 'Not saved'));
+    h('span', { class: 'chip mode', title: storageTitle() }, Store.mode === 'cloud' || Store.mode === 'artifact' ? 'Synced' : Store.mode === 'local' ? 'This browser' : 'Not saved'));
   mount($('#topnav'),
     btn('Library', () => openDrawer(), { icon: 'menu', size: 'sm', kind: 'ghost', aria: 'Library', title: 'Video library' }),
     btn('Progress', () => openProgress('habit'), { icon: 'chart', size: 'sm', aria: 'Progress', title: 'Progress' }),
@@ -46,7 +46,8 @@ function renderChips() {
   lib.classList.add('only-phone');
 }
 function storageTitle() {
-  return Store.mode === 'artifact' ? 'Saved in the artifact’s database; available on every device.'
+  return Store.mode === 'cloud' ? `Saved on your Cloudflare server${Api.email ? ` (signed in as ${Api.email})` : ''}; available on every device.`
+    : Store.mode === 'artifact' ? 'Saved in the artifact’s database; available on every device.'
     : Store.mode === 'local' ? 'Saved in this browser only. Back up from Settings → Data.'
       : 'Storage is blocked here; nothing will be kept after you close the page.';
 }
@@ -73,12 +74,15 @@ function renderBanners() {
   if (due != null && due !== 0) {
     out.push(h('div', { class: 'banner info' }, h('p', null, `Week ${due} check-in is due. It takes about 3 minutes.`), btn('Start check-in', () => openCheckins(due), { kind: 'primary', size: 'sm' })));
   }
-  if (Caps.inArtifact && !dismissed.artifactNote) {
+  if (Api.signedOut && Store.mode === 'cloud') {
+    out.unshift(h('div', { class: 'banner' }, h('p', null, 'Your sign-in has expired, so changes can’t be saved right now. Reload the page to sign in again.'), btn('Reload', () => location.reload(), { kind: 'primary', size: 'sm' })));
+  }
+  if (Store.mode === 'cloud') { /* nothing to explain */ } else if (Caps.inArtifact && !dismissed.artifactNote) {
     out.push(h('div', { class: 'banner info' },
       h('p', null, 'You’re using the Claude artifact version: your data syncs and Claude feedback works, but the microphone and outside video links may be blocked here. Run the checks to see what works on this device.'),
       btn('Run checks', () => openSettings('checks'), { size: 'sm', icon: 'flask' }),
       btn('Got it', dismiss('artifactNote'), { kind: 'ghost', size: 'sm' })));
-  } else if (!Caps.inArtifact && Store.mode !== 'artifact' && !dismissed.localNote) {
+  } else if (!Caps.inArtifact && Store.mode === 'local' && !dismissed.localNote) {
     out.push(h('div', { class: 'banner info' },
       h('p', null, 'Standalone version: the microphone and video links work, and your data stays in this browser. Back it up from Settings → Data now and then.'),
       btn('Got it', dismiss('localNote'), { kind: 'ghost', size: 'sm' })));
@@ -348,7 +352,7 @@ function pickQuestion() {
 async function saveCheckinTake(week, key, blob, samples) {
   const c = ensureCheckin(week);
   let ref;
-  try { ref = await Store.putBlob(blob); } catch (e) { toast(`The recording couldn’t be stored (${e.code || 'error'}).`, 'bad', 6000); return; }
+  try { ref = await Store.putBlob(blob, 'checkin'); } catch (e) { toast(`The recording couldn’t be stored (${e.message || e.code || 'error'}).`, 'bad', 6000); return; }
   let measures = null, analysis = null;
   if (samples && samples.length > SR) {
     const m = DSP.modelFromSamples(samples, settings().pitchSmoothing);

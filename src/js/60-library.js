@@ -29,39 +29,87 @@ function renderSidebar() {
 
 function addVideoForm() {
   const F = UI.addForm;
+  const cloud = Store.mode === 'cloud';
+  if (!F.source) F.source = cloud ? 'upload' : 'link';
+  if (F.copy == null) F.copy = true;
   const status = h('div', { role: 'status' });
+  const fileIn = h('input', { type: 'file', id: 'addFile', accept: 'video/*,audio/*', onchange: (e) => { F.file = e.target.files[0] || null; if (F.file && !F.title) { F.title = F.file.name.replace(/\.\w+$/, ''); const t = $('#addTitle'); if (t) t.value = F.title; } } });
+  const source = cloud ? h('div', { class: 'seg', role: 'group', 'aria-label': 'Where the video comes from' },
+    h('button', { type: 'button', class: F.source === 'upload' ? 'on' : '', onclick: () => { F.source = 'upload'; renderSidebar(); } }, 'Upload a file'),
+    h('button', { type: 'button', class: F.source === 'link' ? 'on' : '', onclick: () => { F.source = 'link'; renderSidebar(); } }, 'From a link')) : null;
   const form = h('form', { class: 'addform', onsubmit: (e) => { e.preventDefault(); submitAdd(status); } },
-    h('label', { class: 'field', for: 'addUrl' }, 'Direct link to the .mp4 file',
-      h('input', { type: 'url', id: 'addUrl', required: true, placeholder: 'https://pomf2.lain.la/f/….mp4', value: F.url, oninput: (e) => { F.url = e.target.value.trim(); } })),
+    source,
+    F.source === 'upload' && cloud
+      ? h('label', { class: 'field', for: 'addFile' }, 'Video file (any length)', fileIn)
+      : [
+        h('label', { class: 'field', for: 'addUrl' }, 'Direct link to the .mp4 file',
+          h('input', { type: 'url', id: 'addUrl', required: true, placeholder: 'https://pomf2.lain.la/f/….mp4', value: F.url, oninput: (e) => { F.url = e.target.value.trim(); } })),
+        cloud ? h('label', { class: 'check', for: 'addCopy' }, h('input', { type: 'checkbox', id: 'addCopy', checked: F.copy, onchange: (e) => { F.copy = e.target.checked; } }), 'Keep a copy in my storage (recommended)') : null,
+      ],
     h('label', { class: 'field', for: 'addTitle' }, 'Title',
       h('input', { type: 'text', id: 'addTitle', placeholder: 'Piastri, post-race, Monza', value: F.title, oninput: (e) => { F.title = e.target.value; } })),
     h('label', { class: 'field', for: 'addSpeaker' }, 'Speaker (optional)',
       h('input', { type: 'text', id: 'addSpeaker', placeholder: 'Oscar Piastri', value: F.speaker, list: 'speakerList', oninput: (e) => { F.speaker = e.target.value; } })),
     h('datalist', { id: 'speakerList' }, [...new Set(Store.all('videos').map((v) => v.speaker).filter(Boolean).concat(['Oscar Piastri']))].map((s) => h('option', { value: s }))),
-    h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary' }, h('span', null, 'Check and add'))),
+    h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary', id: 'addSubmit' }, h('span', null, F.source === 'upload' && cloud ? 'Upload and add' : cloud && F.copy ? 'Copy and add' : 'Check and add'))),
     status);
   return form;
 }
 
+function finishAdd(fields) {
+  const F = UI.addForm;
+  const v = Store.put('videos', { title: F.title.trim() || fields.fallbackTitle || 'Untitled video', url: fields.url || null, r2Key: fields.r2Key || null, size: fields.size || null, speaker: F.speaker.trim() || null, archived: false, added: new Date().toISOString() });
+  UI.addForm = { title: '', url: '', speaker: '' };
+  UI.addOpen = false;
+  Player.load(v.id);
+  renderSidebar();
+  toast('Video added. Drag along the timeline to cut your first clip.', 'good');
+}
+
+function progressBar(label) {
+  const bar = h('div', { class: 'bar' }, h('i', { style: { width: '0%' } }));
+  const txt = h('p', { class: 'small muted' }, label);
+  return { el: h('div', { class: 'stack' }, txt, bar), set: (f, t) => { bar.firstChild.style.width = Math.round(f * 100) + '%'; if (t) txt.textContent = t; } };
+}
+
 async function submitAdd(status) {
   const F = UI.addForm;
+  const cloud = Store.mode === 'cloud';
+  const submitBtn = $('#addSubmit');
+  if (cloud && F.source === 'upload') {
+    if (!F.file) { mount(status, h('p', { class: 'formerr' }, 'Choose a video file first.')); return; }
+    const p = progressBar(`Uploading ${(F.file.size / 1048576).toFixed(0)} MB…`);
+    mount(status, p.el);
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      const r = await Api.uploadVideo(F.file, (f) => p.set(f, `Uploading… ${Math.round(f * 100)}%`));
+      finishAdd({ r2Key: r.key, size: r.size, fallbackTitle: F.file.name.replace(/\.\w+$/, '') });
+    } catch (e) {
+      mount(status, h('p', { class: 'formerr' }, e.message));
+    } finally { if (submitBtn) submitBtn.disabled = false; }
+    return;
+  }
   const url = F.url;
   if (!/^https?:\/\//i.test(url)) { mount(status, h('p', { class: 'formerr' }, 'Paste a full link starting with https://')); return; }
   const share = /drive\.google|docs\.google|mega\.nz|mega\.io|youtube\.com|youtu\.be|dropbox\.com\/s\/|onedrive|1drv/i.test(url);
   if (share) {
-    mount(status, h('p', { class: 'formerr' }, 'That’s a share page, not a video file. Links from Google Drive, MEGA, YouTube or Dropbox share pages won’t play. Upload the file somewhere that gives a direct .mp4 link (like pomf2.lain.la) and paste that.'));
+    mount(status, h('p', { class: 'formerr' }, 'That’s a share page, not a video file. Links from Google Drive, MEGA, YouTube or Dropbox share pages won’t play. Download the file and use “Upload a file” instead.'));
+    return;
+  }
+  if (cloud && F.copy) {
+    mount(status, h('p', { class: 'small muted' }, 'Copying the video into your storage… this can take a minute for long videos.'));
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      const r = await Api.req('POST', '/api/import', { url });
+      finishAdd({ url, r2Key: r.key, size: r.size, fallbackTitle: guessTitle(url) });
+    } catch (e) {
+      mount(status, h('p', { class: 'formerr' }, e.message), h('div', { class: 'row' }, btn('Add the link without a copy', () => finishAdd({ url, fallbackTitle: guessTitle(url) }), { size: 'sm' })));
+    } finally { if (submitBtn) submitBtn.disabled = false; }
     return;
   }
   mount(status, h('p', { class: 'small muted' }, 'Checking the link plays…'));
   const result = await checkPlayable(url);
-  const add = () => {
-    const v = Store.put('videos', { title: F.title.trim() || guessTitle(url), url, speaker: F.speaker.trim() || null, archived: false, added: new Date().toISOString() });
-    UI.addForm = { title: '', url: '', speaker: '' };
-    UI.addOpen = false;
-    Player.load(v.id);
-    renderSidebar();
-    toast('Video added. Drag along the timeline to cut your first clip.', 'good');
-  };
+  const add = () => finishAdd({ url, fallbackTitle: guessTitle(url) });
   if (result.ok) { add(); return; }
   mount(status,
     h('p', { class: 'formerr' }, result.reason),
@@ -97,11 +145,11 @@ function videoItem(v) {
   return h('div', { class: `vitem ${open ? 'open' : ''}` },
     editing ? editVideoForm(v) : [
       h('div', { class: 'vitem-title', role: 'button', tabindex: 0, onclick: () => { Player.load(v.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter') { Player.load(v.id); closeDrawer(); } } }, v.title || 'Untitled video'),
-      h('div', { class: 'meta' }, `${p.done}/${p.total} clips done · ${p.last ? `last practised ${fmtDay(p.last)}` : 'not practised yet'}${v.speaker ? ` · ${v.speaker}` : ''}`),
+      h('div', { class: 'meta' }, `${p.done}/${p.total} clips done · ${p.last ? `last practised ${fmtDay(p.last)}` : 'not practised yet'}${v.speaker ? ` · ${v.speaker}` : ''}${v.r2Key ? ' · stored' : ''}`),
       h('div', { class: 'bar vprog' }, h('i', { style: { width: (p.total ? (p.done / p.total) * 100 : 0) + '%' } })),
       h('div', { class: 'row' },
         !open ? btn('Open', () => { Player.load(v.id); closeDrawer(); }, { size: 'sm', kind: 'primary' }) : null,
-        v.url ? h('a', { class: 'btn sm ghost', href: v.url, target: '_blank', rel: 'noopener', title: 'Open the original link' }, icon('link'), h('span', { class: 'txt' }, 'Link')) : null,
+        v.url || v.r2Key ? h('a', { class: 'btn sm ghost', href: v.url || '/api/files/' + v.r2Key, target: '_blank', rel: 'noopener', title: 'Open the original link' }, icon('link'), h('span', { class: 'txt' }, 'Link')) : null,
         btn('', () => { UI.editVideoId = v.id; UI.editVideo = { title: v.title, url: v.url, speaker: v.speaker || '' }; renderSidebar(); }, { size: 'sm', kind: 'ghost', icon: 'edit', title: 'Edit title or link' }),
         v.archived ? btn('Restore', () => { Store.patch('videos', v.id, { archived: false }); renderSidebar(); toast('Video restored.'); }, { size: 'sm', icon: 'restore' })
           : btn('', () => { Store.patch('videos', v.id, { archived: true }); if (open) Player.load(null); renderSidebar(); toast('Video archived. Its clips and history are kept.'); }, { size: 'sm', kind: 'ghost', icon: 'archive', title: 'Archive (clips and history are kept)' })),

@@ -138,6 +138,7 @@ const Player = {
     const share = /drive\.google|docs\.google|mega\.nz|mega\.io|dropbox\.com\/s\/|youtube\.com|youtu\.be|onedrive|1drv/i.test(url);
     const reason = share
       ? 'This looks like a share page, not a direct video file. Share pages from Google Drive, MEGA, YouTube and similar sites don\'t play here. Use a direct link that ends in .mp4.'
+      : vid.r2Key ? 'The stored copy didn’t load. If you were signed out, reload the page; otherwise upload the file again.'
       : Caps.inArtifact && !LocalFiles.get(vid.id) && !vid.assetId
         ? 'Inside a Claude artifact, videos from other websites are blocked by the page\'s security rules. Pick the same video file from this device, or store a short copy here (20 MB maximum).'
         : 'The link didn\'t load as a video. Check it opens directly as an .mp4 file in a new tab.';
@@ -146,7 +147,8 @@ const Player = {
       h('p', null, reason),
       h('div', { class: 'row', style: { justifyContent: 'center' } },
         filePickButton('Use a file from this device', 'video/*', (f) => useLocalFile(vid, f), { kind: 'primary', icon: 'folder' }),
-        Caps.assets && Store.blobMode === 'assets' ? filePickButton('Store a copy (under 20 MB)', 'video/mp4,video/webm', (f) => storeVideoCopy(vid, f), { icon: 'upload' }) : null,
+        Store.mode === 'cloud' ? filePickButton('Upload the file to my storage', 'video/*', (f) => storeVideoCopy(vid, f), { icon: 'upload' })
+          : Caps.assets && Store.blobMode === 'assets' ? filePickButton('Store a copy (under 20 MB)', 'video/mp4,video/webm', (f) => storeVideoCopy(vid, f), { icon: 'upload' }) : null,
         url ? h('a', { class: 'btn', href: url, target: '_blank', rel: 'noopener' }, icon('link'), h('span', { class: 'txt' }, 'Open original link')) : null));
     el.hidden = false;
   },
@@ -210,6 +212,18 @@ function useLocalFile(vid, file) {
 }
 
 async function storeVideoCopy(vid, file) {
+  if (Store.mode === 'cloud') {
+    toast('Uploading… keep this page open.');
+    try {
+      const r = await Api.uploadVideo(file, () => {});
+      Store.patch('videos', vid.id, { r2Key: r.key, size: r.size });
+      VideoAudio.cache.delete(vid.id);
+      Player.reloadSrc();
+      Player.hideError();
+      toast('Uploaded. It now plays on every device.', 'good');
+    } catch (e) { toast(e.message, 'bad', 7000); }
+    return;
+  }
   if (file.size > 20 * 1024 * 1024) { toast(`That file is ${(file.size / 1048576).toFixed(1)} MB. Stored copies must be under 20 MB; cut a shorter section first, or use "Use a file from this device".`, 'bad', 8000); return; }
   toast('Uploading a copy…');
   try {

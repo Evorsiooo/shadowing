@@ -1,0 +1,28 @@
+# Cloudflare Pages project: static app in dist/, backend in functions/.
+# scripts/setup.mjs fills in database_id and the Access settings.
+name = "shadowing"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Cloudflare Access: team domain (e.g. "adrien.cloudflareaccess.com") and the
+# application's Audience (AUD) tag. Every /api request is checked against these.
+ACCESS_TEAM_DOMAIN = ""
+ACCESS_AUD = ""
+# Optional: comma-separated emails allowed in (on top of the Access policy).
+ALLOWED_EMAIL = ""
+
+[[d1_databases]]
+binding = "DB"
+database_name = "shadowing"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "shadowing-files"
+
+# Secrets (set with `npx wrangler pages secret put NAME`, never committed):
+#   ANTHROPIC_API_KEY  Claude API key for note feedback
+#   MCP_TOKEN          long random string; the MCP endpoint is /mcp/<MCP_TOKEN>

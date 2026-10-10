@@ -38,6 +38,15 @@ async function boot() {
   renderControls();
   mount($('#panel'), h('div', { class: 'panel-msg' }, 'Loading your practice data…'));
   await Store.init();
+  if (Store.mode === 'offline') {
+    mount($('#panel'), h('div', { class: 'panel-msg' }, 'Not connected.'));
+    openModal([
+      modalHead(Api.signedOut ? 'Please sign in again' : 'The server isn’t ready'),
+      h('p', null, Api.signedOut ? 'Your sign-in has expired. Reload the page to sign in with your email code.' : `The app’s server answered with a problem: ${Api.problem}`),
+      btn('Reload', () => location.reload(), { kind: 'primary', size: 'big' }),
+    ], { narrow: true });
+    return;
+  }
   appMeta();
   applyTheme();
   UI.view = settings().defaultView || 'pitch';
@@ -52,6 +61,7 @@ async function boot() {
   document.addEventListener('keydown', onKey);
   $('#drawerBack').addEventListener('click', closeDrawer);
   Bus.on('videoaudio', () => { Panel.editor = null; renderPanel(); });
+  Bus.on('signedout', () => renderBanners());
   window.addEventListener('resize', () => Panel.onTime(Player.time()));
   window.addEventListener('beforeunload', () => { Store.flushAll(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) Store.flushAll(); });

@@ -716,9 +716,90 @@ const IDB = {
   get(store, key) { return this.tx(store, 'readonly', (s) => s.get(key)); },
 };
 
+/* ---------- cloud backend (Cloudflare Pages Functions: D1 + R2 + Claude) ---------- */
+const Api = {
+  on: false,
+  email: null,
+  claude: false,
+  signedOut: false,
+  problem: null,
+  async req(method, path, body, { raw = false, headers = {} } = {}) {
+    let resp;
+    try {
+      resp = await fetch(path, {
+        method, credentials: 'same-origin', redirect: 'manual',
+        headers: body != null && !raw ? { 'content-type': 'application/json', ...headers } : headers,
+        body: body == null ? undefined : raw ? body : JSON.stringify(body),
+      });
+    } catch (e) {
+      throw Object.assign(new Error('The server couldn’t be reached. Check your connection.'), { code: 'network' });
+    }
+    if (resp.type === 'opaqueredirect' || resp.status === 401) {
+      this.signedOut = true;
+      Bus.emit('signedout');
+      throw Object.assign(new Error('Your sign-in has expired. Reload the page to sign in again.'), { code: 'signedout' });
+    }
+    const ct = resp.headers.get('content-type') || '';
+    const data = ct.includes('application/json') ? await resp.json().catch(() => ({})) : null;
+    if (!resp.ok) throw Object.assign(new Error((data && data.error) || `Server error ${resp.status}`), { code: `http_${resp.status}`, status: resp.status });
+    return data;
+  },
+  async probe() {
+    if (location.protocol === 'file:') return false;
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 8000);
+    try {
+      const r = await fetch('/api/health', { credentials: 'same-origin', redirect: 'manual', signal: ctl.signal });
+      if (r.type === 'opaqueredirect' || r.status === 401) { this.signedOut = true; return false; }
+      if (!(r.headers.get('content-type') || '').includes('application/json')) return false;
+      const d = await r.json();
+      if (!r.ok) { this.problem = d.error || `Server error ${r.status}`; return false; }
+      this.on = true; this.email = d.email; this.claude = !!d.claude;
+      return true;
+    } catch { return false; } finally { clearTimeout(timer); }
+  },
+  /* one part per request with upload progress (fetch can't report upload progress) */
+  xhr(method, url, body, onProgress) {
+    return new Promise((res, rej) => {
+      const x = new XMLHttpRequest();
+      x.open(method, url);
+      x.withCredentials = true;
+      x.responseType = 'json';
+      if (onProgress) x.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded);
+      x.onload = () => (x.status >= 200 && x.status < 300 ? res(x.response) : rej(Object.assign(new Error((x.response && x.response.error) || `Upload failed (${x.status})`), { status: x.status })));
+      x.onerror = () => rej(new Error('The upload was interrupted. Check your connection and try again.'));
+      x.send(body);
+    });
+  },
+  async uploadVideo(file, onProgress) {
+    const { key, uploadId, partSize } = await this.req('POST', '/api/uploads', { filename: file.name, type: file.type || 'video/mp4' });
+    const parts = [];
+    let done = 0;
+    try {
+      for (let i = 0, n = 1; i < file.size || n === 1; i += partSize, n++) {
+        const chunk = file.slice(i, Math.min(file.size, i + partSize));
+        let tries = 0;
+        for (;;) {
+          try {
+            const r = await this.xhr('PUT', `/api/uploads/${encodeURIComponent(uploadId)}/${n}?key=${encodeURIComponent(key)}`, chunk, (l) => onProgress && onProgress((done + l) / file.size));
+            parts.push({ partNumber: r.partNumber, etag: r.etag });
+            break;
+          } catch (e) { if (++tries >= 3 || e.status === 401) throw e; await sleep(1500 * tries); }
+        }
+        done += chunk.size;
+        if (i + partSize >= file.size) break;
+      }
+      return await this.req('POST', `/api/uploads/${encodeURIComponent(uploadId)}/complete?key=${encodeURIComponent(key)}`, { parts });
+    } catch (e) {
+      this.req('DELETE', `/api/uploads/${encodeURIComponent(uploadId)}?key=${encodeURIComponent(key)}`).catch(() => {});
+      throw e;
+    }
+  },
+};
+
 const Store = {
-  mode: 'memory', // 'artifact' | 'local' | 'memory'
-  blobMode: 'memory', // 'assets' | 'local' | 'memory'
+  mode: 'memory', // 'cloud' | 'artifact' | 'local' | 'memory'
+  blobMode: 'memory', // 'r2' | 'assets' | 'local' | 'memory'
   data: Object.fromEntries(COLS.map((c) => [c, {}])),
   timers: new Map(),
   chains: new Map(),
@@ -728,6 +809,16 @@ const Store = {
 
   async init() {
     await resolveCaps();
+    if (!Caps.inArtifact && (await Api.probe())) {
+      try {
+        const { data } = await Api.req('GET', '/api/docs');
+        for (const col of COLS) Object.assign(this.data[col], data[col] || {});
+        this.mode = 'cloud';
+        this.blobMode = 'r2';
+        return;
+      } catch (e) { this.lastError = e; Api.problem = e.message; }
+    }
+    if (Api.signedOut || Api.problem) { this.mode = 'offline'; this.blobMode = 'memory'; return; }
     if (Caps.db) {
       try {
         await Promise.all(COLS.map(async (col) => {
@@ -781,7 +872,7 @@ const Store = {
     this.timers.delete(key);
     const [col, id] = key.split('/');
     const prev = this.chains.get(key) || Promise.resolve();
-    const next = prev.then(() => this.write(col, id)).catch((e) => this.onWriteError(e));
+    const next = prev.then(() => this.write(col, id)).then(() => { this.failed = 0; }).catch((e) => this.onWriteError(e, key));
     this.chains.set(key, next);
     return next;
   },
@@ -793,22 +884,38 @@ const Store = {
   async write(col, id) {
     const doc = this.data[col][id];
     const body = doc ? JSON.parse(JSON.stringify(doc)) : null;
-    if (this.mode === 'artifact') {
+    if (this.mode === 'cloud') {
+      const path = `/api/docs/${col}/${encodeURIComponent(id)}`;
+      if (body) { delete body.id; await Api.req('PUT', path, body); } else await Api.req('DELETE', path);
+    } else if (this.mode === 'artifact') {
       const ref = Caps.db.collection(col).doc(id);
       if (body) { delete body.id; await ref.set(body); } else await ref.delete();
     } else if (this.mode === 'local') {
       if (body) await IDB.put('docs', `${col}/${id}`, body); else await IDB.del('docs', `${col}/${id}`);
     }
   },
-  onWriteError(e) {
+  onWriteError(e, key) {
     console.error('save failed', e);
     const code = e && e.code;
+    if (code === 'signedout') return; // the sign-in banner explains it; nothing is lost on screen
+    if (this.mode === 'cloud' && key && (code === 'network' || (e.status && e.status >= 500))) {
+      // keep retrying quietly; the change is still on screen
+      this.failed = (this.failed || 0) + 1;
+      if (this.failed <= 3 || this.failed % 10 === 0) toast('Couldn’t save to the server. Retrying…', 'bad');
+      setTimeout(() => this.schedule(...key.split('/'), 0), Math.min(60000, 3000 * this.failed));
+      return;
+    }
     if (code === 'quota_exceeded') toast('Storage is full. Archive or remove old recordings in Settings → Data.', 'bad', 7000);
     else toast(`Couldn't save a change (${code || 'error'}). It is kept on screen; try again shortly.`, 'bad');
   },
 
   /* ---------- recordings & small files ---------- */
-  async putBlob(blob) {
+  async putBlob(blob, kind = 'rec') {
+    if (this.blobMode === 'r2') {
+      const type = (blob.type || 'audio/webm').split(';')[0];
+      const r = await Api.req('POST', `/api/files?kind=${kind}&name=${encodeURIComponent(blob.name || '')}`, blob, { raw: true, headers: { 'content-type': type } });
+      return r.ref;
+    }
     if (this.blobMode === 'assets') {
       const type = /mp4|m4a|aac/.test(blob.type) ? 'video/mp4' : 'video/webm';
       try {
@@ -837,6 +944,7 @@ const Store = {
     const [kind, id] = ref.split(':');
     let url = null;
     if (kind === 'asset') url = '/_blob/' + id;
+    else if (kind === 'r2') url = '/api/files/' + ref.slice(3);
     else {
       const b = await this.getBlob(ref);
       if (b) url = URL.createObjectURL(b);
@@ -849,6 +957,10 @@ const Store = {
     const [kind, id] = ref.split(':');
     if (kind === 'mem') return this.memBlobs.get(id) || null;
     if (kind === 'idb') { try { return (await IDB.get('blobs', id)) || null; } catch { return null; } }
+    if (kind === 'r2') {
+      const r = await fetch('/api/files/' + ref.slice(3), { credentials: 'same-origin' });
+      return r.ok ? r.blob() : null;
+    }
     if (kind === 'asset') {
       const url = this.urlCache.get(ref) || '/_blob/' + id;
       const r = await fetch(url);
@@ -864,6 +976,7 @@ const Store = {
     if (kind === 'mem') this.memBlobs.delete(id);
     else if (kind === 'idb') await IDB.del('blobs', id).catch(() => {});
     else if (kind === 'asset' && Caps.assets) await Caps.assets.delete(id).catch(() => {});
+    else if (kind === 'r2') await Api.req('DELETE', '/api/files/' + ref.slice(3)).catch(() => {});
   },
 
   /* ---------- backup ---------- */
@@ -1262,7 +1375,7 @@ const VideoAudio = {
           const src = videoSrc(video);
           let resp;
           try {
-            resp = await fetch(src, { mode: 'cors', credentials: 'omit' });
+            resp = await fetch(src, src.startsWith('/') ? { credentials: 'same-origin' } : { mode: 'cors', credentials: 'omit' });
           } catch (e) {
             throw Object.assign(new Error('blocked'), { code: 'blocked' });
           }
@@ -1326,7 +1439,7 @@ const LocalFiles = {
 
 function videoSrc(v) {
   if (!v) return '';
-  return LocalFiles.url(v.id) || (v.assetId ? '/_blob/' + v.assetId : v.url);
+  return LocalFiles.url(v.id) || (v.r2Key ? '/api/files/' + v.r2Key : v.assetId ? '/_blob/' + v.assetId : v.url);
 }
 
 /* ---------- microphone ---------- */
@@ -1348,7 +1461,9 @@ const Mic = {
       });
     } catch (e) {
       this.error = e && e.name === 'NotAllowedError'
-        ? 'Microphone access was refused. Inside a Claude artifact the microphone is blocked; open the standalone version of the app to record, or upload recordings from your phone.'
+        ? (Caps.inArtifact
+          ? 'Microphone access was refused. Inside a Claude artifact the microphone is blocked; use the website version to record, or upload recordings from your phone.'
+          : 'Microphone access was refused. Allow the microphone for this site in your browser’s address bar, then try again.')
         : e && e.name === 'NotFoundError' ? 'No microphone was found.' : `The microphone couldn't start (${(e && e.name) || 'error'}).`;
       return false;
     }
@@ -1588,6 +1703,7 @@ const Player = {
     const share = /drive\.google|docs\.google|mega\.nz|mega\.io|dropbox\.com\/s\/|youtube\.com|youtu\.be|onedrive|1drv/i.test(url);
     const reason = share
       ? 'This looks like a share page, not a direct video file. Share pages from Google Drive, MEGA, YouTube and similar sites don\'t play here. Use a direct link that ends in .mp4.'
+      : vid.r2Key ? 'The stored copy didn’t load. If you were signed out, reload the page; otherwise upload the file again.'
       : Caps.inArtifact && !LocalFiles.get(vid.id) && !vid.assetId
         ? 'Inside a Claude artifact, videos from other websites are blocked by the page\'s security rules. Pick the same video file from this device, or store a short copy here (20 MB maximum).'
         : 'The link didn\'t load as a video. Check it opens directly as an .mp4 file in a new tab.';
@@ -1596,7 +1712,8 @@ const Player = {
       h('p', null, reason),
       h('div', { class: 'row', style: { justifyContent: 'center' } },
         filePickButton('Use a file from this device', 'video/*', (f) => useLocalFile(vid, f), { kind: 'primary', icon: 'folder' }),
-        Caps.assets && Store.blobMode === 'assets' ? filePickButton('Store a copy (under 20 MB)', 'video/mp4,video/webm', (f) => storeVideoCopy(vid, f), { icon: 'upload' }) : null,
+        Store.mode === 'cloud' ? filePickButton('Upload the file to my storage', 'video/*', (f) => storeVideoCopy(vid, f), { icon: 'upload' })
+          : Caps.assets && Store.blobMode === 'assets' ? filePickButton('Store a copy (under 20 MB)', 'video/mp4,video/webm', (f) => storeVideoCopy(vid, f), { icon: 'upload' }) : null,
         url ? h('a', { class: 'btn', href: url, target: '_blank', rel: 'noopener' }, icon('link'), h('span', { class: 'txt' }, 'Open original link')) : null));
     el.hidden = false;
   },
@@ -1660,6 +1777,18 @@ function useLocalFile(vid, file) {
 }
 
 async function storeVideoCopy(vid, file) {
+  if (Store.mode === 'cloud') {
+    toast('Uploading… keep this page open.');
+    try {
+      const r = await Api.uploadVideo(file, () => {});
+      Store.patch('videos', vid.id, { r2Key: r.key, size: r.size });
+      VideoAudio.cache.delete(vid.id);
+      Player.reloadSrc();
+      Player.hideError();
+      toast('Uploaded. It now plays on every device.', 'good');
+    } catch (e) { toast(e.message, 'bad', 7000); }
+    return;
+  }
   if (file.size > 20 * 1024 * 1024) { toast(`That file is ${(file.size / 1048576).toFixed(1)} MB. Stored copies must be under 20 MB; cut a shorter section first, or use "Use a file from this device".`, 'bad', 8000); return; }
   toast('Uploading a copy…');
   try {
@@ -2256,39 +2385,87 @@ function renderSidebar() {
 
 function addVideoForm() {
   const F = UI.addForm;
+  const cloud = Store.mode === 'cloud';
+  if (!F.source) F.source = cloud ? 'upload' : 'link';
+  if (F.copy == null) F.copy = true;
   const status = h('div', { role: 'status' });
+  const fileIn = h('input', { type: 'file', id: 'addFile', accept: 'video/*,audio/*', onchange: (e) => { F.file = e.target.files[0] || null; if (F.file && !F.title) { F.title = F.file.name.replace(/\.\w+$/, ''); const t = $('#addTitle'); if (t) t.value = F.title; } } });
+  const source = cloud ? h('div', { class: 'seg', role: 'group', 'aria-label': 'Where the video comes from' },
+    h('button', { type: 'button', class: F.source === 'upload' ? 'on' : '', onclick: () => { F.source = 'upload'; renderSidebar(); } }, 'Upload a file'),
+    h('button', { type: 'button', class: F.source === 'link' ? 'on' : '', onclick: () => { F.source = 'link'; renderSidebar(); } }, 'From a link')) : null;
   const form = h('form', { class: 'addform', onsubmit: (e) => { e.preventDefault(); submitAdd(status); } },
-    h('label', { class: 'field', for: 'addUrl' }, 'Direct link to the .mp4 file',
-      h('input', { type: 'url', id: 'addUrl', required: true, placeholder: 'https://pomf2.lain.la/f/….mp4', value: F.url, oninput: (e) => { F.url = e.target.value.trim(); } })),
+    source,
+    F.source === 'upload' && cloud
+      ? h('label', { class: 'field', for: 'addFile' }, 'Video file (any length)', fileIn)
+      : [
+        h('label', { class: 'field', for: 'addUrl' }, 'Direct link to the .mp4 file',
+          h('input', { type: 'url', id: 'addUrl', required: true, placeholder: 'https://pomf2.lain.la/f/….mp4', value: F.url, oninput: (e) => { F.url = e.target.value.trim(); } })),
+        cloud ? h('label', { class: 'check', for: 'addCopy' }, h('input', { type: 'checkbox', id: 'addCopy', checked: F.copy, onchange: (e) => { F.copy = e.target.checked; } }), 'Keep a copy in my storage (recommended)') : null,
+      ],
     h('label', { class: 'field', for: 'addTitle' }, 'Title',
       h('input', { type: 'text', id: 'addTitle', placeholder: 'Piastri, post-race, Monza', value: F.title, oninput: (e) => { F.title = e.target.value; } })),
     h('label', { class: 'field', for: 'addSpeaker' }, 'Speaker (optional)',
       h('input', { type: 'text', id: 'addSpeaker', placeholder: 'Oscar Piastri', value: F.speaker, list: 'speakerList', oninput: (e) => { F.speaker = e.target.value; } })),
     h('datalist', { id: 'speakerList' }, [...new Set(Store.all('videos').map((v) => v.speaker).filter(Boolean).concat(['Oscar Piastri']))].map((s) => h('option', { value: s }))),
-    h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary' }, h('span', null, 'Check and add'))),
+    h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary', id: 'addSubmit' }, h('span', null, F.source === 'upload' && cloud ? 'Upload and add' : cloud && F.copy ? 'Copy and add' : 'Check and add'))),
     status);
   return form;
 }
 
+function finishAdd(fields) {
+  const F = UI.addForm;
+  const v = Store.put('videos', { title: F.title.trim() || fields.fallbackTitle || 'Untitled video', url: fields.url || null, r2Key: fields.r2Key || null, size: fields.size || null, speaker: F.speaker.trim() || null, archived: false, added: new Date().toISOString() });
+  UI.addForm = { title: '', url: '', speaker: '' };
+  UI.addOpen = false;
+  Player.load(v.id);
+  renderSidebar();
+  toast('Video added. Drag along the timeline to cut your first clip.', 'good');
+}
+
+function progressBar(label) {
+  const bar = h('div', { class: 'bar' }, h('i', { style: { width: '0%' } }));
+  const txt = h('p', { class: 'small muted' }, label);
+  return { el: h('div', { class: 'stack' }, txt, bar), set: (f, t) => { bar.firstChild.style.width = Math.round(f * 100) + '%'; if (t) txt.textContent = t; } };
+}
+
 async function submitAdd(status) {
   const F = UI.addForm;
+  const cloud = Store.mode === 'cloud';
+  const submitBtn = $('#addSubmit');
+  if (cloud && F.source === 'upload') {
+    if (!F.file) { mount(status, h('p', { class: 'formerr' }, 'Choose a video file first.')); return; }
+    const p = progressBar(`Uploading ${(F.file.size / 1048576).toFixed(0)} MB…`);
+    mount(status, p.el);
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      const r = await Api.uploadVideo(F.file, (f) => p.set(f, `Uploading… ${Math.round(f * 100)}%`));
+      finishAdd({ r2Key: r.key, size: r.size, fallbackTitle: F.file.name.replace(/\.\w+$/, '') });
+    } catch (e) {
+      mount(status, h('p', { class: 'formerr' }, e.message));
+    } finally { if (submitBtn) submitBtn.disabled = false; }
+    return;
+  }
   const url = F.url;
   if (!/^https?:\/\//i.test(url)) { mount(status, h('p', { class: 'formerr' }, 'Paste a full link starting with https://')); return; }
   const share = /drive\.google|docs\.google|mega\.nz|mega\.io|youtube\.com|youtu\.be|dropbox\.com\/s\/|onedrive|1drv/i.test(url);
   if (share) {
-    mount(status, h('p', { class: 'formerr' }, 'That’s a share page, not a video file. Links from Google Drive, MEGA, YouTube or Dropbox share pages won’t play. Upload the file somewhere that gives a direct .mp4 link (like pomf2.lain.la) and paste that.'));
+    mount(status, h('p', { class: 'formerr' }, 'That’s a share page, not a video file. Links from Google Drive, MEGA, YouTube or Dropbox share pages won’t play. Download the file and use “Upload a file” instead.'));
+    return;
+  }
+  if (cloud && F.copy) {
+    mount(status, h('p', { class: 'small muted' }, 'Copying the video into your storage… this can take a minute for long videos.'));
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      const r = await Api.req('POST', '/api/import', { url });
+      finishAdd({ url, r2Key: r.key, size: r.size, fallbackTitle: guessTitle(url) });
+    } catch (e) {
+      mount(status, h('p', { class: 'formerr' }, e.message), h('div', { class: 'row' }, btn('Add the link without a copy', () => finishAdd({ url, fallbackTitle: guessTitle(url) }), { size: 'sm' })));
+    } finally { if (submitBtn) submitBtn.disabled = false; }
     return;
   }
   mount(status, h('p', { class: 'small muted' }, 'Checking the link plays…'));
   const result = await checkPlayable(url);
-  const add = () => {
-    const v = Store.put('videos', { title: F.title.trim() || guessTitle(url), url, speaker: F.speaker.trim() || null, archived: false, added: new Date().toISOString() });
-    UI.addForm = { title: '', url: '', speaker: '' };
-    UI.addOpen = false;
-    Player.load(v.id);
-    renderSidebar();
-    toast('Video added. Drag along the timeline to cut your first clip.', 'good');
-  };
+  const add = () => finishAdd({ url, fallbackTitle: guessTitle(url) });
   if (result.ok) { add(); return; }
   mount(status,
     h('p', { class: 'formerr' }, result.reason),
@@ -2324,11 +2501,11 @@ function videoItem(v) {
   return h('div', { class: `vitem ${open ? 'open' : ''}` },
     editing ? editVideoForm(v) : [
       h('div', { class: 'vitem-title', role: 'button', tabindex: 0, onclick: () => { Player.load(v.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter') { Player.load(v.id); closeDrawer(); } } }, v.title || 'Untitled video'),
-      h('div', { class: 'meta' }, `${p.done}/${p.total} clips done · ${p.last ? `last practised ${fmtDay(p.last)}` : 'not practised yet'}${v.speaker ? ` · ${v.speaker}` : ''}`),
+      h('div', { class: 'meta' }, `${p.done}/${p.total} clips done · ${p.last ? `last practised ${fmtDay(p.last)}` : 'not practised yet'}${v.speaker ? ` · ${v.speaker}` : ''}${v.r2Key ? ' · stored' : ''}`),
       h('div', { class: 'bar vprog' }, h('i', { style: { width: (p.total ? (p.done / p.total) * 100 : 0) + '%' } })),
       h('div', { class: 'row' },
         !open ? btn('Open', () => { Player.load(v.id); closeDrawer(); }, { size: 'sm', kind: 'primary' }) : null,
-        v.url ? h('a', { class: 'btn sm ghost', href: v.url, target: '_blank', rel: 'noopener', title: 'Open the original link' }, icon('link'), h('span', { class: 'txt' }, 'Link')) : null,
+        v.url || v.r2Key ? h('a', { class: 'btn sm ghost', href: v.url || '/api/files/' + v.r2Key, target: '_blank', rel: 'noopener', title: 'Open the original link' }, icon('link'), h('span', { class: 'txt' }, 'Link')) : null,
         btn('', () => { UI.editVideoId = v.id; UI.editVideo = { title: v.title, url: v.url, speaker: v.speaker || '' }; renderSidebar(); }, { size: 'sm', kind: 'ghost', icon: 'edit', title: 'Edit title or link' }),
         v.archived ? btn('Restore', () => { Store.patch('videos', v.id, { archived: false }); renderSidebar(); toast('Video restored.'); }, { size: 'sm', icon: 'restore' })
           : btn('', () => { Store.patch('videos', v.id, { archived: true }); if (open) Player.load(null); renderSidebar(); toast('Video archived. Its clips and history are kept.'); }, { size: 'sm', kind: 'ghost', icon: 'archive', title: 'Archive (clips and history are kept)' })),
@@ -3040,6 +3217,21 @@ function noteForm(ctx) {
 
   const ask = async (askBtn) => {
     if (!D.off.trim()) { mount(status, h('span', { class: 'formerr' }, 'Write what sounded off first.')); return; }
+    if (Store.mode === 'cloud') {
+      askBtn.disabled = true;
+      mount(status, h('span', { class: 'muted' }, 'Thinking…'));
+      try {
+        const { reply } = await Api.req('POST', '/api/claude', { sentence: D.sentence, off: D.off, aim: D.aim, issues: issueNames });
+        D.reply = normaliseReply(reply);
+        if (D.reply.issue && !D.issue) { D.issue = D.reply.issue; const inp = $(`#issue-${key}`); if (inp) inp.value = D.issue; }
+        status.replaceChildren();
+        drawReply();
+        if (D.saved) saveNote(ctx, D, true);
+      } catch (e) {
+        mount(status, h('span', { class: 'formerr' }, e.message), ' ', btn('Copy prompt instead', () => openCopyPrompt(D, issueNames, drawReply), { size: 'sm', kind: 'ghost' }));
+      } finally { askBtn.disabled = false; }
+      return;
+    }
     if (!Caps.sample) { openCopyPrompt(D, issueNames, () => { drawReply(); }); return; }
     askBtn.disabled = true;
     mount(status, h('span', { class: 'muted' }, 'Thinking… (this uses your Claude plan)'));
@@ -3061,7 +3253,7 @@ function noteForm(ctx) {
     } finally { askBtn.disabled = false; }
   };
 
-  const askBtn = btn(Caps.sample ? 'Ask Claude' : 'Copy prompt for Claude', () => ask(askBtn), { kind: 'blue', size: 'sm', icon: 'sparkle' });
+  const askBtn = btn(Caps.sample || Store.mode === 'cloud' ? 'Ask Claude' : 'Copy prompt for Claude', () => ask(askBtn), { kind: 'blue', size: 'sm', icon: 'sparkle' });
   const body = h('div', { class: 'stack' },
     h('label', { class: 'field', for: `off-${key}` }, 'What sounded off?',
       h('textarea', { id: `off-${key}`, rows: 2, placeholder: 'e.g. the vowel in “go” sounds too pure, it doesn’t glide', value: D.off, oninput: (e) => { D.off = e.target.value; } })),
@@ -3085,6 +3277,7 @@ function noteForm(ctx) {
 
 function normaliseReply(r) {
   if (!r || typeof r !== 'object') return { text: String(r || '') };
+  if (r.text && !r.feature && !r.change) return { text: String(r.text) };
   return {
     feature: String(r.feature || ''), change: String(r.change || ''), listenFor: String(r.listenFor || r.listen_for || ''),
     issue: r.issue ? String(r.issue).slice(0, 60) : '', unsure: !!r.unsure, question: r.question ? String(r.question) : '',
@@ -3131,7 +3324,7 @@ function openCopyPrompt(D, issueNames, onDone) {
   const ta = h('textarea', { rows: 8, readonly: true, value: text, id: 'promptText' });
   const reply = h('textarea', { rows: 6, id: 'replyPaste', placeholder: 'Paste Claude’s reply here' });
   openModal([
-    modalHead('Ask Claude', 'Claude isn’t connected in this version of the app. Copy the prompt into a Claude chat, then paste the reply back here so it’s saved with the note.'),
+    modalHead('Ask Claude', 'Copy the prompt into a Claude chat, then paste the reply back here so it’s saved with the note.'),
     ta,
     h('div', { class: 'row' }, btn('Copy prompt', async () => {
       try { await navigator.clipboard.writeText(text); toast('Prompt copied.'); } catch { ta.select(); toast('Select-all done; press Ctrl+C to copy.'); }
@@ -3350,7 +3543,7 @@ function renderChips() {
   mount($('#chips'),
     h('span', { class: `chip streak ${s.practisedToday ? '' : 'cold'}`, title: 'Day streak (one rest day in a row is allowed)' }, icon('flame'), `${s.streak} day${s.streak === 1 ? '' : 's'}`),
     h('span', { class: 'chip', title: 'Days practised this week' }, icon('calendar'), `${s.weekCount}/${target} this week`),
-    h('span', { class: 'chip mode', title: storageTitle() }, Store.mode === 'artifact' ? 'Synced' : Store.mode === 'local' ? 'This browser' : 'Not saved'));
+    h('span', { class: 'chip mode', title: storageTitle() }, Store.mode === 'cloud' || Store.mode === 'artifact' ? 'Synced' : Store.mode === 'local' ? 'This browser' : 'Not saved'));
   mount($('#topnav'),
     btn('Library', () => openDrawer(), { icon: 'menu', size: 'sm', kind: 'ghost', aria: 'Library', title: 'Video library' }),
     btn('Progress', () => openProgress('habit'), { icon: 'chart', size: 'sm', aria: 'Progress', title: 'Progress' }),
@@ -3360,7 +3553,8 @@ function renderChips() {
   lib.classList.add('only-phone');
 }
 function storageTitle() {
-  return Store.mode === 'artifact' ? 'Saved in the artifact’s database; available on every device.'
+  return Store.mode === 'cloud' ? `Saved on your Cloudflare server${Api.email ? ` (signed in as ${Api.email})` : ''}; available on every device.`
+    : Store.mode === 'artifact' ? 'Saved in the artifact’s database; available on every device.'
     : Store.mode === 'local' ? 'Saved in this browser only. Back up from Settings → Data.'
       : 'Storage is blocked here; nothing will be kept after you close the page.';
 }
@@ -3387,12 +3581,15 @@ function renderBanners() {
   if (due != null && due !== 0) {
     out.push(h('div', { class: 'banner info' }, h('p', null, `Week ${due} check-in is due. It takes about 3 minutes.`), btn('Start check-in', () => openCheckins(due), { kind: 'primary', size: 'sm' })));
   }
-  if (Caps.inArtifact && !dismissed.artifactNote) {
+  if (Api.signedOut && Store.mode === 'cloud') {
+    out.unshift(h('div', { class: 'banner' }, h('p', null, 'Your sign-in has expired, so changes can’t be saved right now. Reload the page to sign in again.'), btn('Reload', () => location.reload(), { kind: 'primary', size: 'sm' })));
+  }
+  if (Store.mode === 'cloud') { /* nothing to explain */ } else if (Caps.inArtifact && !dismissed.artifactNote) {
     out.push(h('div', { class: 'banner info' },
       h('p', null, 'You’re using the Claude artifact version: your data syncs and Claude feedback works, but the microphone and outside video links may be blocked here. Run the checks to see what works on this device.'),
       btn('Run checks', () => openSettings('checks'), { size: 'sm', icon: 'flask' }),
       btn('Got it', dismiss('artifactNote'), { kind: 'ghost', size: 'sm' })));
-  } else if (!Caps.inArtifact && Store.mode !== 'artifact' && !dismissed.localNote) {
+  } else if (!Caps.inArtifact && Store.mode === 'local' && !dismissed.localNote) {
     out.push(h('div', { class: 'banner info' },
       h('p', null, 'Standalone version: the microphone and video links work, and your data stays in this browser. Back it up from Settings → Data now and then.'),
       btn('Got it', dismiss('localNote'), { kind: 'ghost', size: 'sm' })));
@@ -3662,7 +3859,7 @@ function pickQuestion() {
 async function saveCheckinTake(week, key, blob, samples) {
   const c = ensureCheckin(week);
   let ref;
-  try { ref = await Store.putBlob(blob); } catch (e) { toast(`The recording couldn’t be stored (${e.code || 'error'}).`, 'bad', 6000); return; }
+  try { ref = await Store.putBlob(blob, 'checkin'); } catch (e) { toast(`The recording couldn’t be stored (${e.message || e.code || 'error'}).`, 'bad', 6000); return; }
   let measures = null, analysis = null;
   if (samples && samples.length > SR) {
     const m = DSP.modelFromSamples(samples, settings().pitchSmoothing);
@@ -3953,13 +4150,18 @@ function checksView() {
   }));
   draw();
   return h('div', { class: 'stack' },
-    h('p', { class: 'muted' }, `These test what works in this ${Caps.inArtifact ? 'Claude artifact' : 'browser'} on this device. Open a video and select a clip first so the video and pitch checks have something to test.`),
+    h('p', { class: 'muted' }, `These test what works in this ${Caps.inArtifact ? 'Claude artifact' : 'browser'} on this device, with your ${Store.mode === 'cloud' ? 'server' : 'storage'}. Open a video and select a clip first so the video and pitch checks have something to test.`),
     btn('Run all checks', async () => { for (const c of CHECKS) { checkResults[c.key] = { state: '', msg: 'Running…' }; draw(); checkResults[c.key] = await safeRun(c.run); draw(); } lsSet('checks', checkResults); }, { kind: 'primary', icon: 'flask' }),
     grid);
 }
 async function safeRun(fn) { try { return await fn(); } catch (e) { return { state: 'fail', msg: `Error: ${e.message || e.code || e}` }; } }
 
 async function checkStorage() {
+  if (Store.mode === 'cloud') {
+    await Api.req('PUT', '/api/docs/meta/probe', { at: new Date().toISOString() });
+    await Api.req('DELETE', '/api/docs/meta/probe');
+    return { state: 'ok', msg: `Your Cloudflare database saves and reads back${Api.email ? ` (signed in as ${Api.email})` : ''}. Your data follows you to any device.` };
+  }
   if (Store.mode === 'artifact') {
     const ref = Caps.db.collection('meta').doc('probe');
     await ref.set({ at: new Date().toISOString() });
@@ -3971,6 +4173,12 @@ async function checkStorage() {
   return { state: 'fail', msg: 'Storage is blocked here; nothing is kept.' };
 }
 async function checkFiles() {
+  if (Store.blobMode === 'r2') {
+    const ref = await Store.putBlob(new Blob([new Uint8Array(4096)], { type: 'audio/webm' }), 'misc');
+    const back = await Store.getBlob(ref);
+    await Store.deleteBlob(ref);
+    return back && back.size === 4096 ? { state: 'ok', msg: 'Recordings and videos are stored in your R2 bucket and play on every device.' } : { state: 'fail', msg: 'A test file didn’t read back.' };
+  }
   if (Store.blobMode === 'assets') {
     const blob = new Blob([new Uint8Array(2048)], { type: 'video/webm' });
     const r = await Caps.assets.upload(blob, { type: 'video/webm' });
@@ -4003,7 +4211,7 @@ async function checkVideoPlays() {
   if (!v) return { state: '', msg: 'Open a video first.' };
   if (LocalFiles.get(v.id)) return { state: 'warn', msg: 'Playing from a file on this device, so the link wasn’t tested.' };
   const r = await checkPlayable(videoSrc(v));
-  return r.ok ? { state: 'ok', msg: `“${v.title}” plays from its ${v.assetId ? 'stored copy' : 'link'} (${fmtTime(r.duration)} long).` } : { state: 'fail', msg: r.reason };
+  return r.ok ? { state: 'ok', msg: `“${v.title}” plays from its ${v.r2Key || v.assetId ? 'stored copy' : 'link'} (${fmtTime(r.duration)} long).` } : { state: 'fail', msg: r.reason };
 }
 async function checkVideoSound() {
   const v = Player.current();
@@ -4014,6 +4222,11 @@ async function checkVideoSound() {
   return { state: 'fail', msg: r.error };
 }
 async function checkClaude() {
+  if (Store.mode === 'cloud') {
+    if (!Api.claude) return { state: 'fail', msg: 'The server has no Claude API key yet. Add the ANTHROPIC_API_KEY secret to the Cloudflare project.' };
+    const { reply } = await Api.req('POST', '/api/claude', { sentence: 'Go and grab the car.', off: 'the vowel in go sounds too pure', aim: '', issues: [] });
+    return reply && (reply.feature || reply.text || reply.unsure) ? { state: 'ok', msg: 'Claude answered. Feedback on notes uses your Claude API key.' } : { state: 'warn', msg: 'Claude answered in an unexpected format.' };
+  }
   if (!Caps.sample) return { state: 'fail', msg: Caps.inArtifact ? 'Claude access isn’t available in this view.' : 'This standalone version can’t reach Claude. Notes offer “Copy prompt for Claude” instead.' };
   const r = await Caps.sample('Reply with just the word OK.', { modelTier: 'quick', cache: false });
   return /ok/i.test(r.text) ? { state: 'ok', msg: 'Claude answered. Feedback on notes will use your Claude plan.' } : { state: 'warn', msg: `Claude answered unexpectedly: “${r.text.slice(0, 60)}”` };
@@ -4094,6 +4307,15 @@ async function boot() {
   renderControls();
   mount($('#panel'), h('div', { class: 'panel-msg' }, 'Loading your practice data…'));
   await Store.init();
+  if (Store.mode === 'offline') {
+    mount($('#panel'), h('div', { class: 'panel-msg' }, 'Not connected.'));
+    openModal([
+      modalHead(Api.signedOut ? 'Please sign in again' : 'The server isn’t ready'),
+      h('p', null, Api.signedOut ? 'Your sign-in has expired. Reload the page to sign in with your email code.' : `The app’s server answered with a problem: ${Api.problem}`),
+      btn('Reload', () => location.reload(), { kind: 'primary', size: 'big' }),
+    ], { narrow: true });
+    return;
+  }
   appMeta();
   applyTheme();
   UI.view = settings().defaultView || 'pitch';
@@ -4108,6 +4330,7 @@ async function boot() {
   document.addEventListener('keydown', onKey);
   $('#drawerBack').addEventListener('click', closeDrawer);
   Bus.on('videoaudio', () => { Panel.editor = null; renderPanel(); });
+  Bus.on('signedout', () => renderBanners());
   window.addEventListener('resize', () => Panel.onTime(Player.time()));
   window.addEventListener('beforeunload', () => { Store.flushAll(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) Store.flushAll(); });

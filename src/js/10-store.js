@@ -55,9 +55,90 @@ const IDB = {
   get(store, key) { return this.tx(store, 'readonly', (s) => s.get(key)); },
 };
 
+/* ---------- cloud backend (Cloudflare Pages Functions: D1 + R2 + Claude) ---------- */
+const Api = {
+  on: false,
+  email: null,
+  claude: false,
+  signedOut: false,
+  problem: null,
+  async req(method, path, body, { raw = false, headers = {} } = {}) {
+    let resp;
+    try {
+      resp = await fetch(path, {
+        method, credentials: 'same-origin', redirect: 'manual',
+        headers: body != null && !raw ? { 'content-type': 'application/json', ...headers } : headers,
+        body: body == null ? undefined : raw ? body : JSON.stringify(body),
+      });
+    } catch (e) {
+      throw Object.assign(new Error('The server couldn’t be reached. Check your connection.'), { code: 'network' });
+    }
+    if (resp.type === 'opaqueredirect' || resp.status === 401) {
+      this.signedOut = true;
+      Bus.emit('signedout');
+      throw Object.assign(new Error('Your sign-in has expired. Reload the page to sign in again.'), { code: 'signedout' });
+    }
+    const ct = resp.headers.get('content-type') || '';
+    const data = ct.includes('application/json') ? await resp.json().catch(() => ({})) : null;
+    if (!resp.ok) throw Object.assign(new Error((data && data.error) || `Server error ${resp.status}`), { code: `http_${resp.status}`, status: resp.status });
+    return data;
+  },
+  async probe() {
+    if (location.protocol === 'file:') return false;
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 8000);
+    try {
+      const r = await fetch('/api/health', { credentials: 'same-origin', redirect: 'manual', signal: ctl.signal });
+      if (r.type === 'opaqueredirect' || r.status === 401) { this.signedOut = true; return false; }
+      if (!(r.headers.get('content-type') || '').includes('application/json')) return false;
+      const d = await r.json();
+      if (!r.ok) { this.problem = d.error || `Server error ${r.status}`; return false; }
+      this.on = true; this.email = d.email; this.claude = !!d.claude;
+      return true;
+    } catch { return false; } finally { clearTimeout(timer); }
+  },
+  /* one part per request with upload progress (fetch can't report upload progress) */
+  xhr(method, url, body, onProgress) {
+    return new Promise((res, rej) => {
+      const x = new XMLHttpRequest();
+      x.open(method, url);
+      x.withCredentials = true;
+      x.responseType = 'json';
+      if (onProgress) x.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded);
+      x.onload = () => (x.status >= 200 && x.status < 300 ? res(x.response) : rej(Object.assign(new Error((x.response && x.response.error) || `Upload failed (${x.status})`), { status: x.status })));
+      x.onerror = () => rej(new Error('The upload was interrupted. Check your connection and try again.'));
+      x.send(body);
+    });
+  },
+  async uploadVideo(file, onProgress) {
+    const { key, uploadId, partSize } = await this.req('POST', '/api/uploads', { filename: file.name, type: file.type || 'video/mp4' });
+    const parts = [];
+    let done = 0;
+    try {
+      for (let i = 0, n = 1; i < file.size || n === 1; i += partSize, n++) {
+        const chunk = file.slice(i, Math.min(file.size, i + partSize));
+        let tries = 0;
+        for (;;) {
+          try {
+            const r = await this.xhr('PUT', `/api/uploads/${encodeURIComponent(uploadId)}/${n}?key=${encodeURIComponent(key)}`, chunk, (l) => onProgress && onProgress((done + l) / file.size));
+            parts.push({ partNumber: r.partNumber, etag: r.etag });
+            break;
+          } catch (e) { if (++tries >= 3 || e.status === 401) throw e; await sleep(1500 * tries); }
+        }
+        done += chunk.size;
+        if (i + partSize >= file.size) break;
+      }
+      return await this.req('POST', `/api/uploads/${encodeURIComponent(uploadId)}/complete?key=${encodeURIComponent(key)}`, { parts });
+    } catch (e) {
+      this.req('DELETE', `/api/uploads/${encodeURIComponent(uploadId)}?key=${encodeURIComponent(key)}`).catch(() => {});
+      throw e;
+    }
+  },
+};
+
 const Store = {
-  mode: 'memory', // 'artifact' | 'local' | 'memory'
-  blobMode: 'memory', // 'assets' | 'local' | 'memory'
+  mode: 'memory', // 'cloud' | 'artifact' | 'local' | 'memory'
+  blobMode: 'memory', // 'r2' | 'assets' | 'local' | 'memory'
   data: Object.fromEntries(COLS.map((c) => [c, {}])),
   timers: new Map(),
   chains: new Map(),
@@ -67,6 +148,16 @@ const Store = {
 
   async init() {
     await resolveCaps();
+    if (!Caps.inArtifact && (await Api.probe())) {
+      try {
+        const { data } = await Api.req('GET', '/api/docs');
+        for (const col of COLS) Object.assign(this.data[col], data[col] || {});
+        this.mode = 'cloud';
+        this.blobMode = 'r2';
+        return;
+      } catch (e) { this.lastError = e; Api.problem = e.message; }
+    }
+    if (Api.signedOut || Api.problem) { this.mode = 'offline'; this.blobMode = 'memory'; return; }
     if (Caps.db) {
       try {
         await Promise.all(COLS.map(async (col) => {
@@ -120,7 +211,7 @@ const Store = {
     this.timers.delete(key);
     const [col, id] = key.split('/');
     const prev = this.chains.get(key) || Promise.resolve();
-    const next = prev.then(() => this.write(col, id)).catch((e) => this.onWriteError(e));
+    const next = prev.then(() => this.write(col, id)).then(() => { this.failed = 0; }).catch((e) => this.onWriteError(e, key));
     this.chains.set(key, next);
     return next;
   },
@@ -132,22 +223,38 @@ const Store = {
   async write(col, id) {
     const doc = this.data[col][id];
     const body = doc ? JSON.parse(JSON.stringify(doc)) : null;
-    if (this.mode === 'artifact') {
+    if (this.mode === 'cloud') {
+      const path = `/api/docs/${col}/${encodeURIComponent(id)}`;
+      if (body) { delete body.id; await Api.req('PUT', path, body); } else await Api.req('DELETE', path);
+    } else if (this.mode === 'artifact') {
       const ref = Caps.db.collection(col).doc(id);
       if (body) { delete body.id; await ref.set(body); } else await ref.delete();
     } else if (this.mode === 'local') {
       if (body) await IDB.put('docs', `${col}/${id}`, body); else await IDB.del('docs', `${col}/${id}`);
     }
   },
-  onWriteError(e) {
+  onWriteError(e, key) {
     console.error('save failed', e);
     const code = e && e.code;
+    if (code === 'signedout') return; // the sign-in banner explains it; nothing is lost on screen
+    if (this.mode === 'cloud' && key && (code === 'network' || (e.status && e.status >= 500))) {
+      // keep retrying quietly; the change is still on screen
+      this.failed = (this.failed || 0) + 1;
+      if (this.failed <= 3 || this.failed % 10 === 0) toast('Couldn’t save to the server. Retrying…', 'bad');
+      setTimeout(() => this.schedule(...key.split('/'), 0), Math.min(60000, 3000 * this.failed));
+      return;
+    }
     if (code === 'quota_exceeded') toast('Storage is full. Archive or remove old recordings in Settings → Data.', 'bad', 7000);
     else toast(`Couldn't save a change (${code || 'error'}). It is kept on screen; try again shortly.`, 'bad');
   },
 
   /* ---------- recordings & small files ---------- */
-  async putBlob(blob) {
+  async putBlob(blob, kind = 'rec') {
+    if (this.blobMode === 'r2') {
+      const type = (blob.type || 'audio/webm').split(';')[0];
+      const r = await Api.req('POST', `/api/files?kind=${kind}&name=${encodeURIComponent(blob.name || '')}`, blob, { raw: true, headers: { 'content-type': type } });
+      return r.ref;
+    }
     if (this.blobMode === 'assets') {
       const type = /mp4|m4a|aac/.test(blob.type) ? 'video/mp4' : 'video/webm';
       try {
@@ -176,6 +283,7 @@ const Store = {
     const [kind, id] = ref.split(':');
     let url = null;
     if (kind === 'asset') url = '/_blob/' + id;
+    else if (kind === 'r2') url = '/api/files/' + ref.slice(3);
     else {
       const b = await this.getBlob(ref);
       if (b) url = URL.createObjectURL(b);
@@ -188,6 +296,10 @@ const Store = {
     const [kind, id] = ref.split(':');
     if (kind === 'mem') return this.memBlobs.get(id) || null;
     if (kind === 'idb') { try { return (await IDB.get('blobs', id)) || null; } catch { return null; } }
+    if (kind === 'r2') {
+      const r = await fetch('/api/files/' + ref.slice(3), { credentials: 'same-origin' });
+      return r.ok ? r.blob() : null;
+    }
     if (kind === 'asset') {
       const url = this.urlCache.get(ref) || '/_blob/' + id;
       const r = await fetch(url);
@@ -203,6 +315,7 @@ const Store = {
     if (kind === 'mem') this.memBlobs.delete(id);
     else if (kind === 'idb') await IDB.del('blobs', id).catch(() => {});
     else if (kind === 'asset' && Caps.assets) await Caps.assets.delete(id).catch(() => {});
+    else if (kind === 'r2') await Api.req('DELETE', '/api/files/' + ref.slice(3)).catch(() => {});
   },
 
   /* ---------- backup ---------- */

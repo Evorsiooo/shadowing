@@ -128,13 +128,18 @@ function checksView() {
   }));
   draw();
   return h('div', { class: 'stack' },
-    h('p', { class: 'muted' }, `These test what works in this ${Caps.inArtifact ? 'Claude artifact' : 'browser'} on this device. Open a video and select a clip first so the video and pitch checks have something to test.`),
+    h('p', { class: 'muted' }, `These test what works in this ${Caps.inArtifact ? 'Claude artifact' : 'browser'} on this device, with your ${Store.mode === 'cloud' ? 'server' : 'storage'}. Open a video and select a clip first so the video and pitch checks have something to test.`),
     btn('Run all checks', async () => { for (const c of CHECKS) { checkResults[c.key] = { state: '', msg: 'Running…' }; draw(); checkResults[c.key] = await safeRun(c.run); draw(); } lsSet('checks', checkResults); }, { kind: 'primary', icon: 'flask' }),
     grid);
 }
 async function safeRun(fn) { try { return await fn(); } catch (e) { return { state: 'fail', msg: `Error: ${e.message || e.code || e}` }; } }
 
 async function checkStorage() {
+  if (Store.mode === 'cloud') {
+    await Api.req('PUT', '/api/docs/meta/probe', { at: new Date().toISOString() });
+    await Api.req('DELETE', '/api/docs/meta/probe');
+    return { state: 'ok', msg: `Your Cloudflare database saves and reads back${Api.email ? ` (signed in as ${Api.email})` : ''}. Your data follows you to any device.` };
+  }
   if (Store.mode === 'artifact') {
     const ref = Caps.db.collection('meta').doc('probe');
     await ref.set({ at: new Date().toISOString() });
@@ -146,6 +151,12 @@ async function checkStorage() {
   return { state: 'fail', msg: 'Storage is blocked here; nothing is kept.' };
 }
 async function checkFiles() {
+  if (Store.blobMode === 'r2') {
+    const ref = await Store.putBlob(new Blob([new Uint8Array(4096)], { type: 'audio/webm' }), 'misc');
+    const back = await Store.getBlob(ref);
+    await Store.deleteBlob(ref);
+    return back && back.size === 4096 ? { state: 'ok', msg: 'Recordings and videos are stored in your R2 bucket and play on every device.' } : { state: 'fail', msg: 'A test file didn’t read back.' };
+  }
   if (Store.blobMode === 'assets') {
     const blob = new Blob([new Uint8Array(2048)], { type: 'video/webm' });
     const r = await Caps.assets.upload(blob, { type: 'video/webm' });
@@ -178,7 +189,7 @@ async function checkVideoPlays() {
   if (!v) return { state: '', msg: 'Open a video first.' };
   if (LocalFiles.get(v.id)) return { state: 'warn', msg: 'Playing from a file on this device, so the link wasn’t tested.' };
   const r = await checkPlayable(videoSrc(v));
-  return r.ok ? { state: 'ok', msg: `“${v.title}” plays from its ${v.assetId ? 'stored copy' : 'link'} (${fmtTime(r.duration)} long).` } : { state: 'fail', msg: r.reason };
+  return r.ok ? { state: 'ok', msg: `“${v.title}” plays from its ${v.r2Key || v.assetId ? 'stored copy' : 'link'} (${fmtTime(r.duration)} long).` } : { state: 'fail', msg: r.reason };
 }
 async function checkVideoSound() {
   const v = Player.current();
@@ -189,6 +200,11 @@ async function checkVideoSound() {
   return { state: 'fail', msg: r.error };
 }
 async function checkClaude() {
+  if (Store.mode === 'cloud') {
+    if (!Api.claude) return { state: 'fail', msg: 'The server has no Claude API key yet. Add the ANTHROPIC_API_KEY secret to the Cloudflare project.' };
+    const { reply } = await Api.req('POST', '/api/claude', { sentence: 'Go and grab the car.', off: 'the vowel in go sounds too pure', aim: '', issues: [] });
+    return reply && (reply.feature || reply.text || reply.unsure) ? { state: 'ok', msg: 'Claude answered. Feedback on notes uses your Claude API key.' } : { state: 'warn', msg: 'Claude answered in an unexpected format.' };
+  }
   if (!Caps.sample) return { state: 'fail', msg: Caps.inArtifact ? 'Claude access isn’t available in this view.' : 'This standalone version can’t reach Claude. Notes offer “Copy prompt for Claude” instead.' };
   const r = await Caps.sample('Reply with just the word OK.', { modelTier: 'quick', cache: false });
   return /ok/i.test(r.text) ? { state: 'ok', msg: 'Claude answered. Feedback on notes will use your Claude plan.' } : { state: 'warn', msg: `Claude answered unexpectedly: “${r.text.slice(0, 60)}”` };

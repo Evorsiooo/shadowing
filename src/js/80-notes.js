@@ -13,6 +13,21 @@ function noteForm(ctx) {
 
   const ask = async (askBtn) => {
     if (!D.off.trim()) { mount(status, h('span', { class: 'formerr' }, 'Write what sounded off first.')); return; }
+    if (Store.mode === 'cloud') {
+      askBtn.disabled = true;
+      mount(status, h('span', { class: 'muted' }, 'Thinking…'));
+      try {
+        const { reply } = await Api.req('POST', '/api/claude', { sentence: D.sentence, off: D.off, aim: D.aim, issues: issueNames });
+        D.reply = normaliseReply(reply);
+        if (D.reply.issue && !D.issue) { D.issue = D.reply.issue; const inp = $(`#issue-${key}`); if (inp) inp.value = D.issue; }
+        status.replaceChildren();
+        drawReply();
+        if (D.saved) saveNote(ctx, D, true);
+      } catch (e) {
+        mount(status, h('span', { class: 'formerr' }, e.message), ' ', btn('Copy prompt instead', () => openCopyPrompt(D, issueNames, drawReply), { size: 'sm', kind: 'ghost' }));
+      } finally { askBtn.disabled = false; }
+      return;
+    }
     if (!Caps.sample) { openCopyPrompt(D, issueNames, () => { drawReply(); }); return; }
     askBtn.disabled = true;
     mount(status, h('span', { class: 'muted' }, 'Thinking… (this uses your Claude plan)'));
@@ -34,7 +49,7 @@ function noteForm(ctx) {
     } finally { askBtn.disabled = false; }
   };
 
-  const askBtn = btn(Caps.sample ? 'Ask Claude' : 'Copy prompt for Claude', () => ask(askBtn), { kind: 'blue', size: 'sm', icon: 'sparkle' });
+  const askBtn = btn(Caps.sample || Store.mode === 'cloud' ? 'Ask Claude' : 'Copy prompt for Claude', () => ask(askBtn), { kind: 'blue', size: 'sm', icon: 'sparkle' });
   const body = h('div', { class: 'stack' },
     h('label', { class: 'field', for: `off-${key}` }, 'What sounded off?',
       h('textarea', { id: `off-${key}`, rows: 2, placeholder: 'e.g. the vowel in “go” sounds too pure, it doesn’t glide', value: D.off, oninput: (e) => { D.off = e.target.value; } })),
@@ -58,6 +73,7 @@ function noteForm(ctx) {
 
 function normaliseReply(r) {
   if (!r || typeof r !== 'object') return { text: String(r || '') };
+  if (r.text && !r.feature && !r.change) return { text: String(r.text) };
   return {
     feature: String(r.feature || ''), change: String(r.change || ''), listenFor: String(r.listenFor || r.listen_for || ''),
     issue: r.issue ? String(r.issue).slice(0, 60) : '', unsure: !!r.unsure, question: r.question ? String(r.question) : '',
@@ -104,7 +120,7 @@ function openCopyPrompt(D, issueNames, onDone) {
   const ta = h('textarea', { rows: 8, readonly: true, value: text, id: 'promptText' });
   const reply = h('textarea', { rows: 6, id: 'replyPaste', placeholder: 'Paste Claude’s reply here' });
   openModal([
-    modalHead('Ask Claude', 'Claude isn’t connected in this version of the app. Copy the prompt into a Claude chat, then paste the reply back here so it’s saved with the note.'),
+    modalHead('Ask Claude', 'Copy the prompt into a Claude chat, then paste the reply back here so it’s saved with the note.'),
     ta,
     h('div', { class: 'row' }, btn('Copy prompt', async () => {
       try { await navigator.clipboard.writeText(text); toast('Prompt copied.'); } catch { ta.select(); toast('Select-all done; press Ctrl+C to copy.'); }

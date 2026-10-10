@@ -50,7 +50,7 @@ const VideoAudio = {
           const src = videoSrc(video);
           let resp;
           try {
-            resp = await fetch(src, { mode: 'cors', credentials: 'omit' });
+            resp = await fetch(src, src.startsWith('/') ? { credentials: 'same-origin' } : { mode: 'cors', credentials: 'omit' });
           } catch (e) {
             throw Object.assign(new Error('blocked'), { code: 'blocked' });
           }
@@ -114,7 +114,7 @@ const LocalFiles = {
 
 function videoSrc(v) {
   if (!v) return '';
-  return LocalFiles.url(v.id) || (v.assetId ? '/_blob/' + v.assetId : v.url);
+  return LocalFiles.url(v.id) || (v.r2Key ? '/api/files/' + v.r2Key : v.assetId ? '/_blob/' + v.assetId : v.url);
 }
 
 /* ---------- microphone ---------- */
@@ -136,7 +136,9 @@ const Mic = {
       });
     } catch (e) {
       this.error = e && e.name === 'NotAllowedError'
-        ? 'Microphone access was refused. Inside a Claude artifact the microphone is blocked; open the standalone version of the app to record, or upload recordings from your phone.'
+        ? (Caps.inArtifact
+          ? 'Microphone access was refused. Inside a Claude artifact the microphone is blocked; use the website version to record, or upload recordings from your phone.'
+          : 'Microphone access was refused. Allow the microphone for this site in your browser’s address bar, then try again.')
         : e && e.name === 'NotFoundError' ? 'No microphone was found.' : `The microphone couldn't start (${(e && e.name) || 'error'}).`;
       return false;
     }
