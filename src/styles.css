@@ -207,20 +207,16 @@ button.chip { font-family: inherit; cursor: pointer; }
 .banner p { flex: 1 1 260px; min-width: 0; }
 
 /* ---------- layout ---------- */
-/* The player is sized from the video's own shape so it fills the height with no side bars
-   (fitLayout() sets --stage-w and --video-h); the right column takes the rest of the width.
-   Browsing / clip mode: library runs full height on the right, the card or editor sits under the video.
-   Session: the session card sits beside the video at the same height; the pitch panel runs full width below. */
+/* Two fixed columns: player (and the panel under it) on the left, library or session card on the right.
+   On wide screens fitLayout() sets the right column's width and the video's height from the window size only,
+   so they stay put whatever you're doing. In a session the pitch panel runs full width under both. */
 .layout {
-  display: grid; grid-template-columns: var(--stage-w, minmax(0, 1fr)) minmax(320px, 1fr); gap: 14px 16px; padding: 14px 16px 16px;
+  display: grid; grid-template-columns: minmax(0, 1fr) var(--side-w, 340px); gap: 14px 16px; padding: 14px 16px 16px;
   grid-template-areas: "player side" "below side"; align-items: start;
 }
 .layout.in-session { grid-template-areas: "player side" "below below"; }
-.layout.fit.no-below { grid-template-areas: "player side"; }
-.layout.fit.no-below > .below { display: none; }
 .player { grid-area: player; min-width: 0; }
 .below { grid-area: below; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-.below.capped { overflow: auto; }
 #sideSlot:empty { display: none; }
 .side { grid-area: side; }
 
@@ -229,16 +225,15 @@ button.chip { font-family: inherit; cursor: pointer; }
   position: relative; background: var(--video-bg); border-radius: var(--r-lg); overflow: hidden;
   border: 3px solid var(--line);
 }
-.vidwrap { position: relative; }
-.player video { display: block; width: 100%; height: var(--video-h, auto); aspect-ratio: var(--video-ar, 16 / 9); background: var(--video-bg); object-fit: contain; }
+.player video { display: block; width: 100%; aspect-ratio: var(--video-ar, 16 / 9); max-height: var(--video-h, 62vh); background: var(--video-bg); object-fit: contain; }
 .player-empty, .player-error {
-  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: absolute; inset: 0 0 92px 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 10px; text-align: center; padding: 20px; color: #e6efe2;
 }
 .player-empty h2 { color: #fff; }
 .player-error { background: rgba(10, 14, 9, 0.88); }
 .player-error p { max-width: 52ch; }
-.controls { background: #0b100a; padding: 8px 14px 10px; color: #fff; }
+.controls { background: linear-gradient(transparent, rgba(5, 8, 5, 0.75) 30%); padding: 22px 14px 10px; position: absolute; left: 0; right: 0; bottom: 0; color: #fff; }
 .scrubber { position: relative; height: 34px; cursor: pointer; touch-action: none; user-select: none; }
 .scrub-track { position: absolute; left: 0; right: 0; top: 19px; height: 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.25); }
 .scrub-progress { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ochre); border-radius: 4px; }
@@ -298,31 +293,33 @@ button.chip { font-family: inherit; cursor: pointer; }
 .panel-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
 .panel canvas { display: block; width: 100%; height: 220px; border-radius: var(--r-sm); background: var(--surface-2); touch-action: none; }
 .panel canvas.editor { height: 170px; cursor: ew-resize; }
-/* wide screens: the row under the player is given an exact height (fitLayout); the chart stretches or
-   shrinks to fill it, so there's never empty space at the bottom */
-.layout.fit .below { height: var(--below-h, auto); }
-.layout.fit .below > .panel { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
-.layout.fit .below > .panel > * { flex-shrink: 0; }
-.layout.fit .below > .panel > canvas { flex: 1 1 220px; height: auto; min-height: 130px; }
-.layout.fit .below > .panel > canvas.editor { flex-basis: 150px; min-height: 100px; }
+/* wide screens: the panel under the player reaches the bottom of the window; the chart stretches to fill it */
+.layout.fit.cutting .below, .layout.fit.in-session .below { height: var(--below-h, auto); }
+.layout.fit.cutting .below > .panel, .layout.fit.in-session .below > .panel { flex: 1 1 auto; display: flex; flex-direction: column; }
+.layout.fit.cutting .below > .panel > *, .layout.fit.in-session .below > .panel > * { flex-shrink: 0; }
+.layout.fit .below > .panel > canvas.analysis { flex: 1 1 0; height: 0; min-height: 150px; }
+.layout.fit .below > .panel > canvas.editor { flex: 1 1 0; height: 0; min-height: 80px; }
 .panel-msg { padding: 22px 12px; text-align: center; color: var(--muted); font-weight: 700; display: flex; flex-direction: column; gap: 10px; align-items: center; }
-.editor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px 14px; margin-top: 10px; align-items: end; }
+.editor-row { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 8px; align-items: flex-end; }
+.efield { display: flex; flex-direction: column; gap: 3px; }
+.efield.grow { flex: 1 1 120px; }
+.efield .label { margin: 0; }
 .nudge { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .len { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; padding: 3px 12px; border-radius: 999px; font-variant-numeric: tabular-nums; }
 .len.good { background: var(--green-soft); color: var(--green-ink); }
 .len.warn { background: var(--wattle-soft); color: var(--wattle-dark); }
 .len.bad { background: var(--red-soft); color: var(--red); }
-.warnline { color: var(--red); font-weight: 700; font-size: 0.86rem; }
+.warnline { color: var(--red); font-weight: 700; font-size: 0.86rem; margin-top: 4px; }
+.warnline:empty { display: none; }
 
 /* ---------- sidebar ---------- */
-.side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.side { display: flex; flex-direction: column; gap: 14px; min-width: 0; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 76px); }
 .sidebar {
   background: var(--surface); border: 2px solid var(--line); border-radius: var(--r-lg); padding: 14px; display: flex; flex-direction: column; gap: 12px;
-  height: var(--side-h, auto); max-height: var(--side-h, calc(100vh - 96px)); overflow: auto; box-shadow: var(--shadow);
+  max-height: calc(100vh - 96px); overflow: auto; box-shadow: var(--shadow);
 }
 /* during a session the session card takes the right column (and the library steps aside) */
-.layout.in-session .side .sidebar, .layout.panel-side .side .sidebar { display: none; }
-.side .panel { max-height: var(--side-h, none); overflow: auto; }
+.layout.in-session .side .sidebar { display: none; }
 .side .session { overflow: auto; }
 .side .session .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .side .session .counter { font-size: 1.6rem; }
@@ -402,8 +399,8 @@ body.calm .toast { animation: none; }
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
   .layout, .layout.in-session { grid-template-columns: minmax(0, 1fr); grid-template-areas: "player" "below" "side"; }
+  .side { position: static; }
   .layout.in-session .side .sidebar { display: flex; }
-  .sidebar { height: auto; }
   .only-phone { display: inline-flex !important; }
   .sidebar {
     position: fixed; top: 0; right: 0; bottom: 0; width: min(360px, 88vw); max-height: none; z-index: 40; border-radius: var(--r-lg) 0 0 var(--r-lg);
@@ -412,7 +409,9 @@ body.calm .toast { animation: none; }
   }
   .sidebar.open { transform: none; box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3); }
   .drawer-back { position: fixed; inset: 0; background: rgba(8, 12, 7, 0.45); z-index: 39; }
-  .player video { height: auto; max-height: 50vh; }
+  .player video { max-height: 40vh; }
+  .controls { position: static; background: #0b100a; padding-top: 10px; }
+  .player-empty, .player-error { inset: 0 0 auto 0; aspect-ratio: 16 / 9; max-height: 40vh; }
   .topnav .btn .txt { display: none; }
 }
 @media (max-width: 520px) {
@@ -428,6 +427,6 @@ body.calm .toast { animation: none; }
 .mic-meter > i { transition: none; }
 .mic-control input[type="range"] { width: 110px; }
 .mic-control select.mic-select { width: auto; max-width: 220px; padding: 5px 8px; font-size: 0.85rem; }
-input.time-in { width: 84px; padding: 5px 8px; height: 32px; }
+input.time-in { width: 76px; padding: 5px 8px; height: 32px; }
 .newclip-box { border: 2px dashed var(--line); border-radius: var(--r-md); padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; gap: 6px; min-height: 90px; align-items: center; text-align: center; background: var(--surface-2); }
 .layout.fit .below > .panel > .newclip-box { flex: 1 1 auto; }
