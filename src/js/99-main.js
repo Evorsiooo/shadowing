@@ -9,10 +9,82 @@ function applyLayout() {
   layout.classList.toggle('in-session', mode === 'session');
   layout.classList.toggle('cutting', mode === 'cut');
   if (mode === 'session' && wideLayout.matches) { if (sess.parentElement !== $('#sideSlot')) $('#sideSlot').appendChild(sess); }
-  else if (sess.parentElement !== $('.stage')) $('.stage').insertBefore(sess, panel);
+  else if (sess.parentElement !== $('#below')) $('#below').insertBefore(sess, panel);
+  if (mode !== 'cut' && panel.parentElement !== $('#below')) { $('#below').appendChild(panel); layout.classList.remove('panel-side'); }
   sess.hidden = mode === 'cut';
   panel.hidden = mode === 'idle';
   if (UI.layoutMode !== mode) { UI.layoutMode = mode; requestAnimationFrame(() => Panel.onTime(Player.time())); }
+  scheduleFit();
+}
+
+/* Size the player from the video's own shape: as tall as the screen allows once the row
+   underneath has its space, and exactly as wide as that height needs (no black side bars).
+   The right column gets the remaining width; in a session the session card matches the player's height. */
+let fitQueued = false;
+function scheduleFit() {
+  if (fitQueued) return;
+  fitQueued = true;
+  requestAnimationFrame(() => { fitQueued = false; fitLayout(); fitLayout(); });
+}
+function fitLayout() {
+  const L = $('.layout');
+  const sess = $('#session'), below = $('#below');
+  if (!wideLayout.matches) {
+    L.classList.remove('fit', 'panel-side', 'no-below');
+    if ($('#panel').parentElement !== below) below.appendChild($('#panel'));
+    ['--stage-w', '--video-h', '--side-h', '--below-h'].forEach((v) => L.style.removeProperty(v));
+    below.classList.remove('capped');
+    sess.style.height = '';
+    return;
+  }
+  L.classList.add('fit');
+  const v = Player.v;
+  const ar = v && v.videoWidth && v.videoHeight ? v.videoWidth / v.videoHeight : 16 / 9;
+  L.style.setProperty('--video-ar', String(ar));
+  const css = getComputedStyle(L);
+  const padT = parseFloat(css.paddingTop), padB = parseFloat(css.paddingBottom), padX = parseFloat(css.paddingLeft) + parseFloat(css.paddingRight);
+  const gapY = parseFloat(css.rowGap) || 14, gapX = parseFloat(css.columnGap) || 16;
+  const top = L.getBoundingClientRect().top;
+  const avail = Math.max(320, window.innerHeight - top - padT - padB);
+  // natural height of the row underneath (chart at its usual size)
+  L.style.setProperty('--below-h', 'auto');
+  // the clip editor needs room: on a short screen it moves into the right column instead (the library hides)
+  const panel = $('#panel'), inSide = panel.parentElement === $('#sideSlot');
+  if ((UI.sel || UI.cutMode) && !Session.active && !fitLayout.moving) {
+    const arMin = ar >= 1 ? Math.min(L.clientWidth - padX - gapX - 340, 700) / ar : 200;
+    const need = arMin + $('#controls').offsetHeight + 6 + gapY + panel.scrollHeight;
+    const wantSide = need > avail + (inSide ? 60 : 0);
+    if (wantSide !== inSide) {
+      if (wantSide) $('#sideSlot').appendChild(panel); else below.appendChild(panel);
+      L.classList.toggle('panel-side', wantSide);
+      fitLayout.moving = true;
+      try { fitLayout(); } finally { fitLayout.moving = false; }
+      return;
+    }
+  }
+  const belowVisible = [...below.children].some((c) => !c.hidden);
+  L.classList.toggle('no-below', !belowVisible); // an empty row would still take space
+  const belowH = belowVisible ? below.scrollHeight + gapY : 0;
+  const ctrlH = $('#controls').offsetHeight + 6; // player border
+  const sideMin = 340;
+  const totalW = L.clientWidth - padX - gapX;
+  let vh = Math.max(200, avail - belowH - ctrlH);
+  let w = vh * ar;
+  if (w > totalW - sideMin) { w = totalW - sideMin; vh = w / ar; }
+  // never squeeze the player into a sliver: narrow, the controls wrap and the row underneath
+  // grows, which would shrink the video further. The chart gives up some height instead.
+  const minW = Math.min(totalW - sideMin, Session.active ? 560 : 700); // in a session the controls are shorter
+  if (w < minW && ar >= 1) { w = minW; vh = w / ar; }
+  L.style.setProperty('--stage-w', `${Math.floor(w)}px`);
+  L.style.setProperty('--video-h', `${Math.floor(vh)}px`);
+  // library: full height of the right column; the row underneath fills what's left to the bottom
+  L.style.setProperty('--side-h', `${Math.floor(avail)}px`);
+  const room = Math.max(60, Math.floor(avail - $('#player').offsetHeight - gapY));
+  L.style.setProperty('--below-h', belowVisible ? `${room}px` : 'auto');
+  below.classList.toggle('capped', belowVisible && below.scrollHeight > below.clientHeight + 1);
+  // session card: same height as the player
+  sess.style.height = Session.active && sess.parentElement === $('#sideSlot') ? `${$('#player').offsetHeight}px` : '';
+  Panel.onTime(Player.time()); // the chart may have changed size
 }
 
 function renderAll() {
@@ -82,6 +154,10 @@ async function boot() {
   Bus.on('signedout', () => renderBanners());
   window.addEventListener('resize', () => Panel.onTime(Player.time()));
   if (wideLayout.addEventListener) wideLayout.addEventListener('change', () => applyLayout());
+  window.addEventListener('resize', scheduleFit);
+  Player.v.addEventListener('loadedmetadata', scheduleFit);
+  // the row under the player and the banners change height as you work: refit when they do
+  if (window.ResizeObserver) { const ro = new window.ResizeObserver(scheduleFit); ro.observe($('#below')); ro.observe($('#banners')); ro.observe($('#controls')); }
   window.addEventListener('beforeunload', () => { Store.flushAll(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) Store.flushAll(); });
   // first launch: the baseline must come before the first practice

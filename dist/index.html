@@ -219,26 +219,38 @@ button.chip { font-family: inherit; cursor: pointer; }
 .banner p { flex: 1 1 260px; min-width: 0; }
 
 /* ---------- layout ---------- */
+/* The player is sized from the video's own shape so it fills the height with no side bars
+   (fitLayout() sets --stage-w and --video-h); the right column takes the rest of the width.
+   Browsing / clip mode: library runs full height on the right, the card or editor sits under the video.
+   Session: the session card sits beside the video at the same height; the pitch panel runs full width below. */
 .layout {
-  display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; padding: 14px 16px 24px; align-items: start;
+  display: grid; grid-template-columns: var(--stage-w, minmax(0, 1fr)) minmax(320px, 1fr); gap: 14px 16px; padding: 14px 16px 16px;
+  grid-template-areas: "player side" "below side"; align-items: start;
 }
-.stage { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.layout.in-session { grid-template-areas: "player side" "below below"; }
+.layout.fit.no-below { grid-template-areas: "player side"; }
+.layout.fit.no-below > .below { display: none; }
+.player { grid-area: player; min-width: 0; }
+.below { grid-area: below; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.below.capped { overflow: auto; }
+#sideSlot:empty { display: none; }
+.side { grid-area: side; }
 
 /* ---------- player ---------- */
 .player {
   position: relative; background: var(--video-bg); border-radius: var(--r-lg); overflow: hidden;
   border: 3px solid var(--line);
 }
-.player video { display: block; width: 100%; aspect-ratio: 16 / 9; max-height: 62vh; background: var(--video-bg); object-fit: contain; }
+.vidwrap { position: relative; }
+.player video { display: block; width: 100%; height: var(--video-h, auto); aspect-ratio: var(--video-ar, 16 / 9); background: var(--video-bg); object-fit: contain; }
 .player-empty, .player-error {
-  position: absolute; inset: 0 0 92px 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 10px; text-align: center; padding: 20px; color: #e6efe2;
 }
 .player-empty h2 { color: #fff; }
 .player-error { background: rgba(10, 14, 9, 0.88); }
 .player-error p { max-width: 52ch; }
-.controls { background: linear-gradient(transparent, rgba(5, 8, 5, 0.75) 30%); padding: 22px 14px 10px; position: absolute; left: 0; right: 0; bottom: 0; color: #fff; }
-.player.static-controls .controls { position: static; background: #0b100a; padding-top: 10px; }
+.controls { background: #0b100a; padding: 8px 14px 10px; color: #fff; }
 .scrubber { position: relative; height: 34px; cursor: pointer; touch-action: none; user-select: none; }
 .scrub-track { position: absolute; left: 0; right: 0; top: 19px; height: 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.25); }
 .scrub-progress { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ochre); border-radius: 4px; }
@@ -265,6 +277,10 @@ button.chip { font-family: inherit; cursor: pointer; }
 .ctrl-row .seg button.on { background: var(--green); color: var(--on-green); }
 .time { font-weight: 800; font-variant-numeric: tabular-nums; font-size: 0.85rem; padding: 0 6px; }
 .vol { width: 80px; }
+/* keep the controls on one row when the player is narrow: drop the volume slider, then labels */
+.controls { container-type: inline-size; }
+@container (max-width: 860px) { .vol { display: none; } #loopBtn .txt, #cutBtn .txt { display: none; } }
+@container (max-width: 700px) { #kbBtn { display: none; } }
 .hover-time { position: absolute; top: -16px; transform: translateX(-50%); font-size: 0.72rem; font-weight: 800; background: #000; color: #fff; padding: 1px 6px; border-radius: 6px; pointer-events: none; }
 
 /* ---------- session strip ---------- */
@@ -294,7 +310,14 @@ button.chip { font-family: inherit; cursor: pointer; }
 .panel-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
 .panel canvas { display: block; width: 100%; height: 220px; border-radius: var(--r-sm); background: var(--surface-2); touch-action: none; }
 .panel canvas.editor { height: 170px; cursor: ew-resize; }
-.panel-msg { padding: 26px 12px; text-align: center; color: var(--muted); font-weight: 700; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+/* wide screens: the row under the player is given an exact height (fitLayout); the chart stretches or
+   shrinks to fill it, so there's never empty space at the bottom */
+.layout.fit .below { height: var(--below-h, auto); }
+.layout.fit .below > .panel { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.layout.fit .below > .panel > * { flex-shrink: 0; }
+.layout.fit .below > .panel > canvas { flex: 1 1 220px; height: auto; min-height: 130px; }
+.layout.fit .below > .panel > canvas.editor { flex-basis: 150px; min-height: 100px; }
+.panel-msg { padding: 22px 12px; text-align: center; color: var(--muted); font-weight: 700; display: flex; flex-direction: column; gap: 10px; align-items: center; }
 .editor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px 14px; margin-top: 10px; align-items: end; }
 .nudge { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .len { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; padding: 3px 12px; border-radius: 999px; font-variant-numeric: tabular-nums; }
@@ -304,17 +327,15 @@ button.chip { font-family: inherit; cursor: pointer; }
 .warnline { color: var(--red); font-weight: 700; font-size: 0.86rem; }
 
 /* ---------- sidebar ---------- */
-.side { display: flex; flex-direction: column; gap: 14px; min-width: 0; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 76px); }
+.side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .sidebar {
   background: var(--surface); border: 2px solid var(--line); border-radius: var(--r-lg); padding: 14px; display: flex; flex-direction: column; gap: 12px;
-  max-height: calc(100vh - 96px); overflow: auto; box-shadow: var(--shadow);
+  height: var(--side-h, auto); max-height: var(--side-h, calc(100vh - 96px)); overflow: auto; box-shadow: var(--shadow);
 }
 /* during a session the session card takes the right column (and the library steps aside) */
-.layout.in-session { grid-template-columns: minmax(0, 1fr) 400px; }
-.layout.in-session .side .sidebar { display: none; }
-.side .session { max-height: calc(100vh - 96px); overflow: auto; }
-/* keep the panel under the player in view while cutting or practising */
-.layout.in-session .player video, .layout.cutting .player video { max-height: 46vh; }
+.layout.in-session .side .sidebar, .layout.panel-side .side .sidebar { display: none; }
+.side .panel { max-height: var(--side-h, none); overflow: auto; }
+.side .session { overflow: auto; }
 .side .session .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .side .session .counter { font-size: 1.6rem; }
 .vlist { display: flex; flex-direction: column; gap: 8px; }
@@ -392,9 +413,9 @@ body.calm .toast { animation: none; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
-  .layout, .layout.in-session { grid-template-columns: minmax(0, 1fr); }
-  .side { position: static; }
+  .layout, .layout.in-session { grid-template-columns: minmax(0, 1fr); grid-template-areas: "player" "below" "side"; }
   .layout.in-session .side .sidebar { display: flex; }
+  .sidebar { height: auto; }
   .only-phone { display: inline-flex !important; }
   .sidebar {
     position: fixed; top: 0; right: 0; bottom: 0; width: min(360px, 88vw); max-height: none; z-index: 40; border-radius: var(--r-lg) 0 0 var(--r-lg);
@@ -403,9 +424,7 @@ body.calm .toast { animation: none; }
   }
   .sidebar.open { transform: none; box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3); }
   .drawer-back { position: fixed; inset: 0; background: rgba(8, 12, 7, 0.45); z-index: 39; }
-  .player video { max-height: 40vh; }
-  .controls { position: static; background: #0b100a; padding-top: 10px; }
-  .player-empty, .player-error { inset: 0 0 auto 0; aspect-ratio: 16 / 9; max-height: 40vh; }
+  .player video { height: auto; max-height: 50vh; }
   .topnav .btn .txt { display: none; }
 }
 @media (max-width: 520px) {
@@ -422,6 +441,8 @@ body.calm .toast { animation: none; }
 .mic-control input[type="range"] { width: 110px; }
 .mic-control select.mic-select { width: auto; max-width: 220px; padding: 5px 8px; font-size: 0.85rem; }
 input.time-in { width: 84px; padding: 5px 8px; height: 32px; }
+.newclip-box { border: 2px dashed var(--line); border-radius: var(--r-md); padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; gap: 6px; min-height: 90px; align-items: center; text-align: center; background: var(--surface-2); }
+.layout.fit .below > .panel > .newclip-box { flex: 1 1 auto; }
 
 </style>
 
@@ -433,25 +454,27 @@ input.time-in { width: 84px; padding: 5px 8px; height: 32px; }
 <div class="banners" id="banners"></div>
 
 <main class="layout">
-  <section class="stage" aria-label="Practice">
-    <div class="player" id="player">
+  <div class="player" id="player">
+    <div class="vidwrap">
       <video id="video" playsinline preload="auto"></video>
       <div class="player-empty" id="playerEmpty"></div>
       <div class="player-error" id="playerError" hidden></div>
-      <div class="controls" id="controls">
-        <div class="scrubber" id="scrubber" aria-label="Video timeline">
-          <div class="scrub-track" id="scrubTrack"><div class="scrub-progress" id="scrubProgress"></div></div>
-          <div id="scrubClips"></div>
-          <div class="scrub-sel" id="scrubSel" hidden></div>
-          <div class="scrub-head" id="scrubHead"></div>
-          <div class="hover-time" id="hoverTime" hidden></div>
-        </div>
-        <div class="ctrl-row" id="ctrlRow"></div>
-      </div>
     </div>
+    <div class="controls" id="controls">
+      <div class="scrubber" id="scrubber" aria-label="Video timeline">
+        <div class="scrub-track" id="scrubTrack"><div class="scrub-progress" id="scrubProgress"></div></div>
+        <div id="scrubClips"></div>
+        <div class="scrub-sel" id="scrubSel" hidden></div>
+        <div class="scrub-head" id="scrubHead"></div>
+        <div class="hover-time" id="hoverTime" hidden></div>
+      </div>
+      <div class="ctrl-row" id="ctrlRow"></div>
+    </div>
+  </div>
+  <div class="below" id="below">
     <div class="session" id="session"></div>
     <div class="panel" id="panel"></div>
-  </section>
+  </div>
   <div class="side" id="side">
     <div id="sideSlot"></div>
     <aside class="sidebar" id="sidebar" aria-label="Video library"></aside>
@@ -2231,14 +2254,14 @@ function renderControls() {
     h('span', { class: 'time', id: 'timeLabel' }, `${fmtTime(Player.time())} / ${fmtTime(Player.duration())}`),
     h('div', { class: 'seg', role: 'group', 'aria-label': 'Speed' },
       [0.5, 0.75, 1].map((r) => h('button', { type: 'button', class: UI.rate === r ? 'on' : '', onclick: () => Player.setRate(r), title: 'Speed (, and .)' }, `${r}x`))),
-    btn('Loop', () => { UI.loop = !UI.loop; renderControls(); }, { icon: 'loop', on: UI.loop, pressed: UI.loop, title: 'Loop the clip (L)' }),
+    btn('Loop', () => { UI.loop = !UI.loop; renderControls(); }, { icon: 'loop', on: UI.loop, pressed: UI.loop, title: 'Loop the clip (L)', aria: 'Loop', id: 'loopBtn' }),
     btn('', () => Player.setVolume(UI.volume === 0 ? 1 : 0), { icon: volIcon, title: 'Mute' }),
     h('input', { type: 'range', class: 'vol', min: 0, max: 1, step: 0.05, value: UI.volume, 'aria-label': 'Volume', oninput: (e) => Player.setVolume(+e.target.value) }),
     h('span', { class: 'spacer' }),
-    btn('Cut clips', () => setCutMode(!UI.cutMode), { icon: 'scissors', on: UI.cutMode, pressed: UI.cutMode, title: 'Clip mode: drag on the timeline to select a new clip (C)', disabled: dis || Session.active }),
+    Session.active ? null : btn('Cut clips', () => setCutMode(!UI.cutMode), { icon: 'scissors', on: UI.cutMode, pressed: UI.cutMode, title: 'Clip mode: drag on the timeline to select a new clip (C)', aria: 'Cut clips', id: 'cutBtn', disabled: dis }),
     UI.cutMode ? btn('Start', () => markEdge('start'), { title: 'Mark clip start at the playhead (I or [)', disabled: dis || Session.active }) : null,
     UI.cutMode ? btn('End', () => markEdge('end'), { title: 'Mark clip end at the playhead (O or ])', disabled: dis || Session.active }) : null,
-    btn('', () => openShortcuts(), { icon: 'keyboard', title: 'Keyboard shortcuts (?)' }));
+    btn('', () => openShortcuts(), { icon: 'keyboard', title: 'Keyboard shortcuts (?)', id: 'kbBtn' }));
 }
 
 function setCutMode(on) {
@@ -2406,7 +2429,11 @@ function renderPanel() {
 }
 
 function panelEmpty() {
-  if (UI.cutMode) return h('div', { class: 'panel-msg' }, h('h3', null, 'Clip mode'), h('p', null, 'Drag along the timeline to select a clip, or press I and O while the video plays. Esc or Cut clips leaves clip mode.'));
+  if (UI.cutMode) return [
+    h('div', { class: 'panel-head' }, h('h3', null, 'New clip'), h('span', { class: 'spacer' }), btn('Done', () => setCutMode(false), { size: 'sm', kind: 'ghost', title: 'Leave clip mode (Esc)' })),
+    h('div', { class: 'newclip-box' },
+      h('p', null, h('strong', null, 'Select a part of the video on the scrub bar'), ' by dragging along it.'),
+      h('p', { class: 'muted' }, 'Or play the video and press ', h('strong', null, 'Start'), ' (I) under the video where the sentence begins, then ', h('strong', null, 'End'), ' (O) where it finishes.'))];
   return h('div', { class: 'panel-msg' },
     h('h3', null, 'Analysis panel'),
     h('p', null, 'Select a clip to see the speaker’s pitch line, or press Cut clips under the video to make a new one.'));
@@ -2416,7 +2443,7 @@ function panelEmpty() {
 function buildAnalysis(clip) {
   const vid = Store.get('videos', clip.videoId);
   const audio = VideoAudio.state(clip.videoId);
-  const canvas = h('canvas', { 'aria-label': UI.overlay ? 'Pitch or loudness of the speaker and you on one chart' : 'Pitch or loudness lanes: speaker on top, you below' });
+  const canvas = h('canvas', { class: 'analysis', 'aria-label': UI.overlay ? 'Pitch or loudness of the speaker and you on one chart' : 'Pitch or loudness lanes: speaker on top, you below' });
   Panel.canvas = canvas;
   const head = h('div', { class: 'panel-head' },
     h('div', { class: 'seg', role: 'group', 'aria-label': 'View' },
@@ -4962,10 +4989,82 @@ function applyLayout() {
   layout.classList.toggle('in-session', mode === 'session');
   layout.classList.toggle('cutting', mode === 'cut');
   if (mode === 'session' && wideLayout.matches) { if (sess.parentElement !== $('#sideSlot')) $('#sideSlot').appendChild(sess); }
-  else if (sess.parentElement !== $('.stage')) $('.stage').insertBefore(sess, panel);
+  else if (sess.parentElement !== $('#below')) $('#below').insertBefore(sess, panel);
+  if (mode !== 'cut' && panel.parentElement !== $('#below')) { $('#below').appendChild(panel); layout.classList.remove('panel-side'); }
   sess.hidden = mode === 'cut';
   panel.hidden = mode === 'idle';
   if (UI.layoutMode !== mode) { UI.layoutMode = mode; requestAnimationFrame(() => Panel.onTime(Player.time())); }
+  scheduleFit();
+}
+
+/* Size the player from the video's own shape: as tall as the screen allows once the row
+   underneath has its space, and exactly as wide as that height needs (no black side bars).
+   The right column gets the remaining width; in a session the session card matches the player's height. */
+let fitQueued = false;
+function scheduleFit() {
+  if (fitQueued) return;
+  fitQueued = true;
+  requestAnimationFrame(() => { fitQueued = false; fitLayout(); fitLayout(); });
+}
+function fitLayout() {
+  const L = $('.layout');
+  const sess = $('#session'), below = $('#below');
+  if (!wideLayout.matches) {
+    L.classList.remove('fit', 'panel-side', 'no-below');
+    if ($('#panel').parentElement !== below) below.appendChild($('#panel'));
+    ['--stage-w', '--video-h', '--side-h', '--below-h'].forEach((v) => L.style.removeProperty(v));
+    below.classList.remove('capped');
+    sess.style.height = '';
+    return;
+  }
+  L.classList.add('fit');
+  const v = Player.v;
+  const ar = v && v.videoWidth && v.videoHeight ? v.videoWidth / v.videoHeight : 16 / 9;
+  L.style.setProperty('--video-ar', String(ar));
+  const css = getComputedStyle(L);
+  const padT = parseFloat(css.paddingTop), padB = parseFloat(css.paddingBottom), padX = parseFloat(css.paddingLeft) + parseFloat(css.paddingRight);
+  const gapY = parseFloat(css.rowGap) || 14, gapX = parseFloat(css.columnGap) || 16;
+  const top = L.getBoundingClientRect().top;
+  const avail = Math.max(320, window.innerHeight - top - padT - padB);
+  // natural height of the row underneath (chart at its usual size)
+  L.style.setProperty('--below-h', 'auto');
+  // the clip editor needs room: on a short screen it moves into the right column instead (the library hides)
+  const panel = $('#panel'), inSide = panel.parentElement === $('#sideSlot');
+  if ((UI.sel || UI.cutMode) && !Session.active && !fitLayout.moving) {
+    const arMin = ar >= 1 ? Math.min(L.clientWidth - padX - gapX - 340, 700) / ar : 200;
+    const need = arMin + $('#controls').offsetHeight + 6 + gapY + panel.scrollHeight;
+    const wantSide = need > avail + (inSide ? 60 : 0);
+    if (wantSide !== inSide) {
+      if (wantSide) $('#sideSlot').appendChild(panel); else below.appendChild(panel);
+      L.classList.toggle('panel-side', wantSide);
+      fitLayout.moving = true;
+      try { fitLayout(); } finally { fitLayout.moving = false; }
+      return;
+    }
+  }
+  const belowVisible = [...below.children].some((c) => !c.hidden);
+  L.classList.toggle('no-below', !belowVisible); // an empty row would still take space
+  const belowH = belowVisible ? below.scrollHeight + gapY : 0;
+  const ctrlH = $('#controls').offsetHeight + 6; // player border
+  const sideMin = 340;
+  const totalW = L.clientWidth - padX - gapX;
+  let vh = Math.max(200, avail - belowH - ctrlH);
+  let w = vh * ar;
+  if (w > totalW - sideMin) { w = totalW - sideMin; vh = w / ar; }
+  // never squeeze the player into a sliver: narrow, the controls wrap and the row underneath
+  // grows, which would shrink the video further. The chart gives up some height instead.
+  const minW = Math.min(totalW - sideMin, Session.active ? 560 : 700); // in a session the controls are shorter
+  if (w < minW && ar >= 1) { w = minW; vh = w / ar; }
+  L.style.setProperty('--stage-w', `${Math.floor(w)}px`);
+  L.style.setProperty('--video-h', `${Math.floor(vh)}px`);
+  // library: full height of the right column; the row underneath fills what's left to the bottom
+  L.style.setProperty('--side-h', `${Math.floor(avail)}px`);
+  const room = Math.max(60, Math.floor(avail - $('#player').offsetHeight - gapY));
+  L.style.setProperty('--below-h', belowVisible ? `${room}px` : 'auto');
+  below.classList.toggle('capped', belowVisible && below.scrollHeight > below.clientHeight + 1);
+  // session card: same height as the player
+  sess.style.height = Session.active && sess.parentElement === $('#sideSlot') ? `${$('#player').offsetHeight}px` : '';
+  Panel.onTime(Player.time()); // the chart may have changed size
 }
 
 function renderAll() {
@@ -5035,6 +5134,10 @@ async function boot() {
   Bus.on('signedout', () => renderBanners());
   window.addEventListener('resize', () => Panel.onTime(Player.time()));
   if (wideLayout.addEventListener) wideLayout.addEventListener('change', () => applyLayout());
+  window.addEventListener('resize', scheduleFit);
+  Player.v.addEventListener('loadedmetadata', scheduleFit);
+  // the row under the player and the banners change height as you work: refit when they do
+  if (window.ResizeObserver) { const ro = new window.ResizeObserver(scheduleFit); ro.observe($('#below')); ro.observe($('#banners')); ro.observe($('#controls')); }
   window.addEventListener('beforeunload', () => { Store.flushAll(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) Store.flushAll(); });
   // first launch: the baseline must come before the first practice

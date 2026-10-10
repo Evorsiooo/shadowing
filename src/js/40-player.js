@@ -272,14 +272,14 @@ function renderControls() {
     h('span', { class: 'time', id: 'timeLabel' }, `${fmtTime(Player.time())} / ${fmtTime(Player.duration())}`),
     h('div', { class: 'seg', role: 'group', 'aria-label': 'Speed' },
       [0.5, 0.75, 1].map((r) => h('button', { type: 'button', class: UI.rate === r ? 'on' : '', onclick: () => Player.setRate(r), title: 'Speed (, and .)' }, `${r}x`))),
-    btn('Loop', () => { UI.loop = !UI.loop; renderControls(); }, { icon: 'loop', on: UI.loop, pressed: UI.loop, title: 'Loop the clip (L)' }),
+    btn('Loop', () => { UI.loop = !UI.loop; renderControls(); }, { icon: 'loop', on: UI.loop, pressed: UI.loop, title: 'Loop the clip (L)', aria: 'Loop', id: 'loopBtn' }),
     btn('', () => Player.setVolume(UI.volume === 0 ? 1 : 0), { icon: volIcon, title: 'Mute' }),
     h('input', { type: 'range', class: 'vol', min: 0, max: 1, step: 0.05, value: UI.volume, 'aria-label': 'Volume', oninput: (e) => Player.setVolume(+e.target.value) }),
     h('span', { class: 'spacer' }),
-    btn('Cut clips', () => setCutMode(!UI.cutMode), { icon: 'scissors', on: UI.cutMode, pressed: UI.cutMode, title: 'Clip mode: drag on the timeline to select a new clip (C)', disabled: dis || Session.active }),
+    Session.active ? null : btn('Cut clips', () => setCutMode(!UI.cutMode), { icon: 'scissors', on: UI.cutMode, pressed: UI.cutMode, title: 'Clip mode: drag on the timeline to select a new clip (C)', aria: 'Cut clips', id: 'cutBtn', disabled: dis }),
     UI.cutMode ? btn('Start', () => markEdge('start'), { title: 'Mark clip start at the playhead (I or [)', disabled: dis || Session.active }) : null,
     UI.cutMode ? btn('End', () => markEdge('end'), { title: 'Mark clip end at the playhead (O or ])', disabled: dis || Session.active }) : null,
-    btn('', () => openShortcuts(), { icon: 'keyboard', title: 'Keyboard shortcuts (?)' }));
+    btn('', () => openShortcuts(), { icon: 'keyboard', title: 'Keyboard shortcuts (?)', id: 'kbBtn' }));
 }
 
 function setCutMode(on) {
