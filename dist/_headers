@@ -3,3 +3,18 @@
   Referrer-Policy: same-origin
   X-Frame-Options: DENY
   Permissions-Policy: microphone=(self), camera=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-r5Tfnv80ZHePDP4fTEQUjvuLNAMkoDbTBhw0ylIbmKw='; style-src 'self' 'sha256-tKIAqwqFuEyrllFOE3sJdsN7lX1tJrEz9ufV6/Ft/Us=' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'
+
+/app/*
+  ! Content-Security-Policy
+  X-Robots-Tag: noindex, nofollow
+
+/assets/*
+  Cache-Control: public, max-age=86400
+
+# Preview and pages.dev copies must not compete with shadowing.euno.cc in search results.
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex
+
+https://:version.:project.pages.dev/*
+  X-Robots-Tag: noindex
