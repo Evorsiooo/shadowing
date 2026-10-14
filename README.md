@@ -27,7 +27,7 @@ Everything runs on one Cloudflare account, mostly within the free tier:
 | **Device storage + Google Drive** | Videos and voice recordings stay in the browser's own storage on each device, with optional sync to the user's Google Drive (`src/js/17-media.js`, `server/drive.js`, [docs/STORAGE.md](docs/STORAGE.md)). The server never holds them. R2 is read-only until the old files are moved out. |
 | **AI (optional)** | "Ask AI" on notes, through the server (`server/ai.js`) with each user's own Anthropic, OpenAI or OpenRouter key, stored encrypted under the `KEY_ENCRYPTION_KEY` secret |
 | **MCP server** | `/mcp` lets each user connect Claude, ChatGPT or Gemini to read their own practice data, signed in with OAuth ([docs/MCP.md](docs/MCP.md)) |
-| **Reminders Worker** | `workers/reminders/`: posts practice reminders to a Discord webhook. A Durable Object alarm wakes it every 15 minutes (the account's free cron triggers are used elsewhere); the API re-arms it on every app load through the `REMINDERS` service binding. The webhook URL sits in D1's `private` table, which the docs API and MCP never return. Deploy changes with `npm run deploy:reminders`. |
+| **Reminders Worker** | `workers/reminders/`: posts practice reminders to a Discord webhook and as push notifications ([docs/PUSH.md](docs/PUSH.md)). A Durable Object alarm wakes it every 15 minutes (the account's free cron triggers are used elsewhere); the API re-arms it on every app load through the `REMINDERS` service binding. The webhook URL sits in D1's `private` table, which the docs API and MCP never return. Deploy changes with `npm run deploy:reminders`. |
 
 ### Public site
 
@@ -41,7 +41,7 @@ All routes need a valid Access sign-in.
 - `GET /api/docs`, `PUT|DELETE /api/docs/:collection/:id`
 - `GET|DELETE /api/drive` (Drive sync status; disconnect), `POST /api/drive/token` (short-lived Drive token for the browser); connecting is `GET /auth/drive`
 - `GET/PUT/DELETE /api/ai`, `GET /api/ai/models`, `POST /api/ai/test`, `POST /api/ai/feedback` (bring-your-own-key AI)
-- `GET|PUT /api/reminders` (webhook set or not; save/remove it), `POST /api/reminders/test`, `POST /api/reminders/arm`
+- `GET|PUT /api/reminders` (webhook set or not; save/remove it), `POST|DELETE /api/reminders/push` (this device's notifications), `POST /api/reminders/test`, `POST /api/reminders/arm`
 
 ### MCP tools
 
@@ -100,7 +100,8 @@ npm run dev        # http://localhost:8788
 | `server/drive.js` | Google Drive connection: sealed refresh token, short-lived access tokens |
 | `server/crypto.js` | Seals per-user secrets with `KEY_ENCRYPTION_KEY` |
 | `server/ai.js` | Encrypted per-user AI keys, model lists and note feedback (Anthropic, OpenAI, OpenRouter) |
-| `server/reminders.js` | When a reminder is due, its message, posting to Discord |
+| `server/reminders.js` | When a reminder is due, its message, sending it to Discord and devices |
+| `server/webpush.js` | Web Push (VAPID signing and payload encryption) |
 | `workers/reminders/` | The reminders Worker (Durable Object alarm scheduler) |
 | `scripts/setup.mjs` | One-shot Cloudflare setup (database, storage, Access, secrets) |
 | `scripts/build.mjs` | Builds the app into `dist/app/index.html`, the public site pages, `robots.txt`, `sitemap.xml`, the web manifest and `_headers` |

@@ -3,6 +3,7 @@
 //   dist/index.html, dist/<page>/index.html, dist/404.html — the public site (src/site/), pre-rendered
 //   dist/assets/         — site script, icons and the social image
 //   dist/robots.txt, dist/sitemap.xml, dist/site.webmanifest
+//   dist/sw.js           — the service worker (reminder notifications; makes the site installable)
 //   dist/_headers        — security headers, caching and noindex rules
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, copyFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -119,6 +120,7 @@ for (const page of pages) out(page.path.endsWith('.html') ? page.path : page.pat
 mkdirSync(join(dist, 'assets'), { recursive: true });
 for (const f of readdirSync(join(src, 'site', 'assets'))) copyFileSync(join(src, 'site', 'assets', f), join(dist, 'assets', f));
 copyFileSync(join(src, 'site', 'site.js'), join(dist, 'assets', 'site.js'));
+copyFileSync(join(src, 'site', 'sw.js'), join(dist, 'sw.js'));
 
 out('robots.txt', `User-agent: *\nDisallow: /api/\nDisallow: /auth/\n\nSitemap: ${SITE.url}/sitemap.xml\n`);
 out(
@@ -176,6 +178,9 @@ out(
 
 /assets/*
   Cache-Control: public, max-age=86400
+
+/sw.js
+  Cache-Control: no-cache
 
 # Preview and pages.dev copies must not compete with shadowing.euno.cc in search results.
 https://:project.pages.dev/*

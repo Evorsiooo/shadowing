@@ -1,7 +1,8 @@
 // Practice reminders, per user. Used by the reminders Worker (every 15 minutes) and by
-// /api/reminders (setup and "send a test"). Each user's channel settings (today: a Discord
-// webhook) live in the `private` table, which the docs API never returns.
-// Sending goes through CHANNELS, so push notifications etc. can be added next to Discord.
+// /api/reminders (setup and "send a test"). Each user's channel settings (a Discord webhook,
+// their devices' push subscriptions) live in the `private` table, which the docs API never returns.
+// Sending goes through CHANNELS: a reminder goes out on every channel the user has set up.
+import { pushAvailable, sendPush } from './webpush.js';
 
 const WEBHOOK_RE = /^https:\/\/(?:canary\.|ptb\.)?(?:discord|discordapp)\.com\/api\/webhooks\/\d{5,30}\/[A-Za-z0-9_-]{20,120}$/;
 export function validWebhook(url) { return typeof url === 'string' && WEBHOOK_RE.test(url.trim()); }
@@ -99,7 +100,7 @@ export function buildReminder(data, settings, { today, late = false, test = fals
 export const CHANNELS = {
   discord: {
     key: 'discordWebhook', // where the user's target (the webhook URL) is stored in `private`
-    async target(db, userId) { return getPrivate(db, userId, this.key); },
+    async target(env, userId) { return getPrivate(env.DB, userId, this.key); },
     format(rem) {
       const embed = { title: rem.title, description: rem.lines.join('\n'), color: 0x58cc02 };
       if (rem.url) embed.url = rem.url; // the title links to the app
@@ -109,17 +110,58 @@ export const CHANNELS = {
       const content = [userId ? `<@${userId}>` : '', rem.url ? `<${rem.url}>` : ''].filter(Boolean).join(' ');
       return { username: 'Euno Shadowing', content, embeds: [embed], allowed_mentions: userId ? { parse: [], users: [userId] } : { parse: [] } };
     },
-    async send(target, rem) { await postDiscord(target, this.format(rem)); },
+    async send(env, userId, target, rem) { await postDiscord(target, this.format(rem)); },
+  },
+  push: {
+    key: 'pushSubs', // JSON list of the user's devices: [{ endpoint, keys: { p256dh, auth }, label, added }]
+    async target(env, userId) {
+      if (!pushAvailable(env)) return null;
+      const subs = await getPushSubs(env.DB, userId);
+      return subs.length ? subs : null;
+    },
+    format(rem) {
+      return { title: rem.title, body: rem.lines.filter(Boolean).join('\n'), url: rem.url ? `${rem.url.replace(/\/$/, '')}/app/` : '/app/', tag: 'euno-reminder' };
+    },
+    async send(env, userId, subs, rem) {
+      const msg = this.format(rem);
+      let ok = 0, firstError = null;
+      const gone = [];
+      for (const sub of subs) {
+        try {
+          const r = await sendPush(env, sub, msg, { topic: 'reminder' });
+          if (r.ok) ok++; else if (r.gone) gone.push(sub.endpoint);
+        } catch (e) { firstError = firstError || e; }
+      }
+      if (gone.length) await removePushSubs(env.DB, userId, gone);
+      if (!ok) throw firstError || new Error('None of your devices accept notifications any more. Turn them on again in Settings → Reminders.');
+    },
   },
 };
 
+/* ---------- push subscriptions: one per device, kept in `private` under pushSubs ---------- */
+export const MAX_PUSH_DEVICES = 10;
+export async function getPushSubs(db, userId) {
+  try { const v = JSON.parse(await getPrivate(db, userId, 'pushSubs')); return Array.isArray(v) ? v : []; } catch { return []; }
+}
+export async function addPushSub(db, userId, sub, label) {
+  const subs = (await getPushSubs(db, userId)).filter((s) => s.endpoint !== sub.endpoint);
+  subs.push({ ...sub, label: String(label || '').slice(0, 60), added: Date.now() });
+  await setPrivate(db, userId, 'pushSubs', JSON.stringify(subs.slice(-MAX_PUSH_DEVICES))); // the oldest device drops off
+  return subs.length;
+}
+export async function removePushSubs(db, userId, endpoints) {
+  const subs = (await getPushSubs(db, userId)).filter((s) => !endpoints.includes(s.endpoint));
+  await setPrivate(db, userId, 'pushSubs', subs.length ? JSON.stringify(subs) : null);
+  return subs.length;
+}
+
 /** Send a reminder on every channel the user has set up. Returns how many were sent; throws the first error. */
-export async function sendReminder(db, userId, rem) {
+export async function sendReminder(env, userId, rem) {
   let sent = 0, firstError = null;
   for (const ch of Object.values(CHANNELS)) {
-    const target = await ch.target(db, userId);
+    const target = await ch.target(env, userId);
     if (!target) continue;
-    try { await ch.send(target, rem); sent++; } catch (e) { firstError = firstError || e; }
+    try { await ch.send(env, userId, target, rem); sent++; } catch (e) { firstError = firstError || e; }
   }
   if (!sent && firstError) throw firstError;
   return sent;
@@ -169,7 +211,7 @@ export async function runForUser(env, userId, now = new Date()) {
     const data = await sessionsAndCheckins(db, userId);
     if ((r.skipIfDone || slot === 'late') && habit(data, t.day).practisedToday) { out.push(`${slot}: already practised`); continue; }
     try {
-      await sendReminder(db, userId, buildReminder(data, settings, { today: t.day, late: slot === 'late' }));
+      await sendReminder(env, userId, buildReminder(data, settings, { today: t.day, late: slot === 'late' }));
       await setPrivate(db, userId, 'reminderLast', JSON.stringify({ at: now.toISOString(), ok: true }));
       out.push(`${slot}: sent`);
     } catch (e) {

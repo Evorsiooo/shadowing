@@ -24,9 +24,12 @@ async function usersRoute(env, admin, method, id, request) {
     const { results } = await db.prepare(`
       SELECT u.id, u.email, u.name, u.picture, u.role, u.disabled, u.invite_code, u.created, u.last_seen,
         (SELECT COUNT(*) FROM docs d WHERE d.user_id = u.id AND d.col = 'sessions') AS sessions,
-        (SELECT MAX(s.last_seen) FROM sessions s WHERE s.user_id = u.id) AS active
+        (SELECT MAX(s.last_seen) FROM sessions s WHERE s.user_id = u.id) AS active,
+        -- whether Drive is connected and which AI provider is set; never the sealed token or key
+        EXISTS (SELECT 1 FROM private p WHERE p.user_id = u.id AND p.key = 'drive') AS drive,
+        (SELECT json_extract(p.value, '$.provider') FROM private p WHERE p.user_id = u.id AND p.key = 'ai') AS ai
       FROM users u ORDER BY u.created DESC`).all();
-    return json({ users: results.map((u) => ({ ...u, disabled: !!u.disabled, last_seen: Math.max(u.last_seen || 0, u.active || 0) || null, active: undefined, self: u.id === admin.id })) });
+    return json({ users: results.map((u) => ({ ...u, disabled: !!u.disabled, drive: !!u.drive, ai: u.ai || null, last_seen: Math.max(u.last_seen || 0, u.active || 0) || null, active: undefined, self: u.id === admin.id })) });
   }
   const user = id ? await db.prepare('SELECT id, email, role FROM users WHERE id = ?').bind(id).first() : null;
   if (!user) return error(404, 'No such user.');
