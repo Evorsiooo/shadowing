@@ -1,4 +1,4 @@
-/* ---------- "what sounded off" notes, Claude feedback, issues ---------- */
+/* ---------- "what sounded off" notes, AI feedback, issues ---------- */
 const noteDrafts = new Map();
 
 function noteForm(ctx) {
@@ -14,10 +14,11 @@ function noteForm(ctx) {
   const ask = async (askBtn) => {
     if (!D.off.trim()) { mount(status, h('span', { class: 'formerr' }, 'Write what sounded off first.')); return; }
     if (Store.mode === 'cloud') {
+      if (!Api.ai) { openCopyPrompt(D, issueNames, drawReply); return; }
       askBtn.disabled = true;
       mount(status, h('span', { class: 'muted' }, 'Thinking…'));
       try {
-        const { reply } = await Api.req('POST', '/api/claude', { sentence: D.sentence, off: D.off, aim: D.aim, issues: issueNames, profile: profileForAI() });
+        const { reply } = await Api.req('POST', '/api/ai/feedback', { sentence: D.sentence, off: D.off, aim: D.aim, issues: issueNames, profile: profileForAI() });
         D.reply = normaliseReply(reply);
         if (D.reply.issue && !D.issue) { D.issue = D.reply.issue; const inp = $(`#issue-${key}`); if (inp) inp.value = D.issue; }
         status.replaceChildren();
@@ -49,7 +50,8 @@ function noteForm(ctx) {
     } finally { askBtn.disabled = false; }
   };
 
-  const askBtn = btn(Caps.sample || Store.mode === 'cloud' ? 'Ask Claude' : 'Copy prompt for Claude', () => ask(askBtn), { kind: 'blue', size: 'sm', icon: 'sparkle' });
+  const askLabel = Store.mode === 'cloud' ? (Api.ai ? 'Ask AI' : 'Copy prompt for AI') : Caps.sample ? 'Ask Claude' : 'Copy prompt for Claude';
+  const askBtn = btn(askLabel, () => ask(askBtn), { kind: 'blue', size: 'sm', icon: 'sparkle' });
   const body = h('div', { class: 'stack' },
     h('label', { class: 'field', for: `off-${key}` }, 'What sounded off?',
       h('textarea', { id: `off-${key}`, rows: 2, placeholder: 'e.g. the vowel in “go” sounds too pure, it doesn’t glide', value: D.off, oninput: (e) => { D.off = e.target.value; } })),
@@ -81,8 +83,8 @@ function normaliseReply(r) {
 }
 
 function replyView(r) {
-  if (r.text) return h('div', { class: 'reply' }, h('h4', null, 'Claude says'), h('p', { style: { whiteSpace: 'pre-wrap' } }, r.text));
-  if (r.unsure) return h('div', { class: 'reply' }, h('h4', null, 'Claude isn’t sure'), h('p', null, r.question || 'I don’t know what you meant. Can you describe it differently?'));
+  if (r.text) return h('div', { class: 'reply' }, h('h4', null, 'Feedback'), h('p', { style: { whiteSpace: 'pre-wrap' } }, r.text));
+  if (r.unsure) return h('div', { class: 'reply' }, h('h4', null, 'Not sure what you meant'), h('p', null, r.question || 'I don’t know what you meant. Can you describe it differently?'));
   return h('div', { class: 'reply' },
     r.feature ? [h('h4', null, 'Likely feature'), h('p', null, r.feature)] : null,
     r.change ? [h('h4', null, 'What to change'), h('p', null, r.change)] : null,
@@ -90,7 +92,7 @@ function replyView(r) {
     r.issue ? h('p', { class: 'small muted' }, 'Suggested issue: ', h('span', { class: 'issue-pill' }, r.issue)) : null);
 }
 
-/* who the learner is, from their profile (the server builds the same text in server/claude.js) */
+/* who the learner is, from their profile (the server builds the same text in server/ai.js) */
 function learnerLine(P) {
   const native = P.nativeLanguages ? `Their native language: ${P.nativeLanguages}.` : '';
   return `The learner is moving their ${P.targetLanguage} accent towards ${P.accent}. ${native}${P.notes ? ` About them: ${P.notes}` : ''}`.trim();
@@ -130,14 +132,14 @@ Tell me: 1) the likely ${P.accent} feature, 2) what to change, 3) what to listen
 function openCopyPrompt(D, issueNames, onDone) {
   const text = claudePromptPlain(D);
   const ta = h('textarea', { rows: 8, readonly: true, value: text, id: 'promptText' });
-  const reply = h('textarea', { rows: 6, id: 'replyPaste', placeholder: 'Paste Claude’s reply here' });
+  const reply = h('textarea', { rows: 6, id: 'replyPaste', placeholder: 'Paste the reply here' });
   openModal([
-    modalHead('Ask Claude', 'Copy the prompt into a Claude chat, then paste the reply back here so it’s saved with the note.'),
+    modalHead('Ask an AI', `Copy the prompt into any AI chat (Claude, ChatGPT, Gemini…), then paste the reply back here so it’s saved with the note.${Store.mode === 'cloud' ? ' To get answers right here instead, add your own API key in Settings → AI.' : ''}`),
     ta,
     h('div', { class: 'row' }, btn('Copy prompt', async () => {
       try { await navigator.clipboard.writeText(text); toast('Prompt copied.'); } catch { ta.select(); toast('Select-all done; press Ctrl+C to copy.'); }
     }, { kind: 'primary', icon: 'note' })),
-    h('label', { class: 'field', for: 'replyPaste' }, 'Claude’s reply', reply),
+    h('label', { class: 'field', for: 'replyPaste' }, 'The reply', reply),
     h('div', { class: 'row' }, btn('Save reply', () => { if (reply.value.trim()) { D.reply = { text: reply.value.trim() }; onDone(); } closeModal(); }, { kind: 'primary' })),
   ]);
 }

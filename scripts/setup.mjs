@@ -6,7 +6,7 @@
 //
 //   CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... node scripts/setup.mjs
 //
-// Optional: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in the environment are stored as Pages secrets.
+// Optional: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and KEY_ENCRYPTION_KEY in the environment are stored as Pages secrets.
 // Flags: --project <name> (default "shadowing")
 //
 // Afterwards commit wrangler.toml (database id) and merge it to main.
@@ -84,11 +84,11 @@ writeFileSync(tomlPath, toml);
 
 // 4. Secrets: Google sign-in (see docs/ACCOUNTS.md for creating the OAuth client)
 step('Secrets');
-for (const name of ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET']) {
+for (const name of ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'KEY_ENCRYPTION_KEY']) {
   if (process.env[name]) {
     wrangler(['pages', 'secret', 'put', name, '--project-name', PROJECT], { input: process.env[name] });
     console.log(`  ${name} set`);
-  } else console.log(`  ${name} not in the environment; sign-in stays off until you add it`);
+  } else console.log(`  ${name} not in the environment; ${name === 'KEY_ENCRYPTION_KEY' ? 'AI keys stay off' : 'sign-in stays off'} until you add it`);
 }
 
 console.log(`\n✓ Done.

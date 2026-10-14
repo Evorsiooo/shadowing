@@ -28,4 +28,4 @@ service = "shadowing-reminders"
 #   GOOGLE_CLIENT_ID      OAuth client for Sign in with Google (docs/ACCOUNTS.md)
 #   GOOGLE_CLIENT_SECRET
 #   TURNSTILE_SECRET      optional: spam check for the contact form
-#   ANTHROPIC_API_KEY     optional, admin-only until bring-your-own-key AI ships
+#   KEY_ENCRYPTION_KEY    encrypts users' AI keys (`openssl rand -base64 32`); changing it makes saved keys unreadable

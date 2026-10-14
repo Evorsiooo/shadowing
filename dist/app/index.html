@@ -794,12 +794,12 @@ const IDB = {
 /* Google sign-in, coming back to this page afterwards */
 function signIn() { location.href = `/auth/google?next=${encodeURIComponent(location.pathname + location.search)}`; }
 
-/* ---------- cloud backend (Cloudflare Pages Functions: D1 + R2 + Claude) ---------- */
+/* ---------- cloud backend (Cloudflare Pages Functions: D1 + R2 + the user's own AI key) ---------- */
 const Api = {
   on: false,
   email: null,
   role: null,
-  claude: false,
+  ai: null, // {provider, providerName, model} when the user has saved an AI key
   signedOut: false,
   problem: null,
   async req(method, path, body, { raw = false, headers = {} } = {}) {
@@ -833,7 +833,7 @@ const Api = {
       if (!(r.headers.get('content-type') || '').includes('application/json')) return false;
       const d = await r.json();
       if (!r.ok) { this.problem = d.error || `Server error ${r.status}`; return false; }
-      this.on = true; this.email = d.email; this.role = d.role || null; this.claude = !!d.claude; this.claudeModel = d.claudeModel || null;
+      this.on = true; this.email = d.email; this.role = d.role || null; this.ai = d.ai || null;
       return true;
     } catch { return false; } finally { clearTimeout(timer); }
   },
@@ -3955,7 +3955,7 @@ function showSessionSummary(sum, streakBefore, nextClipId) {
 }
 
 /* ---- 80-notes.js ---- */
-/* ---------- "what sounded off" notes, Claude feedback, issues ---------- */
+/* ---------- "what sounded off" notes, AI feedback, issues ---------- */
 const noteDrafts = new Map();
 
 function noteForm(ctx) {
@@ -3971,10 +3971,11 @@ function noteForm(ctx) {
   const ask = async (askBtn) => {
     if (!D.off.trim()) { mount(status, h('span', { class: 'formerr' }, 'Write what sounded off first.')); return; }
     if (Store.mode === 'cloud') {
+      if (!Api.ai) { openCopyPrompt(D, issueNames, drawReply); return; }
       askBtn.disabled = true;
       mount(status, h('span', { class: 'muted' }, 'Thinking…'));
       try {
-        const { reply } = await Api.req('POST', '/api/claude', { sentence: D.sentence, off: D.off, aim: D.aim, issues: issueNames, profile: profileForAI() });
+        const { reply } = await Api.req('POST', '/api/ai/feedback', { sentence: D.sentence, off: D.off, aim: D.aim, issues: issueNames, profile: profileForAI() });
         D.reply = normaliseReply(reply);
         if (D.reply.issue && !D.issue) { D.issue = D.reply.issue; const inp = $(`#issue-${key}`); if (inp) inp.value = D.issue; }
         status.replaceChildren();
@@ -4006,7 +4007,8 @@ function noteForm(ctx) {
     } finally { askBtn.disabled = false; }
   };
 
-  const askBtn = btn(Caps.sample || Store.mode === 'cloud' ? 'Ask Claude' : 'Copy prompt for Claude', () => ask(askBtn), { kind: 'blue', size: 'sm', icon: 'sparkle' });
+  const askLabel = Store.mode === 'cloud' ? (Api.ai ? 'Ask AI' : 'Copy prompt for AI') : Caps.sample ? 'Ask Claude' : 'Copy prompt for Claude';
+  const askBtn = btn(askLabel, () => ask(askBtn), { kind: 'blue', size: 'sm', icon: 'sparkle' });
   const body = h('div', { class: 'stack' },
     h('label', { class: 'field', for: `off-${key}` }, 'What sounded off?',
       h('textarea', { id: `off-${key}`, rows: 2, placeholder: 'e.g. the vowel in “go” sounds too pure, it doesn’t glide', value: D.off, oninput: (e) => { D.off = e.target.value; } })),
@@ -4038,8 +4040,8 @@ function normaliseReply(r) {
 }
 
 function replyView(r) {
-  if (r.text) return h('div', { class: 'reply' }, h('h4', null, 'Claude says'), h('p', { style: { whiteSpace: 'pre-wrap' } }, r.text));
-  if (r.unsure) return h('div', { class: 'reply' }, h('h4', null, 'Claude isn’t sure'), h('p', null, r.question || 'I don’t know what you meant. Can you describe it differently?'));
+  if (r.text) return h('div', { class: 'reply' }, h('h4', null, 'Feedback'), h('p', { style: { whiteSpace: 'pre-wrap' } }, r.text));
+  if (r.unsure) return h('div', { class: 'reply' }, h('h4', null, 'Not sure what you meant'), h('p', null, r.question || 'I don’t know what you meant. Can you describe it differently?'));
   return h('div', { class: 'reply' },
     r.feature ? [h('h4', null, 'Likely feature'), h('p', null, r.feature)] : null,
     r.change ? [h('h4', null, 'What to change'), h('p', null, r.change)] : null,
@@ -4047,7 +4049,7 @@ function replyView(r) {
     r.issue ? h('p', { class: 'small muted' }, 'Suggested issue: ', h('span', { class: 'issue-pill' }, r.issue)) : null);
 }
 
-/* who the learner is, from their profile (the server builds the same text in server/claude.js) */
+/* who the learner is, from their profile (the server builds the same text in server/ai.js) */
 function learnerLine(P) {
   const native = P.nativeLanguages ? `Their native language: ${P.nativeLanguages}.` : '';
   return `The learner is moving their ${P.targetLanguage} accent towards ${P.accent}. ${native}${P.notes ? ` About them: ${P.notes}` : ''}`.trim();
@@ -4087,14 +4089,14 @@ Tell me: 1) the likely ${P.accent} feature, 2) what to change, 3) what to listen
 function openCopyPrompt(D, issueNames, onDone) {
   const text = claudePromptPlain(D);
   const ta = h('textarea', { rows: 8, readonly: true, value: text, id: 'promptText' });
-  const reply = h('textarea', { rows: 6, id: 'replyPaste', placeholder: 'Paste Claude’s reply here' });
+  const reply = h('textarea', { rows: 6, id: 'replyPaste', placeholder: 'Paste the reply here' });
   openModal([
-    modalHead('Ask Claude', 'Copy the prompt into a Claude chat, then paste the reply back here so it’s saved with the note.'),
+    modalHead('Ask an AI', `Copy the prompt into any AI chat (Claude, ChatGPT, Gemini…), then paste the reply back here so it’s saved with the note.${Store.mode === 'cloud' ? ' To get answers right here instead, add your own API key in Settings → AI.' : ''}`),
     ta,
     h('div', { class: 'row' }, btn('Copy prompt', async () => {
       try { await navigator.clipboard.writeText(text); toast('Prompt copied.'); } catch { ta.select(); toast('Select-all done; press Ctrl+C to copy.'); }
     }, { kind: 'primary', icon: 'note' })),
-    h('label', { class: 'field', for: 'replyPaste' }, 'Claude’s reply', reply),
+    h('label', { class: 'field', for: 'replyPaste' }, 'The reply', reply),
     h('div', { class: 'row' }, btn('Save reply', () => { if (reply.value.trim()) { D.reply = { text: reply.value.trim() }; onDone(); } closeModal(); }, { kind: 'primary' })),
   ]);
 }
@@ -4885,6 +4887,104 @@ function ratingAverages() {
   return [...out.entries()].map(([label, arr]) => ({ label, avg: mean(arr), n: arr.length }));
 }
 
+/* ---- 87-ai.js ---- */
+/* ---------- AI feedback with your own key (Settings → AI, and the onboarding 'ai' step) ---------- */
+/* The key goes to the server once and is stored encrypted; the app only ever sees its last 4
+   characters. Without a key, notes fall back to "Copy prompt for AI". */
+function aiPanel({ onboarding = false } = {}) {
+  const wrap = h('div', { class: 'stack' });
+  if (Store.mode !== 'cloud') {
+    mount(wrap, h('p', { class: 'muted' }, 'Using your own AI key needs the online version of the app. Notes still offer a prompt you can copy into any AI chat.'));
+    return wrap;
+  }
+  let st = null; // GET /api/ai: {available, providers, configured, provider, providerName, model, hint}
+  let list = null; // {models, cheap} | {error}
+  let replacing = false;
+  let provider = 'anthropic';
+  let filter = '';
+  let testMsg = null;
+  const keep = (s) => {
+    st = { ...st, ...s };
+    Api.ai = st.configured ? { provider: st.provider, providerName: st.providerName, model: st.model } : null;
+  };
+  const loadModels = async () => {
+    list = null; draw();
+    try { const r = await Api.req('GET', '/api/ai/models'); list = { models: r.models, cheap: r.cheap }; } catch (e) { list = { error: e.message }; }
+    draw();
+  };
+
+  const keyForm = () => {
+    const P = st.providers.find((p) => p.id === provider) || st.providers[0];
+    const input = h('input', { type: 'password', id: 'ai-key', placeholder: P.keyHint, autocomplete: 'off', spellcheck: 'false' });
+    const save = btn('Save key', async () => {
+      if (!input.value.trim()) { toast('Paste your API key first.', 'bad'); return; }
+      save.disabled = true;
+      try {
+        const r = await Api.req('PUT', '/api/ai', { provider, key: input.value.trim() });
+        keep(r); replacing = false; testMsg = null;
+        list = { models: r.models, cheap: r.model };
+        draw(); toast(`Key saved. Using ${r.model}.`, 'good');
+      } catch (e) { toast(e.message, 'bad', 7000); save.disabled = false; }
+    }, { kind: 'primary', size: 'sm' });
+    return h('div', { class: 'stack' },
+      h('div', { class: 'seg', role: 'group', 'aria-label': 'AI provider' }, st.providers.map((p) =>
+        h('button', { type: 'button', class: p.id === provider ? 'on' : '', 'aria-pressed': String(p.id === provider), onclick: () => { provider = p.id; draw(); } }, p.name))),
+      h('label', { class: 'field', for: 'ai-key' }, `${P.name} API key`, input),
+      h('p', { class: 'small muted' }, 'Get one at ', h('a', { href: P.keyUrl, target: '_blank', rel: 'noopener noreferrer' }, P.keyUrl.replace(/^https:\/\//, '')),
+        '. It’s stored encrypted on our server, only used for your feedback, and never shown again. You pay your provider directly; one answer on the default model costs a tiny fraction of a cent.'),
+      h('div', { class: 'row' }, save, replacing ? btn('Cancel', () => { replacing = false; draw(); }, { size: 'sm', kind: 'ghost' }) : null));
+  };
+
+  const modelPicker = () => {
+    if (!list) return h('p', { class: 'small muted' }, 'Loading models…');
+    if (list.error) return h('p', { class: 'small' }, h('span', { class: 'formerr' }, list.error), ' ', btn('Try again', loadModels, { size: 'sm', kind: 'ghost' }));
+    let models = list.models;
+    if (!models.some((m) => m.id === st.model)) models = [{ id: st.model, name: st.model }, ...models];
+    const many = models.length > 30;
+    const q = filter.trim().toLowerCase();
+    const shown = q ? models.filter((m) => m.id === st.model || `${m.id} ${m.name}`.toLowerCase().includes(q)) : models;
+    const label = (m) => `${m.name}${m.name !== m.id ? ` (${m.id})` : ''}${m.id === list.cheap ? ' · cheap and fast' : ''}${m.note ? ` · ${m.note}` : ''}`;
+    return h('div', { class: 'stack' },
+      many ? h('label', { class: 'field', for: 'ai-filter' }, 'Find a model',
+        h('input', { type: 'search', id: 'ai-filter', value: filter, placeholder: 'e.g. haiku, mini, flash', oninput: (e) => { filter = e.target.value; const pos = e.target.selectionStart; draw(); const f = $('#ai-filter'); if (f) { f.focus(); f.setSelectionRange(pos, pos); } } })) : null,
+      h('label', { class: 'field', for: 'ai-model' }, 'Model',
+        h('select', { id: 'ai-model', onchange: async (e) => {
+          try { keep(await Api.req('PUT', '/api/ai', { model: e.target.value })); testMsg = null; draw(); toast(`Now using ${st.model}.`, 'good'); } catch (err) { toast(err.message, 'bad'); }
+        } }, shown.map((m) => h('option', { value: m.id, selected: m.id === st.model }, label(m))))),
+      list.cheap && st.model !== list.cheap ? h('p', { class: 'small muted' }, 'Short feedback like this doesn’t need a big model. ',
+        btn(`Use ${list.cheap}`, async () => { try { keep(await Api.req('PUT', '/api/ai', { model: list.cheap })); draw(); } catch (err) { toast(err.message, 'bad'); } }, { size: 'sm', kind: 'ghost' })) : null);
+  };
+
+  const draw = () => {
+    if (!st) { mount(wrap, h('p', { class: 'small muted' }, 'Checking…')); return; }
+    if (!st.available) { mount(wrap, h('p', { class: 'muted' }, 'AI keys aren’t switched on for this site yet. Notes still offer a prompt you can copy into any AI chat.')); return; }
+    const intro = onboarding ? null : h('p', { class: 'muted' }, 'Get feedback on your notes right inside the app, using your own key from Anthropic, OpenAI or OpenRouter. This is optional: without a key, notes give you a prompt to copy into any AI chat.');
+    if (!st.configured || replacing) { mount(wrap, intro, keyForm()); return; }
+    const test = btn('Test key', async () => {
+      test.disabled = true; testMsg = h('span', { class: 'muted' }, 'Asking…'); draw();
+      try {
+        const r = await Api.req('POST', '/api/ai/test', { profile: profileForAI() });
+        testMsg = r.ok ? h('span', { class: 'formok' }, `It works: ${r.model} answered in ${(r.ms / 1000).toFixed(1)} s.`) : h('span', { class: 'formerr' }, 'The model answered, but not in the expected format. Try another model.');
+      } catch (e) { testMsg = h('span', { class: 'formerr' }, e.message); }
+      draw();
+    }, { size: 'sm' });
+    mount(wrap, intro,
+      h('div', { class: 'row' },
+        h('span', { class: 'chip' }, icon('check'), `${st.providerName} key saved (${st.hint})`),
+        btn('Replace key', () => { replacing = true; provider = st.provider; draw(); }, { size: 'sm' }),
+        btn('Remove key', async () => {
+          try { await Api.req('DELETE', '/api/ai'); keep({ configured: false }); list = null; testMsg = null; draw(); toast('Key removed. Notes will offer “Copy prompt for AI”.'); } catch (e) { toast(e.message, 'bad'); }
+        }, { size: 'sm', kind: 'ghost' })),
+      modelPicker(),
+      h('div', { class: 'row' }, test, testMsg ? h('span', { class: 'small', role: 'status' }, testMsg) : null));
+  };
+
+  draw();
+  Api.req('GET', '/api/ai').then((r) => { keep(r); draw(); if (r.configured) loadModels(); })
+    .catch((e) => mount(wrap, h('p', { class: 'formerr' }, e.message)));
+  return wrap;
+}
+
 /* ---- 88-settings.js ---- */
 /* ---------- settings, data and device checks ---------- */
 const SETTING_GROUPS = [
@@ -4914,8 +5014,8 @@ const SETTING_GROUPS = [
 ];
 
 function openSettings(tab = 'practice') {
-  const tabs = [['practice', 'Practice'], ['profile', 'Profile'], ['reminders', 'Reminders'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
-  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'reminders' ? remindersView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
+  const tabs = [['practice', 'Practice'], ['profile', 'Profile'], ['ai', 'AI'], ['reminders', 'Reminders'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
+  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'ai' ? aiPanel() : tab === 'reminders' ? remindersView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
   openModal([
     modalHead('Settings'),
     h('div', { class: 'tabs' }, tabs.map(([k, l]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab }))),
@@ -5015,7 +5115,7 @@ const CHECKS = [
   { key: 'mic', name: 'Microphone', run: checkMic },
   { key: 'video', name: 'Video link plays', run: checkVideoPlays },
   { key: 'sound', name: 'Reading the video’s sound (for pitch and waveform)', run: checkVideoSound },
-  { key: 'claude', name: 'Asking Claude from the app', run: checkClaude },
+  { key: 'claude', name: 'AI feedback from the app', run: checkClaude },
   { key: 'pitch', name: 'Pitch tracking on your clips', run: checkPitch },
   { key: 'align', name: 'Auto-alignment on your passes', run: checkAlign },
 ];
@@ -5110,9 +5210,9 @@ async function checkVideoSound() {
 }
 async function checkClaude() {
   if (Store.mode === 'cloud') {
-    if (!Api.claude) return { state: 'fail', msg: 'The server has no Claude API key yet. Add the ANTHROPIC_API_KEY secret to the Cloudflare project.' };
-    const { reply } = await Api.req('POST', '/api/claude', { sentence: 'Go and grab the car.', off: 'the vowel in go sounds too pure', aim: '', issues: [], profile: profileForAI() });
-    return reply && (reply.feature || reply.text || reply.unsure) ? { state: 'ok', msg: `Claude answered (model: ${Api.claudeModel || 'unknown'}). Feedback on notes uses your Claude API key.` } : { state: 'warn', msg: 'Claude answered in an unexpected format.' };
+    if (!Api.ai) return { state: 'warn', msg: 'No AI key saved, so notes offer “Copy prompt for AI”. Add a key in Settings → AI to get answers in the app.' };
+    const r = await Api.req('POST', '/api/ai/test', { profile: profileForAI() });
+    return r.ok ? { state: 'ok', msg: `${Api.ai.providerName} answered with ${r.model} in ${(r.ms / 1000).toFixed(1)} s.` } : { state: 'warn', msg: 'The model answered in an unexpected format. Try another model in Settings → AI.' };
   }
   if (!Caps.sample) return { state: 'fail', msg: Caps.inArtifact ? 'Claude access isn’t available in this view.' : 'This standalone version can’t reach Claude. Notes offer “Copy prompt for Claude” instead.' };
   const r = await Caps.sample('Reply with just the word OK.', { modelTier: 'quick', cache: false });
@@ -5238,8 +5338,8 @@ function fmtWhen(iso) {
 /* A short wizard on first launch: about you, where files live, a first video, AI feedback and
    the week-0 baseline. Steps whose when() is false are skipped (no video step if you already
    have videos, and so on). Steps still waiting on other work are placeholders:
-   - 'storage': the Google Drive sync work replaces body() with the connect flow;
-   - 'ai': the bring-your-own-key work replaces body() with the key and model picker.
+   - 'storage': the Google Drive sync work replaces body() with the connect flow.
+   The 'ai' step's body is aiPanel() from 87-ai.js.
    A step can set next(W) to check or save its fields; returning false stays on the step. */
 const ONBOARDING_STEPS = [
   {
@@ -5277,10 +5377,9 @@ const ONBOARDING_STEPS = [
   {
     id: 'ai', title: 'AI feedback (optional)',
     body: () => [
-      h('p', null, 'After a recorded pass you can write down what sounded off and get advice on it. This is optional.'),
-      h('div', { class: 'cards' },
-        h('div', { class: 'card' }, h('h3', null, 'Copy a prompt'), h('p', { class: 'small muted' }, 'No key needed: the app writes a prompt for you to paste into any AI chat, and you paste the answer back.')),
-        h('div', { class: 'card', 'aria-disabled': 'true', style: { opacity: 0.6 } }, h('h3', null, 'Use your own API key'), h('p', { class: 'small muted' }, 'Answers right inside the app, with a key from Anthropic, OpenAI or OpenRouter and the model you pick. Coming soon in Settings.'))),
+      h('p', null, 'After a recorded pass you can write down what sounded off and get advice on it. To get answers right in the app, add an API key from Anthropic, OpenAI or OpenRouter and pick a model.'),
+      aiPanel({ onboarding: true }),
+      h('p', { class: 'small muted' }, 'No key? Skip this step: notes give you a prompt to paste into any AI chat instead. You can add a key later in Settings → AI.'),
     ],
   },
   {
