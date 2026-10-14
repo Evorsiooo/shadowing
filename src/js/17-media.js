@@ -420,15 +420,32 @@ const LegacyFiles = {
     return out;
   },
   count() { return new Set(this.refs().map((r) => r.key)).size; },
-  /* onProgress(done, total) */
+  /* copy one server file into Drive, a piece at a time; onPiece(fraction) */
+  async copyOne(body, onPiece) {
+    let r = await Api.req('POST', '/api/drive/copy-old', body);
+    while (!r.done) {
+      onPiece && onPiece(r.size ? r.offset / r.size : 0);
+      const next = { ...body, session: r.session, offset: r.offset };
+      try { r = await Api.req('POST', '/api/drive/copy-old', next); } catch (e) {
+        if (e.code === 'signedout' || e.status === 404 || e.status === 409) throw e;
+        // a piece failed: ask Google how much it has, then carry on from there
+        await sleep(2000);
+        const at = await Api.req('POST', '/api/drive/copy-old', { ...next, check: true });
+        r = at.done ? at : await Api.req('POST', '/api/drive/copy-old', { ...body, session: at.session, offset: at.offset });
+      }
+    }
+    return r;
+  },
+  /* onProgress(done, total, fraction of the current file); keeps going past a file that fails */
   async move(onProgress) {
     if (!Drive.connected()) throw new Error('Connect Google Drive first.');
     const refs = this.refs();
     const keys = [...new Set(refs.map((r) => r.key))];
     const folderId = await Drive.folder();
     let done = 0;
+    const failed = [];
     for (const key of keys) {
-      onProgress && onProgress(done, keys.length);
+      onProgress && onProgress(done, keys.length, 0);
       // a file already copied on an earlier, interrupted run is reused
       let d = Store.all('media').find((m) => m.legacyKey === key && m.providers && m.providers.gdrive);
       if (!d) {
@@ -436,7 +453,14 @@ const LegacyFiles = {
         const video = refs.find((x) => x.key === key && x.col === 'videos');
         const name = video ? `${(Store.get('videos', video.id) || {}).title || 'video'}.${key.split('.').pop()}` : key.split('/').pop();
         const id = uid();
-        const r = await Api.req('POST', '/api/drive/copy-old', { key, name, folderId, mediaId: id, kind });
+        let r;
+        try {
+          r = await this.copyOne({ key, name, folderId, mediaId: id, kind }, (f) => onProgress && onProgress(done, keys.length, f));
+        } catch (e) {
+          if (e.code === 'signedout' || e.status === 409) throw e;
+          failed.push({ name, error: e });
+          continue;
+        }
         d = Store.put('media', { id, name, type: r.type, size: r.size, kind, created: new Date().toISOString(), providers: { gdrive: r.fileId }, legacyKey: key });
         await Store.flushAll();
       }
@@ -452,8 +476,11 @@ const LegacyFiles = {
       }
       done++;
     }
-    onProgress && onProgress(done, keys.length);
+    onProgress && onProgress(done, keys.length, 0);
     await Store.flushAll();
+    if (failed.length) {
+      throw Object.assign(new Error(`Moved ${done} of ${keys.length} files. ${failed.length === 1 ? `“${failed[0].name}” didn’t copy` : `${failed.length} didn’t copy`} (${failed[0].error.message}).`), { moved: done });
+    }
     return keys.length;
   },
   /* server copies whose replacement is in Drive: safe to delete */
@@ -556,10 +583,14 @@ function storageView() {
             ? h('div', { class: 'row' }, btn(`Move ${legacy} file${legacy === 1 ? '' : 's'} to Drive`, async (e) => {
               e.currentTarget.disabled = true;
               try {
-                const n = await LegacyFiles.move((d, t) => { status.textContent = d < t ? `Copying file ${d + 1} of ${t} to your Drive… keep this page open.` : `Copied ${t} file${t === 1 ? '' : 's'}.`; });
+                const n = await LegacyFiles.move((d, t, f) => { status.textContent = d < t ? `Copying file ${d + 1} of ${t} to your Drive${f ? ` (${Math.round(f * 100)}%)` : ''}… keep this page open.` : `Copied ${t} file${t === 1 ? '' : 's'}.`; });
                 toast(`Moved ${n} file${n === 1 ? '' : 's'} to your Google Drive.`, 'good', 6000);
                 if (!Session.active) Player.load(UI.videoId, { keepClip: true });
-              } catch (err) { status.textContent = ''; toast(`${err.message} Press Move again to carry on where it stopped.`, 'bad', 9000); }
+              } catch (err) {
+                status.textContent = '';
+                toast(`${err.message} Press Move again to try the rest.`, 'bad', 12000);
+                if (err.moved && !Session.active) Player.load(UI.videoId, { keepClip: true });
+              }
               draw();
             }, { kind: 'primary', size: 'sm' }))
             : h('p', { class: 'small muted' }, 'Connect Google Drive above first.'),

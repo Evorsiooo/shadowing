@@ -82,15 +82,21 @@ async function driveRoute(env, user, method, rest, request) {
     try { return json(await driveAccessToken(env, user.id)); } catch (e) { return error(e.status || 502, e.message, { reconnect: !!e.reconnect }); }
   }
   if (!action && method === 'DELETE') { await disconnectDrive(env, user.id); return json({ ok: true, connected: false }); }
-  // copy one file from the old R2 storage into the user's Drive (the R2 copy stays until deleted)
+  // copy one file from the old R2 storage into the user's Drive, one piece per request (the R2 copy stays until deleted)
   if (action === 'copy-old' && method === 'POST') {
     const body = await request.json().catch(() => ({}));
     if (!validKey(body.key) || !env.FILES || !(await ownsFile(env.DB, user.id, body.key))) return error(404, 'Not found.');
     if (typeof body.folderId !== 'string' || !/^[A-Za-z0-9_-]{10,200}$/.test(body.folderId)) return error(400, 'Bad Drive folder.');
     const name = String(body.name || body.key.split('/').pop()).slice(0, 200);
     try {
-      return json(await copyR2ToDrive(env, user.id, { key: body.key, name, folderId: body.folderId, mediaId: String(body.mediaId || '').slice(0, 64), kind: String(body.kind || '').slice(0, 20) }));
-    } catch (e) { return error(e.status || 502, e.message, { reconnect: !!e.reconnect }); }
+      return json(await copyR2ToDrive(env, user.id, {
+        key: body.key, name, folderId: body.folderId, mediaId: String(body.mediaId || '').slice(0, 64), kind: String(body.kind || '').slice(0, 20),
+        session: body.session || null, offset: body.offset, check: !!body.check,
+      }));
+    } catch (e) {
+      console.error('copy-old', body.key, e.message);
+      return error(e.status || 502, e.message, { reconnect: !!e.reconnect, restart: !!e.restart });
+    }
   }
   return error(405, 'Method not allowed.');
 }

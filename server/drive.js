@@ -110,30 +110,59 @@ function revoke(token) {
   return fetch(GOOGLE_REVOKE, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ token }) }).catch(() => {});
 }
 
+const UPLOAD_ORIGIN = 'https://www.googleapis.com/upload/drive/v3/files';
+// Drive wants every piece but the last to be a multiple of 256 KB
+const PIECE = 16 * 1024 * 1024;
+
 /**
  * Copy one file from the old R2 storage straight into the user's Drive folder (server to Google,
- * so a big video never has to pass through the browser). Returns { fileId, size, type }.
+ * so a big video never has to pass through the browser). One call copies one 16 MB piece, so no
+ * single request runs long: call it first without `session`, then again with the returned
+ * `session` and `offset` until it says done. With `check`, it only asks Google where to carry on. Returns { done, session, offset, size } or
+ * { done: true, fileId, size, type }.
  */
-export async function copyR2ToDrive(env, userId, { key, name, folderId, mediaId, kind }) {
-  const obj = await env.FILES.get(key);
-  if (!obj) throw Object.assign(new Error('That file isn’t in the old storage any more.'), { status: 404 });
-  const type = (obj.httpMetadata && obj.httpMetadata.contentType) || 'application/octet-stream';
-  const { accessToken } = await driveAccessToken(env, userId);
-  const start = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id', {
-    method: 'POST',
-    headers: { authorization: `Bearer ${accessToken}`, 'content-type': 'application/json; charset=UTF-8', 'x-upload-content-type': type, 'x-upload-content-length': String(obj.size) },
-    body: JSON.stringify({ name, parents: [folderId], appProperties: { euno: '1', mediaId, kind: kind || '' } }),
-  });
-  if (!start.ok) {
-    const d = await start.json().catch(() => ({}));
-    throw Object.assign(new Error(`Google Drive refused the upload (${(d.error && d.error.message) || start.status}).`), { status: 502 });
+export async function copyR2ToDrive(env, userId, { key, name, folderId, mediaId, kind, session, offset, check }) {
+  const head = await env.FILES.head(key);
+  if (!head) throw Object.assign(new Error('That file isn’t in the old storage any more.'), { status: 404 });
+  const type = (head.httpMetadata && head.httpMetadata.contentType) || 'application/octet-stream';
+  const size = head.size;
+  if (!session) {
+    const { accessToken } = await driveAccessToken(env, userId);
+    const start = await fetch(`${UPLOAD_ORIGIN}?uploadType=resumable&fields=id`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${accessToken}`, 'content-type': 'application/json; charset=UTF-8', 'x-upload-content-type': type, 'x-upload-content-length': String(size) },
+      body: JSON.stringify({ name, parents: [folderId], appProperties: { euno: '1', mediaId, kind: kind || '' } }),
+    });
+    if (!start.ok) {
+      const d = await start.json().catch(() => ({}));
+      throw Object.assign(new Error(`Google Drive refused the upload (${(d.error && d.error.message) || start.status}).`), { status: 502 });
+    }
+    session = start.headers.get('location');
+    offset = 0;
   }
-  const session = start.headers.get('location');
-  // a known length lets Workers stream the body instead of buffering it
-  const body = new FixedLengthStream(obj.size);
-  obj.body.pipeTo(body.writable).catch(() => {}); // a failure shows up as the upload failing
-  const put = await fetch(session, { method: 'PUT', headers: { 'content-length': String(obj.size) }, body: body.readable });
+  // only ever send bytes to a Drive upload session
+  if (typeof session !== 'string' || !session.startsWith(`${UPLOAD_ORIGIN}?`)) throw Object.assign(new Error('Bad upload session.'), { status: 400 });
+  offset = Number(offset) || 0;
+  if (offset < 0 || offset > size || (offset < size && offset % (256 * 1024))) throw Object.assign(new Error('Bad upload offset.'), { status: 400 });
+  // `check` asks Google how much of the file it already has (after a piece failed partway)
+  const length = check ? 0 : Math.min(PIECE, size - offset);
+  let body = new Uint8Array(0);
+  if (length > 0) {
+    const obj = await env.FILES.get(key, { range: { offset, length } });
+    if (!obj) throw Object.assign(new Error('That file isn’t in the old storage any more.'), { status: 404 });
+    body = new Uint8Array(await obj.arrayBuffer());
+  }
+  const range = length > 0 ? `bytes ${offset}-${offset + length - 1}/${size}` : `bytes */${size}`;
+  const put = await fetch(session, { method: 'PUT', headers: { 'content-range': range }, body });
+  if (put.status === 308) {
+    // Google says how much it has; carry on from there
+    const m = /bytes=0-(\d+)/.exec(put.headers.get('range') || '');
+    return { done: false, session, offset: m ? Number(m[1]) + 1 : 0, size };
+  }
   const d = await put.json().catch(() => ({}));
-  if (!put.ok || !d.id) throw Object.assign(new Error(`The upload to Google Drive failed (${(d.error && d.error.message) || put.status}).`), { status: 502 });
-  return { fileId: d.id, size: obj.size, type };
+  if (!put.ok || !d.id) {
+    const gone = put.status === 404 || put.status === 410;
+    throw Object.assign(new Error(gone ? 'The Drive upload expired. Press Move again.' : `The upload to Google Drive failed (${(d.error && d.error.message) || put.status}).`), { status: 502, restart: gone });
+  }
+  return { done: true, fileId: d.id, size, type };
 }
