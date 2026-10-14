@@ -1,13 +1,11 @@
 // /api/* — the app's backend. Everything here except /api/support needs a signed-in user,
 // and every query is scoped to that user's id.
 import { requireUser, sameOrigin, deleteUser, sha256Hex } from '../../server/auth.js';
-import { json, error, validCol, validId, validKey, uuid, extFor, cleanType } from '../../server/util.js';
-import { allDocs, putDoc, deleteDoc, serveFile, userKey, ownsFile, recordFile, forgetFile } from '../../server/store.js';
+import { json, error, validCol, validId, validKey, uuid } from '../../server/util.js';
+import { allDocs, putDoc, deleteDoc, serveFile, ownsFile, forgetFile } from '../../server/store.js';
+import { driveStatus, driveAccessToken, disconnectDrive } from '../../server/drive.js';
 import { noteFeedback, claudeConfigured, claudeModel } from '../../server/claude.js';
 import { validWebhook, getPrivate, setPrivate, getSettings, buildReminder, sendReminder, sessionsAndCheckins, localNow, REMINDER_DEFAULTS } from '../../server/reminders.js';
-
-const PART_MAX = 95 * 1024 * 1024; // Workers request bodies are capped at 100 MB
-const SINGLE_MAX = 95 * 1024 * 1024;
 
 export async function onRequest(ctx) {
   const { request, env, params } = ctx;
@@ -26,14 +24,14 @@ export async function onRequest(ctx) {
     if (head === 'health' && method === 'GET') {
       ctx.waitUntil(armReminders(env)); // keeps the reminder schedule running (cheap; no-op when already armed)
       const claude = user.role === 'admin' && claudeConfigured(env);
-      return json({ ok: true, email: user.email, name: user.name, role: user.role, claude, claudeModel: claude ? claudeModel(env) : null, files: !!env.FILES, db: !!env.DB });
+      const drive = await driveStatus(env, user.id);
+      return json({ ok: true, email: user.email, name: user.name, role: user.role, claude, claudeModel: claude ? claudeModel(env) : null, drive, driveAvailable: !!env.KEY_ENCRYPTION_KEY, db: !!env.DB });
     }
     if (head === 'me' && !rest.length && method === 'GET') return json({ email: user.email, name: user.name, picture: user.picture, role: user.role });
     if (head === 'account' && !rest.length && method === 'DELETE') return await deleteAccountRoute(env, user, request);
     if (head === 'docs') return await docsRoute(env, user, method, rest, request);
     if (head === 'files') return await filesRoute(env, user, method, rest, request);
-    if (head === 'uploads') return await uploadsRoute(env, user, method, rest, request);
-    if (head === 'import' && method === 'POST') return await importRoute(env, user, request);
+    if (head === 'drive') return await driveRoute(env, user, method, rest);
     if (head === 'claude' && method === 'POST') return await claudeRoute(env, user, request);
     if (head === 'reminders') return await remindersRoute(env, user, method, rest, request);
     return error(404, 'No such endpoint.');
@@ -57,84 +55,27 @@ async function docsRoute(env, user, method, rest, request) {
   return error(405, 'Method not allowed.');
 }
 
+/* Files kept in R2 before storage moved to the device and Google Drive. Read-only now: the app
+   copies them out (Settings → Storage) and deletes each one once it's safely copied. */
 async function filesRoute(env, user, method, rest, request) {
-  const url = new URL(request.url);
-  if (method === 'POST' && !rest.length) {
-    // small files in one request: recordings, check-ins
-    const kind = ['rec', 'checkin', 'misc', 'video'].includes(url.searchParams.get('kind')) ? url.searchParams.get('kind') : 'rec';
-    const type = cleanType(request.headers.get('content-type'));
-    const len = Number(request.headers.get('content-length') || 0);
-    if (len > SINGLE_MAX) return error(413, 'File too large for a single upload; use /api/uploads.');
-    const key = userKey(user.id, kind, `${uuid()}.${extFor(type, url.searchParams.get('name') || '')}`);
-    const obj = await env.FILES.put(key, request.body, { httpMetadata: { contentType: type } });
-    await recordFile(env.DB, user.id, key, obj.size, kind);
-    return json({ ref: `r2:${key}`, key, size: obj.size, type });
-  }
   const key = rest.join('/');
   if (!validKey(key)) return error(400, 'Bad file key.');
-  if (!(await ownsFile(env.DB, user.id, key))) return error(404, 'Not found.');
+  if (!env.FILES || !(await ownsFile(env.DB, user.id, key))) return error(404, 'Not found.');
   if (method === 'GET' || method === 'HEAD') return serveFile(env.FILES, key, request);
   if (method === 'DELETE') { await env.FILES.delete(key); await forgetFile(env.DB, user.id, key); return json({ ok: true }); }
   return error(405, 'Method not allowed.');
 }
 
-/* multipart uploads for big videos: create → parts → complete (or abort) */
-async function uploadsRoute(env, user, method, rest, request) {
-  const url = new URL(request.url);
-  if (method === 'POST' && !rest.length) {
-    const body = await request.json().catch(() => ({}));
-    const type = cleanType(body.type);
-    const key = userKey(user.id, 'video', `${uuid()}.${extFor(type, body.filename || '')}`);
-    const up = await env.FILES.createMultipartUpload(key, { httpMetadata: { contentType: type } });
-    return json({ key: up.key, uploadId: up.uploadId, partSize: 50 * 1024 * 1024 });
+/* Google Drive sync: status, a short-lived access token for the browser, disconnect.
+   Connecting happens at /auth/drive (a Google consent screen). */
+async function driveRoute(env, user, method, rest) {
+  const [action] = rest;
+  if (!action && method === 'GET') return json(await driveStatus(env, user.id));
+  if (action === 'token' && method === 'POST') {
+    try { return json(await driveAccessToken(env, user.id)); } catch (e) { return error(e.status || 502, e.message, { reconnect: !!e.reconnect }); }
   }
-  const [uploadId, action] = rest;
-  const key = url.searchParams.get('key');
-  if (!uploadId || !validKey(key) || !key.startsWith(`u/${user.id}/`)) return error(400, 'Bad upload.');
-  const up = env.FILES.resumeMultipartUpload(key, uploadId);
-  if (method === 'PUT' && /^\d+$/.test(action || '')) {
-    const len = Number(request.headers.get('content-length') || 0);
-    if (len > PART_MAX) return error(413, 'Part too large.');
-    const part = await up.uploadPart(Number(action), request.body);
-    return json({ partNumber: part.partNumber, etag: part.etag });
-  }
-  if (method === 'POST' && action === 'complete') {
-    const body = await request.json().catch(() => ({}));
-    const parts = (body.parts || []).map((p) => ({ partNumber: Number(p.partNumber), etag: String(p.etag) })).sort((a, b) => a.partNumber - b.partNumber);
-    const obj = await up.complete(parts);
-    await recordFile(env.DB, user.id, key, obj.size, 'video');
-    return json({ ref: `r2:${key}`, key, size: obj.size });
-  }
-  if (method === 'DELETE') { await up.abort(); return json({ ok: true }); }
+  if (!action && method === 'DELETE') { await disconnectDrive(env, user.id); return json({ ok: true, connected: false }); }
   return error(405, 'Method not allowed.');
-}
-
-/* copy a video from a direct link into R2 (so it keeps working if the host goes away) */
-async function importRoute(env, user, request) {
-  const { url } = await request.json().catch(() => ({}));
-  let u;
-  try { u = new URL(url); } catch { return error(400, 'That isn’t a valid link.'); }
-  if (!/^https?:$/.test(u.protocol)) return error(400, 'Only http(s) links can be imported.');
-  let resp;
-  try { resp = await fetch(u.toString(), { redirect: 'follow' }); } catch (e) { return error(502, `Couldn’t download from that link (${e.message}).`); }
-  if (!resp.ok || !resp.body) return error(502, `The link answered with HTTP ${resp.status}.`);
-  const type = cleanType(resp.headers.get('content-type'));
-  if (/text\/html/.test(type)) return error(415, 'That link is a web page, not a video file. Share pages (Google Drive, MEGA, YouTube) can’t be imported; use a direct .mp4 link.');
-  const len = Number(resp.headers.get('content-length') || 0);
-  const key = userKey(user.id, 'video', `${uuid()}.${extFor(type, u.pathname)}`);
-  let body = resp.body;
-  if (len > 0) {
-    const fixed = new FixedLengthStream(len);
-    resp.body.pipeTo(fixed.writable);
-    body = fixed.readable;
-  } else {
-    const buf = await resp.arrayBuffer();
-    if (buf.byteLength > 95 * 1024 * 1024) return error(413, 'The host didn’t say how big the file is and it’s over 95 MB. Download it and upload the file instead.');
-    body = buf;
-  }
-  const obj = await env.FILES.put(key, body, { httpMetadata: { contentType: type.startsWith('video/') || type.startsWith('audio/') ? type : 'video/mp4' } });
-  await recordFile(env.DB, user.id, key, obj.size, 'video');
-  return json({ ref: `r2:${key}`, key, size: obj.size, type });
 }
 
 // The server key is the admin's own until bring-your-own-key AI lands; nobody else can spend it.

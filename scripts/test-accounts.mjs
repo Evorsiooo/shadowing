@@ -47,16 +47,22 @@ check(!Object.keys(bDocs.videos).length && !Object.keys(bDocs.sessions).length, 
 await B.call('DELETE', '/api/docs/notes/shared-id');
 check((await A.call('GET', '/api/docs')).data.data.notes['shared-id'], 'B deleting "its" note leaves A’s note alone');
 
-// files
-const up = await A.call('POST', '/api/files?kind=rec', new Uint8Array([1, 2, 3, 4]), { 'content-type': 'audio/webm' });
-check(up.status === 200 && up.data.key.startsWith(`u/${A.id}/rec/`), 'A’s upload is stored under A’s prefix');
-check((await A.call('GET', `/api/files/${up.data.key}`)).status === 200, 'A can read its file');
-check((await B.call('GET', `/api/files/${up.data.key}`)).status === 404, 'B can’t read A’s file');
-check((await B.call('DELETE', `/api/files/${up.data.key}`)).status === 404, 'B can’t delete A’s file');
-const legacy = JSON.parse(sql("SELECT key FROM files WHERE key NOT LIKE 'u/%' LIMIT 1"))[0].results[0];
-if (legacy) check((await B.call('GET', `/api/files/${legacy.key}`)).status === 404, 'B can’t read a pre-accounts file owned by someone else');
-const mp = await B.call('POST', '/api/uploads', { filename: 'x.mp4', type: 'video/mp4' });
-check((await B.call('PUT', `/api/uploads/${mp.data.uploadId}/1?key=${encodeURIComponent(`u/${A.id}/video/x.mp4`)}`, new Uint8Array([1]))).status === 400, 'B can’t write a multipart part into A’s prefix');
+// files: new uploads no longer go to the server; the R2 leftovers are read-only and owner-only
+check((await A.call('POST', '/api/files?kind=rec', new Uint8Array([1, 2, 3, 4]), { 'content-type': 'audio/webm' })).status !== 200, 'the server no longer accepts file uploads');
+check((await A.call('POST', '/api/uploads', { filename: 'x.mp4', type: 'video/mp4' })).status === 404, 'multipart uploads are gone');
+check((await A.call('POST', '/api/import', { url: 'https://example.com/x.mp4' })).status === 404, 'import by link on the server is gone');
+const legacy = JSON.parse(sql('SELECT key FROM files LIMIT 1'))[0].results[0];
+if (legacy) {
+  check((await B.call('GET', `/api/files/${legacy.key}`)).status === 404, 'B can’t read a stored file owned by someone else');
+  check((await B.call('DELETE', `/api/files/${legacy.key}`)).status === 404, 'B can’t delete a stored file owned by someone else');
+}
+
+// Google Drive: per-user connection, no token without one
+check((await A.call('GET', '/api/drive')).data.connected === false, 'A starts with Drive not connected');
+check((await A.call('POST', '/api/drive/token')).status === 409, 'no Drive token without a connection');
+const driveRow = JSON.stringify({ token: 'v1.x.y', email: 'b@example.com', connected: Date.now() }).replace(/'/g, "''");
+sql(`INSERT INTO private (user_id, key, value, updated_at) VALUES ('${B.id}', 'drive', '${driveRow}', ${Date.now()})`);
+check((await B.call('GET', '/api/drive')).data.connected === true && (await A.call('GET', '/api/drive')).data.connected === false, 'B’s Drive connection isn’t A’s');
 
 // reminders, AI, cross-site writes
 await A.call('PUT', '/api/reminders', { webhook: 'https://discord.com/api/webhooks/123456/abcdefghijklmnopqrstuvwxyz' });

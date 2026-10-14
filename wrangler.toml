@@ -15,6 +15,8 @@ database_name = "shadowing"
 database_id = "fe8dc4c5-4122-44b1-b4da-fcbeda64ac41"
 migrations_dir = "migrations"
 
+# Read-only leftovers from before files moved to the device and Google Drive (docs/STORAGE.md).
+# Remove this binding once every file has been moved out.
 [[r2_buckets]]
 binding = "FILES"
 bucket_name = "shadowing-files"
@@ -27,5 +29,6 @@ service = "shadowing-reminders"
 # Secrets (set with `npx wrangler pages secret put NAME`, never committed):
 #   GOOGLE_CLIENT_ID      OAuth client for Sign in with Google (docs/ACCOUNTS.md)
 #   GOOGLE_CLIENT_SECRET
+#   KEY_ENCRYPTION_KEY    32 random bytes, base64: seals Drive tokens (and AI keys) per user
 #   TURNSTILE_SECRET      optional: spam check for the contact form
 #   ANTHROPIC_API_KEY     optional, admin-only until bring-your-own-key AI ships

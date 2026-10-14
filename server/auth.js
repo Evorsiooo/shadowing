@@ -1,6 +1,7 @@
 // Accounts: Sign in with Google (OpenID Connect, code flow with PKCE, state and nonce) and
 // cookie sessions stored in D1. Every /api route calls requireUser(), which fails closed.
 import { uuid } from './util.js';
+import { disconnectDrive } from './drive.js';
 
 export const SESSION_COOKIE = '__Host-euno_session';
 export const OAUTH_COOKIE = '__Host-euno_oauth';
@@ -239,6 +240,7 @@ export async function upsertGoogleUser(env, claims, invite) {
 /** Delete an account and everything the server keeps for it. Returns the R2 keys it owned. */
 export async function deleteUser(env, userId) {
   const db = env.DB;
+  await disconnectDrive(env, userId).catch(() => {}); // revoke the app's Drive access; their files stay in their Drive
   const { results: files } = await db.prepare('SELECT key FROM files WHERE user_id = ?').bind(userId).all();
   const keys = files.map((f) => f.key);
   if (env.FILES && keys.length) for (let i = 0; i < keys.length; i += 1000) await env.FILES.delete(keys.slice(i, i + 1000));

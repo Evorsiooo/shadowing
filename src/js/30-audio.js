@@ -153,7 +153,7 @@ const VideoAudio = {
   },
 };
 
-/* local copies of video files picked on this device (kept for this visit only) */
+/* video files open in this visit: picked on this device, or read from device storage (17-media.js) */
 const LocalFiles = {
   map: new Map(),
   urls: new Map(),
@@ -170,7 +170,8 @@ const LocalFiles = {
 
 function videoSrc(v) {
   if (!v) return '';
-  return LocalFiles.url(v.id) || (v.r2Key ? '/api/files/' + v.r2Key : v.assetId ? '/_blob/' + v.assetId : v.url);
+  // a stored file (fileRef) plays once attachVideoFile() has put it in LocalFiles
+  return LocalFiles.url(v.id) || (v.fileRef ? '' : v.r2Key ? '/api/files/' + v.r2Key : v.assetId ? '/_blob/' + v.assetId : v.url);
 }
 
 /* ---------- microphone ---------- */

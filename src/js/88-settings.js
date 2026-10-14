@@ -26,8 +26,8 @@ const SETTING_GROUPS = [
 ];
 
 function openSettings(tab = 'practice') {
-  const tabs = [['practice', 'Practice'], ['profile', 'Profile'], ['reminders', 'Reminders'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
-  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'reminders' ? remindersView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
+  const tabs = [['practice', 'Practice'], ['profile', 'Profile'], ['storage', 'Storage'], ['reminders', 'Reminders'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
+  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'storage' ? storageView() : tab === 'reminders' ? remindersView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
   openModal([
     modalHead('Settings'),
     h('div', { class: 'tabs' }, tabs.map(([k, l]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab }))),
@@ -69,7 +69,7 @@ function dataView() {
     h('div', { class: 'card' }, h('h3', null, 'Where your data lives'), h('p', null, storageTitle()), h('p', { class: 'small muted' }, counts), usage),
     Store.mode === 'cloud' ? accountCard() : null,
     h('div', { class: 'card' }, h('h3', null, 'Backup'),
-      h('p', { class: 'small muted' }, 'A backup holds your videos, clips, sessions, notes, issues, check-ins and settings (not the audio files). Importing adds anything missing and never overwrites.'),
+      h('p', { class: 'small muted' }, 'A backup holds your videos, clips, sessions, notes, issues, check-ins and settings (not the video and audio files themselves; those are on this device and in Google Drive if it’s connected). Importing adds anything missing and never overwrites.'),
       h('div', { class: 'row' },
         btn('Export backup', () => saveText(`shadowing-backup-${dayKey()}.json`, Store.exportJSON()), { icon: 'download', kind: 'primary' }),
         filePickButton('Import backup', 'application/json,.json', async (f) => {
@@ -168,11 +168,18 @@ async function checkStorage() {
   return { state: 'fail', msg: 'Storage is blocked here; nothing is kept.' };
 }
 async function checkFiles() {
-  if (Store.blobMode === 'r2') {
-    const ref = await Store.putBlob(new Blob([new Uint8Array(4096)], { type: 'audio/webm' }), 'misc');
-    const back = await Store.getBlob(ref);
-    await Store.deleteBlob(ref);
-    return back && back.size === 4096 ? { state: 'ok', msg: 'Recordings and videos are stored in your R2 bucket and play on every device.' } : { state: 'fail', msg: 'A test file didn’t read back.' };
+  if (Store.blobMode === 'device') {
+    // straight to device storage, so the test file never syncs anywhere
+    const id = `probe-${uid()}`;
+    await DeviceFiles.put(id, new Blob([new Uint8Array(4096)], { type: 'audio/webm' }));
+    const back = await DeviceFiles.get(id);
+    await DeviceFiles.del(id);
+    if (!back || back.size !== 4096) return { state: 'fail', msg: 'A test file didn’t read back from this device’s storage.' };
+    const q = await DeviceFiles.estimate();
+    const free = q ? ` About ${((q.quota - q.usage) / 1073741824).toFixed(1)} GB free for this browser.` : '';
+    return Drive.connected()
+      ? { state: 'ok', msg: `Recordings and videos are kept on this device and synced to your Google Drive.${free}` }
+      : { state: 'warn', msg: `Recordings and videos are kept on this device only. Connect Google Drive in Settings → Storage to have them on your other devices.${free}` };
   }
   if (Store.blobMode === 'assets') {
     const blob = new Blob([new Uint8Array(2048)], { type: 'video/webm' });
@@ -182,11 +189,6 @@ async function checkFiles() {
     const u = list.usage;
     const mins = Math.floor((u.maxBytes - u.bytes) / (16000 * 60));
     return { state: 'ok', msg: `File storage works. ${(u.bytes / 1048576).toFixed(1)} of ${(u.maxBytes / 1048576).toFixed(0)} MB used, ${u.files}/${u.maxFiles} files; 20 MB per recording maximum (about ${mins} more minutes of recordings at typical quality).` };
-  }
-  if (Store.blobMode === 'local') {
-    let est = '';
-    try { const q = await navigator.storage.estimate(); est = ` About ${((q.quota - q.usage) / 1073741824).toFixed(1)} GB free for this browser.`; } catch { /* no estimate */ }
-    return { state: 'warn', msg: `Recordings are kept in this browser only.${est}` };
   }
   return { state: 'fail', msg: 'Recordings can’t be kept here.' };
 }
@@ -206,7 +208,7 @@ async function checkVideoPlays() {
   if (!v) return { state: '', msg: 'Open a video first.' };
   if (LocalFiles.get(v.id)) return { state: 'warn', msg: 'Playing from a file on this device, so the link wasn’t tested.' };
   const r = await checkPlayable(videoSrc(v));
-  return r.ok ? { state: 'ok', msg: `“${v.title}” plays from its ${v.r2Key || v.assetId ? 'stored copy' : 'link'} (${fmtTime(r.duration)} long).` } : { state: 'fail', msg: r.reason };
+  return r.ok ? { state: 'ok', msg: `“${v.title}” plays from its ${v.fileRef || v.r2Key || v.assetId ? 'stored copy' : 'link'} (${fmtTime(r.duration)} long).` } : { state: 'fail', msg: r.reason };
 }
 async function checkVideoSound() {
   const v = Player.current();

@@ -108,6 +108,7 @@ async function boot() {
   }
   appMeta();
   applyTheme();
+  initMedia(); // device storage and Google Drive sync (17-media.js)
   UI.view = settings().defaultView || 'pitch';
   if (UI.videoId && !Store.get('videos', UI.videoId)) UI.videoId = null;
   if (!UI.videoId) {

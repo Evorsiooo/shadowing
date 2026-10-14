@@ -2,7 +2,7 @@
 /* A short wizard on first launch: about you, where files live, a first video, AI feedback and
    the week-0 baseline. Steps whose when() is false are skipped (no video step if you already
    have videos, and so on). Steps still waiting on other work are placeholders:
-   - 'storage': the Google Drive sync work replaces body() with the connect flow;
+   - 'storage': storageStepBody() in 17-media.js (this device, plus optional Google Drive);
    - 'ai': the bring-your-own-key work replaces body() with the key and model picker.
    A step can set next(W) to check or save its fields; returning false stays on the step. */
 const ONBOARDING_STEPS = [
@@ -18,12 +18,7 @@ const ONBOARDING_STEPS = [
   },
   {
     id: 'storage', title: 'Where your files live',
-    body: () => [
-      h('p', null, 'Your videos and recordings can be large, so they’re kept with you rather than on our server.'),
-      h('div', { class: 'cards' },
-        h('div', { class: 'card' }, h('h3', null, 'On this device'), h('p', { class: 'small muted' }, `Works straight away. ${storageTitle()}`)),
-        h('div', { class: 'card', 'aria-disabled': 'true', style: { opacity: 0.6 } }, h('h3', null, 'Google Drive'), h('p', { class: 'small muted' }, 'Keep a copy in your own Drive and use it on any device. Coming soon: you’ll be able to turn it on in Settings.'))),
-    ],
+    body: () => storageStepBody(), // 17-media.js
   },
   {
     id: 'video', title: 'Your first video',
