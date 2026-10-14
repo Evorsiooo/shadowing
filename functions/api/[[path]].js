@@ -27,8 +27,7 @@ export async function onRequest(ctx) {
     const [head, ...rest] = path;
     if (head === 'health' && method === 'GET') {
       ctx.waitUntil(armReminders(env)); // keeps the reminder schedule running (cheap; no-op when already armed)
-      const ai = aiAvailable(env) ? await aiStatus(env, user.id) : { configured: false };
-      const drive = await driveStatus(env, user.id);
+      const [ai, drive] = await Promise.all([aiAvailable(env) ? aiStatus(env, user.id) : { configured: false }, driveStatus(env, user.id)]);
       return json({ ok: true, email: user.email, name: user.name, role: user.role, ai: ai.configured ? { provider: ai.provider, providerName: ai.providerName, model: ai.model } : null, drive, driveAvailable: !!env.KEY_ENCRYPTION_KEY, db: !!env.DB });
     }
     if (head === 'me' && !rest.length && method === 'GET') return json({ email: user.email, name: user.name, picture: user.picture, role: user.role });

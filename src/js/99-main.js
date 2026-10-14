@@ -98,6 +98,16 @@ async function boot() {
   mount($('#panel'), h('div', { class: 'panel-msg' }, 'Loading your practice data…'));
   await Store.init();
   if (Store.mode === 'offline') {
+    // The page is served without checking the session (functions/app/_middleware.js), so an expired one
+    // lands here: go straight back to sign-in, unless that just happened (then the message below explains).
+    if (Api.signedOut) {
+      let again = false;
+      try {
+        again = Date.now() - Number(sessionStorage.getItem('shadowing:signin-bounce') || 0) < 60000;
+        sessionStorage.setItem('shadowing:signin-bounce', String(Date.now()));
+      } catch { /* storage blocked */ }
+      if (!again) { signIn(); return; }
+    }
     mount($('#panel'), h('div', { class: 'panel-msg' }, 'Not connected.'));
     openModal([
       modalHead(Api.signedOut ? 'Please sign in' : /disabled/i.test(Api.problem || '') ? 'Account disabled' : 'The server isn’t ready'),

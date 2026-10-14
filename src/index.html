@@ -2,13 +2,15 @@
 /* Set the saved theme before first paint, so a light-mode choice doesn't flash dark (applyTheme in 88-settings.js keeps it in sync later). */
 try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch { /* storage blocked */ }
 </script>
+<script>
+/* Ask for the account and the practice data while the app script downloads; Api (10-store.js) picks these up. */
+window.EARLY = {};
+if (location.protocol !== 'file:') for (const p of ['/api/health', '/api/docs']) window.EARLY[p] = fetch(p, { credentials: 'same-origin', redirect: 'manual' }).catch(() => null);
+</script>
 <title>Euno Shadowing</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
-<style>
-/*@STYLES@*/
-</style>
+<!--@FONTS@-->
+<link rel="stylesheet" href="@STYLES@">
+<script src="@SCRIPTS@" defer></script>
 
 <header class="topbar">
   <div class="brand">Euno <small>Shadowing</small></div>
@@ -47,6 +49,3 @@ try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === '
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <canvas id="confetti"></canvas>
 
-<script>
-/*@SCRIPTS@*/
-</script>
