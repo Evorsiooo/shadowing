@@ -4,15 +4,14 @@
 //
 // Before running: connect the GitHub repo in the Cloudflare dashboard (see README).
 //
-//   CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... node scripts/setup.mjs --email you@example.com
+//   CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... node scripts/setup.mjs
 //
-// Optional: ANTHROPIC_API_KEY in the environment is stored as a Pages secret.
-// Flags: --project <name> (default "shadowing"), --new-mcp-token, --skip-access
+// Optional: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in the environment are stored as Pages secrets.
+// Flags: --project <name> (default "shadowing")
 //
-// Afterwards commit wrangler.toml (database id + Access settings) and merge it to main.
+// Afterwards commit wrangler.toml (database id) and merge it to main.
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { randomBytes } from 'node:crypto';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,16 +23,13 @@ const opt = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i
 const TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const ACCOUNT = process.env.CLOUDFLARE_ACCOUNT_ID;
 const PROJECT = opt('project', 'shadowing');
-const EMAIL = opt('email', process.env.ALLOWED_EMAIL || '');
 const DB_NAME = 'shadowing';
 const BUCKET = 'shadowing-files';
 if (!TOKEN || !ACCOUNT) die('Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID first.');
-if (!EMAIL && !flag('skip-access')) die('Pass --email <the email you sign in with>.');
 
 const env = { ...process.env, WRANGLER_SEND_METRICS: 'false', CI: '1' };
 const tomlPath = join(root, 'wrangler.toml');
 let toml = readFileSync(tomlPath, 'utf8');
-const secretsDir = join(root, '.secrets');
 
 function die(msg) { console.error(`\n✗ ${msg}`); process.exit(1); }
 function step(msg) { console.log(`\n→ ${msg}`); }
@@ -86,54 +82,15 @@ console.log(`  found: https://${host}${project.source ? ` (builds from ${project
 toml = toml.replace(/^name = ".*"$/m, `name = "${PROJECT}"`);
 writeFileSync(tomlPath, toml);
 
-// 4. Cloudflare Access: lock the site to your email, let /mcp/* through (it has its own secret)
-if (!flag('skip-access')) {
-  step('Cloudflare Access');
-  let org;
-  try { org = await cf('GET', `/accounts/${ACCOUNT}/access/organizations`); } catch (e) {
-    die(`Couldn't read your Zero Trust organisation. Open the Cloudflare dashboard → Zero Trust once, pick a team name and the Free plan, then re-run.\n  (${e.message})`);
-  }
-  const team = org.auth_domain;
-  const apps = await cf('GET', `/accounts/${ACCOUNT}/access/apps`);
-  const policies = await cf('GET', `/accounts/${ACCOUNT}/access/policies`);
-  const ensurePolicy = async (name, body) => policies.find((p) => p.name === name) || cf('POST', `/accounts/${ACCOUNT}/access/policies`, { name, ...body });
-  const allow = await ensurePolicy(`${PROJECT}: only me`, { decision: 'allow', include: [{ email: { email: EMAIL } }] });
-  const bypass = await ensurePolicy(`${PROJECT}: MCP bypass`, { decision: 'bypass', include: [{ everyone: {} }] });
-  const ensureApp = async (name, domains, policy, extra = {}) => {
-    const body = {
-      name, type: 'self_hosted', domain: domains[0], self_hosted_domains: domains,
-      policies: [{ id: policy.id, precedence: 1 }], app_launcher_visible: false, ...extra,
-    };
-    const cur = apps.find((a) => a.name === name);
-    return cur ? cf('PUT', `/accounts/${ACCOUNT}/access/apps/${cur.id}`, body) : cf('POST', `/accounts/${ACCOUNT}/access/apps`, body);
-  };
-  // *.host covers preview deployments of other branches
-  const app = await ensureApp(`${PROJECT} app`, [host, `*.${host}`], allow, { session_duration: '720h' });
-  await ensureApp(`${PROJECT} MCP`, [`${host}/mcp`], bypass);
-  setVar('ACCESS_TEAM_DOMAIN', team);
-  setVar('ACCESS_AUD', app.aud);
-  setVar('ALLOWED_EMAIL', EMAIL);
-  console.log(`  ${host} is locked to ${EMAIL} (sign-in lasts 30 days); /mcp bypasses Access`);
-}
-
-// 5. Secrets
+// 4. Secrets: Google sign-in (see docs/ACCOUNTS.md for creating the OAuth client)
 step('Secrets');
-mkdirSync(secretsDir, { recursive: true });
-const tokenFile = join(secretsDir, 'mcp-token');
-let mcpToken = existsSync(tokenFile) && !flag('new-mcp-token') ? readFileSync(tokenFile, 'utf8').trim() : '';
-if (!mcpToken) {
-  mcpToken = randomBytes(24).toString('base64url');
-  writeFileSync(tokenFile, mcpToken + '\n', { mode: 0o600 });
+for (const name of ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET']) {
+  if (process.env[name]) {
+    wrangler(['pages', 'secret', 'put', name, '--project-name', PROJECT], { input: process.env[name] });
+    console.log(`  ${name} set`);
+  } else console.log(`  ${name} not in the environment; sign-in stays off until you add it`);
 }
-wrangler(['pages', 'secret', 'put', 'MCP_TOKEN', '--project-name', PROJECT], { input: mcpToken });
-console.log('  MCP_TOKEN set');
-if (process.env.ANTHROPIC_API_KEY) {
-  wrangler(['pages', 'secret', 'put', 'ANTHROPIC_API_KEY', '--project-name', PROJECT], { input: process.env.ANTHROPIC_API_KEY });
-  console.log('  ANTHROPIC_API_KEY set');
-} else console.log('  ANTHROPIC_API_KEY not in the environment; Claude feedback stays off until you add it');
 
-writeFileSync(join(secretsDir, 'mcp-url.txt'), `https://${host}/mcp/${mcpToken}\n`, { mode: 0o600 });
 console.log(`\n✓ Done.
-  App:  https://${host}
-  MCP:  saved in .secrets/mcp-url.txt (add it in claude.ai → Settings → Connectors → Add custom connector)
-  Next: commit wrangler.toml and merge it to main. Cloudflare redeploys with the database, storage and Access settings.\n`);
+  App:  https://${host}/app
+  Next: commit wrangler.toml and merge it to main. Cloudflare redeploys with the database and storage settings.\n`);

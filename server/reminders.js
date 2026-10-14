@@ -1,18 +1,23 @@
-// Practice reminders posted to a Discord webhook. Used by the reminders Worker (cron, every
-// 15 minutes) and by /api/reminders (setup and "send a test").
-// The webhook URL lives in the `private` table, which the docs API and MCP tools never return.
+// Practice reminders, per user. Used by the reminders Worker (every 15 minutes) and by
+// /api/reminders (setup and "send a test"). Each user's channel settings (today: a Discord
+// webhook) live in the `private` table, which the docs API never returns.
+// Sending goes through CHANNELS, so push notifications etc. can be added next to Discord.
 
 const WEBHOOK_RE = /^https:\/\/(?:canary\.|ptb\.)?(?:discord|discordapp)\.com\/api\/webhooks\/\d{5,30}\/[A-Za-z0-9_-]{20,120}$/;
 export function validWebhook(url) { return typeof url === 'string' && WEBHOOK_RE.test(url.trim()); }
 
-export async function getPrivate(db, key) {
-  const row = await db.prepare('SELECT value FROM private WHERE key = ?').bind(key).first();
+export async function getPrivate(db, userId, key) {
+  const row = await db.prepare('SELECT value FROM private WHERE user_id = ? AND key = ?').bind(userId, key).first();
   return row ? row.value : null;
 }
-export async function setPrivate(db, key, value) {
-  if (value == null) { await db.prepare('DELETE FROM private WHERE key = ?').bind(key).run(); return; }
-  await db.prepare('INSERT INTO private (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
-    .bind(key, String(value), Date.now()).run();
+export async function setPrivate(db, userId, key, value) {
+  if (value == null) { await db.prepare('DELETE FROM private WHERE user_id = ? AND key = ?').bind(userId, key).run(); return; }
+  await db.prepare('INSERT INTO private (user_id, key, value, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT (user_id, key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
+    .bind(userId, key, String(value), Date.now()).run();
+}
+export async function getSettings(db, userId) {
+  const row = await db.prepare("SELECT data FROM docs WHERE user_id = ? AND col = 'meta' AND id = 'settings'").bind(userId).first();
+  try { return row ? JSON.parse(row.data) : {}; } catch { return {}; }
 }
 
 export const REMINDER_DEFAULTS = {
@@ -74,8 +79,8 @@ export function dueCheckin(data, settings, today) {
   return null;
 }
 
-/* ---------- the message ---------- */
-export function buildMessage(data, settings, { today, late = false, test = false } = {}) {
+/* ---------- the message (channel-neutral) ---------- */
+export function buildReminder(data, settings, { today, late = false, test = false } = {}) {
   const r = { ...REMINDER_DEFAULTS, ...(settings.reminders || {}) };
   const h = habit(data, today);
   const target = settings.weeklyTarget || 6;
@@ -87,13 +92,41 @@ export function buildMessage(data, settings, { today, late = false, test = false
   lines.push('', 'Short on time? A 5-minute bad-day session still counts.');
   const title = test ? 'Test reminder: it works ✅'
     : late ? 'Still time for today’s shadowing' : 'Time for today’s shadowing 🎧';
-  const embed = { title, description: lines.join('\n'), color: 0x58cc02 };
-  if (r.appUrl) embed.url = r.appUrl; // the title links to the app
-  // Mentions only ping from `content`, and only the user listed in allowed_mentions (nothing else can ping)
-  const userId = validUserId(r.discordUserId) ? r.discordUserId.trim() : null;
-  const content = [userId ? `<@${userId}>` : '', r.appUrl ? `<${r.appUrl}>` : ''].filter(Boolean).join(' ');
-  return { username: 'Shadowing practice', content, embeds: [embed], allowed_mentions: userId ? { parse: [], users: [userId] } : { parse: [] } };
+  return { title, lines, url: r.appUrl || null, settings: r };
 }
+
+/* ---------- channels: each knows whether a user set it up, and how to send ---------- */
+export const CHANNELS = {
+  discord: {
+    key: 'discordWebhook', // where the user's target (the webhook URL) is stored in `private`
+    async target(db, userId) { return getPrivate(db, userId, this.key); },
+    format(rem) {
+      const embed = { title: rem.title, description: rem.lines.join('\n'), color: 0x58cc02 };
+      if (rem.url) embed.url = rem.url; // the title links to the app
+      // Mentions only ping from `content`, and only the user listed in allowed_mentions (nothing else can ping)
+      const id = rem.settings.discordUserId;
+      const userId = validUserId(id) ? id.trim() : null;
+      const content = [userId ? `<@${userId}>` : '', rem.url ? `<${rem.url}>` : ''].filter(Boolean).join(' ');
+      return { username: 'Euno Shadowing', content, embeds: [embed], allowed_mentions: userId ? { parse: [], users: [userId] } : { parse: [] } };
+    },
+    async send(target, rem) { await postDiscord(target, this.format(rem)); },
+  },
+};
+
+/** Send a reminder on every channel the user has set up. Returns how many were sent; throws the first error. */
+export async function sendReminder(db, userId, rem) {
+  let sent = 0, firstError = null;
+  for (const ch of Object.values(CHANNELS)) {
+    const target = await ch.target(db, userId);
+    if (!target) continue;
+    try { await ch.send(target, rem); sent++; } catch (e) { firstError = firstError || e; }
+  }
+  if (!sent && firstError) throw firstError;
+  return sent;
+}
+
+// kept for callers that want the Discord payload directly
+export function buildMessage(data, settings, opts) { return CHANNELS.discord.format(buildReminder(data, settings, opts)); }
 
 export async function postDiscord(url, payload) {
   let resp;
@@ -106,40 +139,49 @@ export async function postDiscord(url, payload) {
   }
 }
 
-/* ---------- the cron job: send what's due, at most once per slot per day ---------- */
+/* ---------- the scheduled run: every user with a channel set up, at most once per slot per day ---------- */
 export async function runReminders(env, now = new Date()) {
-  const settingsRow = await env.DB.prepare("SELECT data FROM docs WHERE col = 'meta' AND id = 'settings'").first();
-  const settings = settingsRow ? JSON.parse(settingsRow.data) : {};
+  const keys = Object.values(CHANNELS).map((c) => c.key);
+  const { results } = await env.DB.prepare(`SELECT DISTINCT p.user_id FROM private p JOIN users u ON u.id = p.user_id WHERE u.disabled = 0 AND p.key IN (${keys.map(() => '?').join(', ')})`)
+    .bind(...keys).all();
+  const out = [];
+  for (const { user_id: userId } of results) {
+    try { out.push(`${userId}: ${await runForUser(env, userId, now)}`); } catch (e) { out.push(`${userId}: ${e.message}`); }
+  }
+  return out.join('; ') || 'nobody to remind';
+}
+
+export async function runForUser(env, userId, now = new Date()) {
+  const db = env.DB;
+  const settings = await getSettings(db, userId);
   const r = { ...REMINDER_DEFAULTS, ...(settings.reminders || {}) };
   if (!r.enabled) return 'disabled';
-  const webhook = await getPrivate(env.DB, 'discordWebhook');
-  if (!webhook) return 'no webhook';
   const t = localNow(r.tz, now);
   if (!r.days.includes(t.weekday)) return 'not a reminder day';
   const slots = [['main', toMinutes(r.time)], ['late', toMinutes(r.lateTime)]].filter(([, m]) => m != null);
   const out = [];
   for (const [slot, at] of slots) {
-    // due from the set time for an hour (covers a late or skipped cron run)
+    // due from the set time for an hour (covers a late or skipped run)
     if (t.minutes < at || t.minutes >= at + 60) continue;
     const sentKey = `reminderSent:${slot}`;
-    if ((await getPrivate(env.DB, sentKey)) === t.day) continue;
-    await setPrivate(env.DB, sentKey, t.day);
-    const data = await sessionsAndCheckins(env.DB);
+    if ((await getPrivate(db, userId, sentKey)) === t.day) continue;
+    await setPrivate(db, userId, sentKey, t.day);
+    const data = await sessionsAndCheckins(db, userId);
     if ((r.skipIfDone || slot === 'late') && habit(data, t.day).practisedToday) { out.push(`${slot}: already practised`); continue; }
     try {
-      await postDiscord(webhook, buildMessage(data, settings, { today: t.day, late: slot === 'late' }));
-      await setPrivate(env.DB, 'reminderLast', JSON.stringify({ at: now.toISOString(), ok: true }));
+      await sendReminder(db, userId, buildReminder(data, settings, { today: t.day, late: slot === 'late' }));
+      await setPrivate(db, userId, 'reminderLast', JSON.stringify({ at: now.toISOString(), ok: true }));
       out.push(`${slot}: sent`);
     } catch (e) {
-      await setPrivate(env.DB, 'reminderLast', JSON.stringify({ at: now.toISOString(), ok: false, error: e.message }));
+      await setPrivate(db, userId, 'reminderLast', JSON.stringify({ at: now.toISOString(), ok: false, error: e.message }));
       out.push(`${slot}: ${e.message}`);
     }
   }
-  return out.join('; ') || 'nothing due';
+  return out.join(', ') || 'nothing due';
 }
 
-export async function sessionsAndCheckins(db) {
-  const { results } = await db.prepare("SELECT col, id, data FROM docs WHERE col IN ('sessions', 'checkins')").all();
+export async function sessionsAndCheckins(db, userId) {
+  const { results } = await db.prepare("SELECT col, id, data FROM docs WHERE user_id = ? AND col IN ('sessions', 'checkins')").bind(userId).all();
   const data = { sessions: {}, checkins: {} };
   for (const row of results) { try { data[row.col][row.id] = JSON.parse(row.data); } catch { /* skip */ } }
   return data;

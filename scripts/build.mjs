@@ -21,10 +21,12 @@ const body = readFileSync(join(src, 'index.html'), 'utf8')
 
 mkdirSync(join(root, 'dist'), { recursive: true });
 rmSync(join(root, 'dist', 'artifact.html'), { force: true });
-writeFileSync(
-  join(root, 'dist', 'index.html'),
-  `<!doctype html>\n<html lang="en-AU">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n</head>\n<body>\n${body}\n</body>\n</html>\n`,
-);
+const appPage = `<!doctype html>\n<html lang="en-AU">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n</head>\n<body>\n${body}\n</body>\n</html>\n`;
+// The app is served at /app (signed-in only, see functions/app/_middleware.js).
+mkdirSync(join(root, 'dist', 'app'), { recursive: true });
+writeFileSync(join(root, 'dist', 'app', 'index.html'), appPage);
+// Until the landing page exists, / shows the app too.
+writeFileSync(join(root, 'dist', 'index.html'), appPage);
 writeFileSync(
   join(root, 'dist', '_headers'),
   `/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: same-origin\n  X-Frame-Options: DENY\n  Permissions-Policy: microphone=(self), camera=(), geolocation=()\n`,

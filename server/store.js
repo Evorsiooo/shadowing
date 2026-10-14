@@ -1,8 +1,8 @@
 // D1 document store + R2 file helpers.
 import { COLLECTIONS } from './util.js';
 
-export async function allDocs(db) {
-  const { results } = await db.prepare('SELECT col, id, data FROM docs').all();
+export async function allDocs(db, userId) {
+  const { results } = await db.prepare('SELECT col, id, data FROM docs WHERE user_id = ?').bind(userId).all();
   const out = Object.fromEntries(COLLECTIONS.map((c) => [c, {}]));
   for (const r of results) {
     if (!out[r.col]) continue;
@@ -10,36 +10,37 @@ export async function allDocs(db) {
   }
   return out;
 }
-export async function listDocs(db, col, { limit = 100, offset = 0, where = null, order = 'updated_at DESC' } = {}) {
-  const binds = [col];
-  let sql = 'SELECT id, data, updated_at FROM docs WHERE col = ?';
-  if (where && typeof where === 'object') {
-    for (const [field, value] of Object.entries(where)) {
-      if (!/^[A-Za-z0-9_.]{1,60}$/.test(field)) throw new Error(`Bad field name: ${field}`);
-      sql += ` AND json_extract(data, '$.${field}') IS ?`;
-      binds.push(typeof value === 'boolean' ? (value ? 1 : 0) : value);
-    }
-  }
-  sql += ` ORDER BY ${order === 'updated_at ASC' ? 'updated_at ASC' : 'updated_at DESC'} LIMIT ? OFFSET ?`;
-  binds.push(Math.min(Math.max(1, limit | 0), 500), Math.max(0, offset | 0));
-  const { results } = await db.prepare(sql).bind(...binds).all();
-  return results.map((r) => ({ ...JSON.parse(r.data), id: r.id, _updatedAt: r.updated_at }));
-}
-export async function getDoc(db, col, id) {
-  const row = await db.prepare('SELECT data FROM docs WHERE col = ? AND id = ?').bind(col, id).first();
+export async function getDoc(db, userId, col, id) {
+  const row = await db.prepare('SELECT data FROM docs WHERE user_id = ? AND col = ? AND id = ?').bind(userId, col, id).first();
   return row ? { ...JSON.parse(row.data), id } : null;
 }
-export async function putDoc(db, col, id, data) {
+export async function putDoc(db, userId, col, id, data) {
   const body = { ...data };
   delete body.id;
   const text = JSON.stringify(body);
   if (text.length > 1_000_000) throw new Error('Document too large (over 1 MB).');
-  await db.prepare('INSERT INTO docs (col, id, data, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT (col, id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at')
-    .bind(col, id, text, Date.now()).run();
+  await db.prepare('INSERT INTO docs (user_id, col, id, data, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT (user_id, col, id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at')
+    .bind(userId, col, id, text, Date.now()).run();
   return { ...body, id };
 }
-export async function deleteDoc(db, col, id) {
-  await db.prepare('DELETE FROM docs WHERE col = ? AND id = ?').bind(col, id).run();
+export async function deleteDoc(db, userId, col, id) {
+  await db.prepare('DELETE FROM docs WHERE user_id = ? AND col = ? AND id = ?').bind(userId, col, id).run();
+}
+
+/* ---------- R2 ownership ----------
+   New objects live under u/<userId>/, and every object (old or new) has a row in `files`. */
+export function userKey(userId, kind, name) { return `u/${userId}/${kind}/${name}`; }
+export async function ownsFile(db, userId, key) {
+  if (key.startsWith('u/')) return key.startsWith(`u/${userId}/`);
+  const row = await db.prepare('SELECT 1 AS ok FROM files WHERE key = ? AND user_id = ?').bind(key, userId).first();
+  return !!row;
+}
+export async function recordFile(db, userId, key, size, kind) {
+  await db.prepare('INSERT INTO files (key, user_id, size, kind, created) VALUES (?, ?, ?, ?, ?) ON CONFLICT (key) DO UPDATE SET size = excluded.size')
+    .bind(key, userId, size ?? null, kind, Date.now()).run();
+}
+export async function forgetFile(db, userId, key) {
+  await db.prepare('DELETE FROM files WHERE key = ? AND user_id = ?').bind(key, userId).run();
 }
 
 /* Serve an R2 object with HTTP range support (needed for video seeking). */

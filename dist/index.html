@@ -786,10 +786,14 @@ const IDB = {
   get(store, key) { return this.tx(store, 'readonly', (s) => s.get(key)); },
 };
 
+/* Google sign-in, coming back to this page afterwards */
+function signIn() { location.href = `/auth/google?next=${encodeURIComponent(location.pathname + location.search)}`; }
+
 /* ---------- cloud backend (Cloudflare Pages Functions: D1 + R2 + Claude) ---------- */
 const Api = {
   on: false,
   email: null,
+  role: null,
   claude: false,
   signedOut: false,
   problem: null,
@@ -807,7 +811,7 @@ const Api = {
     if (resp.type === 'opaqueredirect' || resp.status === 401) {
       this.signedOut = true;
       Bus.emit('signedout');
-      throw Object.assign(new Error('Your sign-in has expired. Reload the page to sign in again.'), { code: 'signedout' });
+      throw Object.assign(new Error('You’re signed out. Sign in again to keep saving.'), { code: 'signedout' });
     }
     const ct = resp.headers.get('content-type') || '';
     const data = ct.includes('application/json') ? await resp.json().catch(() => ({})) : null;
@@ -824,7 +828,7 @@ const Api = {
       if (!(r.headers.get('content-type') || '').includes('application/json')) return false;
       const d = await r.json();
       if (!r.ok) { this.problem = d.error || `Server error ${r.status}`; return false; }
-      this.on = true; this.email = d.email; this.claude = !!d.claude; this.claudeModel = d.claudeModel || null;
+      this.on = true; this.email = d.email; this.role = d.role || null; this.claude = !!d.claude; this.claudeModel = d.claudeModel || null;
       return true;
     } catch { return false; } finally { clearTimeout(timer); }
   },
@@ -4386,7 +4390,7 @@ function renderChips() {
   lib.classList.add('only-phone');
 }
 function storageTitle() {
-  return Store.mode === 'cloud' ? `Saved on your Cloudflare server${Api.email ? ` (signed in as ${Api.email})` : ''}; available on every device.`
+  return Store.mode === 'cloud' ? `Saved to your account${Api.email ? ` (signed in as ${Api.email})` : ''}; available on every device.`
     : Store.mode === 'artifact' ? 'Saved in the artifact’s database; available on every device.'
     : Store.mode === 'local' ? 'Saved in this browser only. Back up from Settings → Data.'
       : 'Storage is blocked here; nothing will be kept after you close the page.';
@@ -4415,7 +4419,7 @@ function renderBanners() {
     out.push(h('div', { class: 'banner info' }, h('p', null, `Week ${due} check-in is due. It takes about 3 minutes.`), btn('Start check-in', () => openCheckins(due), { kind: 'primary', size: 'sm' })));
   }
   if (Api.signedOut && Store.mode === 'cloud') {
-    out.unshift(h('div', { class: 'banner' }, h('p', null, 'Your sign-in has expired, so changes can’t be saved right now. Reload the page to sign in again.'), btn('Reload', () => location.reload(), { kind: 'primary', size: 'sm' })));
+    out.unshift(h('div', { class: 'banner' }, h('p', null, 'You’re signed out, so changes can’t be saved right now. Sign in again to keep saving.'), btn('Sign in', () => signIn(), { kind: 'primary', size: 'sm' })));
   }
   if (Store.mode === 'cloud') { /* nothing to explain */ } else if (Caps.inArtifact && !dismissed.artifactNote) {
     out.push(h('div', { class: 'banner info' },
@@ -4946,6 +4950,7 @@ function dataView() {
   const passRecs = Store.all('recordings').filter((r) => r.kind === 'pass' && !r.slot);
   return h('div', { class: 'stack' },
     h('div', { class: 'card' }, h('h3', null, 'Where your data lives'), h('p', null, storageTitle()), h('p', { class: 'small muted' }, counts), usage),
+    Store.mode === 'cloud' ? accountCard() : null,
     h('div', { class: 'card' }, h('h3', null, 'Backup'),
       h('p', { class: 'small muted' }, 'A backup holds your videos, clips, sessions, notes, issues, check-ins and settings (not the audio files). Importing adds anything missing and never overwrites.'),
       h('div', { class: 'row' },
@@ -4959,6 +4964,20 @@ function dataView() {
         for (const r of passRecs) { await Store.deleteBlob(r.ref); Store.data.recordings[r.id] = undefined; delete Store.data.recordings[r.id]; Store.schedule('recordings', r.id, 50); }
         toast('Removed.'); openSettings('data');
       }, { kind: 'danger' }))) : null);
+}
+
+/* signed-in account: sign out, or delete the account and everything the server keeps */
+function accountCard() {
+  const confirmInput = h('input', { type: 'email', id: 'acct-del', placeholder: Api.email || '', autocomplete: 'off', spellcheck: 'false' });
+  return h('div', { class: 'card' }, h('h3', null, 'Account'),
+    h('p', null, `Signed in with Google as ${Api.email}${Api.role === 'admin' ? ' (admin)' : ''}.`),
+    h('div', { class: 'row' }, btn('Sign out', async () => { await Store.flushAll(); location.href = '/auth/logout'; }, { size: 'sm' })),
+    h('details', null, h('summary', null, 'Delete my account'),
+      h('p', { class: 'small muted' }, 'This deletes your account and all your practice data on the server, for good. Export a backup first if you want to keep it.'),
+      h('label', { class: 'field', for: 'acct-del' }, 'Type your email address to confirm', confirmInput),
+      h('div', { class: 'row' }, btn('Delete my account', async () => {
+        try { await Api.req('DELETE', '/api/account', { confirm: confirmInput.value }); location.href = '/'; } catch (e) { toast(e.message, 'bad', 7000); }
+      }, { kind: 'danger', size: 'sm' }))));
 }
 
 async function saveText(name, text) {
@@ -5019,7 +5038,7 @@ async function checkStorage() {
   if (Store.mode === 'cloud') {
     await Api.req('PUT', '/api/docs/meta/probe', { at: new Date().toISOString() });
     await Api.req('DELETE', '/api/docs/meta/probe');
-    return { state: 'ok', msg: `Your Cloudflare database saves and reads back${Api.email ? ` (signed in as ${Api.email})` : ''}. Your data follows you to any device.` };
+    return { state: 'ok', msg: `Your account’s database saves and reads back${Api.email ? ` (signed in as ${Api.email})` : ''}. Your data follows you to any device.` };
   }
   if (Store.mode === 'artifact') {
     const ref = Caps.db.collection('meta').doc('probe');
@@ -5451,9 +5470,9 @@ async function boot() {
   if (Store.mode === 'offline') {
     mount($('#panel'), h('div', { class: 'panel-msg' }, 'Not connected.'));
     openModal([
-      modalHead(Api.signedOut ? 'Please sign in again' : 'The server isn’t ready'),
-      h('p', null, Api.signedOut ? 'Your sign-in has expired. Reload the page to sign in with your email code.' : `The app’s server answered with a problem: ${Api.problem}`),
-      btn('Reload', () => location.reload(), { kind: 'primary', size: 'big' }),
+      modalHead(Api.signedOut ? 'Please sign in' : 'The server isn’t ready'),
+      h('p', null, Api.signedOut ? 'Sign in with your Google account to open your practice.' : `The app’s server answered with a problem: ${Api.problem}`),
+      Api.signedOut ? btn('Sign in with Google', () => signIn(), { kind: 'primary', size: 'big' }) : btn('Reload', () => location.reload(), { kind: 'primary', size: 'big' }),
     ], { narrow: true });
     return;
   }

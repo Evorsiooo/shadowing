@@ -46,7 +46,7 @@ function renderChips() {
   lib.classList.add('only-phone');
 }
 function storageTitle() {
-  return Store.mode === 'cloud' ? `Saved on your Cloudflare server${Api.email ? ` (signed in as ${Api.email})` : ''}; available on every device.`
+  return Store.mode === 'cloud' ? `Saved to your account${Api.email ? ` (signed in as ${Api.email})` : ''}; available on every device.`
     : Store.mode === 'artifact' ? 'Saved in the artifact’s database; available on every device.'
     : Store.mode === 'local' ? 'Saved in this browser only. Back up from Settings → Data.'
       : 'Storage is blocked here; nothing will be kept after you close the page.';
@@ -75,7 +75,7 @@ function renderBanners() {
     out.push(h('div', { class: 'banner info' }, h('p', null, `Week ${due} check-in is due. It takes about 3 minutes.`), btn('Start check-in', () => openCheckins(due), { kind: 'primary', size: 'sm' })));
   }
   if (Api.signedOut && Store.mode === 'cloud') {
-    out.unshift(h('div', { class: 'banner' }, h('p', null, 'Your sign-in has expired, so changes can’t be saved right now. Reload the page to sign in again.'), btn('Reload', () => location.reload(), { kind: 'primary', size: 'sm' })));
+    out.unshift(h('div', { class: 'banner' }, h('p', null, 'You’re signed out, so changes can’t be saved right now. Sign in again to keep saving.'), btn('Sign in', () => signIn(), { kind: 'primary', size: 'sm' })));
   }
   if (Store.mode === 'cloud') { /* nothing to explain */ } else if (Caps.inArtifact && !dismissed.artifactNote) {
     out.push(h('div', { class: 'banner info' },

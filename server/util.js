@@ -1,4 +1,4 @@
-// Small helpers shared by the API and MCP endpoints.
+// Small helpers shared by the API endpoints.
 export const COLLECTIONS = ['videos', 'clips', 'sessions', 'recordings', 'notes', 'issues', 'checkins', 'meta'];
 const ID_RE = /^[A-Za-z0-9_.:-]{1,120}$/;
 
@@ -35,6 +35,7 @@ export function cleanType(type) {
   const t = String(type || '').split(';')[0].trim().toLowerCase();
   return /^[a-z]+\/[a-z0-9.+-]+$/.test(t) ? t : 'application/octet-stream';
 }
+// R2 keys: u/<userId>/<kind>/<name> for new files, <kind>/<name> for files from before accounts
 export function validKey(key) {
-  return typeof key === 'string' && /^(rec|video|checkin|misc)\/[A-Za-z0-9_.-]{1,120}$/.test(key);
+  return typeof key === 'string' && /^(u\/[A-Za-z0-9_-]{1,64}\/)?(rec|video|checkin|misc)\/[A-Za-z0-9_.-]{1,120}$/.test(key);
 }
