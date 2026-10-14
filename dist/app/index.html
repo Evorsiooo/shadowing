@@ -185,16 +185,83 @@ a { color: var(--sky); }
 .seg button + button { border-left: 2px solid var(--line); }
 .seg button.on { background: var(--green); color: var(--on-green); }
 
-input[type="text"], input[type="url"], input[type="number"], input[type="date"], textarea, select {
-  font: inherit; color: var(--fg); background: var(--surface); border: 2px solid var(--line);
-  border-radius: var(--r-sm); padding: 8px 10px; width: 100%; min-width: 0;
+/* ---------- form controls: one look for every native control, in both themes ---------- */
+input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"])), textarea, select {
+  font: inherit; font-weight: 600; color: var(--fg); background-color: var(--surface); border: 2px solid var(--line);
+  border-radius: var(--r-sm); padding: 8px 12px; width: 100%; min-width: 0; min-height: 42px;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-textarea { resize: vertical; min-height: 64px; }
-input:focus, textarea:focus, select:focus { outline: none; border-color: var(--sky); }
-label.field { display: flex; flex-direction: column; gap: 4px; font-weight: 700; font-size: 0.85rem; }
-label.check { display: inline-flex; gap: 8px; align-items: center; font-weight: 700; font-size: 0.88rem; cursor: pointer; }
-input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--green); }
+input::placeholder, textarea::placeholder { color: var(--muted); opacity: 0.75; font-weight: 600; }
+textarea { resize: vertical; min-height: 64px; line-height: 1.45; }
+input:where(:hover:not(:focus, [disabled])), textarea:where(:hover:not(:focus, [disabled])), select:where(:hover:not(:focus, [disabled])) { border-color: color-mix(in srgb, var(--line), var(--muted) 35%); }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--sky); box-shadow: 0 0 0 3px var(--sky-soft); }
+input[disabled], textarea[disabled], select[disabled] { opacity: 0.55; cursor: not-allowed; }
+/* dropdowns: our own chevron instead of the browser's */
+select {
+  appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 36px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
+  background-size: 6px 6px, 6px 6px; background-repeat: no-repeat;
+}
+select option { background: var(--surface); color: var(--fg); }
+/* time and date pickers: tidy the browser's clock and calendar buttons */
+input[type="time"], input[type="date"] { font-variant-numeric: tabular-nums; cursor: text; }
+input[type="time"]::-webkit-calendar-picker-indicator, input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; border-radius: 6px; padding: 2px; }
+input[type="time"]::-webkit-calendar-picker-indicator:hover, input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; background: var(--surface-2); }
+input[type="time"]::-webkit-datetime-edit-fields-wrapper, input[type="date"]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
+input[type="number"] { font-variant-numeric: tabular-nums; }
+label.field { display: flex; flex-direction: column; gap: 5px; font-weight: 700; font-size: 0.85rem; }
+div.field { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; }
+div.field > label, .flabel { font-weight: 700; }
+label.check { display: inline-flex; gap: 10px; align-items: center; font-weight: 700; font-size: 0.88rem; cursor: pointer; }
+/* checkboxes and radios */
+input[type="checkbox"], input[type="radio"] {
+  appearance: none; -webkit-appearance: none; flex: none; margin: 0; cursor: pointer;
+  width: 22px; height: 22px; border: 2px solid var(--line); border-bottom-width: 3px; background: var(--surface);
+  border-radius: 7px; display: inline-grid; place-items: center; transition: background-color 0.12s, border-color 0.12s;
+}
+input[type="radio"] { border-radius: 50%; border-bottom-width: 2px; }
+input[type="checkbox"]:hover:not([disabled]), input[type="radio"]:hover:not([disabled]) { border-color: var(--green); }
+input[type="checkbox"]:checked { background: var(--green); border-color: var(--green-dark); }
+input[type="checkbox"]:checked::after { content: ""; width: 10px; height: 6px; border: solid var(--on-green); border-width: 0 0 3px 3px; transform: translateY(-2px) rotate(-45deg); }
+input[type="checkbox"]:indeterminate { background: var(--green); border-color: var(--green-dark); }
+input[type="checkbox"]:indeterminate::after { content: ""; width: 10px; height: 3px; background: var(--on-green); border-radius: 2px; }
+input[type="radio"]:checked { border-color: var(--green); }
+input[type="radio"]:checked::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--green); }
+input[type="checkbox"]:focus-visible, input[type="radio"]:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+input[type="checkbox"][disabled], input[type="radio"][disabled] { opacity: 0.45; cursor: not-allowed; }
 input[type="range"] { accent-color: var(--green); }
+
+/* radio cards: a choice shown as tappable cards instead of a dropdown */
+.choices { display: grid; gap: 8px; }
+.choice {
+  display: flex; gap: 12px; align-items: center; padding: 11px 14px; border-radius: var(--r-md); cursor: pointer;
+  background: var(--surface); border: 2px solid var(--line); border-bottom-width: 4px; transition: border-color 0.12s, background-color 0.12s;
+}
+.choice:hover { border-color: color-mix(in srgb, var(--line), var(--green) 45%); }
+.choice:has(input:checked) { border-color: var(--green); background: var(--green-soft); }
+.choice:has(input:focus-visible) { outline: 3px solid var(--sky); outline-offset: 2px; }
+.choice input:focus-visible { outline: none; }
+.choice-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; font-size: 0.92rem; }
+.choice-text .small { font-weight: 600; }
+
+/* language picker: chips plus a type-to-add box */
+.langpick {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 5px 6px; min-height: 46px; cursor: text;
+  background: var(--surface); border: 2px solid var(--line); border-radius: var(--r-sm); transition: border-color 0.15s, box-shadow 0.15s;
+}
+.langpick:focus-within { border-color: var(--sky); box-shadow: 0 0 0 3px var(--sky-soft); }
+.langpick .tags { display: contents; }
+.langpick input[type="text"] { border: 0; box-shadow: none; padding: 4px 6px; min-height: 30px; flex: 1 1 140px; width: auto; background: transparent; }
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 4px 3px 11px; border-radius: 999px; background: var(--green-soft); color: var(--green-ink); font-weight: 800; font-size: 0.86rem; }
+.tag button { appearance: none; border: 0; background: transparent; color: inherit; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; padding: 0; }
+.tag button:hover { background: color-mix(in srgb, var(--green) 25%, transparent); }
+.tag svg { width: 13px; height: 13px; }
+.suggest { display: flex; flex-wrap: wrap; gap: 6px; }
+.suggest:empty { display: none; }
+.chip.add { font-size: 0.8rem; padding: 3px 10px 3px 7px; border: 2px solid var(--line); background: var(--surface); }
+.chip.add:hover { border-color: var(--green); }
+.chip.add svg { width: 14px; height: 14px; }
 
 /* ---------- top bar ---------- */
 .topbar {
@@ -372,6 +439,25 @@ details.archived > summary { cursor: pointer; font-weight: 800; color: var(--mut
 .modal { background: var(--bg); border: 2px solid var(--line); border-radius: var(--r-lg); width: min(880px, 100%); padding: 18px; display: flex; flex-direction: column; gap: 14px; }
 .modal.narrow { width: min(520px, 100%); }
 .modal-head { display: flex; align-items: center; gap: 10px; }
+/* ---------- first-run wizard ---------- */
+.wiz { display: flex; flex-direction: column; gap: 16px; }
+.wiz-top { display: flex; align-items: center; gap: 8px; margin: -4px -6px -8px 0; }
+.wiz-progress { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: 6px; }
+.wiz-progress li { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.wiz-progress i { display: block; height: 8px; border-radius: 999px; background: var(--surface-2); transition: background-color 0.25s; }
+.wiz-progress li.done i { background: var(--green); }
+.wiz-progress li.cur i { background: linear-gradient(90deg, var(--green) 50%, var(--green-soft) 50%); }
+.wiz-progress span { font-size: 0.7rem; font-weight: 800; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wiz-progress li.cur span { color: var(--green-ink); }
+.wiz-head { display: flex; flex-direction: column; gap: 6px; }
+.wiz-head h2 { font-size: 1.6rem; }
+.wiz-body { gap: 14px; animation: wiz-in 0.22s ease-out; }
+.wiz-foot { display: flex; align-items: center; gap: 8px; padding-top: 4px; }
+@keyframes wiz-in { from { opacity: 0; transform: translateX(12px); } }
+ul.ticks { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+ul.ticks li { position: relative; padding-left: 26px; }
+ul.ticks li::before { content: ""; position: absolute; left: 4px; top: 5px; width: 10px; height: 6px; border: solid var(--green); border-width: 0 0 3px 3px; transform: rotate(-45deg); }
+@media (max-width: 520px) { .wiz-progress span { display: none; } .wiz-head h2 { font-size: 1.35rem; } }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
 .card { background: var(--surface); border: 2px solid var(--line); border-radius: var(--r-md); padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
@@ -451,11 +537,11 @@ body.calm .toast { animation: none; }
 .mic-meter { width: 120px; height: 10px; }
 .mic-meter > i { transition: none; }
 .mic-control input[type="range"] { width: 110px; }
-.mic-control select.mic-select { width: auto; max-width: 220px; padding: 5px 8px; font-size: 0.85rem; }
-input.time-in { width: 76px; padding: 5px 8px; height: 32px; }
+.mic-control select.mic-select { width: auto; max-width: 220px; padding: 5px 32px 5px 10px; min-height: 34px; font-size: 0.85rem; }
+input.time-in { width: 76px; padding: 5px 8px; height: 32px; min-height: 32px; }
 .newclip-box { border: 2px dashed var(--line); border-radius: var(--r-md); padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; gap: 6px; min-height: 90px; align-items: center; text-align: center; background: var(--surface-2); }
 .layout.fit .below > .panel > .newclip-box { flex: 1 1 auto; }
-.efield.grow input { height: 32px; padding: 5px 10px; }
+.efield.grow input { height: 32px; min-height: 32px; padding: 5px 10px; }
 
 </style>
 
@@ -545,6 +631,7 @@ const ICONS = {
   mute: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   check: '<path d="M4.5 12.5l5 5 10-11"/>',
+  back: '<path d="M14.5 5.5L8 12l6.5 6.5"/>',
   archive: '<rect x="3.5" y="4.5" width="17" height="4" rx="1"/><path d="M5 8.5v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-10"/><path d="M10 12.5h4"/>',
   restore: '<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/><path d="M12 8v4l3 2"/>',
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
@@ -833,7 +920,7 @@ const Api = {
       if (!(r.headers.get('content-type') || '').includes('application/json')) return false;
       const d = await r.json();
       if (!r.ok) { this.problem = d.error || `Server error ${r.status}`; return false; }
-      this.on = true; this.email = d.email; this.role = d.role || null; this.claude = !!d.claude; this.claudeModel = d.claudeModel || null;
+      this.on = true; this.email = d.email; this.name = d.name || null; this.role = d.role || null; this.claude = !!d.claude; this.claudeModel = d.claudeModel || null;
       return true;
     } catch { return false; } finally { clearTimeout(timer); }
   },
@@ -1110,7 +1197,7 @@ function appMeta() { return Store.get('meta', 'app') || Store.put('meta', { id: 
 
 /* ---- 15-profile.js ---- */
 /* ---------- learner profile and per-language content ---------- */
-/* The profile (native language, target language and accent, optional notes) lives in
+/* The profile (name, native languages, target language and accent, optional notes) lives in
    meta/settings as `profile`. It drives the AI prompts, the listener-pack labels and the
    check-in content. Content is keyed by target language so others can be added later:
    add an entry to LANGUAGES with its accents and check-in material. */
@@ -1119,9 +1206,9 @@ const LANGUAGES = {
   en: {
     name: 'English',
     accents: [
-      { id: 'au', name: 'General Australian English', short: 'Australian', spelling: 'Australian' },
-      { id: 'us', name: 'General American English', short: 'American', spelling: 'American' },
-      { id: 'gb', name: 'Southern British English', short: 'British', spelling: 'British' },
+      { id: 'us', name: 'General American English', short: 'American', spelling: 'American', hint: 'The accent of most US film, TV and news.' },
+      { id: 'gb', name: 'Southern British English', short: 'British', spelling: 'British', hint: 'Often called RP or “BBC English”.' },
+      { id: 'au', name: 'General Australian English', short: 'Australian', spelling: 'Australian', hint: 'The everyday accent of most Australians.' },
     ],
     // read-aloud sets: a programme keeps the set its baseline was recorded with
     readSets: {
@@ -1161,9 +1248,12 @@ const LANGUAGES = {
 };
 const NATIVE_LANGUAGE_HINTS = ['English', 'French', 'Spanish', 'Portuguese', 'German', 'Italian', 'Dutch', 'Polish', 'Russian', 'Ukrainian', 'Turkish', 'Arabic', 'Hindi', 'Bengali', 'Urdu', 'Mandarin Chinese', 'Cantonese', 'Japanese', 'Korean', 'Vietnamese', 'Thai', 'Indonesian', 'Tagalog'];
 
-const PROFILE_DEFAULTS = { nativeLanguages: '', targetLanguage: 'en', accent: '', accentOther: '', notes: '', onboarded: null };
+const PROFILE_DEFAULTS = { name: '', nativeLanguages: '', targetLanguage: 'en', accent: '', accentOther: '', notes: '', onboarded: null };
 function profile() { return { ...PROFILE_DEFAULTS, ...(settings().profile || {}) }; }
 function saveProfile(fields) { saveSettings({ profile: { ...profile(), ...fields } }); }
+/* native languages are kept as one comma-separated string (what the AI prompt reads); the picker edits a list */
+function splitLanguages(s) { return [...new Set(String(s || '').split(/[,;]/).map((x) => x.trim()).filter(Boolean))]; }
+function joinLanguages(list) { return list.join(', ').slice(0, 120); }
 
 function langContent(p = profile()) { return LANGUAGES[p.targetLanguage] || LANGUAGES.en; }
 /* the target accent: { name, short, spelling }; "Other" uses the learner's own words */
@@ -5421,16 +5511,43 @@ async function refreshAdminBadge() {
 
 /* ---- 90-onboarding.js ---- */
 /* ---------- first-run setup ---------- */
-/* A short wizard on first launch: about you, where files live, a first video, AI feedback and
-   the week-0 baseline. Steps whose when() is false are skipped (no video step if you already
-   have videos, and so on). Steps still waiting on other work are placeholders:
-   - 'storage': the Google Drive sync work replaces body() with the connect flow;
-   - 'ai': the bring-your-own-key work replaces body() with the key and model picker.
-   A step can set next(W) to check or save its fields; returning false stays on the step. */
+/* A step-by-step wizard on first launch: your name, your languages, the accent you're aiming for,
+   where files live, a first video, AI feedback and the week-0 baseline. Steps whose when() is
+   false are skipped (no video step if you already have videos, and so on).
+   Each step is { id, label (shown under the progress bar), title(W), sub(W), body(W), next(W) }.
+   next(W) checks or saves the step's fields; returning false stays on the step.
+   Two steps are still placeholders, each in its own function below so other work can replace it:
+   - onboardingStorageStep: the Google Drive sync work replaces it with the connect flow;
+   - onboardingAiStep: the bring-your-own-key work replaces it with the key and model picker. */
 const ONBOARDING_STEPS = [
   {
-    id: 'profile', title: 'About you',
-    body: (W) => profileFields(W.draft),
+    id: 'name', label: 'You',
+    title: () => 'Welcome to Euno Shadowing',
+    sub: () => 'A few quick questions to set things up. You can change any answer later in Settings → Profile.',
+    body: (W) => nameField(W.draft),
+    next: (W) => {
+      W.draft.name = W.draft.name.trim();
+      if (!W.draft.name) { toast('Tell us what to call you.', 'bad'); return false; }
+      saveProfile({ name: W.draft.name });
+      return true;
+    },
+  },
+  {
+    id: 'languages', label: 'Languages',
+    title: (W) => `Nice to meet you, ${W.draft.name || 'there'}`,
+    sub: () => 'Which languages do you already speak, and which one are you practising?',
+    body: (W) => [nativeLanguagesField(W.draft), targetLanguageField(W.draft)],
+    next: (W) => {
+      if (!splitLanguages(W.draft.nativeLanguages).length) { toast('Add at least one language you speak.', 'bad'); return false; }
+      saveProfile({ nativeLanguages: W.draft.nativeLanguages, targetLanguage: W.draft.targetLanguage });
+      return true;
+    },
+  },
+  {
+    id: 'accent', label: 'Accent',
+    title: () => 'Which accent are you aiming for?',
+    sub: () => 'Pick the one you’d like to sound like. Your practice clips should be of a speaker with this accent.',
+    body: (W) => [accentField(W.draft), notesField(W.draft)],
     next: (W) => {
       if (!W.draft.accent) { toast('Pick the accent you’re aiming for.', 'bad'); return false; }
       if (W.draft.accent === 'other' && !W.draft.accentOther.trim()) { toast('Describe the accent you’re aiming for.', 'bad'); return false; }
@@ -5439,74 +5556,109 @@ const ONBOARDING_STEPS = [
     },
   },
   {
-    id: 'storage', title: 'Where your files live',
-    body: () => [
-      h('p', null, 'Your videos and recordings can be large, so they’re kept with you rather than on our server.'),
-      h('div', { class: 'cards' },
-        h('div', { class: 'card' }, h('h3', null, 'On this device'), h('p', { class: 'small muted' }, `Works straight away. ${storageTitle()}`)),
-        h('div', { class: 'card', 'aria-disabled': 'true', style: { opacity: 0.6 } }, h('h3', null, 'Google Drive'), h('p', { class: 'small muted' }, 'Keep a copy in your own Drive and use it on any device. Coming soon: you’ll be able to turn it on in Settings.'))),
-    ],
+    id: 'storage', label: 'Files',
+    title: () => 'Where your files live',
+    sub: () => 'Videos and recordings can be large, so they’re kept with you rather than on our server.',
+    body: (W) => onboardingStorageStep(W),
   },
   {
-    id: 'video', title: 'Your first video',
+    id: 'video', label: 'Video',
     when: () => !Store.all('videos').some((v) => !v.archived),
+    title: () => 'Your first video',
+    sub: () => 'You’ll practise with short clips from a video of someone whose accent you want.',
     body: (W) => [
-      h('p', null, 'You’ll practise with short clips from a video of someone whose accent you want. What works best:'),
-      h('ul', { style: { margin: 0, paddingLeft: '20px', display: 'grid', gap: '4px' } },
-        h('li', null, 'One person speaking naturally: an interview, a podcast, a talk or a vlog.'),
-        h('li', null, 'Clear sound, with little music or background noise.'),
-        h('li', null, 'A file on your device, or a direct link to an .mp4 file.')),
-      h('p', { class: 'small muted' }, 'You’ll cut it into clips of one sentence or so (10 to 20 seconds) after it’s added.'),
+      h('div', { class: 'card' },
+        h('h3', null, 'What works best'),
+        h('ul', { class: 'ticks' },
+          h('li', null, 'One person speaking naturally: an interview, a podcast, a talk or a vlog.'),
+          h('li', null, 'Clear sound, with little music or background noise.'),
+          h('li', null, 'A file on your device, or a direct link to an .mp4 file.')),
+        h('p', { class: 'small muted' }, 'You’ll cut it into clips of one sentence or so (10 to 20 seconds) after it’s added.')),
       h('label', { class: 'check', for: 'obVideo' }, h('input', { type: 'checkbox', id: 'obVideo', checked: W.addVideo, onchange: (e) => { W.addVideo = e.target.checked; } }), 'Open the “Add a video” form when I finish'),
     ],
   },
   {
-    id: 'ai', title: 'AI feedback (optional)',
-    body: () => [
-      h('p', null, 'After a recorded pass you can write down what sounded off and get advice on it. This is optional.'),
-      h('div', { class: 'cards' },
-        h('div', { class: 'card' }, h('h3', null, 'Copy a prompt'), h('p', { class: 'small muted' }, 'No key needed: the app writes a prompt for you to paste into any AI chat, and you paste the answer back.')),
-        h('div', { class: 'card', 'aria-disabled': 'true', style: { opacity: 0.6 } }, h('h3', null, 'Use your own API key'), h('p', { class: 'small muted' }, 'Answers right inside the app, with a key from Anthropic, OpenAI or OpenRouter and the model you pick. Coming soon in Settings.'))),
-    ],
+    id: 'ai', label: 'AI',
+    title: () => 'AI feedback (optional)',
+    sub: () => 'After a recorded pass you can write down what sounded off and get advice on it.',
+    body: (W) => onboardingAiStep(W),
   },
   {
-    id: 'baseline', title: 'Your starting point',
+    id: 'baseline', label: 'Baseline',
     when: () => !checkinHasAll(checkinFor(0)),
+    title: () => 'Your starting point',
+    sub: () => 'Record a week 0 baseline so you can hear how far you’ve come.',
     body: (W) => [
-      h('p', null, 'Before your first session, record a week 0 baseline: six sentences read aloud, a 60-second retelling and a 60-second answer to a question you haven’t seen. It takes about 3 minutes, and your check-ins at weeks 4, 8 and 12 are compared with it.'),
-      h('div', { class: 'seg', role: 'group', 'aria-label': 'When to record the baseline' },
-        h('button', { type: 'button', class: W.baseline ? 'on' : '', onclick: () => { W.baseline = true; renderOnboarding(W); } }, 'Record it now'),
-        h('button', { type: 'button', class: W.baseline ? '' : 'on', onclick: () => { W.baseline = false; renderOnboarding(W); } }, 'Later')),
+      h('p', null, 'Before your first session, record six sentences read aloud, a 60-second retelling and a 60-second answer to a question you haven’t seen. It takes about 3 minutes, and your check-ins at weeks 4, 8 and 12 are compared with it.'),
+      choiceGroup('obBaseline', 'When to record the baseline', [
+        { value: 'now', title: 'Record it now', hint: 'Opens the check-in when you finish.' },
+        { value: 'later', title: 'Later', hint: 'Start it any time from Check-ins in the top bar.' },
+      ], W.baseline ? 'now' : 'later', (v) => { W.baseline = v === 'now'; }),
     ],
   },
 ];
 
+/* placeholder until Google Drive sync lands */
+function onboardingStorageStep() {
+  const cloud = Store.mode === 'cloud';
+  return h('div', { class: 'cards' },
+    h('div', { class: 'card' }, h('h3', null, 'On this device'),
+      h('p', { class: 'small muted' }, cloud
+        ? 'Works straight away. Videos and recordings stay in this browser. Your clips, notes and progress are saved to your account, so they follow you to other devices.'
+        : `Works straight away. ${storageTitle()}`)),
+    h('div', { class: 'card', 'aria-disabled': 'true', style: { opacity: 0.6 } }, h('h3', null, 'Google Drive'),
+      h('p', { class: 'small muted' }, 'Keep a copy in your own Drive and use your videos on any device. Coming soon, and there’s nothing to decide now: you can turn it on later in Settings.')));
+}
+
+/* placeholder until bring-your-own-key AI lands */
+function onboardingAiStep() {
+  return h('div', { class: 'cards' },
+    h('div', { class: 'card' }, h('h3', null, 'Copy a prompt'), h('p', { class: 'small muted' }, 'No key needed: the app writes a prompt for you to paste into any AI chat, and you paste the answer back.')),
+    h('div', { class: 'card', 'aria-disabled': 'true', style: { opacity: 0.6 } }, h('h3', null, 'Use your own API key'),
+      h('p', { class: 'small muted' }, 'Answers right inside the app, with a key from Anthropic, OpenAI or OpenRouter and the model you pick. Coming soon: you can add a key later in Settings.')));
+}
+
 function needsOnboarding() { return !profile().onboarded; }
 
 function openOnboarding() {
-  const W = { i: 0, draft: { ...profile() }, addVideo: true, baseline: true };
+  const draft = { ...profile() };
+  if (!draft.name && Api.name) draft.name = String(Api.name).split(/\s+/)[0].slice(0, 40); // first name from Google
+  const W = { i: 0, draft, addVideo: true, baseline: true };
   W.steps = ONBOARDING_STEPS.filter((s) => !s.when || s.when());
   renderOnboarding(W);
 }
 
 function renderOnboarding(W) {
   const step = W.steps[W.i];
-  const last = W.i === W.steps.length - 1;
+  const n = W.steps.length;
+  const last = W.i === n - 1;
   const go = () => {
     if (step.next && step.next(W) === false) return;
     if (last) finishOnboarding(W); else { W.i++; renderOnboarding(W); }
   };
-  openModal([
-    modalHead(W.i === 0 ? 'Welcome to Euno Shadowing' : step.title, `Step ${W.i + 1} of ${W.steps.length}${W.i === 0 ? ` · ${step.title}` : ''}`),
-    h('div', { class: 'stack' }, step.body(W)),
-    h('div', { class: 'row' },
-      W.i > 0 ? btn('Back', () => { W.i--; renderOnboarding(W); }, { kind: 'ghost' }) : null,
+  const back = () => { W.i--; renderOnboarding(W); };
+  const progress = h('ol', { class: 'wiz-progress', style: `--n: ${n}`, 'aria-label': `Step ${W.i + 1} of ${n}` },
+    W.steps.map((s, i) => h('li', { class: i < W.i ? 'done' : i === W.i ? 'cur' : '', 'aria-current': i === W.i ? 'step' : null },
+      h('i', null), h('span', null, s.label))));
+  const form = h('form', { class: 'wiz', novalidate: true, onsubmit: (e) => { e.preventDefault(); go(); } },
+    h('div', { class: 'wiz-top' },
+      h('span', { class: 'label' }, `Step ${W.i + 1} of ${n}`),
       h('span', { class: 'grow' }),
-      btn(last ? 'Finish' : 'Next', go, { kind: 'primary', size: 'big' })),
-  ], { narrow: true, onClose: () => finishOnboarding(W, true) });
+      btn('', () => closeModal(), { icon: 'close', kind: 'ghost', size: 'sm', title: 'Close (you can finish setting up in Settings)', aria: 'Close' })),
+    progress,
+    h('div', { class: 'wiz-head' }, h('h2', null, step.title(W)), step.sub ? h('p', { class: 'muted' }, step.sub(W)) : null),
+    h('div', { class: 'wiz-body stack' }, step.body(W)),
+    h('div', { class: 'wiz-foot' },
+      W.i > 0 ? btn('Back', back, { kind: 'ghost', icon: 'back' }) : null,
+      h('span', { class: 'grow' }),
+      h('button', { type: 'submit', class: 'btn primary big' }, h('span', null, last ? 'Finish' : 'Continue'))));
+  // focus the step's first text box, else Continue (not the close button)
+  const first = form.querySelector('.wiz-body input:not([type="checkbox"]):not([type="radio"]), .wiz-body textarea') || form.querySelector('button[type="submit"]');
+  first.setAttribute('autofocus', '');
+  openModal(form, { narrow: true, onClose: () => finishOnboarding(W, true) });
 }
 
-/* closing early keeps whatever was filled in; everything can be changed later in Settings → Profile */
+/* closing early keeps whatever was saved so far; everything can be changed later in Settings → Profile */
 function finishOnboarding(W, closed) {
   saveProfile({ onboarded: new Date().toISOString() });
   lsSet('welcomed', true);
@@ -5521,41 +5673,112 @@ function finishOnboarding(W, closed) {
   if (W.baseline && W.steps.some((s) => s.id === 'baseline')) openCheckins(0);
 }
 
-/* the profile fields, shared by onboarding and Settings → Profile; edits go into draft */
-function profileFields(draft) {
+/* ---------- profile fields, shared by onboarding and Settings → Profile; edits go into draft ---------- */
+function nameField(draft) {
+  return h('label', { class: 'field', for: 'pfName' }, 'What should we call you?',
+    h('input', { type: 'text', id: 'pfName', maxlength: 40, autocomplete: 'given-name', placeholder: 'Your first name', value: draft.name, oninput: (e) => { draft.name = e.target.value; } }));
+}
+
+/* a list of languages as removable chips, a box to type any language, and one-tap suggestions */
+function nativeLanguagesField(draft) {
+  let list = splitLanguages(draft.nativeLanguages);
+  const tags = h('div', { class: 'tags' });
+  const sugg = h('div', { class: 'suggest', 'aria-label': 'Suggestions' });
+  const input = h('input', { type: 'text', id: 'pfNative', maxlength: 40, autocomplete: 'off', spellcheck: 'false', placeholder: 'Type a language, then press Enter',
+    oninput: () => drawSuggestions(),
+    onkeydown: (e) => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        if (input.value.trim()) add(bestMatch());
+      } else if (e.key === 'Backspace' && !input.value && list.length) { list.pop(); sync(); }
+    },
+    onblur: () => { if (input.value.trim()) add(bestMatch(), true); } });
+  // what Enter adds: the exact language, else the first suggestion ("fr" -> French), else what was typed
+  const bestMatch = () => {
+    const typed = input.value.trim(), q = typed.toLowerCase();
+    return NATIVE_LANGUAGE_HINTS.find((l) => l.toLowerCase() === q) || NATIVE_LANGUAGE_HINTS.find((l) => !list.includes(l) && l.toLowerCase().startsWith(q)) || typed;
+  };
+  const sync = (keepFocus = true) => {
+    draft.nativeLanguages = joinLanguages(list);
+    mount(tags, list.map((l) => h('span', { class: 'tag' }, l,
+      h('button', { type: 'button', 'aria-label': `Remove ${l}`, onclick: () => { list = list.filter((x) => x !== l); sync(); } }, icon('close')))));
+    input.placeholder = list.length ? 'Add another' : 'Type a language, then press Enter';
+    drawSuggestions();
+    if (keepFocus) input.focus();
+  };
+  const add = (l, quiet) => {
+    l = l.replace(/\s+/g, ' ').trim().slice(0, 40);
+    if (l && !list.some((x) => x.toLowerCase() === l.toLowerCase())) list.push(l);
+    input.value = '';
+    sync(!quiet);
+  };
+  const drawSuggestions = () => {
+    const q = input.value.trim().toLowerCase();
+    const pool = NATIVE_LANGUAGE_HINTS.filter((l) => !list.includes(l));
+    const shown = q ? pool.filter((l) => l.toLowerCase().includes(q)).slice(0, 8) : pool.slice(0, 8);
+    mount(sugg, shown.map((l) => h('button', { type: 'button', class: 'chip add', onmousedown: (e) => e.preventDefault(), onclick: () => add(l) }, icon('plus'), l)));
+  };
+  sync(false);
+  return h('div', { class: 'field' },
+    h('label', { for: 'pfNative' }, 'Languages you speak natively'),
+    h('div', { class: 'langpick', onclick: (e) => { if (e.target === e.currentTarget || e.target === tags) input.focus(); } }, tags, input),
+    sugg,
+    h('p', { class: 'small muted' }, 'Add one or more. Not in the list? Type it and press Enter.'));
+}
+
+function targetLanguageField(draft) {
+  const langs = Object.entries(LANGUAGES);
+  return h('div', { class: 'field' },
+    h('span', { class: 'flabel', id: 'pfLangLbl' }, 'Language you’re practising'),
+    choiceGroup('pfLang', null, langs.map(([id, l]) => ({ value: id, title: l.name })), draft.targetLanguage, (v) => { draft.targetLanguage = v; }, 'pfLangLbl'),
+    langs.length === 1 ? h('p', { class: 'small muted' }, 'More languages are on the way.') : null);
+}
+
+function accentField(draft) {
   const lang = LANGUAGES[draft.targetLanguage] || LANGUAGES.en;
   const other = h('label', { class: 'field', for: 'pfAccentOther', hidden: draft.accent !== 'other' }, 'Describe the accent',
     h('input', { type: 'text', id: 'pfAccentOther', maxlength: 80, placeholder: 'e.g. Scottish English', value: draft.accentOther, oninput: (e) => { draft.accentOther = e.target.value; } }));
-  return [
-    h('label', { class: 'field', for: 'pfNative' }, 'Your native language(s)',
-      h('input', { type: 'text', id: 'pfNative', maxlength: 120, list: 'pfNativeList', placeholder: 'e.g. French', value: draft.nativeLanguages, oninput: (e) => { draft.nativeLanguages = e.target.value; } }),
-      h('datalist', { id: 'pfNativeList' }, NATIVE_LANGUAGE_HINTS.map((l) => h('option', { value: l })))),
-    h('label', { class: 'field', for: 'pfLang' }, 'Language you’re practising',
-      h('select', { id: 'pfLang', onchange: (e) => { draft.targetLanguage = e.target.value; } },
-        Object.entries(LANGUAGES).map(([id, l]) => h('option', { value: id, selected: id === draft.targetLanguage }, l.name)))),
-    Object.keys(LANGUAGES).length === 1 ? h('p', { class: 'small muted' }, 'More languages are on the way.') : null,
-    h('label', { class: 'field', for: 'pfAccent' }, 'Accent you’re aiming for',
-      h('select', { id: 'pfAccent', onchange: (e) => { draft.accent = e.target.value; other.hidden = draft.accent !== 'other'; } },
-        h('option', { value: '', selected: !draft.accent, disabled: true }, 'Choose one'),
-        lang.accents.map((a) => h('option', { value: a.id, selected: draft.accent === a.id }, a.name)),
-        h('option', { value: 'other', selected: draft.accent === 'other' }, 'Other'))),
-    other,
-    h('label', { class: 'field', for: 'pfNotes' }, 'Anything the AI feedback should know (optional)',
-      h('textarea', { id: 'pfNotes', rows: 2, maxlength: 500, placeholder: 'e.g. I understand everything but only started speaking it recently; rhythm is my weak spot.', value: draft.notes, oninput: (e) => { draft.notes = e.target.value; } })),
-  ];
+  return h('div', { class: 'field' },
+    h('span', { class: 'flabel', id: 'pfAccentLbl' }, 'Accent you’re aiming for'),
+    choiceGroup('pfAccent', null, [
+      ...lang.accents.map((a) => ({ value: a.id, title: a.name, hint: a.hint })),
+      { value: 'other', title: 'Something else', hint: 'Describe it in your own words.' },
+    ], draft.accent, (v) => {
+      draft.accent = v; other.hidden = v !== 'other';
+      if (v === 'other') setTimeout(() => $('#pfAccentOther') && $('#pfAccentOther').focus(), 0);
+    }, 'pfAccentLbl'),
+    other);
+}
+
+function notesField(draft) {
+  return h('label', { class: 'field', for: 'pfNotes' }, h('span', null, 'Anything the AI feedback should know ', h('span', { class: 'muted' }, '(optional)')),
+    h('textarea', { id: 'pfNotes', rows: 2, maxlength: 500, placeholder: 'e.g. I understand everything but only started speaking it recently; rhythm is my weak spot.', value: draft.notes, oninput: (e) => { draft.notes = e.target.value; } }));
+}
+
+/* a set of radio cards (one choice), styled like the rest of the app instead of a dropdown */
+function choiceGroup(name, label, options, value, onchange, labelledby) {
+  return h('div', { class: 'choices', role: 'radiogroup', 'aria-label': label || null, 'aria-labelledby': labelledby || null },
+    options.map((o) => h('label', { class: 'choice', for: `${name}-${o.value}` },
+      h('input', { type: 'radio', name, id: `${name}-${o.value}`, value: o.value, checked: o.value === value, onchange: (e) => { if (e.target.checked) onchange(o.value); } }),
+      h('span', { class: 'choice-text' }, h('strong', null, o.title), o.hint ? h('span', { class: 'small muted' }, o.hint) : null))));
 }
 
 function profileView() {
   const draft = { ...profile() };
   return h('form', { class: 'stack', onsubmit: (e) => {
     e.preventDefault();
+    if (!draft.name.trim()) { toast('Tell us what to call you.', 'bad'); return; }
+    if (!splitLanguages(draft.nativeLanguages).length) { toast('Add at least one language you speak.', 'bad'); return; }
     if (draft.accent === 'other' && !draft.accentOther.trim()) { toast('Describe the accent you’re aiming for.', 'bad'); return; }
-    saveProfile(draft);
+    saveProfile({ ...draft, name: draft.name.trim() });
     toast('Profile saved.', 'good');
     closeModal();
   } },
-  h('div', { class: 'card' }, h('h3', null, 'About you'), h('p', { class: 'small muted' }, 'Used for AI feedback, the listener pack and your check-ins.'), profileFields(draft)),
-  h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary big' }, h('span', null, 'Save profile'))));
+  h('div', { class: 'card' }, h('h3', null, 'About you'), h('p', { class: 'small muted' }, 'Used for AI feedback, the listener pack and your check-ins.'),
+    nameField(draft), nativeLanguagesField(draft), targetLanguageField(draft)),
+  h('div', { class: 'card' }, h('h3', null, 'Your target accent'), accentField(draft), notesField(draft)),
+  h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary big' }, h('span', null, 'Save profile')),
+    btn('Run the setup again', () => { closeModal(true); openOnboarding(); }, { kind: 'ghost' })));
 }
 
 /* ---- 99-main.js ---- */

@@ -149,10 +149,26 @@ section.block > .wrap > .intro { max-width: 46em; color: var(--muted); font-size
 .panel li { margin-bottom: 6px; }
 .panel.sky { background: var(--sky-soft); border-color: transparent; }
 .panel.wattle { background: var(--wattle-soft); border-color: transparent; }
-.faq { margin-top: 24px; max-width: 52em; }
-.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 4px 20px; margin-bottom: 10px; }
-.faq summary { cursor: pointer; font-weight: 800; padding: 14px 0; list-style-position: outside; }
-.faq details p { color: var(--muted); }
+.faq-wrap { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr); gap: 40px; align-items: start; }
+.faq-intro { position: sticky; top: 24px; }
+.faq-intro p { color: var(--muted); }
+.faq-more { font-weight: 700; }
+.faq { display: grid; gap: 10px; }
+.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow); transition: border-color 0.15s; }
+.faq details:hover { border-color: color-mix(in srgb, var(--line), var(--green) 40%); }
+.faq details[open] { border-color: var(--green); }
+.faq summary { cursor: pointer; font-weight: 800; font-size: 1.04rem; padding: 18px 20px; display: flex; align-items: center; gap: 16px; list-style: none; border-radius: var(--r-md); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary span { flex: 1 1 auto; }
+.faq summary i { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--green-soft); position: relative; transition: transform 0.2s ease, background-color 0.15s; }
+.faq summary i::before, .faq summary i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 2.5px; margin: -1.25px 0 0 -6px; background: var(--green-ink); border-radius: 2px; transition: transform 0.2s ease; }
+.faq summary i::after { transform: rotate(90deg); }
+.faq details[open] summary i { background: var(--green); transform: rotate(180deg); }
+.faq details[open] summary i::before, .faq details[open] summary i::after { background: var(--on-green); }
+.faq details[open] summary i::after { transform: rotate(0deg); }
+.faq summary:hover span { color: var(--green-ink); }
+.faq .a { padding: 0 20px 6px; }
+.faq .a p { color: var(--muted); margin: 0 0 14px; }
 .final { text-align: center; padding: 64px 0 8px; }
 .final .panel { padding: 40px 24px; }
 .final p { color: var(--muted); max-width: 36em; margin: 0 auto 22px; }
@@ -175,10 +191,19 @@ table.simple { border-collapse: collapse; width: 100%; margin: 12px 0 20px; font
 table.simple th, table.simple td { text-align: left; border-bottom: 1px solid var(--line); padding: 8px 10px 8px 0; vertical-align: top; }
 
 form.contact { display: grid; gap: 16px; margin-top: 24px; }
-form.contact label { display: grid; gap: 6px; font-weight: 800; font-size: 0.95rem; }
+form.contact label { display: grid; grid-template-columns: max-content 1fr; gap: 6px; font-weight: 800; font-size: 0.95rem; }
+form.contact label > :is(input, select, textarea) { grid-column: 1 / -1; }
 form.contact .opt { font-weight: 600; color: var(--muted); }
-form.contact input, form.contact select, form.contact textarea { font: inherit; color: var(--fg); background: var(--surface); border: 2px solid var(--line); border-radius: var(--r-sm); padding: 11px 13px; width: 100%; }
-form.contact input:focus, form.contact select:focus, form.contact textarea:focus { outline: none; border-color: var(--green); }
+form.contact input, form.contact select, form.contact textarea { font: inherit; font-weight: 600; color: var(--fg); background-color: var(--surface); border: 2px solid var(--line); border-radius: var(--r-sm); padding: 11px 14px; width: 100%; transition: border-color 0.15s, box-shadow 0.15s; }
+form.contact input::placeholder, form.contact textarea::placeholder { color: var(--muted); opacity: 0.75; }
+form.contact input:hover, form.contact select:hover, form.contact textarea:hover { border-color: color-mix(in srgb, var(--line), var(--muted) 35%); }
+form.contact input:focus, form.contact select:focus, form.contact textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+form.contact select {
+  appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 40px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 20px) 50%, calc(100% - 14px) 50%; background-size: 6px 6px, 6px 6px; background-repeat: no-repeat;
+}
+form.contact select option { background: var(--surface); color: var(--fg); }
 form.contact textarea { min-height: 170px; resize: vertical; }
 form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .form-status { min-height: 1.6em; font-weight: 700; }
@@ -188,6 +213,8 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
 :focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
 
 @media (max-width: 900px) {
+  .faq-wrap { grid-template-columns: 1fr; gap: 8px; }
+  .faq-intro { position: static; }
   .hero .wrap { grid-template-columns: 1fr; gap: 32px; }
   .steps { grid-template-columns: repeat(2, 1fr); }
   .cards { grid-template-columns: 1fr 1fr; }
@@ -200,7 +227,7 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
   .site-nav .hide-sm { display: none; }
   .site-foot .copy { margin-left: 0; }
 }
-@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .btn, .faq summary i, .faq summary i::before, .faq summary i::after { transition: none; } }
 </style>
 <script src="/assets/site.js" defer></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"How to improve your English accent with shadowing","description":"A practical 15-minute daily shadowing routine for your English accent: choosing clips, the four steps, recording yourself and measuring progress over 12 weeks.","inLanguage":"en","datePublished":"2026-10-14","dateModified":"2026-10-14","mainEntityOfPage":"https://shadowing.euno.cc/accent-shadowing/","image":"https://shadowing.euno.cc/assets/og.png","author":{"@type":"Organization","name":"Euno Shadowing","url":"https://shadowing.euno.cc/"},"publisher":{"@type":"Organization","name":"Euno Shadowing","url":"https://shadowing.euno.cc/","logo":{"@type":"ImageObject","url":"https://shadowing.euno.cc/assets/icon-512.png"}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Euno Shadowing","item":"https://shadowing.euno.cc/"},{"@type":"ListItem","position":2,"name":"Accent shadowing routine","item":"https://shadowing.euno.cc/accent-shadowing/"}]}]}</script>

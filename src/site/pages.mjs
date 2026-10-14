@@ -157,9 +157,15 @@ const home = {
 
 <section class="block" id="faq">
   <div class="wrap">
-    <h2>Questions</h2>
-    <div class="faq">
-      ${FAQ.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join('\n      ')}
+    <div class="faq-wrap">
+      <div class="faq-intro">
+        <h2>Questions</h2>
+        <p>The short answers. The guides go deeper on <a href="/what-is-shadowing/">what shadowing is</a> and <a href="/accent-shadowing/">the daily routine</a>.</p>
+        <p class="faq-more">Something else? <a href="/contact/">Send us a message</a>.</p>
+      </div>
+      <div class="faq">
+        ${FAQ.map(([q, a]) => `<details><summary><span>${q}</span><i aria-hidden="true"></i></summary><div class="a"><p>${a}</p></div></details>`).join('\n        ')}
+      </div>
     </div>
   </div>
 </section>

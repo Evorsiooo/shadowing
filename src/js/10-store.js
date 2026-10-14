@@ -97,7 +97,7 @@ const Api = {
       if (!(r.headers.get('content-type') || '').includes('application/json')) return false;
       const d = await r.json();
       if (!r.ok) { this.problem = d.error || `Server error ${r.status}`; return false; }
-      this.on = true; this.email = d.email; this.role = d.role || null; this.claude = !!d.claude; this.claudeModel = d.claudeModel || null;
+      this.on = true; this.email = d.email; this.name = d.name || null; this.role = d.role || null; this.claude = !!d.claude; this.claudeModel = d.claudeModel || null;
       return true;
     } catch { return false; } finally { clearTimeout(timer); }
   },
