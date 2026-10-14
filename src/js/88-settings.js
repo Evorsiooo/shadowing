@@ -67,6 +67,7 @@ function dataView() {
   const passRecs = Store.all('recordings').filter((r) => r.kind === 'pass' && !r.slot);
   return h('div', { class: 'stack' },
     h('div', { class: 'card' }, h('h3', null, 'Where your data lives'), h('p', null, storageTitle()), h('p', { class: 'small muted' }, counts), usage),
+    Store.mode === 'cloud' ? accountCard() : null,
     h('div', { class: 'card' }, h('h3', null, 'Backup'),
       h('p', { class: 'small muted' }, 'A backup holds your videos, clips, sessions, notes, issues, check-ins and settings (not the audio files). Importing adds anything missing and never overwrites.'),
       h('div', { class: 'row' },
@@ -80,6 +81,20 @@ function dataView() {
         for (const r of passRecs) { await Store.deleteBlob(r.ref); Store.data.recordings[r.id] = undefined; delete Store.data.recordings[r.id]; Store.schedule('recordings', r.id, 50); }
         toast('Removed.'); openSettings('data');
       }, { kind: 'danger' }))) : null);
+}
+
+/* signed-in account: sign out, or delete the account and everything the server keeps */
+function accountCard() {
+  const confirmInput = h('input', { type: 'email', id: 'acct-del', placeholder: Api.email || '', autocomplete: 'off', spellcheck: 'false' });
+  return h('div', { class: 'card' }, h('h3', null, 'Account'),
+    h('p', null, `Signed in with Google as ${Api.email}${Api.role === 'admin' ? ' (admin)' : ''}.`),
+    h('div', { class: 'row' }, btn('Sign out', async () => { await Store.flushAll(); location.href = '/auth/logout'; }, { size: 'sm' })),
+    h('details', null, h('summary', null, 'Delete my account'),
+      h('p', { class: 'small muted' }, 'This deletes your account and all your practice data on the server, for good. Export a backup first if you want to keep it.'),
+      h('label', { class: 'field', for: 'acct-del' }, 'Type your email address to confirm', confirmInput),
+      h('div', { class: 'row' }, btn('Delete my account', async () => {
+        try { await Api.req('DELETE', '/api/account', { confirm: confirmInput.value }); location.href = '/'; } catch (e) { toast(e.message, 'bad', 7000); }
+      }, { kind: 'danger', size: 'sm' }))));
 }
 
 async function saveText(name, text) {
@@ -140,7 +155,7 @@ async function checkStorage() {
   if (Store.mode === 'cloud') {
     await Api.req('PUT', '/api/docs/meta/probe', { at: new Date().toISOString() });
     await Api.req('DELETE', '/api/docs/meta/probe');
-    return { state: 'ok', msg: `Your Cloudflare database saves and reads back${Api.email ? ` (signed in as ${Api.email})` : ''}. Your data follows you to any device.` };
+    return { state: 'ok', msg: `Your account’s database saves and reads back${Api.email ? ` (signed in as ${Api.email})` : ''}. Your data follows you to any device.` };
   }
   if (Store.mode === 'artifact') {
     const ref = Caps.db.collection('meta').doc('probe');
