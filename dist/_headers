@@ -12,6 +12,9 @@
 /assets/*
   Cache-Control: public, max-age=86400
 
+/sw.js
+  Cache-Control: no-cache
+
 # Preview and pages.dev copies must not compete with shadowing.euno.cc in search results.
 https://:project.pages.dev/*
   X-Robots-Tag: noindex

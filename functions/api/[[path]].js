@@ -6,7 +6,8 @@ import { allDocs, putDoc, deleteDoc } from '../../server/store.js';
 import { driveStatus, driveAccessToken, disconnectDrive } from '../../server/drive.js';
 import { noteFeedback, aiAvailable, aiStatus, saveKey, setModel, removeKey, userModels, PROVIDERS } from '../../server/ai.js';
 import { adminRoute } from '../../server/admin.js';
-import { validWebhook, getPrivate, setPrivate, getSettings, buildReminder, sendReminder, sessionsAndCheckins, localNow, REMINDER_DEFAULTS } from '../../server/reminders.js';
+import { validWebhook, getPrivate, setPrivate, getSettings, buildReminder, sendReminder, sessionsAndCheckins, localNow, REMINDER_DEFAULTS, CHANNELS, getPushSubs, addPushSub, removePushSubs } from '../../server/reminders.js';
+import { pushAvailable, cleanSubscription } from '../../server/webpush.js';
 
 export async function onRequest(ctx) {
   const { request, env, params } = ctx;
@@ -107,14 +108,21 @@ async function feedbackRoute(env, user, request) {
   return json({ reply, model, provider });
 }
 
-/* Discord reminders: the webhook URL is stored server-side only; the app just sees whether one is set */
+/* Reminders. The Discord webhook URL and push subscriptions are stored server-side only;
+   the app sees whether each channel is set up, and for push, whether this device is one of them. */
 async function remindersRoute(env, user, method, rest, request) {
   const db = env.DB;
   const [action] = rest;
   if (!action && method === 'GET') {
     const url = await getPrivate(db, user.id, 'discordWebhook');
     const last = await getPrivate(db, user.id, 'reminderLast');
-    return json({ configured: !!url, hint: url ? `…${url.slice(-4)}` : null, last: last ? JSON.parse(last) : null });
+    const subs = pushAvailable(env) ? await getPushSubs(db, user.id) : [];
+    const endpoint = new URL(request.url).searchParams.get('endpoint'); // this device's subscription, if it has one
+    return json({
+      configured: !!url || subs.length > 0, hint: url ? `…${url.slice(-4)}` : null, last: last ? JSON.parse(last) : null,
+      discord: { configured: !!url, hint: url ? `…${url.slice(-4)}` : null },
+      push: { available: pushAvailable(env), publicKey: env.VAPID_PUBLIC_KEY || null, devices: subs.length, thisDevice: !!endpoint && subs.some((s) => s.endpoint === endpoint) },
+    });
   }
   if (action === 'arm' && method === 'POST') return json(await armReminders(env));
   if (!action && method === 'PUT') {
@@ -124,8 +132,23 @@ async function remindersRoute(env, user, method, rest, request) {
     await setPrivate(db, user.id, 'discordWebhook', webhook.trim());
     return json({ ok: true, configured: true, hint: `…${webhook.trim().slice(-4)}` });
   }
+  if (action === 'push' && method === 'POST') {
+    if (!pushAvailable(env)) return error(503, 'Notifications aren’t set up on the server yet.');
+    const body = await request.json().catch(() => ({}));
+    const sub = await cleanSubscription(body.subscription);
+    if (!sub) return error(400, 'The browser gave an unusable subscription. Try turning notifications off and on again.');
+    const devices = await addPushSub(db, user.id, sub, body.label);
+    return json({ ok: true, devices });
+  }
+  if (action === 'push' && method === 'DELETE') {
+    const body = await request.json().catch(() => ({}));
+    const subs = await getPushSubs(db, user.id);
+    const devices = await removePushSubs(db, user.id, body.all ? subs.map((s) => s.endpoint) : [String(body.endpoint || '')]);
+    return json({ ok: true, devices });
+  }
   if (action === 'test' && method === 'POST') {
-    if (!(await getPrivate(db, user.id, 'discordWebhook'))) return error(400, 'Save a webhook link first.');
+    const channels = await Promise.all(Object.values(CHANNELS).map((ch) => ch.target(env, user.id)));
+    if (!channels.some(Boolean)) return error(400, 'Set up Discord or notifications first.');
     // at most one test every 20 seconds per user
     const lastTest = Number(await getPrivate(db, user.id, 'reminderTestAt')) || 0;
     if (Date.now() - lastTest < 20_000) return error(429, 'Wait a few seconds before sending another test.');
@@ -136,7 +159,7 @@ async function remindersRoute(env, user, method, rest, request) {
     if (typeof body.tz === 'string') r.tz = body.tz;
     const today = localNow(r.tz).day;
     try {
-      await sendReminder(db, user.id, buildReminder(await sessionsAndCheckins(db, user.id), { ...settings, reminders: r }, { today, test: true }));
+      await sendReminder(env, user.id, buildReminder(await sessionsAndCheckins(db, user.id), { ...settings, reminders: r }, { today, test: true }));
     } catch (e) { return error(502, e.message); }
     return json({ ok: true });
   }
