@@ -6,7 +6,10 @@ import { allDocs, putDoc, deleteDoc } from '../../server/store.js';
 import { driveStatus, driveAccessToken, disconnectDrive } from '../../server/drive.js';
 import { noteFeedback, aiAvailable, aiStatus, saveKey, setModel, removeKey, userModels, PROVIDERS } from '../../server/ai.js';
 import { adminRoute } from '../../server/admin.js';
-import { validWebhook, getPrivate, setPrivate, getSettings, buildReminder, sendReminder, sessionsAndCheckins, localNow, REMINDER_DEFAULTS } from '../../server/reminders.js';
+import { listGrants, removeGrant } from '../../server/oauth.js';
+import { limit } from '../../server/limits.js';
+import { validWebhook, getPrivate, setPrivate, getSettings, buildReminder, sendReminder, sessionsAndCheckins, localNow, REMINDER_DEFAULTS, CHANNELS, getPushSubs, addPushSub, removePushSubs } from '../../server/reminders.js';
+import { pushAvailable, cleanSubscription } from '../../server/webpush.js';
 
 export async function onRequest(ctx) {
   const { request, env, params } = ctx;
@@ -34,6 +37,7 @@ export async function onRequest(ctx) {
     if (head === 'drive') return await driveRoute(env, user, method, rest);
     if (head === 'ai') return await aiRoute(env, user, method, rest, request);
     if (head === 'claude' && method === 'POST') return await feedbackRoute(env, user, request); // old name for /api/ai/feedback
+    if (head === 'connections') return await connectionsRoute(env, user, method, rest);
     if (head === 'reminders') return await remindersRoute(env, user, method, rest, request);
     if (head === 'admin') {
       // the role is read from the database on every request (requireUser), never from the browser
@@ -43,7 +47,8 @@ export async function onRequest(ctx) {
     return error(404, 'No such endpoint.');
   } catch (e) {
     console.error(e);
-    return error(e.status || 500, e.message || 'Server error');
+    // only errors raised on purpose (with a status) carry a message meant for people
+    return e.status ? error(e.status, e.message) : error(500, 'Something went wrong on the server. Try again in a moment.');
   }
 }
 
@@ -67,6 +72,8 @@ async function driveRoute(env, user, method, rest) {
   const [action] = rest;
   if (!action && method === 'GET') return json(await driveStatus(env, user.id));
   if (action === 'token' && method === 'POST') {
+    // a token lasts an hour, so even several devices need only a handful
+    await limit(env.DB, user.id, 'driveTokenRate', 120, 3600_000, 'Too many Google Drive requests in the last hour. Try again a bit later.');
     try { return json(await driveAccessToken(env, user.id)); } catch (e) { return error(e.status || 502, e.message, { reconnect: !!e.reconnect }); }
   }
   if (!action && method === 'DELETE') { await disconnectDrive(env, user.id); return json({ ok: true, connected: false }); }
@@ -107,14 +114,32 @@ async function feedbackRoute(env, user, request) {
   return json({ reply, model, provider });
 }
 
-/* Discord reminders: the webhook URL is stored server-side only; the app just sees whether one is set */
+/* AI apps connected to the MCP server (/mcp): list them and disconnect one */
+async function connectionsRoute(env, user, method, rest) {
+  const [id] = rest;
+  if (!id && method === 'GET') return json({ connections: await listGrants(env.DB, user.id) });
+  if (id && method === 'DELETE') {
+    if (!validId(id)) return error(400, 'Bad id.');
+    return (await removeGrant(env.DB, id, user.id)) ? json({ ok: true }) : error(404, 'No such connection.');
+  }
+  return error(405, 'Method not allowed.');
+}
+
+/* Reminders. The Discord webhook URL and push subscriptions are stored server-side only;
+   the app sees whether each channel is set up, and for push, whether this device is one of them. */
 async function remindersRoute(env, user, method, rest, request) {
   const db = env.DB;
   const [action] = rest;
   if (!action && method === 'GET') {
     const url = await getPrivate(db, user.id, 'discordWebhook');
     const last = await getPrivate(db, user.id, 'reminderLast');
-    return json({ configured: !!url, hint: url ? `…${url.slice(-4)}` : null, last: last ? JSON.parse(last) : null });
+    const subs = pushAvailable(env) ? await getPushSubs(db, user.id) : [];
+    const endpoint = new URL(request.url).searchParams.get('endpoint'); // this device's subscription, if it has one
+    return json({
+      configured: !!url || subs.length > 0, hint: url ? `…${url.slice(-4)}` : null, last: last ? JSON.parse(last) : null,
+      discord: { configured: !!url, hint: url ? `…${url.slice(-4)}` : null },
+      push: { available: pushAvailable(env), publicKey: env.VAPID_PUBLIC_KEY || null, devices: subs.length, thisDevice: !!endpoint && subs.some((s) => s.endpoint === endpoint) },
+    });
   }
   if (action === 'arm' && method === 'POST') return json(await armReminders(env));
   if (!action && method === 'PUT') {
@@ -124,8 +149,23 @@ async function remindersRoute(env, user, method, rest, request) {
     await setPrivate(db, user.id, 'discordWebhook', webhook.trim());
     return json({ ok: true, configured: true, hint: `…${webhook.trim().slice(-4)}` });
   }
+  if (action === 'push' && method === 'POST') {
+    if (!pushAvailable(env)) return error(503, 'Notifications aren’t set up on the server yet.');
+    const body = await request.json().catch(() => ({}));
+    const sub = await cleanSubscription(body.subscription);
+    if (!sub) return error(400, 'The browser gave an unusable subscription. Try turning notifications off and on again.');
+    const devices = await addPushSub(db, user.id, sub, body.label);
+    return json({ ok: true, devices });
+  }
+  if (action === 'push' && method === 'DELETE') {
+    const body = await request.json().catch(() => ({}));
+    const subs = await getPushSubs(db, user.id);
+    const devices = await removePushSubs(db, user.id, body.all ? subs.map((s) => s.endpoint) : [String(body.endpoint || '')]);
+    return json({ ok: true, devices });
+  }
   if (action === 'test' && method === 'POST') {
-    if (!(await getPrivate(db, user.id, 'discordWebhook'))) return error(400, 'Save a webhook link first.');
+    const channels = await Promise.all(Object.values(CHANNELS).map((ch) => ch.target(env, user.id)));
+    if (!channels.some(Boolean)) return error(400, 'Set up Discord or notifications first.');
     // at most one test every 20 seconds per user
     const lastTest = Number(await getPrivate(db, user.id, 'reminderTestAt')) || 0;
     if (Date.now() - lastTest < 20_000) return error(429, 'Wait a few seconds before sending another test.');
@@ -136,7 +176,7 @@ async function remindersRoute(env, user, method, rest, request) {
     if (typeof body.tz === 'string') r.tz = body.tz;
     const today = localNow(r.tz).day;
     try {
-      await sendReminder(db, user.id, buildReminder(await sessionsAndCheckins(db, user.id), { ...settings, reminders: r }, { today, test: true }));
+      await sendReminder(env, user.id, buildReminder(await sessionsAndCheckins(db, user.id), { ...settings, reminders: r }, { today, test: true }));
     } catch (e) { return error(502, e.message); }
     return json({ ok: true });
   }
@@ -172,6 +212,9 @@ async function supportRoute(env, request) {
   const recent = await env.DB.prepare('SELECT COUNT(*) AS n FROM support_messages WHERE created > ? AND (ip_hash = ? OR (user_id IS NOT NULL AND user_id = ?))')
     .bind(hourAgo, ipHash, auth.ok ? auth.userId : null).first();
   if (recent && recent.n >= 5) return error(429, 'You’ve sent several messages already. Try again later.');
+  // and a ceiling for everyone together, so a flood from many addresses can't fill the inbox
+  const today = await env.DB.prepare('SELECT COUNT(*) AS n FROM support_messages WHERE created > ?').bind(Date.now() - 86400_000).first();
+  if (today && today.n >= 300) return error(429, 'The contact form is busy right now. Try again tomorrow.');
   await env.DB.prepare('INSERT INTO support_messages (id, user_id, email, message, ip_hash, created) VALUES (?, ?, ?, ?, ?, ?)')
     .bind(uuid(), auth.ok ? auth.userId : null, email, message, ipHash, Date.now()).run();
   return json({ ok: true });

@@ -213,6 +213,7 @@ const Store = {
       return;
     }
     if (code === 'quota_exceeded') toast('Storage is full. Archive or remove old recordings in Settings → Data.', 'bad', 7000);
+    else if (e && (e.status === 413 || e.status === 429)) toast(e.message, 'bad', 7000); // the server's own words: account full, or slow down
     else toast(`Couldn't save a change (${code || 'error'}). It is kept on screen; try again shortly.`, 'bad');
   },
 

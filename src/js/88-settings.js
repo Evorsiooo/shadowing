@@ -26,8 +26,8 @@ const SETTING_GROUPS = [
 ];
 
 function openSettings(tab = 'practice') {
-  const tabs = [['practice', 'Practice'], ['profile', 'Profile'], ['storage', 'Storage'], ['ai', 'AI'], ['reminders', 'Reminders'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
-  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'storage' ? storageView() : tab === 'ai' ? aiPanel() : tab === 'reminders' ? remindersView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
+  const tabs = [['practice', 'Practice'], ['profile', 'Profile'], ['storage', 'Storage'], ['ai', 'AI'], ['reminders', 'Reminders'], ['apps', 'Connected apps'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
+  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'storage' ? storageView() : tab === 'ai' ? aiPanel() : tab === 'reminders' ? remindersView() : tab === 'apps' ? connectedAppsView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
   openModal([
     modalHead('Settings'),
     h('div', { class: 'tabs' }, tabs.map(([k, l]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab }))),
@@ -89,7 +89,7 @@ function accountCard() {
   const confirmInput = h('input', { type: 'email', id: 'acct-del', placeholder: Api.email || '', autocomplete: 'off', spellcheck: 'false' });
   return h('div', { class: 'card' }, h('h3', null, 'Account'),
     h('p', null, `Signed in with Google as ${Api.email}${Api.role === 'admin' ? ' (admin)' : ''}.`),
-    h('div', { class: 'row' }, btn('Sign out', async () => { await Store.flushAll(); location.href = '/auth/logout'; }, { size: 'sm' })),
+    h('div', { class: 'row' }, btn('Sign out', async () => { await Store.flushAll(); await Promise.race([Push.disable(), new Promise((r) => setTimeout(r, 3000))]).catch(() => {}); location.href = '/auth/logout'; }, { size: 'sm' })),
     h('details', null, h('summary', null, 'Delete my account'),
       h('p', { class: 'small muted' }, 'This deletes your account and all your practice data on the server, for good. Export a backup first if you want to keep it.'),
       h('label', { class: 'field', for: 'acct-del' }, 'Type your email address to confirm', confirmInput),
@@ -269,7 +269,7 @@ function openShortcuts() {
   ], { narrow: true });
 }
 
-/* ---------- Discord reminders ---------- */
+/* ---------- reminders: notifications on each device and/or Discord ---------- */
 const REMINDER_DEFAULTS = { enabled: false, time: '18:00', lateTime: '', days: [1, 2, 3, 4, 5, 6, 0], skipIfDone: true, checkins: true, discordUserId: '' };
 function reminderSettings() { return { ...REMINDER_DEFAULTS, ...(settings().reminders || {}) }; }
 function saveReminders(fields) {
@@ -284,16 +284,23 @@ function remindersView() {
     mount(wrap, h('p', { class: 'muted' }, 'Reminders need the online version of the app (they’re sent by the server).'));
     return wrap;
   }
-  let status = null; // {configured, hint, last}
+  let status = null; // {configured, last, discord: {configured, hint}, push: {available, publicKey, devices, thisDevice}}
   let replacing = false;
+  const load = async () => {
+    const sub = await Push.current().catch(() => null);
+    const d = await Api.req('GET', `/api/reminders${sub ? `?endpoint=${encodeURIComponent(sub.endpoint)}` : ''}`);
+    status = { ...d, discord: d.discord || { configured: d.configured, hint: d.hint } };
+    draw();
+  };
   const draw = () => {
     const r = reminderSettings();
+    const discord = status && status.discord;
     const hook = !status ? h('p', { class: 'small muted' }, 'Checking…')
-      : status.configured && !replacing
+      : discord.configured && !replacing
         ? h('div', { class: 'row' },
-          h('span', { class: 'chip' }, icon('check'), `Webhook saved (${status.hint})`),
+          h('span', { class: 'chip' }, icon('check'), `Webhook saved (${discord.hint})`),
           btn('Replace', () => { replacing = true; draw(); }, { size: 'sm' }),
-          btn('Remove', async () => { await Api.req('PUT', '/api/reminders', { webhook: null }); status.configured = false; saveReminders({ enabled: false }); draw(); toast('Webhook removed. Reminders are off.'); }, { size: 'sm', kind: 'ghost' }))
+          btn('Remove', async () => { await Api.req('PUT', '/api/reminders', { webhook: null }); toast('Webhook removed.'); load().catch(() => {}); }, { size: 'sm', kind: 'ghost' }))
         : (() => {
           const input = h('input', { type: 'password', id: 'rem-hook', placeholder: 'https://discord.com/api/webhooks/…', autocomplete: 'off', spellcheck: 'false' });
           return h('div', { class: 'stack' },
@@ -303,7 +310,7 @@ function remindersView() {
               btn('Save webhook', async () => {
                 try {
                   const res = await Api.req('PUT', '/api/reminders', { webhook: input.value.trim() });
-                  status = { ...status, configured: true, hint: res.hint }; replacing = false;
+                  status = { ...status, configured: true, discord: { configured: true, hint: res.hint } }; replacing = false;
                   if (!reminderSettings().enabled) saveReminders({ enabled: true });
                   draw(); toast('Webhook saved. Reminders are on.', 'good');
                 } catch (e) { toast(e.message, 'bad', 7000); }
@@ -316,8 +323,19 @@ function remindersView() {
     }, { size: 'sm', on: r.days.includes(d), pressed: r.days.includes(d) }));
     const last = status && status.last;
     mount(wrap,
-      h('p', { class: 'muted' }, 'Get a nudge in Discord when it’s time to practise, with a link straight to the app. If you’ve already practised that day, it stays quiet.'),
-      hook,
+      h('p', { class: 'muted' }, 'Get a nudge when it’s time to practise: a notification on your phone or computer, a Discord message, or both. If you’ve already practised that day, it stays quiet.'),
+      pushCard(status, { onChange: () => load().catch((e) => toast(e.message, 'bad')) }),
+      h('div', { class: 'card stack' }, h('h3', null, 'Discord'),
+        h('p', { class: 'small muted' }, 'Reminders posted to a Discord channel, with a link straight to the app.'),
+        hook,
+        h('label', { class: 'field', for: 'rem-user' }, 'Your Discord user ID (optional, to get pinged)',
+          h('input', { type: 'text', id: 'rem-user', inputmode: 'numeric', placeholder: 'e.g. 123456789012345678', value: r.discordUserId, autocomplete: 'off', spellcheck: 'false', onchange: (e) => {
+            const id = e.target.value.replace(/\s/g, '');
+            if (id && !/^\d{17,20}$/.test(id)) { toast('That doesn’t look like a Discord user ID (17 to 20 digits).', 'bad', 7000); return; }
+            saveReminders({ discordUserId: id }); toast(id ? 'You’ll be pinged in reminders.' : 'Reminders won’t ping you.');
+          } })),
+        h('p', { class: 'small muted' }, 'In Discord: Settings → Advanced → turn on Developer Mode, then right-click your name → Copy User ID. Leave empty for reminders without a ping.')),
+      h('div', { class: 'card stack' }, h('h3', null, 'When'),
       h('label', { class: 'check', for: 'rem-on' }, h('input', { type: 'checkbox', id: 'rem-on', checked: r.enabled, disabled: !(status && status.configured), onchange: (e) => { saveReminders({ enabled: e.target.checked }); draw(); } }), 'Send reminders'),
       h('div', { class: 'row' },
         h('label', { class: 'field', for: 'rem-time' }, 'Reminder time', h('input', { type: 'time', id: 'rem-time', value: r.time, step: 900, onchange: (e) => { if (e.target.value) saveReminders({ time: e.target.value }); } })),
@@ -325,22 +343,15 @@ function remindersView() {
       h('div', { class: 'stack' }, h('span', { class: 'label' }, 'Days'), h('div', { class: 'row' }, dayBtns)),
       h('label', { class: 'check', for: 'rem-skip' }, h('input', { type: 'checkbox', id: 'rem-skip', checked: r.skipIfDone, onchange: (e) => saveReminders({ skipIfDone: e.target.checked }) }), 'Skip the reminder if I’ve already practised that day'),
       h('label', { class: 'check', for: 'rem-ci' }, h('input', { type: 'checkbox', id: 'rem-ci', checked: r.checkins, onchange: (e) => saveReminders({ checkins: e.target.checked }) }), 'Mention when a check-in is due'),
-      h('label', { class: 'field', for: 'rem-user' }, 'Your Discord user ID (optional, to get pinged)',
-        h('input', { type: 'text', id: 'rem-user', inputmode: 'numeric', placeholder: 'e.g. 123456789012345678', value: r.discordUserId, autocomplete: 'off', spellcheck: 'false', onchange: (e) => {
-          const id = e.target.value.replace(/\s/g, '');
-          if (id && !/^\d{17,20}$/.test(id)) { toast('That doesn’t look like a Discord user ID (17 to 20 digits).', 'bad', 7000); return; }
-          saveReminders({ discordUserId: id }); toast(id ? 'You’ll be pinged in reminders.' : 'Reminders won’t ping you.');
-        } })),
-      h('p', { class: 'small muted' }, 'In Discord: Settings → Advanced → turn on Developer Mode, then right-click your name → Copy User ID. Leave empty for reminders without a ping.'),
       h('p', { class: 'small muted' }, `Times are in ${Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'} (this device’s time zone). Reminders go out within 15 minutes of the time you set.`),
       h('div', { class: 'row' },
         btn('Send a test', async () => {
-          try { await Api.req('POST', '/api/reminders/test', { appUrl: location.origin, tz: Intl.DateTimeFormat().resolvedOptions().timeZone }); toast('Test sent. Check Discord.', 'good'); } catch (e) { toast(e.message, 'bad', 7000); }
+          try { await Api.req('POST', '/api/reminders/test', { appUrl: location.origin, tz: Intl.DateTimeFormat().resolvedOptions().timeZone }); toast('Test sent. Check your notifications or Discord.', 'good'); } catch (e) { toast(e.message, 'bad', 7000); }
         }, { size: 'sm', icon: 'bell', disabled: !(status && status.configured) }),
-        last ? h('span', { class: 'small muted' }, `Last reminder ${fmtWhen(last.at)}: ${last.ok ? 'sent' : `failed (${last.error})`}`) : null));
+        last ? h('span', { class: 'small muted' }, `Last reminder ${fmtWhen(last.at)}: ${last.ok ? 'sent' : `failed (${last.error})`}`) : null)));
   };
   draw();
-  Api.req('GET', '/api/reminders').then((d) => { status = d; draw(); }).catch((e) => { status = { configured: false }; draw(); toast(e.message, 'bad'); });
+  load().catch((e) => { status = { configured: false, discord: { configured: false } }; draw(); toast(e.message, 'bad'); });
   return wrap;
 }
 function fmtWhen(iso) {

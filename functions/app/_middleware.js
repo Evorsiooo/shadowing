@@ -3,7 +3,11 @@ import { requireUser } from '../../server/auth.js';
 
 export async function onRequest(ctx) {
   const { request, env } = ctx;
-  const auth = await requireUser(request, env);
+  let auth;
+  try { auth = await requireUser(request, env); } catch (e) {
+    console.error(e);
+    return new Response(DOWN, { status: 503, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'retry-after': '30' } });
+  }
   if (!auth.ok && auth.status === 401) {
     const url = new URL(request.url);
     const next = encodeURIComponent(url.pathname + url.search);
@@ -16,3 +20,9 @@ export async function onRequest(ctx) {
   out.headers.set('x-robots-tag', 'noindex');
   return out;
 }
+
+// shown when the database can't be reached to check the sign-in
+const DOWN = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Back in a moment · Euno Shadowing</title>
+<style>:root{color-scheme:light dark}body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;place-items:center;min-height:100vh;padding:16px;box-sizing:border-box}main{max-width:420px}h1{font-size:1.4rem;margin:0 0 .5rem}a{color:inherit}</style>
+</head><body><main><h1>Back in a moment</h1><p>Euno Shadowing can’t reach its database right now. Your practice data is safe. Reload this page in a minute.</p><p><a href="/">Back to the home page</a></p></main></body></html>`;

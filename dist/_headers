@@ -1,4 +1,5 @@
 /*
+  Strict-Transport-Security: max-age=31536000
   X-Content-Type-Options: nosniff
   Referrer-Policy: same-origin
   X-Frame-Options: DENY
@@ -11,6 +12,9 @@
 
 /assets/*
   Cache-Control: public, max-age=86400
+
+/sw.js
+  Cache-Control: no-cache
 
 # Preview and pages.dev copies must not compete with shadowing.euno.cc in search results.
 https://:project.pages.dev/*

@@ -2,6 +2,7 @@
 // cookie sessions stored in D1. Every /api route calls requireUser(), which fails closed.
 import { uuid } from './util.js';
 import { disconnectDrive } from './drive.js';
+import { deleteUserStatements as oauthRows } from './oauth.js';
 
 export const SESSION_COOKIE = '__Host-euno_session';
 export const OAUTH_COOKIE = '__Host-euno_oauth';
@@ -209,7 +210,8 @@ export async function upsertGoogleUser(env, claims, invite) {
   }
   if (user) {
     if (user.disabled) return { error: 'This account is disabled.', code: 'disabled' };
-    const role = isAdmin ? 'admin' : user.role;
+    // ADMIN_EMAILS is the only way to be an admin, so taking an email off it takes the role away
+    const role = isAdmin ? 'admin' : user.role === 'admin' ? 'user' : user.role;
     await db.prepare('UPDATE users SET email = ?, name = ?, picture = ?, role = ?, last_seen = ? WHERE id = ?')
       .bind(email, claims.name || null, claims.picture || null, role, now, user.id).run();
     return { user: { ...user, email, role } };
@@ -245,6 +247,7 @@ export async function deleteUser(env, userId) {
     db.prepare('DELETE FROM docs WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM private WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM sessions WHERE user_id = ?').bind(userId),
+    ...oauthRows(db, userId), // apps connected to the MCP server
     db.prepare('UPDATE support_messages SET user_id = NULL WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM users WHERE id = ?').bind(userId),
   ]);

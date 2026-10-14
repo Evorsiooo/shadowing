@@ -43,11 +43,15 @@ for (const [m, p] of [['GET', '/api/admin/users'], ['GET', '/api/admin/signup'],
 check((await fetch(`${BASE}/api/admin/users`)).status === 401, 'no cookie, no admin');
 check((await Admin.call('PUT', '/api/admin/signup', { mode: 'open' }, { origin: 'https://evil.example' })).status === 403, 'cross-site admin writes are refused');
 
-// users
+// users (Drive and AI key show as yes/provider, never their secret values)
+sql(`INSERT INTO private (user_id, key, value, updated_at) VALUES ('${U.id}', 'drive', '{"token":"SEALED-DRIVE-SECRET","email":"u@example.com"}', 0), ('${U.id}', 'ai', '{"provider":"openai","model":"m","ct":"SEALED-AI-SECRET"}', 0)`);
 const users = (await Admin.call('GET', '/api/admin/users')).data.users;
 const u = users.find((x) => x.id === U.id);
 check(u && u.email === U.email && typeof u.sessions === 'number', 'the user list has each account with a session count');
 check(users.find((x) => x.id === Admin.id).self === true, 'the admin’s own row is marked');
+check(u.drive === true && u.ai === 'openai', 'the user list shows Drive connected and the AI provider');
+check(users.find((x) => x.id === Admin.id).drive === false && users.find((x) => x.id === Admin.id).ai === null, 'users without Drive or a key show as not set');
+check(!JSON.stringify(users).includes('SEALED-'), 'the user list never includes the sealed Drive token or AI key');
 check(!JSON.stringify(users).includes('google_sub') && !JSON.stringify(users).includes('sub-'), 'the user list leaves out Google ids');
 check((await Admin.call('PATCH', `/api/admin/users/${Admin.id}`, { disabled: true })).status === 400, 'the admin can’t disable themselves');
 check((await Admin.call('PATCH', `/api/admin/users/${U.id}`, { disabled: true })).status === 200, 'the admin disables U');
