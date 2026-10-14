@@ -324,7 +324,7 @@ const Store = {
   },
   async importJSON(text) {
     const parsed = JSON.parse(text);
-    if (!parsed || parsed.app !== 'shadowing-practice' || !parsed.data) throw new Error('This file is not a Shadowing Practice backup.');
+    if (!parsed || parsed.app !== 'shadowing-practice' || !parsed.data) throw new Error('This file is not a Euno Shadowing backup.');
     let n = 0;
     for (const col of COLS) {
       for (const [id, doc] of Object.entries(parsed.data[col] || {})) {

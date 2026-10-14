@@ -17,7 +17,7 @@ function noteForm(ctx) {
       askBtn.disabled = true;
       mount(status, h('span', { class: 'muted' }, 'Thinking…'));
       try {
-        const { reply } = await Api.req('POST', '/api/claude', { sentence: D.sentence, off: D.off, aim: D.aim, issues: issueNames });
+        const { reply } = await Api.req('POST', '/api/claude', { sentence: D.sentence, off: D.off, aim: D.aim, issues: issueNames, profile: profileForAI() });
         D.reply = normaliseReply(reply);
         if (D.reply.issue && !D.issue) { D.issue = D.reply.issue; const inp = $(`#issue-${key}`); if (inp) inp.value = D.issue; }
         status.replaceChildren();
@@ -90,29 +90,41 @@ function replyView(r) {
     r.issue ? h('p', { class: 'small muted' }, 'Suggested issue: ', h('span', { class: 'issue-pill' }, r.issue)) : null);
 }
 
-function claudePrompt(D, issueNames) {
-  return `You are helping Adrien with shadowing practice. Adrien is 18, a French-Australian heritage speaker of English: his comprehension is native-level and he hears his own errors well, but he only started speaking English regularly at 17 and a half. He is moving his accent towards General Australian English (his model speaker is Oscar Piastri). His differences are mostly in rhythm, stress and melody rather than individual words.
+/* who the learner is, from their profile (the server builds the same text in server/claude.js) */
+function learnerLine(P) {
+  const native = P.nativeLanguages ? `Their native language: ${P.nativeLanguages}.` : '';
+  return `The learner is moving their ${P.targetLanguage} accent towards ${P.accent}. ${native}${P.notes ? ` About them: ${P.notes}` : ''}`.trim();
+}
+function spellingLine(P) {
+  return P.spelling ? `Answer in ${P.spelling} spelling, plainly` : 'Answer plainly';
+}
 
-Answer in Australian spelling, plainly, with no linguistics jargon: if you need to name a sound, describe it with everyday example words. If his description is too ambiguous to work out, do not guess: set "unsure" to true and ask what he meant.
+function claudePrompt(D, issueNames) {
+  const P = profileForAI();
+  return `You are helping a learner with shadowing practice: they repeat a model speaker's clip to pick up the accent, rhythm and melody. ${learnerLine(P)}
+
+${spellingLine(P)}, with no linguistics jargon: if you need to name a sound, describe it with everyday example words. If their description is too ambiguous to work out, do not guess: set "unsure" to true and ask what they meant.
 
 Sentence being practised: ${D.sentence.trim() || '(not given)'}
 What sounded off: ${D.off.trim()}
-What he was aiming for: ${D.aim.trim() || '(not given)'}
-Issue names he already tracks: ${issueNames.length ? issueNames.join('; ') : '(none yet)'}
+What they were aiming for: ${D.aim.trim() || '(not given)'}
+Issue names they already track: ${issueNames.length ? issueNames.join('; ') : '(none yet)'}
 
 Reply with only a JSON object, no other text:
-{"feature": "the likely General Australian English feature behind this, 1-2 sentences", "change": "what to change in his speech, 1-3 sentences", "listenFor": "what to listen for in the model clip, 1-2 sentences", "issue": "a short name (max 5 words) for this as a recurring problem; reuse one of his existing issue names if it fits", "unsure": false, "question": ""}
+{"feature": "the likely ${P.accent} feature behind this, 1-2 sentences", "change": "what to change in their speech, 1-3 sentences", "listenFor": "what to listen for in the model clip, 1-2 sentences", "issue": "a short name (max 5 words) for this as a recurring problem; reuse one of their existing issue names if it fits", "unsure": false, "question": ""}
 If unsure, use {"unsure": true, "question": "I don't know ... what did you mean by ...?", "feature": "", "change": "", "listenFor": "", "issue": ""}.`;
 }
 
 function claudePromptPlain(D) {
-  return `I'm Adrien, 18, a French-Australian heritage speaker doing shadowing practice to move my accent towards General Australian English (model speaker: Oscar Piastri). My comprehension is native-level; my accent differences are mostly in rhythm, stress and melody. Please answer in Australian spelling, plainly, no jargon. If my description is too ambiguous, say "I don't know" and ask what I meant.
+  const P = profileForAI();
+  const native = P.nativeLanguages ? ` My native language is ${P.nativeLanguages}.` : '';
+  return `I'm doing shadowing practice to move my ${P.targetLanguage} accent towards ${P.accent}.${native}${P.notes ? ` ${P.notes}` : ''} Please ${P.spelling ? `answer in ${P.spelling} spelling, ` : ''}plainly, no jargon. If my description is too ambiguous, say "I don't know" and ask what I meant.
 
 Sentence: ${D.sentence.trim() || '(not given)'}
 What sounded off: ${D.off.trim()}
 What I was aiming for: ${D.aim.trim() || '(not given)'}
 
-Tell me: 1) the likely Australian English feature, 2) what to change, 3) what to listen for in the model clip.`;
+Tell me: 1) the likely ${P.accent} feature, 2) what to change, 3) what to listen for in the model clip.`;
 }
 
 function openCopyPrompt(D, issueNames, onDone) {
