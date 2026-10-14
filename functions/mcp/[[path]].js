@@ -156,6 +156,7 @@ const TOOLS = [
     run: async (a, env) => {
       const sql = String(a.sql || '').trim().replace(/;\s*$/, '');
       if (!/^(select|with)\b/i.test(sql) || sql.includes(';') || /\b(insert|update|delete|drop|alter|create|replace|pragma|attach|vacuum)\b/i.test(sql)) throw new Error('Only a single SELECT query is allowed.');
+      if (/\b(private|sqlite_\w+|_cf_\w+|d1_\w+)\b/i.test(sql)) throw new Error('Only the docs table can be queried.');
       const { results } = await env.DB.prepare(sql).all();
       return results.slice(0, 1000);
     },

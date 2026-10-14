@@ -527,6 +527,7 @@ function mount(el, ...kids) {
 
 /* ---------- icons (inline SVG, stroke-based) ---------- */
 const ICONS = {
+  bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
   play: '<path d="M7 4.5v15l12.5-7.5z" fill="currentColor" stroke="none"/>',
   pause: '<rect x="6" y="4.5" width="4.2" height="15" rx="1.2" fill="currentColor" stroke="none"/><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.2" fill="currentColor" stroke="none"/>',
   replay: '<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/>',
@@ -4819,8 +4820,8 @@ const SETTING_GROUPS = [
 ];
 
 function openSettings(tab = 'practice') {
-  const tabs = [['practice', 'Practice'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
-  const body = tab === 'practice' ? settingsForm() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
+  const tabs = [['practice', 'Practice'], ['reminders', 'Reminders'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
+  const body = tab === 'practice' ? settingsForm() : tab === 'reminders' ? remindersView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
   openModal([
     modalHead('Settings'),
     h('div', { class: 'tabs' }, tabs.map(([k, l]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab }))),
@@ -5042,6 +5043,78 @@ function openShortcuts() {
       h('span', null, K('Esc')), h('span', null, 'Close a window, or cancel a new clip'),
       h('span', null, K('?')), h('span', null, 'Show this help')),
   ], { narrow: true });
+}
+
+/* ---------- Discord reminders ---------- */
+const REMINDER_DEFAULTS = { enabled: false, time: '18:00', lateTime: '', days: [1, 2, 3, 4, 5, 6, 0], skipIfDone: true, checkins: true };
+function reminderSettings() { return { ...REMINDER_DEFAULTS, ...(settings().reminders || {}) }; }
+function saveReminders(fields) {
+  // the reminder Worker needs the time zone and the app's address; take them from this device
+  saveSettings({ reminders: { ...reminderSettings(), ...fields, tz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', appUrl: location.origin } });
+  Api.req('POST', '/api/reminders/arm').catch(() => {}); // make sure the schedule is running
+}
+
+function remindersView() {
+  const wrap = h('div', { class: 'stack' });
+  if (Store.mode !== 'cloud') {
+    mount(wrap, h('p', { class: 'muted' }, 'Reminders need the online version of the app (they’re sent by the server).'));
+    return wrap;
+  }
+  let status = null; // {configured, hint, last}
+  let replacing = false;
+  const draw = () => {
+    const r = reminderSettings();
+    const hook = !status ? h('p', { class: 'small muted' }, 'Checking…')
+      : status.configured && !replacing
+        ? h('div', { class: 'row' },
+          h('span', { class: 'chip' }, icon('check'), `Webhook saved (${status.hint})`),
+          btn('Replace', () => { replacing = true; draw(); }, { size: 'sm' }),
+          btn('Remove', async () => { await Api.req('PUT', '/api/reminders', { webhook: null }); status.configured = false; saveReminders({ enabled: false }); draw(); toast('Webhook removed. Reminders are off.'); }, { size: 'sm', kind: 'ghost' }))
+        : (() => {
+          const input = h('input', { type: 'password', id: 'rem-hook', placeholder: 'https://discord.com/api/webhooks/…', autocomplete: 'off', spellcheck: 'false' });
+          return h('div', { class: 'stack' },
+            h('label', { class: 'field', for: 'rem-hook' }, 'Discord webhook link', input),
+            h('p', { class: 'small muted' }, 'In Discord: Server settings → Integrations → Webhooks → New Webhook, choose the channel, then Copy Webhook URL. It’s stored on the server only and never shown again.'),
+            h('div', { class: 'row' },
+              btn('Save webhook', async () => {
+                try {
+                  const res = await Api.req('PUT', '/api/reminders', { webhook: input.value.trim() });
+                  status = { ...status, configured: true, hint: res.hint }; replacing = false;
+                  if (!reminderSettings().enabled) saveReminders({ enabled: true });
+                  draw(); toast('Webhook saved. Reminders are on.', 'good');
+                } catch (e) { toast(e.message, 'bad', 7000); }
+              }, { kind: 'primary', size: 'sm' }),
+              replacing ? btn('Cancel', () => { replacing = false; draw(); }, { size: 'sm', kind: 'ghost' }) : null));
+        })();
+    const dayBtns = [1, 2, 3, 4, 5, 6, 0].map((d) => btn(DAYS[d], () => {
+      const days = r.days.includes(d) ? r.days.filter((x) => x !== d) : [...r.days, d];
+      saveReminders({ days }); draw();
+    }, { size: 'sm', on: r.days.includes(d), pressed: r.days.includes(d) }));
+    const last = status && status.last;
+    mount(wrap,
+      h('p', { class: 'muted' }, 'Get a nudge in Discord when it’s time to practise, with a link straight to the app. If you’ve already practised that day, it stays quiet.'),
+      hook,
+      h('label', { class: 'check', for: 'rem-on' }, h('input', { type: 'checkbox', id: 'rem-on', checked: r.enabled, disabled: !(status && status.configured), onchange: (e) => { saveReminders({ enabled: e.target.checked }); draw(); } }), 'Send reminders'),
+      h('div', { class: 'row' },
+        h('label', { class: 'field', for: 'rem-time' }, 'Reminder time', h('input', { type: 'time', id: 'rem-time', value: r.time, step: 900, onchange: (e) => { if (e.target.value) saveReminders({ time: e.target.value }); } })),
+        h('label', { class: 'field', for: 'rem-late' }, 'Second nudge if I still haven’t (optional)', h('input', { type: 'time', id: 'rem-late', value: r.lateTime, step: 900, onchange: (e) => saveReminders({ lateTime: e.target.value || '' }) }))),
+      h('div', { class: 'stack' }, h('span', { class: 'label' }, 'Days'), h('div', { class: 'row' }, dayBtns)),
+      h('label', { class: 'check', for: 'rem-skip' }, h('input', { type: 'checkbox', id: 'rem-skip', checked: r.skipIfDone, onchange: (e) => saveReminders({ skipIfDone: e.target.checked }) }), 'Skip the reminder if I’ve already practised that day'),
+      h('label', { class: 'check', for: 'rem-ci' }, h('input', { type: 'checkbox', id: 'rem-ci', checked: r.checkins, onchange: (e) => saveReminders({ checkins: e.target.checked }) }), 'Mention when a check-in is due'),
+      h('p', { class: 'small muted' }, `Times are in ${Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'} (this device’s time zone). Reminders go out within 15 minutes of the time you set.`),
+      h('div', { class: 'row' },
+        btn('Send a test', async () => {
+          try { await Api.req('POST', '/api/reminders/test', { appUrl: location.origin, tz: Intl.DateTimeFormat().resolvedOptions().timeZone }); toast('Test sent. Check Discord.', 'good'); } catch (e) { toast(e.message, 'bad', 7000); }
+        }, { size: 'sm', icon: 'bell', disabled: !(status && status.configured) }),
+        last ? h('span', { class: 'small muted' }, `Last reminder ${fmtWhen(last.at)}: ${last.ok ? 'sent' : `failed (${last.error})`}`) : null));
+  };
+  draw();
+  Api.req('GET', '/api/reminders').then((d) => { status = d; draw(); }).catch((e) => { status = { configured: false }; draw(); toast(e.message, 'bad'); });
+  return wrap;
+}
+function fmtWhen(iso) {
+  const d = new Date(iso);
+  return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 /* ---- 99-main.js ---- */

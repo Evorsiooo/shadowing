@@ -36,6 +36,7 @@ function mount(el, ...kids) {
 
 /* ---------- icons (inline SVG, stroke-based) ---------- */
 const ICONS = {
+  bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
   play: '<path d="M7 4.5v15l12.5-7.5z" fill="currentColor" stroke="none"/>',
   pause: '<rect x="6" y="4.5" width="4.2" height="15" rx="1.2" fill="currentColor" stroke="none"/><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.2" fill="currentColor" stroke="none"/>',
   replay: '<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/>',

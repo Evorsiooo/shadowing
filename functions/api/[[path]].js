@@ -3,6 +3,7 @@ import { verifyAccess } from '../../server/auth.js';
 import { json, error, validCol, validId, validKey, uuid, extFor, cleanType } from '../../server/util.js';
 import { allDocs, putDoc, deleteDoc, serveFile } from '../../server/store.js';
 import { noteFeedback, claudeConfigured, claudeModel } from '../../server/claude.js';
+import { validWebhook, getPrivate, setPrivate, buildMessage, postDiscord, sessionsAndCheckins, localNow, REMINDER_DEFAULTS } from '../../server/reminders.js';
 
 const PART_MAX = 95 * 1024 * 1024; // Workers request bodies are capped at 100 MB
 const SINGLE_MAX = 95 * 1024 * 1024;
@@ -16,6 +17,7 @@ export async function onRequest(ctx) {
   try {
     const [head, ...rest] = path;
     if (head === 'health' && method === 'GET') {
+      ctx.waitUntil(armReminders(env)); // keeps the reminder schedule running (cheap; no-op when already armed)
       return json({ ok: true, email: auth.email, claude: claudeConfigured(env), claudeModel: claudeModel(env), files: !!env.FILES, db: !!env.DB });
     }
     if (head === 'docs') return await docsRoute(env, method, rest, request);
@@ -23,6 +25,7 @@ export async function onRequest(ctx) {
     if (head === 'uploads') return await uploadsRoute(env, method, rest, request);
     if (head === 'import' && method === 'POST') return await importRoute(env, request);
     if (head === 'claude' && method === 'POST') return await claudeRoute(env, request);
+    if (head === 'reminders') return await remindersRoute(env, method, rest, request);
     return error(404, 'No such endpoint.');
   } catch (e) {
     console.error(e);
@@ -126,4 +129,48 @@ async function claudeRoute(env, request) {
   if (!body.off || typeof body.off !== 'string') return error(400, 'Describe what sounded off first.');
   const reply = await noteFeedback(env, body);
   return json({ reply });
+}
+
+/* Discord reminders: the webhook URL is stored server-side only; the app just sees whether one is set */
+async function remindersRoute(env, method, rest, request) {
+  const [action] = rest;
+  if (!action && method === 'GET') {
+    const url = await getPrivate(env.DB, 'discordWebhook');
+    const last = await getPrivate(env.DB, 'reminderLast');
+    return json({ configured: !!url, hint: url ? `…${url.slice(-4)}` : null, last: last ? JSON.parse(last) : null });
+  }
+  if (action === 'arm' && method === 'POST') return json(await armReminders(env));
+  if (!action && method === 'PUT') {
+    const { webhook } = await request.json().catch(() => ({}));
+    if (webhook === null || webhook === '') { await setPrivate(env.DB, 'discordWebhook', null); return json({ ok: true, configured: false }); }
+    if (!validWebhook(webhook)) return error(400, 'That isn’t a Discord webhook link. In Discord: channel settings → Integrations → Webhooks → Copy Webhook URL.');
+    await setPrivate(env.DB, 'discordWebhook', webhook.trim());
+    return json({ ok: true, configured: true, hint: `…${webhook.trim().slice(-4)}` });
+  }
+  if (action === 'test' && method === 'POST') {
+    const url = await getPrivate(env.DB, 'discordWebhook');
+    if (!url) return error(400, 'Save a webhook link first.');
+    const body = await request.json().catch(() => ({}));
+    const row = await env.DB.prepare("SELECT data FROM docs WHERE col = 'meta' AND id = 'settings'").first();
+    const settings = row ? JSON.parse(row.data) : {};
+    const r = { ...REMINDER_DEFAULTS, ...(settings.reminders || {}), ...(typeof body.appUrl === 'string' && /^https:\/\//.test(body.appUrl) ? { appUrl: body.appUrl } : {}) };
+    if (typeof body.tz === 'string') r.tz = body.tz;
+    const today = localNow(r.tz).day;
+    try {
+      await postDiscord(url, buildMessage(await sessionsAndCheckins(env.DB), { ...settings, reminders: r }, { today, test: true }));
+    } catch (e) { return error(502, e.message); }
+    return json({ ok: true });
+  }
+  return error(405, 'Method not allowed.');
+}
+
+async function armReminders(env) {
+  if (!env.REMINDERS) return { ok: false, error: 'The reminders worker isn’t connected.' };
+  try {
+    const r = await env.REMINDERS.fetch('https://reminders/arm', { method: 'POST' });
+    return await r.json();
+  } catch (e) {
+    console.error('arming reminders failed', e);
+    return { ok: false, error: e.message };
+  }
 }
