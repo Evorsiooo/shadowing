@@ -107,7 +107,7 @@ The guided session controls sit next to the player. On phone width the sidebar c
 
 ## Reminders
 
-Per user, in Settings → Reminders. Today the one channel is a Discord webhook, with an optional Discord user id so the message pings that person. Each user picks the time, an optional second "still time" nudge, the days, and whether to skip days already practised; reminders mention a due check-in. "Send a test" posts straight away. The reminders Worker runs every 15 minutes. Channels sit behind one interface (`server/reminders.js`), so push notifications can be added later.
+Per user, in Settings → Reminders, on two channels that share one schedule: a Discord webhook (with an optional Discord user id so the message pings that person) and push notifications on any device the user turns them on for, up to 10 devices ([PUSH.md](PUSH.md)). On iPhone and iPad, push works once the site is added to the Home Screen. Each user picks the time, an optional second "still time" nudge, the days, and whether to skip days already practised; reminders mention a due check-in. "Send a test" sends straight away. The reminders Worker runs every 15 minutes. Channels sit behind one interface (`server/reminders.js`), so more can be added.
 
 ## Accounts and admin
 
@@ -120,7 +120,7 @@ Per user, in Settings → Reminders. Today the one channel is a Discord webhook,
 |-|-|
 | Videos, clips, sessions, notes, issues, check-ins, settings | The `docs` table in Cloudflare D1, one JSON document per record, keyed by user |
 | Video files and voice recordings | The user's Google Drive ("Euno Shadowing" folder, `drive.file` scope) with a cache in the browser; or, as an opt-in, only in the browser. Never on the server. |
-| AI key, Drive refresh token, Discord webhook | The `private` table, never returned by the docs API. Keys and tokens are sealed with AES-GCM under `KEY_ENCRYPTION_KEY`. |
+| AI key, Drive refresh token, Discord webhook, push subscriptions | The `private` table, never returned by the docs API. Keys and tokens are sealed with AES-GCM under `KEY_ENCRYPTION_KEY`. |
 | Accounts, sessions, invites, contact messages | `users`, `sessions`, `invites`, `support_messages`, `config` |
 
 Backup: Settings → Data exports everything as JSON.
@@ -137,6 +137,7 @@ These keep one account or one visitor from running up costs or filling the datab
 | Loading the provider's model list | 30 per user per hour |
 | Google Drive access tokens | 120 per user per hour |
 | Test reminder | 1 per user per 20 seconds |
+| Push notification devices | 10 per user |
 | Contact form | 5 per hour per address or account, 300 per day in total, plus a hidden honeypot field. Cloudflare Turnstile is supported when `TURNSTILE_SECRET` is set. |
 
 ## Look and feel
@@ -147,7 +148,7 @@ Friendly and game-like (Duolingo-inspired, with no Duolingo branding): rounded s
 
 * More target languages (French, Spanish, Japanese and others).
 * Dropbox and OneDrive next to Google Drive.
-* Push notifications and other reminder channels.
+* More reminder channels.
 * A per-user MCP connector so each person can connect Claude to their own data (the original single-user one was removed).
 
 ## Out of scope
