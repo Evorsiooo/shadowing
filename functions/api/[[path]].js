@@ -6,6 +6,7 @@ import { allDocs, putDoc, deleteDoc } from '../../server/store.js';
 import { driveStatus, driveAccessToken, disconnectDrive } from '../../server/drive.js';
 import { noteFeedback, aiAvailable, aiStatus, saveKey, setModel, removeKey, userModels, PROVIDERS } from '../../server/ai.js';
 import { adminRoute } from '../../server/admin.js';
+import { listGrants, removeGrant } from '../../server/oauth.js';
 import { validWebhook, getPrivate, setPrivate, getSettings, buildReminder, sendReminder, sessionsAndCheckins, localNow, REMINDER_DEFAULTS } from '../../server/reminders.js';
 
 export async function onRequest(ctx) {
@@ -34,6 +35,7 @@ export async function onRequest(ctx) {
     if (head === 'drive') return await driveRoute(env, user, method, rest);
     if (head === 'ai') return await aiRoute(env, user, method, rest, request);
     if (head === 'claude' && method === 'POST') return await feedbackRoute(env, user, request); // old name for /api/ai/feedback
+    if (head === 'connections') return await connectionsRoute(env, user, method, rest);
     if (head === 'reminders') return await remindersRoute(env, user, method, rest, request);
     if (head === 'admin') {
       // the role is read from the database on every request (requireUser), never from the browser
@@ -105,6 +107,17 @@ async function feedbackRoute(env, user, request) {
   if (!body.off || typeof body.off !== 'string') return error(400, 'Describe what sounded off first.');
   const { reply, model, provider } = await noteFeedback(env, user.id, body);
   return json({ reply, model, provider });
+}
+
+/* AI apps connected to the MCP server (/mcp): list them and disconnect one */
+async function connectionsRoute(env, user, method, rest) {
+  const [id] = rest;
+  if (!id && method === 'GET') return json({ connections: await listGrants(env.DB, user.id) });
+  if (id && method === 'DELETE') {
+    if (!validId(id)) return error(400, 'Bad id.');
+    return (await removeGrant(env.DB, id, user.id)) ? json({ ok: true }) : error(404, 'No such connection.');
+  }
+  return error(405, 'Method not allowed.');
 }
 
 /* Discord reminders: the webhook URL is stored server-side only; the app just sees whether one is set */

@@ -2,6 +2,7 @@
 // cookie sessions stored in D1. Every /api route calls requireUser(), which fails closed.
 import { uuid } from './util.js';
 import { disconnectDrive } from './drive.js';
+import { deleteUserStatements as oauthRows } from './oauth.js';
 
 export const SESSION_COOKIE = '__Host-euno_session';
 export const OAUTH_COOKIE = '__Host-euno_oauth';
@@ -245,6 +246,7 @@ export async function deleteUser(env, userId) {
     db.prepare('DELETE FROM docs WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM private WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM sessions WHERE user_id = ?').bind(userId),
+    ...oauthRows(db, userId), // apps connected to the MCP server
     db.prepare('UPDATE support_messages SET user_id = NULL WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM users WHERE id = ?').bind(userId),
   ]);

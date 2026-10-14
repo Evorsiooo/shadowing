@@ -26,7 +26,7 @@ Everything runs on one Cloudflare account, mostly within the free tier:
 | **D1** | The database: every app record is a JSON document (`migrations/0001_init.sql`) |
 | **Device storage + Google Drive** | Videos and voice recordings stay in the browser's own storage on each device, with optional sync to the user's Google Drive (`src/js/17-media.js`, `server/drive.js`, [docs/STORAGE.md](docs/STORAGE.md)). The server never holds them. R2 is read-only until the old files are moved out. |
 | **AI (optional)** | "Ask AI" on notes, through the server (`server/ai.js`) with each user's own Anthropic, OpenAI or OpenRouter key, stored encrypted under the `KEY_ENCRYPTION_KEY` secret |
-| **MCP server** | `/mcp/<secret>` gives Claude read/write access to all data and recordings (`functions/mcp/`) |
+| **MCP server** | `/mcp` lets each user connect Claude, ChatGPT or Gemini to read their own practice data, signed in with OAuth ([docs/MCP.md](docs/MCP.md)) |
 | **Reminders Worker** | `workers/reminders/`: posts practice reminders to a Discord webhook. A Durable Object alarm wakes it every 15 minutes (the account's free cron triggers are used elsewhere); the API re-arms it on every app load through the `REMINDERS` service binding. The webhook URL sits in D1's `private` table, which the docs API and MCP never return. Deploy changes with `npm run deploy:reminders`. |
 
 ### Public site
@@ -45,7 +45,7 @@ All routes need a valid Access sign-in.
 
 ### MCP tools
 
-`get_overview`, `list_records`, `get_record`, `put_record`, `delete_record`, `query_sql` (read-only), `list_files`, `get_file` (download link, or inline audio).
+All read-only and scoped to the signed-in user: `get_overview`, `list_records`, `get_record`, `search`, `fetch`. See [docs/MCP.md](docs/MCP.md).
 
 ## Setting it up
 
@@ -93,7 +93,8 @@ npm run dev        # http://localhost:8788
 | Server file | What it does |
 |-|-|
 | `functions/api/[[path]].js` | API routes |
-| `functions/mcp/[[path]].js` | MCP server |
+| `functions/mcp.js`, `server/mcp.js` | MCP server and its tools |
+| `functions/oauth/`, `functions/.well-known/`, `server/oauth.js` | OAuth for the MCP server |
 | `server/auth.js` | Cloudflare Access token check |
 | `server/store.js` | D1 documents |
 | `server/drive.js` | Google Drive connection: sealed refresh token, short-lived access tokens |
