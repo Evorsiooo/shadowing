@@ -105,6 +105,7 @@ async function boot() {
   renderControls();
   mount($('#panel'), h('div', { class: 'panel-msg' }, t('Loading your practice data…')));
   await Store.init();
+  syncUiLangSetting();
   if (Store.mode === 'offline') {
     mount($('#panel'), h('div', { class: 'panel-msg' }, t('Not connected.')));
     openModal([

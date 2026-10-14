@@ -10,8 +10,12 @@ import { listGrants, removeGrant } from '../../server/oauth.js';
 import { limit } from '../../server/limits.js';
 import { validWebhook, getPrivate, setPrivate, getSettings, buildReminder, sendReminder, sessionsAndCheckins, localNow, REMINDER_DEFAULTS, CHANNELS, getPushSubs, addPushSub, removePushSubs } from '../../server/reminders.js';
 import { pushAvailable, cleanSubscription } from '../../server/webpush.js';
+import { requestLang, localise, translateMessage } from '../../server/i18n.js';
 
-export async function onRequest(ctx) {
+// error messages go out in the user's language (server/i18n.js)
+export async function onRequest(ctx) { return localise(await handle(ctx), requestLang(ctx.request)); }
+
+async function handle(ctx) {
   const { request, env, params } = ctx;
   if (!sameOrigin(request)) return error(403, 'Cross-site request refused.');
   const path = Array.isArray(params.path) ? params.path : [];
@@ -136,7 +140,7 @@ async function remindersRoute(env, user, method, rest, request) {
     const subs = pushAvailable(env) ? await getPushSubs(db, user.id) : [];
     const endpoint = new URL(request.url).searchParams.get('endpoint'); // this device's subscription, if it has one
     return json({
-      configured: !!url || subs.length > 0, hint: url ? `…${url.slice(-4)}` : null, last: last ? JSON.parse(last) : null,
+      configured: !!url || subs.length > 0, hint: url ? `…${url.slice(-4)}` : null, last: last ? lastReminder(JSON.parse(last), requestLang(request)) : null,
       discord: { configured: !!url, hint: url ? `…${url.slice(-4)}` : null },
       push: { available: pushAvailable(env), publicKey: env.VAPID_PUBLIC_KEY || null, devices: subs.length, thisDevice: !!endpoint && subs.some((s) => s.endpoint === endpoint) },
     });
@@ -230,3 +234,6 @@ async function armReminders(env) {
     return { ok: false, error: e.message };
   }
 }
+
+// the last reminder's outcome, with its error (written by the scheduled run, in English) in the user's language
+function lastReminder(last, lang) { return last && last.error ? { ...last, error: translateMessage(lang, last.error) } : last; }

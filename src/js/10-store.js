@@ -71,7 +71,8 @@ const Api = {
     try {
       resp = await fetch(path, {
         method, credentials: 'same-origin', redirect: 'manual',
-        headers: body != null && !raw ? { 'content-type': 'application/json', ...headers } : headers,
+        // x-euno-lang: the server answers its messages in the interface language
+        headers: body != null && !raw ? { 'content-type': 'application/json', 'x-euno-lang': LANG, ...headers } : { 'x-euno-lang': LANG, ...headers },
         body: body == null ? undefined : raw ? body : JSON.stringify(body),
       });
     } catch (e) {

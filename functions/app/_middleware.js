@@ -1,12 +1,13 @@
 // /app/* — the app itself. Signed-out visitors are sent to Google sign-in and come back here.
 import { requireUser } from '../../server/auth.js';
+import { requestLang, localise } from '../../server/i18n.js';
 
 export async function onRequest(ctx) {
   const { request, env } = ctx;
   let auth;
   try { auth = await requireUser(request, env); } catch (e) {
     console.error(e);
-    return new Response(DOWN, { status: 503, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'retry-after': '30' } });
+    return localise(new Response(DOWN, { status: 503, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'retry-after': '30' } }), requestLang(request));
   }
   if (!auth.ok && auth.status === 401) {
     const url = new URL(request.url);

@@ -2,7 +2,7 @@
 <html lang="en-AU">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-CCRULp2fgpH2ml+CzyknpOYegjr5wH9hcTXK5KkHuC4=' 'sha256-QGRSyVcMKyam86HFTNW0dwMJAcZEjiR4otwBUgKEjX4='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https: http:; connect-src 'self' data: blob: https:; worker-src 'self' blob:; form-action 'self'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-CCRULp2fgpH2ml+CzyknpOYegjr5wH9hcTXK5KkHuC4=' 'sha256-jb3op2ZttYpS2xo3k9I5fMDGMjy3Uy5g+aKUFH3wj6Y='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https: http:; connect-src 'self' data: blob: https:; worker-src 'self' blob:; form-action 'self'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
@@ -851,6 +851,13 @@ function detectUiLang() {
 let LANG = detectUiLang();
 function uiLocale() { return UI_LOCALES[LANG] || 'en-AU'; }
 document.documentElement.lang = uiLocale();
+/* the server reads this cookie for pages opened straight in the browser (sign-in, Drive, connecting an AI app) */
+function setLangCookie() { try { document.cookie = `euno_lang=${LANG}; path=/; max-age=31536000; samesite=lax${location.protocol === 'https:' ? '; secure' : ''}`; } catch { /* cookies blocked */ } }
+setLangCookie();
+/* reminders are sent by the server with no browser around, so it keeps the language in settings */
+function syncUiLangSetting() {
+  try { if (typeof Store !== 'undefined' && Store.mode && Store.mode !== 'offline' && settings().uiLang !== LANG) saveSettings({ uiLang: LANG }); } catch { /* not loaded yet */ }
+}
 
 function fillVars(s, vars) { return vars ? s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] != null ? vars[k] : m)) : s; }
 function t(key, vars) {
@@ -873,6 +880,8 @@ function setUiLang(l) {
   LANG = l;
   lsSet('lang', l);
   document.documentElement.lang = uiLocale();
+  setLangCookie();
+  syncUiLangSetting();
   if (typeof renderAll === 'function') renderAll();
 }
 
@@ -950,7 +959,8 @@ const Api = {
     try {
       resp = await fetch(path, {
         method, credentials: 'same-origin', redirect: 'manual',
-        headers: body != null && !raw ? { 'content-type': 'application/json', ...headers } : headers,
+        // x-euno-lang: the server answers its messages in the interface language
+        headers: body != null && !raw ? { 'content-type': 'application/json', 'x-euno-lang': LANG, ...headers } : { 'x-euno-lang': LANG, ...headers },
         body: body == null ? undefined : raw ? body : JSON.stringify(body),
       });
     } catch (e) {
@@ -6894,6 +6904,7 @@ async function boot() {
   renderControls();
   mount($('#panel'), h('div', { class: 'panel-msg' }, t('Loading your practice data…')));
   await Store.init();
+  syncUiLangSetting();
   if (Store.mode === 'offline') {
     mount($('#panel'), h('div', { class: 'panel-msg' }, t('Not connected.')));
     openModal([

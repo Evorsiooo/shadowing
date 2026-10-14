@@ -43,6 +43,8 @@
   // The app (/app/) reads this key to pick its interface language.
   function saveLang(code) {
     try { localStorage.setItem('shadowing:lang', JSON.stringify(code)); } catch (e) { /* storage blocked */ }
+    // the server reads the cookie for its own pages (sign-in) and messages
+    try { document.cookie = 'euno_lang=' + code + '; path=/; max-age=31536000; samesite=lax' + (location.protocol === 'https:' ? '; secure' : ''); } catch (e) { /* cookies blocked */ }
   }
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a');
@@ -93,7 +95,7 @@
     fetch('/api/support', {
       method: 'POST',
       credentials: 'same-origin',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'x-euno-lang': LANG },
       // the inbox stores {email, message}; topic, name and page language ride along in the message so nothing is lost
       body: JSON.stringify({ email: data.email, message: '[' + (data.topic || 'question') + ']' + (LANG !== 'en' ? ' [' + LANG + ']' : '') + (data.name ? ' from ' + data.name : '') + '\n\n' + data.message, name: data.name || '', topic: data.topic || 'question' }),
     })

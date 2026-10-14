@@ -22,6 +22,13 @@ function detectUiLang() {
 let LANG = detectUiLang();
 function uiLocale() { return UI_LOCALES[LANG] || 'en-AU'; }
 document.documentElement.lang = uiLocale();
+/* the server reads this cookie for pages opened straight in the browser (sign-in, Drive, connecting an AI app) */
+function setLangCookie() { try { document.cookie = `euno_lang=${LANG}; path=/; max-age=31536000; samesite=lax${location.protocol === 'https:' ? '; secure' : ''}`; } catch { /* cookies blocked */ } }
+setLangCookie();
+/* reminders are sent by the server with no browser around, so it keeps the language in settings */
+function syncUiLangSetting() {
+  try { if (typeof Store !== 'undefined' && Store.mode && Store.mode !== 'offline' && settings().uiLang !== LANG) saveSettings({ uiLang: LANG }); } catch { /* not loaded yet */ }
+}
 
 function fillVars(s, vars) { return vars ? s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] != null ? vars[k] : m)) : s; }
 function t(key, vars) {
@@ -44,5 +51,7 @@ function setUiLang(l) {
   LANG = l;
   lsSet('lang', l);
   document.documentElement.lang = uiLocale();
+  setLangCookie();
+  syncUiLangSetting();
   if (typeof renderAll === 'function') renderAll();
 }

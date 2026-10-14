@@ -3,6 +3,7 @@
 // their devices' push subscriptions) live in the `private` table, which the docs API never returns.
 // Sending goes through CHANNELS: a reminder goes out on every channel the user has set up.
 import { pushAvailable, sendPush } from './webpush.js';
+import { cleanLang, tr } from './i18n.js';
 
 const WEBHOOK_RE = /^https:\/\/(?:canary\.|ptb\.)?(?:discord|discordapp)\.com\/api\/webhooks\/\d{5,30}\/[A-Za-z0-9_-]{20,120}$/;
 export function validWebhook(url) { return typeof url === 'string' && WEBHOOK_RE.test(url.trim()); }
@@ -83,16 +84,19 @@ export function dueCheckin(data, settings, today) {
 /* ---------- the message (channel-neutral) ---------- */
 export function buildReminder(data, settings, { today, late = false, test = false } = {}) {
   const r = { ...REMINDER_DEFAULTS, ...(settings.reminders || {}) };
+  const lang = cleanLang(settings.uiLang) || 'en'; // the app's interface language, saved in settings
+  const T = (en, vars) => tr(lang, en, vars);
   const h = habit(data, today);
   const target = settings.weeklyTarget || 6;
   const lines = [];
-  if (h.streak > 0) lines.push(`🔥 ${h.streak}-day streak${h.practisedToday ? '' : ': keep it going'}`);
-  lines.push(`📅 ${h.weekCount}/${target} days this week`);
+  if (h.streak === 1) lines.push(h.practisedToday ? T('🔥 1-day streak') : T('🔥 1-day streak: keep it going'));
+  else if (h.streak > 1) lines.push(h.practisedToday ? T('🔥 {n}-day streak', { n: h.streak }) : T('🔥 {n}-day streak: keep it going', { n: h.streak }));
+  lines.push(T('📅 {done}/{target} days this week', { done: h.weekCount, target }));
   const due = r.checkins ? dueCheckin(data, settings, today) : null;
-  if (due != null) lines.push(`🎙️ Week ${due} check-in is due`);
-  lines.push('', 'Short on time? A 5-minute bad-day session still counts.');
-  const title = test ? 'Test reminder: it works ✅'
-    : late ? 'Still time for today’s shadowing' : 'Time for today’s shadowing 🎧';
+  if (due != null) lines.push(T('🎙️ Week {n} check-in is due', { n: due }));
+  lines.push('', T('Short on time? A 5-minute bad-day session still counts.'));
+  const title = test ? T('Test reminder: it works ✅')
+    : late ? T('Still time for today’s shadowing') : T('Time for today’s shadowing 🎧');
   return { title, lines, url: r.appUrl || null, settings: r };
 }
 
