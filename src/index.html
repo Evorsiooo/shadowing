@@ -1,3 +1,7 @@
+<script>
+/* Set the saved theme before first paint, so a light-mode choice doesn't flash dark (applyTheme in 88-settings.js keeps it in sync later). */
+try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch { /* storage blocked */ }
+</script>
 <title>Shadowing Practice</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
