@@ -5502,6 +5502,118 @@ function ratingAverages() {
   return [...out.entries()].map(([label, arr]) => ({ label, avg: mean(arr), n: arr.length }));
 }
 
+/* ---- 86-push.js ---- */
+/* ---------- push notifications: practice reminders on this device ---------- */
+/* The service worker (/sw.js, built from src/site/sw.js) shows the notifications. Each device that
+   turns them on gets its own push subscription, which the server keeps with the user's reminder
+   channels (server/reminders.js). On iPhone and iPad, Safari only offers push to a site that has
+   been added to the Home Screen and opened from there. */
+const Push = {
+  reg: null,
+  supported() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; },
+  ios() { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); },
+  installed() { return navigator.standalone === true || !!(window.matchMedia && matchMedia('(display-mode: standalone)').matches); },
+  permission() { return 'Notification' in window ? Notification.permission : 'unsupported'; },
+  async register() {
+    if (!('serviceWorker' in navigator)) return null;
+    try { this.reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' }); } catch (e) { console.warn('service worker not registered', e); }
+    return this.reg;
+  },
+  async registration() {
+    if (!('serviceWorker' in navigator)) return null;
+    return this.reg || (await navigator.serviceWorker.getRegistration('/').catch(() => null)) || this.register();
+  },
+  /** This device's subscription, or null. */
+  async current() {
+    if (!this.supported()) return null;
+    const reg = await this.registration();
+    return reg ? reg.pushManager.getSubscription().catch(() => null) : null;
+  },
+  /** Ask for permission (must run straight from a tap), subscribe, and hand the subscription to the server. */
+  async enable(publicKey) {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') {
+      throw new Error(perm === 'denied'
+        ? 'Notifications are blocked for this site. Allow them in your browser’s site settings (or the system notification settings), then try again.'
+        : 'Notifications weren’t allowed.');
+    }
+    if (!(await this.registration())) throw new Error('This browser couldn’t start the notification service.');
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    // a subscription made for a different server key can't receive our messages
+    if (sub && sub.options && sub.options.applicationServerKey && b64url(sub.options.applicationServerKey) !== publicKey) { await sub.unsubscribe(); sub = null; }
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: fromB64url(publicKey) });
+    await Api.req('POST', '/api/reminders/push', { subscription: sub.toJSON(), label: deviceLabel() });
+    return sub;
+  },
+  /** Stop notifications on this device (server first, so a failed unsubscribe still stops them). */
+  async disable() {
+    const sub = await this.current();
+    if (!sub) return;
+    await Api.req('DELETE', '/api/reminders/push', { endpoint: sub.endpoint }).catch(() => {});
+    await sub.unsubscribe().catch(() => {});
+  },
+};
+
+function b64url(buf) {
+  let s = '';
+  for (const b of new Uint8Array(buf)) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function fromB64url(str) {
+  const s = atob(str.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((str.length + 3) % 4));
+  return Uint8Array.from(s, (c) => c.charCodeAt(0));
+}
+function deviceLabel() {
+  const ua = navigator.userAgent;
+  const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? 'iPad' : /Android/.test(ua) ? 'Android'
+    : /Mac OS X/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : /CrOS/.test(ua) ? 'Chromebook' : /Linux/.test(ua) ? 'Linux' : 'Device';
+  const br = /Edg\//.test(ua) ? 'Edge' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : '';
+  return br ? `${os} · ${br}` : os;
+}
+
+/* The "Notifications" card in Settings → Reminders. `status.push` comes from GET /api/reminders. */
+function pushCard(status, { onChange }) {
+  const card = h('div', { class: 'card stack' }, h('h3', null, 'Notifications on this device'));
+  card.add = (...nodes) => card.append(...nodes.filter(Boolean));
+  const push = status && status.push;
+  const others = push ? push.devices - (push.thisDevice ? 1 : 0) : 0;
+  const more = others > 0 ? h('p', { class: 'small muted' }, `Also on ${others} other device${others === 1 ? '' : 's'}.`) : null;
+  if (!status) { card.add(h('p', { class: 'small muted' }, 'Checking…')); return card; }
+  if (!push || !push.available) { card.add(h('p', { class: 'muted' }, 'Notifications aren’t available yet. Discord reminders work in the meantime.')); return card; }
+  if (!Push.supported()) {
+    card.add(Push.ios() && !Push.installed()
+      ? h('p', { class: 'muted' }, 'On iPhone and iPad, notifications need the app on your Home Screen: tap the Share button, choose “Add to Home Screen”, open Euno from there, and come back here.')
+      : h('p', { class: 'muted' }, 'This browser can’t show notifications from websites. Try Chrome, Edge, Firefox or Safari.'), more);
+    return card;
+  }
+  if (push.thisDevice && Push.permission() === 'granted') {
+    card.add(
+      h('div', { class: 'row' },
+        h('span', { class: 'chip' }, icon('check'), 'On for this device'),
+        btn('Turn off here', async () => {
+          await Push.disable(); toast('Notifications are off on this device.'); onChange();
+        }, { size: 'sm', kind: 'ghost' })),
+      more);
+    return card;
+  }
+  const blocked = Push.permission() === 'denied';
+  card.add(
+    h('p', { class: 'muted' }, 'Get reminders as a notification on this phone or computer. Turn them on on each device you want them on.'),
+    blocked ? h('p', { class: 'small muted' }, 'Notifications are blocked for this site. Allow them in your browser’s site settings, then turn them on here.') : null,
+    h('div', { class: 'row' },
+      btn('Turn on notifications', async () => {
+        try {
+          await Push.enable(push.publicKey);
+          if (!reminderSettings().enabled) saveReminders({ enabled: true });
+          toast('Notifications are on for this device.', 'good');
+          onChange();
+        } catch (e) { toast(e.message, 'bad', 8000); }
+      }, { kind: 'primary', size: 'sm', icon: 'bell' })),
+    more);
+  return card;
+}
+
 /* ---- 87-ai.js ---- */
 /* ---------- AI feedback with your own key (Settings → AI, and the onboarding 'ai' step) ---------- */
 /* The key goes to the server once and is stored encrypted; the app only ever sees its last 4
@@ -5691,7 +5803,7 @@ function accountCard() {
   const confirmInput = h('input', { type: 'email', id: 'acct-del', placeholder: Api.email || '', autocomplete: 'off', spellcheck: 'false' });
   return h('div', { class: 'card' }, h('h3', null, 'Account'),
     h('p', null, `Signed in with Google as ${Api.email}${Api.role === 'admin' ? ' (admin)' : ''}.`),
-    h('div', { class: 'row' }, btn('Sign out', async () => { await Store.flushAll(); location.href = '/auth/logout'; }, { size: 'sm' })),
+    h('div', { class: 'row' }, btn('Sign out', async () => { await Store.flushAll(); await Promise.race([Push.disable(), new Promise((r) => setTimeout(r, 3000))]).catch(() => {}); location.href = '/auth/logout'; }, { size: 'sm' })),
     h('details', null, h('summary', null, 'Delete my account'),
       h('p', { class: 'small muted' }, 'This deletes your account and all your practice data on the server, for good. Export a backup first if you want to keep it.'),
       h('label', { class: 'field', for: 'acct-del' }, 'Type your email address to confirm', confirmInput),
@@ -5871,7 +5983,7 @@ function openShortcuts() {
   ], { narrow: true });
 }
 
-/* ---------- Discord reminders ---------- */
+/* ---------- reminders: notifications on each device and/or Discord ---------- */
 const REMINDER_DEFAULTS = { enabled: false, time: '18:00', lateTime: '', days: [1, 2, 3, 4, 5, 6, 0], skipIfDone: true, checkins: true, discordUserId: '' };
 function reminderSettings() { return { ...REMINDER_DEFAULTS, ...(settings().reminders || {}) }; }
 function saveReminders(fields) {
@@ -5886,16 +5998,23 @@ function remindersView() {
     mount(wrap, h('p', { class: 'muted' }, 'Reminders need the online version of the app (they’re sent by the server).'));
     return wrap;
   }
-  let status = null; // {configured, hint, last}
+  let status = null; // {configured, last, discord: {configured, hint}, push: {available, publicKey, devices, thisDevice}}
   let replacing = false;
+  const load = async () => {
+    const sub = await Push.current().catch(() => null);
+    const d = await Api.req('GET', `/api/reminders${sub ? `?endpoint=${encodeURIComponent(sub.endpoint)}` : ''}`);
+    status = { ...d, discord: d.discord || { configured: d.configured, hint: d.hint } };
+    draw();
+  };
   const draw = () => {
     const r = reminderSettings();
+    const discord = status && status.discord;
     const hook = !status ? h('p', { class: 'small muted' }, 'Checking…')
-      : status.configured && !replacing
+      : discord.configured && !replacing
         ? h('div', { class: 'row' },
-          h('span', { class: 'chip' }, icon('check'), `Webhook saved (${status.hint})`),
+          h('span', { class: 'chip' }, icon('check'), `Webhook saved (${discord.hint})`),
           btn('Replace', () => { replacing = true; draw(); }, { size: 'sm' }),
-          btn('Remove', async () => { await Api.req('PUT', '/api/reminders', { webhook: null }); status.configured = false; saveReminders({ enabled: false }); draw(); toast('Webhook removed. Reminders are off.'); }, { size: 'sm', kind: 'ghost' }))
+          btn('Remove', async () => { await Api.req('PUT', '/api/reminders', { webhook: null }); toast('Webhook removed.'); load().catch(() => {}); }, { size: 'sm', kind: 'ghost' }))
         : (() => {
           const input = h('input', { type: 'password', id: 'rem-hook', placeholder: 'https://discord.com/api/webhooks/…', autocomplete: 'off', spellcheck: 'false' });
           return h('div', { class: 'stack' },
@@ -5905,7 +6024,7 @@ function remindersView() {
               btn('Save webhook', async () => {
                 try {
                   const res = await Api.req('PUT', '/api/reminders', { webhook: input.value.trim() });
-                  status = { ...status, configured: true, hint: res.hint }; replacing = false;
+                  status = { ...status, configured: true, discord: { configured: true, hint: res.hint } }; replacing = false;
                   if (!reminderSettings().enabled) saveReminders({ enabled: true });
                   draw(); toast('Webhook saved. Reminders are on.', 'good');
                 } catch (e) { toast(e.message, 'bad', 7000); }
@@ -5918,8 +6037,19 @@ function remindersView() {
     }, { size: 'sm', on: r.days.includes(d), pressed: r.days.includes(d) }));
     const last = status && status.last;
     mount(wrap,
-      h('p', { class: 'muted' }, 'Get a nudge in Discord when it’s time to practise, with a link straight to the app. If you’ve already practised that day, it stays quiet.'),
-      hook,
+      h('p', { class: 'muted' }, 'Get a nudge when it’s time to practise: a notification on your phone or computer, a Discord message, or both. If you’ve already practised that day, it stays quiet.'),
+      pushCard(status, { onChange: () => load().catch((e) => toast(e.message, 'bad')) }),
+      h('div', { class: 'card stack' }, h('h3', null, 'Discord'),
+        h('p', { class: 'small muted' }, 'Reminders posted to a Discord channel, with a link straight to the app.'),
+        hook,
+        h('label', { class: 'field', for: 'rem-user' }, 'Your Discord user ID (optional, to get pinged)',
+          h('input', { type: 'text', id: 'rem-user', inputmode: 'numeric', placeholder: 'e.g. 123456789012345678', value: r.discordUserId, autocomplete: 'off', spellcheck: 'false', onchange: (e) => {
+            const id = e.target.value.replace(/\s/g, '');
+            if (id && !/^\d{17,20}$/.test(id)) { toast('That doesn’t look like a Discord user ID (17 to 20 digits).', 'bad', 7000); return; }
+            saveReminders({ discordUserId: id }); toast(id ? 'You’ll be pinged in reminders.' : 'Reminders won’t ping you.');
+          } })),
+        h('p', { class: 'small muted' }, 'In Discord: Settings → Advanced → turn on Developer Mode, then right-click your name → Copy User ID. Leave empty for reminders without a ping.')),
+      h('div', { class: 'card stack' }, h('h3', null, 'When'),
       h('label', { class: 'check', for: 'rem-on' }, h('input', { type: 'checkbox', id: 'rem-on', checked: r.enabled, disabled: !(status && status.configured), onchange: (e) => { saveReminders({ enabled: e.target.checked }); draw(); } }), 'Send reminders'),
       h('div', { class: 'row' },
         h('label', { class: 'field', for: 'rem-time' }, 'Reminder time', h('input', { type: 'time', id: 'rem-time', value: r.time, step: 900, onchange: (e) => { if (e.target.value) saveReminders({ time: e.target.value }); } })),
@@ -5927,22 +6057,15 @@ function remindersView() {
       h('div', { class: 'stack' }, h('span', { class: 'label' }, 'Days'), h('div', { class: 'row' }, dayBtns)),
       h('label', { class: 'check', for: 'rem-skip' }, h('input', { type: 'checkbox', id: 'rem-skip', checked: r.skipIfDone, onchange: (e) => saveReminders({ skipIfDone: e.target.checked }) }), 'Skip the reminder if I’ve already practised that day'),
       h('label', { class: 'check', for: 'rem-ci' }, h('input', { type: 'checkbox', id: 'rem-ci', checked: r.checkins, onchange: (e) => saveReminders({ checkins: e.target.checked }) }), 'Mention when a check-in is due'),
-      h('label', { class: 'field', for: 'rem-user' }, 'Your Discord user ID (optional, to get pinged)',
-        h('input', { type: 'text', id: 'rem-user', inputmode: 'numeric', placeholder: 'e.g. 123456789012345678', value: r.discordUserId, autocomplete: 'off', spellcheck: 'false', onchange: (e) => {
-          const id = e.target.value.replace(/\s/g, '');
-          if (id && !/^\d{17,20}$/.test(id)) { toast('That doesn’t look like a Discord user ID (17 to 20 digits).', 'bad', 7000); return; }
-          saveReminders({ discordUserId: id }); toast(id ? 'You’ll be pinged in reminders.' : 'Reminders won’t ping you.');
-        } })),
-      h('p', { class: 'small muted' }, 'In Discord: Settings → Advanced → turn on Developer Mode, then right-click your name → Copy User ID. Leave empty for reminders without a ping.'),
       h('p', { class: 'small muted' }, `Times are in ${Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'} (this device’s time zone). Reminders go out within 15 minutes of the time you set.`),
       h('div', { class: 'row' },
         btn('Send a test', async () => {
-          try { await Api.req('POST', '/api/reminders/test', { appUrl: location.origin, tz: Intl.DateTimeFormat().resolvedOptions().timeZone }); toast('Test sent. Check Discord.', 'good'); } catch (e) { toast(e.message, 'bad', 7000); }
+          try { await Api.req('POST', '/api/reminders/test', { appUrl: location.origin, tz: Intl.DateTimeFormat().resolvedOptions().timeZone }); toast('Test sent. Check your notifications or Discord.', 'good'); } catch (e) { toast(e.message, 'bad', 7000); }
         }, { size: 'sm', icon: 'bell', disabled: !(status && status.configured) }),
-        last ? h('span', { class: 'small muted' }, `Last reminder ${fmtWhen(last.at)}: ${last.ok ? 'sent' : `failed (${last.error})`}`) : null));
+        last ? h('span', { class: 'small muted' }, `Last reminder ${fmtWhen(last.at)}: ${last.ok ? 'sent' : `failed (${last.error})`}`) : null)));
   };
   draw();
-  Api.req('GET', '/api/reminders').then((d) => { status = d; draw(); }).catch((e) => { status = { configured: false }; draw(); toast(e.message, 'bad'); });
+  load().catch((e) => { status = { configured: false, discord: { configured: false } }; draw(); toast(e.message, 'bad'); });
   return wrap;
 }
 function fmtWhen(iso) {
@@ -6512,6 +6635,7 @@ async function boot() {
   appMeta();
   applyTheme();
   initMedia(); // device storage and Google Drive sync (17-media.js)
+  Push.register(); // service worker: reminder notifications, and lets the browser install the app (86-push.js)
   UI.view = settings().defaultView || 'pitch';
   if (UI.videoId && !Store.get('videos', UI.videoId)) UI.videoId = null;
   if (!UI.videoId) {
