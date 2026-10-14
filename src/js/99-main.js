@@ -129,16 +129,8 @@ async function boot() {
   if (window.ResizeObserver) { const ro = new window.ResizeObserver(scheduleFit); ro.observe($('#banners')); }
   window.addEventListener('beforeunload', () => { Store.flushAll(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) Store.flushAll(); });
-  // first launch: the baseline must come before the first practice
-  const base = checkinFor(0);
-  if (!checkinHasAll(base) && !Store.all('sessions').some((s) => !s.empty) && !lsGet('dismissed', {}).baseline && !lsGet('welcomed', false)) {
-    lsSet('welcomed', true);
-    openModal([
-      modalHead('G’day, Adrien'),
-      h('p', null, 'Before your first shadowing session, record your week 0 baseline: six sentences read aloud, a 60-second retelling and a 60-second answer to a question you haven’t seen. It takes about 3 minutes, and every later check-in is compared with it.'),
-      h('div', { class: 'row' }, btn('Record my baseline', () => openCheckins(0), { kind: 'primary', size: 'big', icon: 'mic' }), btn('Later', () => closeModal(), { kind: 'ghost' })),
-    ], { narrow: true });
-  }
+  // first launch: the setup wizard (profile, files, first video, AI, baseline); see 90-onboarding.js
+  if (needsOnboarding()) openOnboarding();
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();

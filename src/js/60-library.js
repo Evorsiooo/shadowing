@@ -47,10 +47,10 @@ function addVideoForm() {
         cloud ? h('label', { class: 'check', for: 'addCopy' }, h('input', { type: 'checkbox', id: 'addCopy', checked: F.copy, onchange: (e) => { F.copy = e.target.checked; } }), 'Keep a copy in my storage (recommended)') : null,
       ],
     h('label', { class: 'field', for: 'addTitle' }, 'Title',
-      h('input', { type: 'text', id: 'addTitle', placeholder: 'Piastri, post-race, Monza', value: F.title, oninput: (e) => { F.title = e.target.value; } })),
+      h('input', { type: 'text', id: 'addTitle', placeholder: 'e.g. Interview, part 1', value: F.title, oninput: (e) => { F.title = e.target.value; } })),
     h('label', { class: 'field', for: 'addSpeaker' }, 'Speaker (optional)',
-      h('input', { type: 'text', id: 'addSpeaker', placeholder: 'Oscar Piastri', value: F.speaker, list: 'speakerList', oninput: (e) => { F.speaker = e.target.value; } })),
-    h('datalist', { id: 'speakerList' }, [...new Set(Store.all('videos').map((v) => v.speaker).filter(Boolean).concat(['Oscar Piastri']))].map((s) => h('option', { value: s }))),
+      h('input', { type: 'text', id: 'addSpeaker', placeholder: 'Who’s speaking', value: F.speaker, list: 'speakerList', oninput: (e) => { F.speaker = e.target.value; } })),
+    h('datalist', { id: 'speakerList' }, [...new Set(Store.all('videos').map((v) => v.speaker).filter(Boolean))].map((s) => h('option', { value: s }))),
     h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary', id: 'addSubmit' }, h('span', null, F.source === 'upload' && cloud ? 'Upload and add' : cloud && F.copy ? 'Copy and add' : 'Check and add'))),
     status);
   return form;

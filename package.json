@@ -1,9 +1,9 @@
 {
-  "name": "shadowing-practice",
+  "name": "euno-shadowing",
   "private": true,
   "version": "2.0.0",
   "type": "module",
-  "description": "Daily shadowing practice app on Cloudflare Pages (D1 + R2 + Claude API + MCP)",
+  "description": "Euno Shadowing: daily accent practice by shadowing, on Cloudflare Pages",
   "scripts": {
     "build": "node scripts/build.mjs",
     "dev": "node scripts/build.mjs && wrangler pages dev",
