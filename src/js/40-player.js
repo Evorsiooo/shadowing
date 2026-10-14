@@ -344,7 +344,7 @@ function renderPlayerEmpty() {
   const any = Store.all('videos').some((v) => !v.archived);
   mount($('#playerEmpty'),
     h('h2', null, any ? 'Pick a video from your library' : 'Add your first video'),
-    h('p', null, any ? 'Open a video on the right, then choose a clip, or press Cut clips to make a new one.' : 'Paste a direct link to an .mp4 file, for example an Oscar Piastri interview.'),
+    h('p', null, any ? 'Open a video on the right, then choose a clip, or press Cut clips to make a new one.' : 'Pick a video of someone with the accent you want: an interview or a talk where one person speaks clearly works best.'),
     btn(any ? 'Open the library' : 'Add a video', () => { UI.addOpen = !any; openDrawer(); renderSidebar(); setTimeout(() => { const f = $('#addUrl'); if (f) f.focus(); }, 60); }, { kind: 'primary', size: 'big', icon: any ? 'menu' : 'plus' }));
 }
 

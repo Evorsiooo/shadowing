@@ -1,17 +1,13 @@
 # Cloudflare Pages project: static app in dist/, backend in functions/.
-# scripts/setup.mjs fills in database_id and the Access settings.
+# scripts/setup.mjs fills in database_id.
 name = "shadowing"
 pages_build_output_dir = "dist"
 compatibility_date = "2026-09-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-# Cloudflare Access: team domain (e.g. "adrien.cloudflareaccess.com") and the
-# application's Audience (AUD) tag. Every /api request is checked against these.
-ACCESS_TEAM_DOMAIN = "sonaris.cloudflareaccess.com"
-ACCESS_AUD = "c891bd70aa751c76b05d072742cf32ace01c84bdd466808f162da2fb8ff6959f"
-# Optional: comma-separated emails allowed in (on top of the Access policy).
-ALLOWED_EMAIL = "evorsio1@gmail.com"
+# Accounts with these (Google-verified) emails are admins. Comma-separated.
+ADMIN_EMAILS = "evorsio1@gmail.com"
 
 [[d1_databases]]
 binding = "DB"
@@ -29,5 +25,7 @@ binding = "REMINDERS"
 service = "shadowing-reminders"
 
 # Secrets (set with `npx wrangler pages secret put NAME`, never committed):
-#   ANTHROPIC_API_KEY  Claude API key for note feedback
-#   MCP_TOKEN          long random string; the MCP endpoint is /mcp/<MCP_TOKEN>
+#   GOOGLE_CLIENT_ID      OAuth client for Sign in with Google (docs/ACCOUNTS.md)
+#   GOOGLE_CLIENT_SECRET
+#   TURNSTILE_SECRET      optional: spam check for the contact form
+#   ANTHROPIC_API_KEY     optional, admin-only until bring-your-own-key AI ships

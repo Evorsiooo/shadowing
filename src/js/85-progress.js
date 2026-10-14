@@ -46,7 +46,7 @@ function renderChips() {
   lib.classList.add('only-phone');
 }
 function storageTitle() {
-  return Store.mode === 'cloud' ? `Saved on your Cloudflare server${Api.email ? ` (signed in as ${Api.email})` : ''}; available on every device.`
+  return Store.mode === 'cloud' ? `Saved to your account${Api.email ? ` (signed in as ${Api.email})` : ''}; available on every device.`
     : Store.mode === 'artifact' ? 'Saved in the artifact’s database; available on every device.'
     : Store.mode === 'local' ? 'Saved in this browser only. Back up from Settings → Data.'
       : 'Storage is blocked here; nothing will be kept after you close the page.';
@@ -75,7 +75,7 @@ function renderBanners() {
     out.push(h('div', { class: 'banner info' }, h('p', null, `Week ${due} check-in is due. It takes about 3 minutes.`), btn('Start check-in', () => openCheckins(due), { kind: 'primary', size: 'sm' })));
   }
   if (Api.signedOut && Store.mode === 'cloud') {
-    out.unshift(h('div', { class: 'banner' }, h('p', null, 'Your sign-in has expired, so changes can’t be saved right now. Reload the page to sign in again.'), btn('Reload', () => location.reload(), { kind: 'primary', size: 'sm' })));
+    out.unshift(h('div', { class: 'banner' }, h('p', null, 'You’re signed out, so changes can’t be saved right now. Sign in again to keep saving.'), btn('Sign in', () => signIn(), { kind: 'primary', size: 'sm' })));
   }
   if (Store.mode === 'cloud') { /* nothing to explain */ } else if (Caps.inArtifact && !dismissed.artifactNote) {
     out.push(h('div', { class: 'banner info' },
@@ -191,29 +191,9 @@ function trendChart(points, { unit = '', dec = 1, ref = null, refLabel = 'speake
 
 /* ---------- check-ins ---------- */
 const CHECKIN_WEEKS = [0, 4, 8, 12];
-const READ_SENTENCES = [
-  'I reckon we got the most out of the car today, so I’m pretty happy with that.',
-  'The tyres went off a bit towards the end, but we managed them well enough.',
-  'Honestly, it was a really tough race, and the team did a fantastic job.',
-  'We’ll go back, have a look at the data, and hopefully come back stronger next weekend.',
-  'My mate from Melbourne bought a new car, and now he drives to the beach every Saturday.',
-  'It’s not a bad start to the year, but there’s definitely a lot more to come.',
-];
-const QUESTIONS = [
-  'What’s a skill you wish you’d learnt earlier, and why?', 'Describe the best meal you’ve had in the last year.', 'If you could live in any city for a year, where would it be?',
-  'What’s something most people get wrong about where you grew up?', 'Talk about a time a plan went completely wrong.', 'What would your perfect Saturday look like?',
-  'Which sport would you play professionally if you could pick any?', 'What’s a film or show you could watch again and again? Why?', 'Describe a teacher or coach who changed how you think.',
-  'What’s the most useful thing you own?', 'If you ran a café, what would make it different?', 'Talk about a trip that didn’t go as expected.',
-  'What’s a habit you’re trying to build, and how’s it going?', 'Explain how to cook something you know well.', 'What job would you be terrible at, and why?',
-  'Describe your ideal car and where you’d drive it.', 'What’s a rule you think should change?', 'Talk about a time you had to learn something quickly.',
-  'What’s the best piece of advice you’ve been given?', 'If you had a free week with no phone, what would you do?', 'Describe the place you feel most relaxed.',
-  'What’s something you changed your mind about recently?', 'Talk about a game, match or race you remember well.', 'What makes a good friend, in your view?',
-  'If you could ask one famous person a question, who and what?', 'Describe a normal day for you from start to finish.', 'What would you do with an extra hour every day?',
-  'What’s a small thing that always puts you in a good mood?', 'Talk about something you built, fixed or made.', 'Where do you see yourself in five years?',
-];
 const TASKS = [
   { key: 'read', name: 'Read aloud', secs: null, help: 'Read these sentences aloud at a natural pace. They are the same at every check-in.' },
-  { key: 'retell', name: 'Retelling (about 60 s)', secs: 60, help: 'Retell something you watched recently (a race, a video, an episode) for about 60 seconds.' },
+  { key: 'retell', name: 'Retelling (about 60 s)', secs: 60, help: null },
   { key: 'answer', name: 'Unseen question (about 60 s)', secs: 60, help: 'Reveal a question you haven’t seen and answer it for about 60 seconds. No preparing.' },
 ];
 
@@ -255,7 +235,7 @@ function openCheckins(focusWeek) {
     h('div', { class: 'cards' }, items),
     h('div', { class: 'card' },
       h('h3', null, 'Blind listener pack'),
-      h('p', { class: 'small muted' }, 'Export shuffled, unlabelled check-in samples plus real Australian clips, with a rating sheet (1 = no foreign accent, 9 = very strong accent). Enter the ratings back here to see the average per check-in.'),
+      h('p', { class: 'small muted' }, `Export shuffled, unlabelled check-in samples plus clips of real ${targetAccent().short} speakers from your library, with a rating sheet (1 = no foreign accent, 9 = very strong accent). Enter the ratings back here to see the average per check-in.`),
       h('div', { class: 'row' }, btn('Build and export pack', () => exportListenerPack(), { kind: 'primary', size: 'sm', icon: 'download' }), btn('Enter ratings', () => openRatings(), { size: 'sm' }))),
   ]);
   if (focusWeek != null) openCheckinRecorder(focusWeek);
@@ -263,7 +243,7 @@ function openCheckins(focusWeek) {
 
 function ensureCheckin(week) {
   let c = checkinFor(week);
-  if (!c) c = Store.put('checkins', { week, date: dayKey(), recs: { read: [], retell: [], answer: [] }, questions: [], measures: {} });
+  if (!c) c = Store.put('checkins', { week, date: dayKey(), recs: { read: [], retell: [], answer: [] }, questions: [], measures: {}, lang: profile().targetLanguage, readSet: readSentences().id });
   return c;
 }
 
@@ -292,8 +272,8 @@ function openCheckinRecorder(week) {
       const q = t.key === 'answer' ? cur && cur.questions && cur.questions[cur.questions.length - 1] : null;
       return h('div', { class: 'card' },
         h('div', { class: 'row' }, h('h3', { class: 'grow' }, t.name), ids.length ? h('span', { class: 'tick done' }, icon('check', 'stroke-width="3.4"')) : null),
-        h('p', { class: 'small muted' }, t.help),
-        t.key === 'read' ? h('ol', { style: { margin: 0, paddingLeft: '20px', display: 'grid', gap: '4px' } }, READ_SENTENCES.map((s) => h('li', null, s))) : null,
+        h('p', { class: 'small muted' }, t.help || langContent().retellHelp),
+        t.key === 'read' ? h('ol', { style: { margin: 0, paddingLeft: '20px', display: 'grid', gap: '4px' } }, readSentences(cur).sentences.map((s) => h('li', null, s))) : null,
         t.key === 'answer' ? h('p', { id: `ciQ-${week}`, hidden: !q }, h('strong', null, 'Question: '), h('span', null, q || '')) : null,
         takes,
         checkinRecordControls(week, t, draw));
@@ -386,8 +366,9 @@ async function deleteCheckinTake(week, key, recId) {
 function pickQuestion() {
   const meta = appMeta();
   const used = new Set(meta.usedQuestions || []);
-  const fresh = QUESTIONS.filter((q) => !used.has(q));
-  const q = (fresh.length ? fresh : QUESTIONS)[Math.floor(Math.random() * (fresh.length || QUESTIONS.length))];
+  const all = langContent().questions;
+  const fresh = all.filter((q) => !used.has(q));
+  const q = (fresh.length ? fresh : all)[Math.floor(Math.random() * (fresh.length || all.length))];
   Store.patch('meta', 'app', { usedQuestions: [...used, q] });
   return q;
 }
@@ -483,7 +464,7 @@ async function exportListenerPack() {
       items.push({ kind: 'checkin', week: w, samples: excerpt(x, 20) });
     } catch { /* skip undecodable */ }
   }
-  // one or two real Australian clips from your library
+  // one or two clips of real speakers of the target accent, from your library
   const clips = shuffle(Store.all('clips').filter((c) => !c.archived && !c.noisy));
   for (const c of clips) {
     if (items.filter((i) => i.kind === 'model').length >= 2) break;
@@ -500,7 +481,7 @@ async function exportListenerPack() {
   const sheet = ['Listener name,Sample,Rating (1 = no foreign accent; 9 = very strong accent),What gave it away?']
     .concat(mixed.map((_, i) => `,${letters[i]},,`)).join('\n');
   files.push({ name: 'rating-sheet.csv', data: enc.encode(sheet) });
-  files.push({ name: 'instructions.txt', data: enc.encode(`Thanks for helping!\n\nListen to each sample once or twice, in any order. For each one, rate how strong a foreign (non-Australian) accent you hear:\n1 = no foreign accent at all, 9 = very strong foreign accent.\nThen write a few words on what gave it away (a sound, the rhythm, the melody...).\nFill in rating-sheet.csv and send it back.\n`) });
+  files.push({ name: 'instructions.txt', data: enc.encode(`Thanks for helping!\n\nListen to each sample once or twice, in any order. For each one, rate how strong a foreign (non-${targetAccent().short}) accent you hear:\n1 = no foreign accent at all, 9 = very strong foreign accent.\nThen write a few words on what gave it away (a sound, the rhythm, the melody...).\nFill in rating-sheet.csv and send it back.\n`) });
   const zip = makeZip(files);
   const pack = Store.put('meta', { id: `pack-${uid()}`, kind: 'listenerPack', created: new Date().toISOString(), items: mixed.map((it, i) => ({ label: letters[i], kind: it.kind, week: it.week, clipId: it.clipId })), ratings: [] });
   const name = `listener-pack-${dayKey()}.zip`;
@@ -547,7 +528,7 @@ function ratingAverages() {
     for (const r of p.ratings || []) for (const row of r.rows) {
       const it = p.items.find((i) => i.label === row.label);
       if (!it) continue;
-      const label = it.kind === 'model' ? 'Australian speaker (reference)' : it.week === 0 ? 'Baseline' : `Week ${it.week}`;
+      const label = it.kind === 'model' ? `${targetAccent().short} speaker (reference)` : it.week === 0 ? 'Baseline' : `Week ${it.week}`;
       if (!out.has(label)) out.set(label, []);
       out.get(label).push(row.rating);
     }

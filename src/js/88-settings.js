@@ -26,8 +26,8 @@ const SETTING_GROUPS = [
 ];
 
 function openSettings(tab = 'practice') {
-  const tabs = [['practice', 'Practice'], ['reminders', 'Reminders'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
-  const body = tab === 'practice' ? settingsForm() : tab === 'reminders' ? remindersView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
+  const tabs = [['practice', 'Practice'], ['profile', 'Profile'], ['reminders', 'Reminders'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
+  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'reminders' ? remindersView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
   openModal([
     modalHead('Settings'),
     h('div', { class: 'tabs' }, tabs.map(([k, l]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab }))),
@@ -67,6 +67,7 @@ function dataView() {
   const passRecs = Store.all('recordings').filter((r) => r.kind === 'pass' && !r.slot);
   return h('div', { class: 'stack' },
     h('div', { class: 'card' }, h('h3', null, 'Where your data lives'), h('p', null, storageTitle()), h('p', { class: 'small muted' }, counts), usage),
+    Store.mode === 'cloud' ? accountCard() : null,
     h('div', { class: 'card' }, h('h3', null, 'Backup'),
       h('p', { class: 'small muted' }, 'A backup holds your videos, clips, sessions, notes, issues, check-ins and settings (not the audio files). Importing adds anything missing and never overwrites.'),
       h('div', { class: 'row' },
@@ -80,6 +81,20 @@ function dataView() {
         for (const r of passRecs) { await Store.deleteBlob(r.ref); Store.data.recordings[r.id] = undefined; delete Store.data.recordings[r.id]; Store.schedule('recordings', r.id, 50); }
         toast('Removed.'); openSettings('data');
       }, { kind: 'danger' }))) : null);
+}
+
+/* signed-in account: sign out, or delete the account and everything the server keeps */
+function accountCard() {
+  const confirmInput = h('input', { type: 'email', id: 'acct-del', placeholder: Api.email || '', autocomplete: 'off', spellcheck: 'false' });
+  return h('div', { class: 'card' }, h('h3', null, 'Account'),
+    h('p', null, `Signed in with Google as ${Api.email}${Api.role === 'admin' ? ' (admin)' : ''}.`),
+    h('div', { class: 'row' }, btn('Sign out', async () => { await Store.flushAll(); location.href = '/auth/logout'; }, { size: 'sm' })),
+    h('details', null, h('summary', null, 'Delete my account'),
+      h('p', { class: 'small muted' }, 'This deletes your account and all your practice data on the server, for good. Export a backup first if you want to keep it.'),
+      h('label', { class: 'field', for: 'acct-del' }, 'Type your email address to confirm', confirmInput),
+      h('div', { class: 'row' }, btn('Delete my account', async () => {
+        try { await Api.req('DELETE', '/api/account', { confirm: confirmInput.value }); location.href = '/'; } catch (e) { toast(e.message, 'bad', 7000); }
+      }, { kind: 'danger', size: 'sm' }))));
 }
 
 async function saveText(name, text) {
@@ -140,7 +155,7 @@ async function checkStorage() {
   if (Store.mode === 'cloud') {
     await Api.req('PUT', '/api/docs/meta/probe', { at: new Date().toISOString() });
     await Api.req('DELETE', '/api/docs/meta/probe');
-    return { state: 'ok', msg: `Your Cloudflare database saves and reads back${Api.email ? ` (signed in as ${Api.email})` : ''}. Your data follows you to any device.` };
+    return { state: 'ok', msg: `Your account’s database saves and reads back${Api.email ? ` (signed in as ${Api.email})` : ''}. Your data follows you to any device.` };
   }
   if (Store.mode === 'artifact') {
     const ref = Caps.db.collection('meta').doc('probe');
@@ -208,7 +223,7 @@ async function checkVideoSound() {
 async function checkClaude() {
   if (Store.mode === 'cloud') {
     if (!Api.claude) return { state: 'fail', msg: 'The server has no Claude API key yet. Add the ANTHROPIC_API_KEY secret to the Cloudflare project.' };
-    const { reply } = await Api.req('POST', '/api/claude', { sentence: 'Go and grab the car.', off: 'the vowel in go sounds too pure', aim: '', issues: [] });
+    const { reply } = await Api.req('POST', '/api/claude', { sentence: 'Go and grab the car.', off: 'the vowel in go sounds too pure', aim: '', issues: [], profile: profileForAI() });
     return reply && (reply.feature || reply.text || reply.unsure) ? { state: 'ok', msg: `Claude answered (model: ${Api.claudeModel || 'unknown'}). Feedback on notes uses your Claude API key.` } : { state: 'warn', msg: 'Claude answered in an unexpected format.' };
   }
   if (!Caps.sample) return { state: 'fail', msg: Caps.inArtifact ? 'Claude access isn’t available in this view.' : 'This standalone version can’t reach Claude. Notes offer “Copy prompt for Claude” instead.' };

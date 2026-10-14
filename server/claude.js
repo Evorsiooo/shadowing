@@ -4,15 +4,24 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const MODEL = 'claude-haiku-5-5';
 
-const SYSTEM = `You help Adrien with shadowing practice. Adrien is 18, a French-Australian heritage speaker of English: his comprehension is native-level and he hears his own errors well, but he only started speaking English regularly at 17 and a half. He is moving his accent towards General Australian English (his model speaker is Oscar Piastri). His differences are mostly in rhythm, stress and melody rather than individual words.
+// The learner's profile comes from the app (meta/settings → profile); every field is optional.
+function systemPrompt(profile = {}) {
+  const clean = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
+  const lang = clean(profile.targetLanguage, 40) || 'English';
+  const accent = clean(profile.accent, 80) || `a native ${lang} accent`;
+  const native = clean(profile.nativeLanguages, 120);
+  const notes = clean(profile.notes, 500);
+  const spelling = clean(profile.spelling, 40);
+  return `You help a learner with shadowing practice: they repeat a model speaker's clip to pick up the accent, rhythm and melody. The learner is moving their ${lang} accent towards ${accent}.${native ? ` Their native language: ${native}.` : ''}${notes ? ` About them: ${notes}` : ''}
 
-After a recorded pass he describes what sounded off. Tell him:
-- feature: the likely General Australian English feature behind it (1-2 sentences)
-- change: what to change in his speech (1-3 sentences)
+After a recorded pass they describe what sounded off. Tell them:
+- feature: the likely ${accent} feature behind it (1-2 sentences)
+- change: what to change in their speech (1-3 sentences)
 - listenFor: what to listen for in the model clip (1-2 sentences)
-- issue: a short name (max 5 words) for this as a recurring problem; reuse one of his existing issue names when it fits
+- issue: a short name (max 5 words) for this as a recurring problem; reuse one of their existing issue names when it fits
 
-Write in Australian spelling, plainly, with no linguistics jargon: if you need to name a sound, describe it with everyday example words. If his description is too ambiguous to work out, don't guess: set unsure to true, put "I don't know what you meant by ..." and a short question in question, and leave the other fields empty.`;
+Write ${spelling ? `in ${spelling} spelling, ` : ''}plainly, with no linguistics jargon: if you need to name a sound, describe it with everyday example words. If their description is too ambiguous to work out, don't guess: set unsure to true, put "I don't know what you meant by ..." and a short question in question, and leave the other fields empty.`;
+}
 
 const NOTE_SCHEMA = {
   type: 'object',
@@ -31,19 +40,19 @@ const NOTE_SCHEMA = {
 export function claudeConfigured(env) { return !!env.ANTHROPIC_API_KEY; }
 export function claudeModel(env) { return env.CLAUDE_MODEL || MODEL; }
 
-export async function noteFeedback(env, { sentence = '', off = '', aim = '', issues = [] }) {
+export async function noteFeedback(env, { sentence = '', off = '', aim = '', issues = [], profile = {} }) {
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, baseURL: env.ANTHROPIC_BASE_URL || undefined });
   const user = `Sentence being practised: ${String(sentence).slice(0, 500) || '(not given)'}
 What sounded off: ${String(off).slice(0, 2000)}
-What he was aiming for: ${String(aim).slice(0, 500) || '(not given)'}
-Issue names he already tracks: ${issues.length ? issues.slice(0, 60).map(String).join('; ') : '(none yet)'}`;
+What they were aiming for: ${String(aim).slice(0, 500) || '(not given)'}
+Issue names they already track: ${issues.length ? issues.slice(0, 60).map(String).join('; ') : '(none yet)'}`;
   let res;
   try {
     res = await client.messages.create({
       model: env.CLAUDE_MODEL || MODEL,
       max_tokens: 4000,
       output_config: { effort: 'medium', format: { type: 'json_schema', schema: NOTE_SCHEMA } },
-      system: SYSTEM,
+      system: systemPrompt(profile && typeof profile === 'object' ? profile : {}),
       messages: [{ role: 'user', content: user }],
     });
   } catch (e) {

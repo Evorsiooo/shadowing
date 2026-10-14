@@ -55,10 +55,14 @@ const IDB = {
   get(store, key) { return this.tx(store, 'readonly', (s) => s.get(key)); },
 };
 
+/* Google sign-in, coming back to this page afterwards */
+function signIn() { location.href = `/auth/google?next=${encodeURIComponent(location.pathname + location.search)}`; }
+
 /* ---------- cloud backend (Cloudflare Pages Functions: D1 + R2 + Claude) ---------- */
 const Api = {
   on: false,
   email: null,
+  role: null,
   claude: false,
   signedOut: false,
   problem: null,
@@ -76,7 +80,7 @@ const Api = {
     if (resp.type === 'opaqueredirect' || resp.status === 401) {
       this.signedOut = true;
       Bus.emit('signedout');
-      throw Object.assign(new Error('Your sign-in has expired. Reload the page to sign in again.'), { code: 'signedout' });
+      throw Object.assign(new Error('You’re signed out. Sign in again to keep saving.'), { code: 'signedout' });
     }
     const ct = resp.headers.get('content-type') || '';
     const data = ct.includes('application/json') ? await resp.json().catch(() => ({})) : null;
@@ -93,7 +97,7 @@ const Api = {
       if (!(r.headers.get('content-type') || '').includes('application/json')) return false;
       const d = await r.json();
       if (!r.ok) { this.problem = d.error || `Server error ${r.status}`; return false; }
-      this.on = true; this.email = d.email; this.claude = !!d.claude; this.claudeModel = d.claudeModel || null;
+      this.on = true; this.email = d.email; this.role = d.role || null; this.claude = !!d.claude; this.claudeModel = d.claudeModel || null;
       return true;
     } catch { return false; } finally { clearTimeout(timer); }
   },
@@ -324,7 +328,7 @@ const Store = {
   },
   async importJSON(text) {
     const parsed = JSON.parse(text);
-    if (!parsed || parsed.app !== 'shadowing-practice' || !parsed.data) throw new Error('This file is not a Shadowing Practice backup.');
+    if (!parsed || parsed.app !== 'shadowing-practice' || !parsed.data) throw new Error('This file is not a Euno Shadowing backup.');
     let n = 0;
     for (const col of COLS) {
       for (const [id, doc] of Object.entries(parsed.data[col] || {})) {
