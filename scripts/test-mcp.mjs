@@ -38,11 +38,11 @@ async function registerClient(redirect, extra = {}) {
 }
 
 /** Run the whole sign-in as `user` and return {tokens, clientId}. */
-async function connect(user, redirect = CLAUDE, { decision = 'allow', clientId = null } = {}) {
+async function connect(user, redirect = CLAUDE, { decision = 'allow', clientId = null, state = 'xyz' } = {}) {
   const cid = clientId || (await registerClient(redirect)).data.client_id;
   const verifier = b64url(randomBytes(32));
   const challenge = b64url(createHash('sha256').update(verifier).digest());
-  const q = new URLSearchParams({ response_type: 'code', client_id: cid, redirect_uri: redirect, code_challenge: challenge, code_challenge_method: 'S256', state: 'xyz', scope: 'practice:read', resource: `${BASE}/mcp` });
+  const q = new URLSearchParams({ response_type: 'code', client_id: cid, redirect_uri: redirect, code_challenge: challenge, code_challenge_method: 'S256', state, scope: 'practice:read', resource: `${BASE}/mcp` });
   const page = await fetch(`${BASE}/oauth/authorize?${q}`, { headers: { cookie: user.cookie }, redirect: 'manual' });
   const html = await page.text();
   // browsers send "Origin: null" from a no-referrer page, and the Allow button would be refused as cross-site
@@ -143,7 +143,10 @@ const lr = await tool(ta.data.access_token, 'list_records', { collection: 'notes
 check(lr.total === 1 && lr.records[0].sentence === 'Go and grab the car', 'list_records lists only A’s notes');
 
 // B through Gemini (client id in a Basic header, as Gemini sends it)
-const b = await connect(B, GEMINI, { clientId: gem.data.client_id });
+// Gemini's state runs to a few thousand characters
+const longState = b64url(randomBytes(3000));
+const b = await connect(B, GEMINI, { clientId: gem.data.client_id, state: longState });
+check(b.loc.searchParams.get('state') === longState, 'a long state (as Gemini sends) comes back unchanged');
 const basic = (id, secret) => ({ authorization: `Basic ${Buffer.from(`${encodeURIComponent(id)}:${encodeURIComponent(secret)}`).toString('base64')}` });
 check((await exchange(b.cid, b.code, b.verifier, GEMINI, basic(b.cid, 'wrong-secret'))).status === 401, 'a wrong client secret is refused');
 check((await exchange(b.cid, b.code, b.verifier, GEMINI)).status === 401, 'a confidential client without its secret is refused');
