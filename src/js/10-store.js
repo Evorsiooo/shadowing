@@ -55,6 +55,15 @@ const IDB = {
   get(store, key) { return this.tx(store, 'readonly', (s) => s.get(key)); },
 };
 
+/* The startup requests the page already sent while this script downloaded (window.EARLY, in
+   index.html), keyed by path. Each is used once; null when there's none or it failed to send. */
+function takeEarly(path) {
+  const e = window.EARLY, p = e && e[path];
+  if (!p) return null;
+  e[path] = null;
+  return p;
+}
+
 /* Google sign-in, coming back to this page afterwards */
 function signIn() { location.href = `/auth/google?next=${encodeURIComponent(location.pathname + location.search)}`; }
 
@@ -69,7 +78,8 @@ const Api = {
   async req(method, path, body, { raw = false, headers = {} } = {}) {
     let resp;
     try {
-      resp = await fetch(path, {
+      const early = method === 'GET' && body == null ? takeEarly(path) : null;
+      resp = (early && (await early)) || await fetch(path, {
         method, credentials: 'same-origin', redirect: 'manual',
         headers: body != null && !raw ? { 'content-type': 'application/json', ...headers } : headers,
         body: body == null ? undefined : raw ? body : JSON.stringify(body),
@@ -92,7 +102,9 @@ const Api = {
     const ctl = new AbortController();
     const timer = setTimeout(() => ctl.abort(), 8000);
     try {
-      const r = await fetch('/api/health', { credentials: 'same-origin', redirect: 'manual', signal: ctl.signal });
+      const early = takeEarly('/api/health');
+      const r = (early && (await Promise.race([early, new Promise((res) => { ctl.signal.addEventListener('abort', () => res(null)); })])))
+        || await fetch('/api/health', { credentials: 'same-origin', redirect: 'manual', signal: ctl.signal });
       if (r.type === 'opaqueredirect' || r.status === 401) { this.signedOut = true; return false; }
       if (!(r.headers.get('content-type') || '').includes('application/json')) return false;
       const d = await r.json();
