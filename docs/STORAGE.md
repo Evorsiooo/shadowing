@@ -15,7 +15,7 @@ who turn on Drive sync, a sealed Google refresh token.
   new sites; nothing depends on it).
 - **Google Drive (the default home).** Onboarding recommends connecting it, and so does Settings → Storage.
   Without it, files stay in the browser only. "Keep files only in this browser" in Settings → Storage
-  is the opt-in for people who don't want Drive (`meta/storage.deviceOnly`); it stops the reminders.
+  is the opt-in for people who don't want Drive (`meta/storage.deviceOnly`); it hides the "connect Google Drive" prompts.
   With Drive on, the browser copy is only a cache. The app asks for the
   `drive.file` scope, which only covers files the app itself creates; Google lists it as
   non-sensitive, so no security review is needed. Files go into a "Euno Shadowing" folder in the
