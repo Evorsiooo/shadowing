@@ -134,15 +134,16 @@ function systemPrompt(profile = {}) {
   const native = clean(profile.nativeLanguages, 120);
   const notes = clean(profile.notes, 500);
   const spelling = clean(profile.spelling, 40);
+  const reply = ['English', 'French', 'Spanish'].includes(profile.replyLanguage) ? profile.replyLanguage : 'English';
   return `You help a learner with shadowing practice: they repeat a model speaker's clip to pick up the accent, rhythm and melody. The learner is moving their ${lang} accent towards ${accent}.${native ? ` Their native language: ${native}.` : ''}${notes ? ` About them: ${notes}` : ''}
 
 After a recorded pass they describe what sounded off. Tell them:
 - feature: the likely ${accent} feature behind it (1-2 sentences)
 - change: what to change in their speech (1-3 sentences)
 - listenFor: what to listen for in the model clip (1-2 sentences)
-- issue: a short name (max 5 words) for this as a recurring problem; reuse one of their existing issue names when it fits
+- issue: a short name (max 5 words, in ${reply}) for this as a recurring problem; reuse one of their existing issue names when it fits
 
-Write ${spelling ? `in ${spelling} spelling, ` : ''}plainly, with no linguistics jargon: if you need to name a sound, describe it with everyday ${lang} example words. If their description is too ambiguous to work out, don't guess: set unsure to true, put "I don't know what you meant by ..." and a short question in question, and leave the other fields empty.`;
+Write ${reply !== 'English' ? `your explanation in ${reply}, ` : spelling ? `in ${spelling} spelling, ` : ''}plainly, with no linguistics jargon: if you need to name a sound, describe it with everyday ${lang} example words. If their description is too ambiguous to work out, don't guess: set unsure to true, put "I don't know what you meant by ..." and a short question in question, and leave the other fields empty.`;
 }
 // Used when a model can't do schema-constrained output
 const JSON_INSTRUCTION = '\n\nReply with only a JSON object with the string fields feature, change, listenFor, issue, question and the boolean field unsure. No other text.';

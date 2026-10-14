@@ -44,7 +44,7 @@ const Player = {
 
   current() { return Store.get('videos', UI.videoId); },
   load(videoId, { keepClip = false } = {}) {
-    if (Session.active && videoId !== UI.videoId) { toast('Finish or end the current session before opening another video.'); return; }
+    if (Session.active && videoId !== UI.videoId) { toast(t('Finish or end the current session before opening another video.')); return; }
     const vid = Store.get('videos', videoId);
     UI.videoId = vid ? vid.id : null;
     lsSet('videoId', UI.videoId);
@@ -154,20 +154,20 @@ const Player = {
     const url = vid.url || '';
     const share = /drive\.google|docs\.google|mega\.nz|mega\.io|dropbox\.com\/s\/|youtube\.com|youtu\.be|onedrive|1drv/i.test(url);
     const reason = share
-      ? 'This looks like a share page, not a direct video file. Share pages from Google Drive, MEGA, YouTube and similar sites don\'t play here. Use a direct link that ends in .mp4.'
-      : vid.fileRef ? 'The saved file didn’t play. This browser may not play its format; an .mp4 file works everywhere.'
+      ? t('This looks like a share page, not a direct video file. Share pages from Google Drive, MEGA, YouTube and similar sites don’t play here. Use a direct link that ends in .mp4.')
+      : vid.fileRef ? t('The saved file didn’t play. This browser may not play its format; an .mp4 file works everywhere.')
       : Caps.inArtifact && !LocalFiles.get(vid.id) && !vid.assetId
-        ? 'Inside a Claude artifact, videos from other websites are blocked by the page\'s security rules. Pick the same video file from this device, or store a short copy here (20 MB maximum).'
-        : 'The link didn\'t load as a video. Check it opens directly as an .mp4 file in a new tab.';
+        ? t('Inside a Claude artifact, videos from other websites are blocked by the page’s security rules. Pick the same video file from this device, or store a short copy here (20 MB maximum).')
+        : t('The link didn’t load as a video. Check it opens directly as an .mp4 file in a new tab.');
     mount(el,
-      h('h3', null, "This video won't play"),
+      h('h3', null, t('This video won’t play')),
       h('p', null, reason),
       h('div', { class: 'row', style: { justifyContent: 'center' } },
-        Store.blobMode === 'device' ? filePickButton('Use a file from this device', 'video/*', (f) => storeVideoCopy(vid, f), { kind: 'primary', icon: 'folder' })
-          : filePickButton('Use a file from this device', 'video/*', (f) => useLocalFile(vid, f), { kind: 'primary', icon: 'folder' }),
+        Store.blobMode === 'device' ? filePickButton(t('Use a file from this device'), 'video/*', (f) => storeVideoCopy(vid, f), { kind: 'primary', icon: 'folder' })
+          : filePickButton(t('Use a file from this device'), 'video/*', (f) => useLocalFile(vid, f), { kind: 'primary', icon: 'folder' }),
         Store.blobMode === 'device' ? null
-          : Caps.assets && Store.blobMode === 'assets' ? filePickButton('Store a copy (under 20 MB)', 'video/mp4,video/webm', (f) => storeVideoCopy(vid, f), { icon: 'upload' }) : null,
-        url ? h('a', { class: 'btn', href: url, target: '_blank', rel: 'noopener' }, icon('link'), h('span', { class: 'txt' }, 'Open original link')) : null));
+          : Caps.assets && Store.blobMode === 'assets' ? filePickButton(t('Store a copy (under 20 MB)'), 'video/mp4,video/webm', (f) => storeVideoCopy(vid, f), { icon: 'upload' }) : null,
+        url ? h('a', { class: 'btn', href: url, target: '_blank', rel: 'noopener' }, icon('link'), h('span', { class: 'txt' }, t('Open original link'))) : null));
     el.hidden = false;
   },
   hideError() { $('#playerError').hidden = true; },
@@ -232,14 +232,14 @@ function useLocalFile(vid, file) {
   LocalFiles.set(vid.id, file);
   Player.reloadSrc();
   Player.hideError();
-  toast(`Playing “${file.name}” from this device. Pick it again next visit.`, 'good');
+  toast(t('Playing “{name}” from this device. Pick it again next visit.', { name: file.name }), 'good');
   ensureModels(vid).then(() => renderPanel());
   loadSelAudio();
 }
 
 async function storeVideoCopy(vid, file) {
   if (Store.blobMode === 'device') {
-    toast('Saving the file on this device…');
+    toast(t('Saving the file on this device…'));
     try {
       const old = Media.idOf(vid.fileRef);
       const ref = await Media.add(file, { kind: 'video', name: file.name });
@@ -249,20 +249,20 @@ async function storeVideoCopy(vid, file) {
       Player.reloadSrc();
       Player.hideError();
       ensureModels(vid);
-      toast(Drive.connected() ? 'Saved. It’s uploading to your Google Drive for your other devices.' : 'Saved on this device.', 'good');
-    } catch (e) { toast(`The file couldn’t be saved (${e.message || e.name}).`, 'bad', 7000); }
+      toast(Drive.connected() ? t('Saved. It’s uploading to your Google Drive for your other devices.') : t('Saved on this device.'), 'good');
+    } catch (e) { toast(t('The file couldn’t be saved ({msg}).', { msg: e.message || e.name }), 'bad', 7000); }
     return;
   }
-  if (file.size > 20 * 1024 * 1024) { toast(`That file is ${(file.size / 1048576).toFixed(1)} MB. Stored copies must be under 20 MB; cut a shorter section first, or use "Use a file from this device".`, 'bad', 8000); return; }
-  toast('Uploading a copy…');
+  if (file.size > 20 * 1024 * 1024) { toast(t('That file is {mb} MB. Stored copies must be under 20 MB; cut a shorter section first, or use “Use a file from this device”.', { mb: (file.size / 1048576).toFixed(1) }), 'bad', 8000); return; }
+  toast(t('Uploading a copy…'));
   try {
     const r = await Caps.assets.upload(file, { type: /webm/.test(file.type) ? 'video/webm' : 'video/mp4' });
     Store.patch('videos', vid.id, { assetId: r.id });
     VideoAudio.cache.delete(vid.id);
     Player.reloadSrc();
-    toast('Copy stored. It will play on every device.', 'good');
+    toast(t('Copy stored. It will play on every device.'), 'good');
   } catch (e) {
-    toast(`Upload failed (${e.code || 'error'}). ${e.code === 'quota_or_state' ? 'Storage is full.' : ''}`, 'bad');
+    toast(e.code === 'quota_or_state' ? t('Upload failed ({code}). Storage is full.', { code: e.code }) : t('Upload failed ({code}).', { code: e.code || 'error' }), 'bad');
   }
 }
 
@@ -274,19 +274,19 @@ function renderControls() {
   const dis = !vid;
   const volIcon = UI.volume === 0 ? 'mute' : 'volume';
   mount($('#ctrlRow'),
-    btn('', () => Player.toggle(), { icon: playing ? 'pause' : 'play', title: playing ? 'Pause (Space)' : 'Play (Space)', disabled: dis }),
-    btn('', () => Player.replayLoop(), { icon: 'replay', title: 'Replay the loop (R)', disabled: dis }),
+    btn('', () => Player.toggle(), { icon: playing ? 'pause' : 'play', title: playing ? t('Pause (Space)') : t('Play (Space)'), disabled: dis }),
+    btn('', () => Player.replayLoop(), { icon: 'replay', title: t('Replay the loop (R)'), disabled: dis }),
     h('span', { class: 'time', id: 'timeLabel' }, `${fmtTime(Player.time())} / ${fmtTime(Player.duration())}`),
-    h('div', { class: 'seg', role: 'group', 'aria-label': 'Speed' },
-      [0.5, 0.75, 1].map((r) => h('button', { type: 'button', class: UI.rate === r ? 'on' : '', onclick: () => Player.setRate(r), title: 'Speed (, and .)' }, `${r}x`))),
-    btn('Loop', () => { UI.loop = !UI.loop; renderControls(); }, { icon: 'loop', on: UI.loop, pressed: UI.loop, title: 'Loop the clip (L)', aria: 'Loop', id: 'loopBtn' }),
-    btn('', () => Player.setVolume(UI.volume === 0 ? 1 : 0), { icon: volIcon, title: 'Mute' }),
-    h('input', { type: 'range', class: 'vol', min: 0, max: 1, step: 0.05, value: UI.volume, 'aria-label': 'Volume', oninput: (e) => Player.setVolume(+e.target.value) }),
+    h('div', { class: 'seg', role: 'group', 'aria-label': t('Speed') },
+      [0.5, 0.75, 1].map((r) => h('button', { type: 'button', class: UI.rate === r ? 'on' : '', onclick: () => Player.setRate(r), title: t('Speed (, and .)') }, `${r}x`))),
+    btn(t('Loop'), () => { UI.loop = !UI.loop; renderControls(); }, { icon: 'loop', on: UI.loop, pressed: UI.loop, title: t('Loop the clip (L)'), aria: t('Loop'), id: 'loopBtn' }),
+    btn('', () => Player.setVolume(UI.volume === 0 ? 1 : 0), { icon: volIcon, title: t('Mute') }),
+    h('input', { type: 'range', class: 'vol', min: 0, max: 1, step: 0.05, value: UI.volume, 'aria-label': t('Volume'), oninput: (e) => Player.setVolume(+e.target.value) }),
     h('span', { class: 'spacer' }),
-    Session.active ? null : btn('Cut clips', () => setCutMode(!UI.cutMode), { icon: 'scissors', on: UI.cutMode, pressed: UI.cutMode, title: 'Clip mode: drag on the timeline to select a new clip (C)', aria: 'Cut clips', id: 'cutBtn', disabled: dis }),
-    UI.cutMode ? btn('Start', () => markEdge('start'), { title: 'Mark clip start at the playhead (I or [)', disabled: dis || Session.active }) : null,
-    UI.cutMode ? btn('End', () => markEdge('end'), { title: 'Mark clip end at the playhead (O or ])', disabled: dis || Session.active }) : null,
-    btn('', () => openShortcuts(), { icon: 'keyboard', title: 'Keyboard shortcuts (?)', id: 'kbBtn' }));
+    Session.active ? null : btn(t('Cut clips'), () => setCutMode(!UI.cutMode), { icon: 'scissors', on: UI.cutMode, pressed: UI.cutMode, title: t('Clip mode: drag on the timeline to select a new clip (C)'), aria: t('Cut clips'), id: 'cutBtn', disabled: dis }),
+    UI.cutMode ? btn(t('Start@@clip edge'), () => markEdge('start'), { title: t('Mark clip start at the playhead (I or [)'), disabled: dis || Session.active }) : null,
+    UI.cutMode ? btn(t('End'), () => markEdge('end'), { title: t('Mark clip end at the playhead (O or ])'), disabled: dis || Session.active }) : null,
+    btn('', () => openShortcuts(), { icon: 'keyboard', title: t('Keyboard shortcuts (?)'), id: 'kbBtn' }));
 }
 
 /* Cancel / Esc while cutting: drop the selection and leave clip mode in one go */
@@ -300,28 +300,28 @@ function setCutMode(on) {
   UI.cutMode = on;
   if (!on && UI.sel && !UI.sel.clipId) UI.sel = null;
   $('#player').classList.toggle('cutting', on);
-  if (on) toast('Clip mode: drag on the timeline to select a clip, or press I and O while it plays.');
+  if (on) toast(t('Clip mode: drag on the timeline to select a clip, or press I and O while it plays.'));
   renderAll();
 }
 
 function markEdge(which) {
   if (!Player.current() || Session.active) return;
   if (!UI.cutMode) { UI.cutMode = true; $('#player').classList.add('cutting'); }
-  const t = Player.time();
+  const at = Player.time();
   const s = settings();
   if (!UI.sel) {
     const c = Store.get('clips', UI.clipId);
-    UI.sel = which === 'start' ? { start: t, end: Math.min(Player.duration() || t + s.clipMax, t + (s.clipMin + s.clipMax) / 2), label: '' }
-      : { start: Math.max(0, t - (s.clipMin + s.clipMax) / 2), end: t, label: '' };
+    UI.sel = which === 'start' ? { start: at, end: Math.min(Player.duration() || at + s.clipMax, at + (s.clipMin + s.clipMax) / 2), label: '' }
+      : { start: Math.max(0, at - (s.clipMin + s.clipMax) / 2), end: at, label: '' };
     if (c) UI.clipId = null;
   } else if (which === 'start') {
-    UI.sel.start = t;
-    if (UI.sel.end <= t) UI.sel.end = t + s.clipMin;
+    UI.sel.start = at;
+    if (UI.sel.end <= at) UI.sel.end = at + s.clipMin;
   } else {
-    UI.sel.end = t;
-    if (UI.sel.start >= t) UI.sel.start = Math.max(0, t - s.clipMin);
+    UI.sel.end = at;
+    if (UI.sel.start >= at) UI.sel.start = Math.max(0, at - s.clipMin);
   }
-  toast(which === 'start' ? `Clip start marked at ${fmtTime(t, 1)}` : `Clip end marked at ${fmtTime(t, 1)}`);
+  toast(which === 'start' ? t('Clip start marked at {time}', { time: fmtTime(at, 1) }) : t('Clip end marked at {time}', { time: fmtTime(at, 1) }));
   renderScrubber(); renderPanel();
   loadSelAudio();
 }
@@ -336,7 +336,7 @@ function renderScrubber() {
     const left = pct(c.start), width = Math.max(pct(c.end) - pct(c.start), 0);
     const sel = c.id === UI.clipId;
     return [
-      h('button', { type: 'button', class: 'bracket-hit', style: { left: `calc(${left}% - 4px)`, width: `calc(max(${width}%, 12px) + 8px)` }, title: `${clipName(c, i)} · ${fmtTime(c.start)}–${fmtTime(c.end)}${c.done ? ' · done' : ''}`, 'aria-label': `Select ${clipName(c, i)}`, onclick: () => selectClip(c.id) }),
+      h('button', { type: 'button', class: 'bracket-hit', style: { left: `calc(${left}% - 4px)`, width: `calc(max(${width}%, 12px) + 8px)` }, title: `${clipName(c, i)} · ${fmtTime(c.start)}–${fmtTime(c.end)}${c.done ? ` · ${t('done')}` : ''}`, 'aria-label': t('Select {clip}', { clip: clipName(c, i) }), onclick: () => selectClip(c.id) }),
       h('div', { class: `bracket ${sel ? 'sel' : ''}`, style: { left: left + '%', width: `max(${width}%, 12px)` } }),
       c.done ? h('div', { class: 'bracket-tick', style: { left: (left + width / 2) + '%' } }, icon('check', 'stroke-width="3.4"')) : null,
     ];
@@ -350,9 +350,9 @@ function renderScrubber() {
 function renderPlayerEmpty() {
   const any = Store.all('videos').some((v) => !v.archived);
   mount($('#playerEmpty'),
-    h('h2', null, any ? 'Pick a video from your library' : 'Add your first video'),
-    h('p', null, any ? 'Open a video on the right, then choose a clip, or press Cut clips to make a new one.' : 'Pick a video of someone with the accent you want: an interview or a talk where one person speaks clearly works best.'),
-    btn(any ? 'Open the library' : 'Add a video', () => { UI.addOpen = !any; openDrawer(); renderSidebar(); setTimeout(() => { const f = $('#addUrl'); if (f) f.focus(); }, 60); }, { kind: 'primary', size: 'big', icon: any ? 'menu' : 'plus' }));
+    h('h2', null, any ? t('Pick a video from your library') : t('Add your first video')),
+    h('p', null, any ? t('Open a video on the right, then choose a clip, or press Cut clips to make a new one.') : t('Pick a video of someone with the accent you want: an interview or a talk where one person speaks clearly works best.')),
+    btn(any ? t('Open the library') : t('Add a video'), () => { UI.addOpen = !any; openDrawer(); renderSidebar(); setTimeout(() => { const f = $('#addUrl'); if (f) f.focus(); }, 60); }, { kind: 'primary', size: 'big', icon: any ? 'menu' : 'plus' }));
 }
 
 /* ---------- clip helpers ---------- */
@@ -363,10 +363,10 @@ function clipName(c, idx) {
   if (c.label) return c.label;
   const list = videoClips(c.videoId);
   const i = idx != null ? idx : list.findIndex((x) => x.id === c.id);
-  return `Clip ${i + 1} (${fmtTime(c.start)})`;
+  return t('Clip {n} ({time})', { n: i + 1, time: fmtTime(c.start) });
 }
 function selectClip(id, { seek = true, play = false } = {}) {
-  if (Session.active && Session.clipId !== id) { toast('Finish or end the current session first.'); return; }
+  if (Session.active && Session.clipId !== id) { toast(t('Finish or end the current session first.')); return; }
   const c = Store.get('clips', id);
   if (!c) return;
   if (c.videoId !== UI.videoId) Player.load(c.videoId, { keepClip: true });

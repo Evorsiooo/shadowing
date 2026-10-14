@@ -1,0 +1,138 @@
+{
+  "Notifications are blocked for this site. Allow them in your browser’s site settings (or the system notification settings), then try again.": {
+    "fr": "Les notifications sont bloquées pour ce site. Autorise-les dans les réglages du site de ton navigateur (ou dans les réglages de notifications du système), puis réessaie.",
+    "es": "Las notificaciones están bloqueadas para este sitio. Permítelas en la configuración del sitio de tu navegador (o en la configuración de notificaciones del sistema) y vuelve a intentarlo."
+  },
+  "Notifications weren’t allowed.": {
+    "fr": "Les notifications n’ont pas été autorisées.",
+    "es": "No se permitieron las notificaciones."
+  },
+  "This browser couldn’t start the notification service.": {
+    "fr": "Ce navigateur n’a pas pu démarrer le service de notifications.",
+    "es": "Este navegador no pudo iniciar el servicio de notificaciones."
+  },
+  "Brave has push turned off. Turn on “Use Google services for push messaging” in brave://settings/privacy, restart Brave, and try again.": {
+    "fr": "Les notifications push sont désactivées dans Brave. Active « Use Google services for push messaging » dans brave://settings/privacy, redémarre Brave et réessaie.",
+    "es": "Brave tiene las notificaciones push desactivadas. Activa “Use Google services for push messaging” en brave://settings/privacy, reinicia Brave y vuelve a intentarlo."
+  },
+  "This browser couldn’t reach its notification service. A VPN, firewall or ad blocker may be blocking it, or this browser may not support push. Try again without them, or in Chrome, Edge, Firefox or Safari.": {
+    "fr": "Ce navigateur n’a pas pu joindre son service de notifications. Un VPN, un pare-feu ou un bloqueur de pub le bloque peut-être, ou ce navigateur ne gère pas les notifications push. Réessaie sans eux, ou dans Chrome, Edge, Firefox ou Safari.",
+    "es": "Este navegador no pudo conectar con su servicio de notificaciones. Puede que una VPN, un cortafuegos o un bloqueador de anuncios lo impida, o que este navegador no admita notificaciones push. Vuelve a intentarlo sin ellos, o en Chrome, Edge, Firefox o Safari."
+  },
+  "Checking…": {
+    "fr": "Vérification…",
+    "es": "Comprobando…"
+  },
+  "Notifications aren’t available yet. Discord reminders work in the meantime.": {
+    "fr": "Les notifications ne sont pas encore disponibles. Les rappels Discord fonctionnent en attendant.",
+    "es": "Las notificaciones aún no están disponibles. Mientras tanto, los recordatorios de Discord funcionan."
+  },
+  "On iPhone and iPad, notifications need the app on your Home Screen: tap the Share button, choose “Add to Home Screen”, open Euno from there, and come back here.": {
+    "fr": "Sur iPhone et iPad, les notifications ont besoin de l’appli sur ton écran d’accueil : touche le bouton Partager, choisis « Sur l’écran d’accueil », ouvre Euno depuis là, puis reviens ici.",
+    "es": "En iPhone y iPad, las notificaciones necesitan la app en tu pantalla de inicio: toca el botón Compartir, elige “Agregar a inicio”, abre Euno desde ahí y vuelve aquí."
+  },
+  "This browser can’t show notifications from websites. Try Chrome, Edge, Firefox or Safari.": {
+    "fr": "Ce navigateur ne peut pas afficher les notifications des sites web. Essaie Chrome, Edge, Firefox ou Safari.",
+    "es": "Este navegador no puede mostrar notificaciones de sitios web. Prueba Chrome, Edge, Firefox o Safari."
+  },
+  "On for this device": {
+    "fr": "Activées sur cet appareil",
+    "es": "Activadas en este dispositivo"
+  },
+  "Turn off here": {
+    "fr": "Désactiver ici",
+    "es": "Desactivar aquí"
+  },
+  "Notifications are off on this device.": {
+    "fr": "Les notifications sont désactivées sur cet appareil.",
+    "es": "Las notificaciones están desactivadas en este dispositivo."
+  },
+  "Get reminders as a notification on this phone or computer. Turn them on on each device you want them on.": {
+    "fr": "Reçois les rappels sous forme de notification sur ce téléphone ou cet ordinateur. Active-les sur chaque appareil où tu les veux.",
+    "es": "Recibe los recordatorios como notificación en este teléfono u ordenador. Actívalas en cada dispositivo donde las quieras."
+  },
+  "Notifications are blocked for this site. Allow them in your browser’s site settings, then turn them on here.": {
+    "fr": "Les notifications sont bloquées pour ce site. Autorise-les dans les réglages du site de ton navigateur, puis active-les ici.",
+    "es": "Las notificaciones están bloqueadas para este sitio. Permítelas en la configuración del sitio de tu navegador y luego actívalas aquí."
+  },
+  "Turn on notifications": {
+    "fr": "Activer les notifications",
+    "es": "Activar notificaciones"
+  },
+  "Notifications are on for this device.": {
+    "fr": "Les notifications sont activées sur cet appareil.",
+    "es": "Las notificaciones están activadas en este dispositivo."
+  },
+  "Notifications on this device": {
+    "fr": "Notifications sur cet appareil",
+    "es": "Notificaciones en este dispositivo"
+  },
+  "Also on {n} other device.|Also on {n} other devices.": {
+    "fr": "Aussi sur {n} autre appareil.|Aussi sur {n} autres appareils.",
+    "es": "También en {n} dispositivo más.|También en {n} dispositivos más."
+  },
+  "Connecting AI apps needs the online version of the app.": {
+    "fr": "Pour connecter des applis d’IA, il faut la version en ligne de l’appli.",
+    "es": "Para conectar apps de IA necesitas la versión en línea de la app."
+  },
+  "Address copied.": {
+    "fr": "Adresse copiée.",
+    "es": "Dirección copiada."
+  },
+  "Let Claude, ChatGPT or Gemini read your practice: your sessions, notes, issues and progress. They can ask things like “what did I struggle with this week?” They can’t change anything, and they never see your recordings, AI keys or Discord webhook.": {
+    "fr": "Laisse Claude, ChatGPT ou Gemini lire ta pratique : tes séances, notes, points faibles et progrès. Ils peuvent répondre à des questions comme « sur quoi j’ai eu du mal cette semaine ? ». Ils ne peuvent rien modifier et ne voient jamais tes enregistrements, tes clés d’IA ni ton webhook Discord.",
+    "es": "Deja que Claude, ChatGPT o Gemini lean tu práctica: tus sesiones, notas, puntos débiles y progreso. Pueden responder cosas como “¿con qué me costó más esta semana?”. No pueden cambiar nada y nunca ven tus grabaciones, tus claves de IA ni tu webhook de Discord."
+  },
+  "Server address": {
+    "fr": "Adresse du serveur",
+    "es": "Dirección del servidor"
+  },
+  "Copy": {
+    "fr": "Copier",
+    "es": "Copiar"
+  },
+  "Settings → Connectors → Add custom connector. Paste the address and leave the advanced settings empty.": {
+    "fr": "Settings → Connectors → Add custom connector. Colle l’adresse et laisse les réglages avancés vides.",
+    "es": "Settings → Connectors → Add custom connector. Pega la dirección y deja vacía la configuración avanzada."
+  },
+  "Settings → Apps → Advanced settings → turn on Developer mode, then Create app. Paste the address and choose OAuth. Needs a paid plan.": {
+    "fr": "Settings → Apps → Advanced settings → active Developer mode, puis Create app. Colle l’adresse et choisis OAuth. Il faut un abonnement payant.",
+    "es": "Settings → Apps → Advanced settings → activa Developer mode y luego Create app. Pega la dirección y elige OAuth. Necesita un plan de pago."
+  },
+  "Settings → Connected apps → Add a custom app. Paste the address and leave Client ID and Client secret empty.": {
+    "fr": "Settings → Connected apps → Add a custom app. Colle l’adresse et laisse Client ID et Client secret vides.",
+    "es": "Settings → Connected apps → Add a custom app. Pega la dirección y deja vacíos Client ID y Client secret."
+  },
+  "You’ll be asked to sign in here and allow the app.": {
+    "fr": "On te demandera de te connecter ici et d’autoriser l’appli.",
+    "es": "Se te pedirá iniciar sesión aquí y permitir la app."
+  },
+  "Connected": {
+    "fr": "Connectées",
+    "es": "Conectadas"
+  },
+  "No apps connected yet.": {
+    "fr": "Aucune appli connectée pour l’instant.",
+    "es": "Aún no hay apps conectadas."
+  },
+  "Disconnect": {
+    "fr": "Déconnecter",
+    "es": "Desconectar"
+  },
+  "connected {date}, last used {used}": {
+    "fr": "connectée le {date}, utilisée pour la dernière fois le {used}",
+    "es": "conectada el {date}, usada por última vez el {used}"
+  },
+  "connected {date}": {
+    "fr": "connectée le {date}",
+    "es": "conectada el {date}"
+  },
+  "Disconnect {name}? It loses access straight away. You can connect it again later.": {
+    "fr": "Déconnecter {name} ? L’accès est coupé tout de suite. Tu pourras la reconnecter plus tard.",
+    "es": "¿Desconectar {name}? Pierde el acceso al instante. Puedes volver a conectarla más tarde."
+  },
+  "{name} disconnected.": {
+    "fr": "{name} est déconnectée.",
+    "es": "{name} se desconectó."
+  }
+}

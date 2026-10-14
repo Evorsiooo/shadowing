@@ -9,13 +9,13 @@
 
 const LANGUAGES = {
   en: {
-    name: 'English',
+    name: N_('English'),
     timing: 'stress',
-    examples: { off: 'e.g. the vowel in “go” sounds too pure, it doesn’t glide', aim: 'e.g. the vowel in “bird”', accentOther: 'e.g. Scottish English' },
+    examples: { off: N_('e.g. the vowel in “go” sounds too pure, it doesn’t glide'), aim: N_('e.g. the vowel in “bird”'), accentOther: N_('e.g. Scottish English') },
     accents: [
-      { id: 'us', name: 'General American English', short: 'American', spelling: 'American', hint: 'The accent of most US film, TV and news.' },
-      { id: 'gb', name: 'Southern British English', short: 'British', spelling: 'British', hint: 'Often called RP or “BBC English”.' },
-      { id: 'au', name: 'General Australian English', short: 'Australian', spelling: 'Australian', hint: 'The everyday accent of most Australians.' },
+      { id: 'us', name: N_('General American English'), short: N_('American'), spelling: 'American', hint: N_('The accent of most US film, TV and news.') },
+      { id: 'gb', name: N_('Southern British English'), short: N_('British'), spelling: 'British', hint: N_('Often called RP or “BBC English”.') },
+      { id: 'au', name: N_('General Australian English'), short: N_('Australian'), spelling: 'Australian', hint: N_('The everyday accent of most Australians.') },
     ],
     // read-aloud sets: a programme keeps the set its baseline was recorded with
     readSets: {
@@ -50,15 +50,15 @@ const LANGUAGES = {
       'If you could ask one famous person a question, who and what?', 'Describe a normal day for you from start to finish.', 'What would you do with an extra hour every day?',
       'What’s a small thing that always puts you in a good mood?', 'Talk about something you built, fixed or made.', 'Where do you see yourself in five years?',
     ],
-    retellHelp: 'Retell something you watched recently (a video, an episode, a match) for about 60 seconds.',
+    retellHelp: N_('Retell something you watched recently (a video, an episode, a match) for about 60 seconds.'),
   },
   fr: {
-    name: 'French',
+    name: N_('French'),
     timing: 'syllable',
-    examples: { off: 'e.g. my “u” in “rue” sounds like “ou”', aim: 'e.g. the nasal vowel in “vent”', accentOther: 'e.g. Belgian French' },
+    examples: { off: N_('e.g. my “u” in “rue” sounds like “ou”'), aim: N_('e.g. the nasal vowel in “vent”'), accentOther: N_('e.g. Belgian French') },
     accents: [
-      { id: 'fr', name: 'Metropolitan French', short: 'Parisian French', spelling: null, hint: 'The standard accent of France, heard on national TV and radio.' },
-      { id: 'qc', name: 'Québécois French', short: 'Québécois', spelling: null, hint: 'The everyday French of Quebec, Canada.' },
+      { id: 'fr', name: N_('Metropolitan French'), short: N_('Parisian French'), spelling: null, hint: N_('The standard accent of France, heard on national TV and radio.') },
+      { id: 'qc', name: N_('Québécois French'), short: N_('Québécois'), spelling: null, hint: N_('The everyday French of Quebec, Canada.') },
     ],
     readSets: {
       'fr-1': [
@@ -83,16 +83,16 @@ const LANGUAGES = {
       'Si tu pouvais poser une question à une personne célèbre, à qui et laquelle ?', 'Décris une journée normale pour toi, du matin au soir.', 'Que ferais-tu d’une heure de plus chaque jour ?',
       'Quelle petite chose te met toujours de bonne humeur ?', 'Parle de quelque chose que tu as construit, réparé ou fabriqué.', 'Où te vois-tu dans cinq ans ?',
     ],
-    retellHelp: 'Retell something you watched recently (a video, an episode, a match) for about 60 seconds, in French.',
+    retellHelp: N_('Retell something you watched recently (a video, an episode, a match) for about 60 seconds, in French.'),
   },
   es: {
-    name: 'Spanish',
+    name: N_('Spanish'),
     timing: 'syllable',
-    examples: { off: 'e.g. my “rr” in “perro” doesn’t roll', aim: 'e.g. the soft “d” in “nada”', accentOther: 'e.g. Colombian Spanish' },
+    examples: { off: N_('e.g. my “rr” in “perro” doesn’t roll'), aim: N_('e.g. the soft “d” in “nada”'), accentOther: N_('e.g. Colombian Spanish') },
     accents: [
-      { id: 'mx', name: 'Mexican Spanish', short: 'Mexican', spelling: null, hint: 'The most widely heard Latin American accent, common in film dubbing.' },
-      { id: 'es', name: 'Peninsular Spanish', short: 'Spanish (Spain)', spelling: null, hint: 'The accent of central Spain, with the “th” sound in “cielo”.' },
-      { id: 'ar', name: 'Rioplatense Spanish', short: 'Argentine', spelling: null, hint: 'Buenos Aires and Montevideo, with “sh” for “ll” and “y”.' },
+      { id: 'mx', name: N_('Mexican Spanish'), short: N_('Mexican'), spelling: null, hint: N_('The most widely heard Latin American accent, common in film dubbing.') },
+      { id: 'es', name: N_('Peninsular Spanish'), short: N_('Spanish (Spain)'), spelling: null, hint: N_('The accent of central Spain, with the “th” sound in “cielo”.') },
+      { id: 'ar', name: N_('Rioplatense Spanish'), short: N_('Argentine'), spelling: null, hint: N_('Buenos Aires and Montevideo, with “sh” for “ll” and “y”.') },
     ],
     readSets: {
       'es-1': [
@@ -117,10 +117,10 @@ const LANGUAGES = {
       'Si pudieras hacerle una pregunta a una persona famosa, ¿a quién y qué le preguntarías?', 'Describe un día normal para ti, de principio a fin.', '¿Qué harías con una hora extra cada día?',
       '¿Qué pequeña cosa siempre te pone de buen humor?', 'Habla de algo que hayas construido, arreglado o hecho con tus propias manos.', '¿Dónde te ves dentro de cinco años?',
     ],
-    retellHelp: 'Retell something you watched recently (a video, an episode, a match) for about 60 seconds, in Spanish.',
+    retellHelp: N_('Retell something you watched recently (a video, an episode, a match) for about 60 seconds, in Spanish.'),
   },
 };
-const NATIVE_LANGUAGE_HINTS = ['English', 'French', 'Spanish', 'Portuguese', 'German', 'Italian', 'Dutch', 'Polish', 'Russian', 'Ukrainian', 'Turkish', 'Arabic', 'Hindi', 'Bengali', 'Urdu', 'Mandarin Chinese', 'Cantonese', 'Japanese', 'Korean', 'Vietnamese', 'Thai', 'Indonesian', 'Tagalog'];
+const NATIVE_LANGUAGE_HINTS = [N_('English'), N_('French'), N_('Spanish'), N_('Portuguese'), N_('German'), N_('Italian'), N_('Dutch'), N_('Polish'), N_('Russian'), N_('Ukrainian'), N_('Turkish'), N_('Arabic'), N_('Hindi'), N_('Bengali'), N_('Urdu'), N_('Mandarin Chinese'), N_('Cantonese'), N_('Japanese'), N_('Korean'), N_('Vietnamese'), N_('Thai'), N_('Indonesian'), N_('Tagalog')];
 
 const PROFILE_DEFAULTS = { name: '', nativeLanguages: '', targetLanguage: 'en', accent: '', accentOther: '', notes: '', onboarded: null };
 function profile() { return { ...PROFILE_DEFAULTS, ...(settings().profile || {}) }; }
@@ -139,7 +139,7 @@ function targetAccent(p = profile()) {
   if (known) return known;
   const other = String(p.accentOther || '').trim().slice(0, 80);
   if (other) return { name: other, short: other, spelling: null };
-  return { name: `a native ${lang.name} accent`, short: 'native', spelling: null };
+  return { name: `a native ${lang.name} accent`, short: N_('native'), spelling: null }; // name goes to the AI (English); short is shown with t()
 }
 
 /* check-ins made before languages existed have no lang: they are English */
@@ -163,5 +163,6 @@ function profileForAI(p = profile()) {
     accent: a.name,
     spelling: a.spelling,
     notes: String(p.notes || '').slice(0, 500),
+    replyLanguage: UI_LANG_NAMES_EN[LANG] || 'English', // the interface language: feedback is written in it
   };
 }

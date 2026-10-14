@@ -81,20 +81,21 @@ const Api = {
       const early = method === 'GET' && body == null ? takeEarly(path) : null;
       resp = (early && (await early)) || await fetch(path, {
         method, credentials: 'same-origin', redirect: 'manual',
-        headers: body != null && !raw ? { 'content-type': 'application/json', ...headers } : headers,
+        // x-euno-lang: the server answers its messages in the interface language
+        headers: body != null && !raw ? { 'content-type': 'application/json', 'x-euno-lang': LANG, ...headers } : { 'x-euno-lang': LANG, ...headers },
         body: body == null ? undefined : raw ? body : JSON.stringify(body),
       });
     } catch (e) {
-      throw Object.assign(new Error('The server couldn’t be reached. Check your connection.'), { code: 'network' });
+      throw Object.assign(new Error(t('The server couldn’t be reached. Check your connection.')), { code: 'network' });
     }
     if (resp.type === 'opaqueredirect' || resp.status === 401) {
       this.signedOut = true;
       Bus.emit('signedout');
-      throw Object.assign(new Error('You’re signed out. Sign in again to keep saving.'), { code: 'signedout' });
+      throw Object.assign(new Error(t('You’re signed out. Sign in again to keep saving.')), { code: 'signedout' });
     }
     const ct = resp.headers.get('content-type') || '';
     const data = ct.includes('application/json') ? await resp.json().catch(() => ({})) : null;
-    if (!resp.ok) throw Object.assign(new Error((data && data.error) || `Server error ${resp.status}`), { code: `http_${resp.status}`, status: resp.status });
+    if (!resp.ok) throw Object.assign(new Error((data && data.error) || t('Server error {status}', { status: resp.status })), { code: `http_${resp.status}`, status: resp.status });
     return data;
   },
   async probe() {
@@ -108,7 +109,7 @@ const Api = {
       if (r.type === 'opaqueredirect' || r.status === 401) { this.signedOut = true; return false; }
       if (!(r.headers.get('content-type') || '').includes('application/json')) return false;
       const d = await r.json();
-      if (!r.ok) { this.problem = d.error || `Server error ${r.status}`; return false; }
+      if (!r.ok) { this.problem = d.error || t('Server error {status}', { status: r.status }); return false; }
       this.on = true; this.email = d.email; this.name = d.name || null; this.role = d.role || null; this.ai = d.ai || null;
       this.drive = d.drive || { connected: false }; this.driveAvailable = !!d.driveAvailable;
       return true;
@@ -220,13 +221,13 @@ const Store = {
     if (this.mode === 'cloud' && key && (code === 'network' || (e.status && e.status >= 500))) {
       // keep retrying quietly; the change is still on screen
       this.failed = (this.failed || 0) + 1;
-      if (this.failed <= 3 || this.failed % 10 === 0) toast('Couldn’t save to the server. Retrying…', 'bad');
+      if (this.failed <= 3 || this.failed % 10 === 0) toast(t('Couldn’t save to the server. Retrying…'), 'bad');
       setTimeout(() => this.schedule(...key.split('/'), 0), Math.min(60000, 3000 * this.failed));
       return;
     }
-    if (code === 'quota_exceeded') toast('Storage is full. Archive or remove old recordings in Settings → Data.', 'bad', 7000);
+    if (code === 'quota_exceeded') toast(t('Storage is full. Archive or remove old recordings in Settings → Data.'), 'bad', 7000);
     else if (e && (e.status === 413 || e.status === 429)) toast(e.message, 'bad', 7000); // the server's own words: account full, or slow down
-    else toast(`Couldn't save a change (${code || 'error'}). It is kept on screen; try again shortly.`, 'bad');
+    else toast(t('Couldn’t save a change ({code}). It is kept on screen; try again shortly.', { code: code || 'error' }), 'bad');
   },
 
   /* ---------- recordings & files ----------
@@ -235,7 +236,7 @@ const Store = {
   async putBlob(blob, kind = 'rec') {
     if (this.blobMode === 'device') {
       try { return await Media.add(blob, { kind }); } catch (e) {
-        if (e && e.name === 'QuotaExceededError') throw Object.assign(new Error('This device’s storage is full.'), { code: 'quota_exceeded' });
+        if (e && e.name === 'QuotaExceededError') throw Object.assign(new Error(t('This device’s storage is full.')), { code: 'quota_exceeded' });
         throw e;
       }
     }
@@ -301,7 +302,7 @@ const Store = {
   },
   async importJSON(text) {
     const parsed = JSON.parse(text);
-    if (!parsed || parsed.app !== 'shadowing-practice' || !parsed.data) throw new Error('This file is not a Euno Shadowing backup.');
+    if (!parsed || parsed.app !== 'shadowing-practice' || !parsed.data) throw new Error(t('This file is not a Euno Shadowing backup.'));
     let n = 0;
     for (const col of COLS) {
       for (const [id, doc] of Object.entries(parsed.data[col] || {})) {
