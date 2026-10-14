@@ -1512,6 +1512,8 @@ const Media = {
   pending: new Map(), // id -> promise of a download in progress
   missing: new Set(),
   /* the file as a Blob/File on this device, downloading it once from a provider if needed */
+  /* downloads in progress: id -> { fraction, listeners } so every caller sees the progress */
+  downloads: new Map(),
   async file(id, onProgress) {
     const local = await DeviceFiles.get(id);
     if (local) return local;
@@ -1520,19 +1522,29 @@ const Media = {
     const p = PROVIDERS.find((x) => d.providers && d.providers[x.id] && x.connected());
     if (!p) { this.missing.add(id); return null; }
     if (!this.pending.has(id)) {
+      const dl = { fraction: 0, listeners: new Set() };
+      this.downloads.set(id, dl);
       const job = (async () => {
         const r = await p.download(d.providers[p.id]);
         const total = Number(r.headers.get('content-length')) || d.size || 0;
-        await DeviceFiles.put(id, r.body, (n) => onProgress && total && onProgress(n / total));
+        await DeviceFiles.put(id, r.body, (n) => {
+          if (!total) return;
+          dl.fraction = Math.min(1, n / total);
+          for (const f of dl.listeners) f(dl.fraction);
+        });
         return DeviceFiles.get(id);
       })();
       this.pending.set(id, job);
-      job.finally(() => this.pending.delete(id));
+      job.finally(() => { this.pending.delete(id); this.downloads.delete(id); });
     }
+    const dl = this.downloads.get(id);
+    if (onProgress && dl) { dl.listeners.add(onProgress); onProgress(dl.fraction); }
     try { return await this.pending.get(id); } catch (e) {
       console.warn('download failed', e);
       if (e.status === 404) { Store.patch('media', id, { providers: { ...d.providers, [p.id]: undefined } }); this.missing.add(id); return null; }
       throw e;
+    } finally {
+      if (onProgress && dl) dl.listeners.delete(onProgress);
     }
   },
   /* delete everywhere: this device, the providers, and the document */
@@ -1609,11 +1621,18 @@ async function attachVideoFile(vid) {
   const el = $('#playerError');
   const d = Media.doc(id);
   let shown = false;
+  const mb = (n) => (n / 1048576).toFixed(0);
   const show = (f) => {
+    const pct = Math.round(f * 100);
+    // build the panel once, then only move the bar
+    if (!shown || !el.querySelector('.dl-bar')) {
+      mount(el, h('h3', null, 'Getting your video ready'), h('p', null, `Downloading “${vid.title}” from your Google Drive to this device. It only happens once on each device.`),
+        h('div', { class: 'bar big dl-bar' }, h('i')), h('p', { class: 'small muted dl-label' }));
+      el.hidden = false;
+    }
     shown = true;
-    mount(el, h('h3', null, 'Getting your video ready'), h('p', null, `Downloading “${vid.title}” from your Google Drive to this device${d && d.size ? ` (${(d.size / 1048576).toFixed(0)} MB)` : ''}. It only happens once on each device.`),
-      h('div', { class: 'bar' }, h('i', { style: { width: `${Math.round(f * 100)}%` } })));
-    el.hidden = false;
+    el.querySelector('.dl-bar > i').style.width = `${pct}%`;
+    el.querySelector('.dl-label').textContent = d && d.size ? `${pct}% · ${mb(f * d.size)} of ${mb(d.size)} MB` : `${pct}%`;
   };
   try {
     const file = await Media.file(id, (f) => { if (Player.current() && Player.current().id === vid.id) show(f); });
@@ -1692,7 +1711,20 @@ const LegacyFiles = {
     return r;
   },
   /* onProgress(done, total, fraction of the current file); keeps going past a file that fails */
-  async move(onProgress) {
+  running: null,
+  progress: null,
+  listener: null,
+  move(onProgress) {
+    // one run at a time: pressing Move again joins the running one, and Settings redrawn
+    // mid-run takes over the progress line
+    this.listener = onProgress;
+    if (!this.running) {
+      this.running = this.moveAll((d, t, f) => { this.progress = [d, t, f]; this.listener && this.listener(d, t, f); })
+        .finally(() => { this.running = null; this.progress = null; this.listener = null; });
+    }
+    return this.running;
+  },
+  async moveAll(onProgress) {
     if (!Drive.connected()) throw new Error('Connect Google Drive first.');
     const refs = this.refs();
     const keys = [...new Set(refs.map((r) => r.key))];
@@ -1741,12 +1773,27 @@ const LegacyFiles = {
   /* server copies whose replacement is in Drive: safe to delete */
   deletable() { return Store.all('media').filter((d) => d.legacyKey && d.providers && d.providers.gdrive); },
   async deleteServerCopies() {
-    let n = 0;
+    const keys = new Set();
     for (const d of this.deletable()) {
-      await Api.req('DELETE', '/api/files/' + d.legacyKey).catch((e) => { if (e.status !== 404) throw e; });
+      if (!keys.has(d.legacyKey)) await Api.req('DELETE', '/api/files/' + d.legacyKey).catch((e) => { if (e.status !== 404) throw e; });
+      keys.add(d.legacyKey);
       Store.patch('media', d.id, { legacyKey: null });
-      n++;
     }
+    return keys.size;
+  },
+  /* extra Drive copies from a move that ran twice: moved files nothing points at */
+  duplicates() {
+    const used = new Set();
+    const walk = (v) => {
+      if (typeof v === 'string') { if (v.startsWith('media:')) used.add(v.slice(6)); return; }
+      if (v && typeof v === 'object') for (const x of Object.values(v)) walk(x);
+    };
+    for (const col of COLS) if (col !== 'media') for (const doc of Store.all(col)) walk(doc);
+    return Store.all('media').filter((d) => 'legacyKey' in d && !used.has(d.id) && !this.running);
+  },
+  async removeDuplicates() {
+    let n = 0;
+    for (const d of this.duplicates()) { await Media.remove(d.id); n++; }
     return n;
   },
 };
@@ -1809,12 +1856,15 @@ function storageView() {
     const all = Store.all('media');
     const here = (await Promise.all(all.map((d) => DeviceFiles.has(d.id)))).filter(Boolean).length;
     const legacy = Store.mode === 'cloud' ? LegacyFiles.count() : 0;
-    const deletable = Store.mode === 'cloud' ? LegacyFiles.deletable() : [];
+    const deletable = Store.mode === 'cloud' ? [...new Set(LegacyFiles.deletable().map((d) => d.legacyKey))] : [];
     const pending = Drive.connected() ? all.filter((d) => !(d.providers && d.providers.gdrive)) : [];
     const mb = (b) => `${(b / 1048576).toFixed(b < 10 * 1048576 ? 1 : 0)} MB`;
     const cached = all.filter((d) => d.providers && d.providers.gdrive);
     const status = h('p', { class: 'small muted', role: 'status' });
+    const showMove = (d, t, f) => { status.textContent = d < t ? `Copying file ${d + 1} of ${t} to your Drive${f ? ` (${Math.round(f * 100)}%)` : ''}… keep this page open.` : `Copied ${t} file${t === 1 ? '' : 's'}.`; };
+    if (LegacyFiles.running) { LegacyFiles.listener = showMove; if (LegacyFiles.progress) showMove(...LegacyFiles.progress); }
     const cloud = Store.mode === 'cloud';
+    const dupes = cloud && Drive.connected() ? LegacyFiles.duplicates() : [];
     mount(root,
       h('div', { class: 'card' }, h('h3', null, 'Google Drive'),
         h('p', null, driveSummary()),
@@ -1838,7 +1888,7 @@ function storageView() {
             ? h('div', { class: 'row' }, btn(`Move ${legacy} file${legacy === 1 ? '' : 's'} to Drive`, async (e) => {
               e.currentTarget.disabled = true;
               try {
-                const n = await LegacyFiles.move((d, t, f) => { status.textContent = d < t ? `Copying file ${d + 1} of ${t} to your Drive${f ? ` (${Math.round(f * 100)}%)` : ''}… keep this page open.` : `Copied ${t} file${t === 1 ? '' : 's'}.`; });
+                const n = await LegacyFiles.move(showMove);
                 toast(`Moved ${n} file${n === 1 ? '' : 's'} to your Google Drive.`, 'good', 6000);
                 if (!Session.active) Player.load(UI.videoId, { keepClip: true });
               } catch (err) {
@@ -1847,7 +1897,7 @@ function storageView() {
                 if (err.moved && !Session.active) Player.load(UI.videoId, { keepClip: true });
               }
               draw();
-            }, { kind: 'primary', size: 'sm' }))
+            }, { kind: 'primary', size: 'sm', disabled: !!LegacyFiles.running }))
             : h('p', { class: 'small muted' }, 'Connect Google Drive above first.'),
           status] : null,
         deletable.length ? [
@@ -1857,6 +1907,13 @@ function storageView() {
             try { const n = await LegacyFiles.deleteServerCopies(); toast(`Deleted ${n} server cop${n === 1 ? 'y' : 'ies'}.`, 'good'); } catch (err) { toast(err.message, 'bad', 7000); }
             draw();
           }, { size: 'sm', kind: 'danger' }))] : null) : null,
+      dupes.length ? h('div', { class: 'card' }, h('h3', null, 'Extra copies in your Drive'),
+        h('p', null, `The move ran twice, so ${dupes.length} file${dupes.length === 1 ? ' is' : 's are'} in your Drive twice (${mb(dupes.reduce((a, d) => a + (d.size || 0), 0))}). Nothing in the app uses the extra copies.`),
+        h('div', { class: 'row' }, btn(`Remove ${dupes.length} extra cop${dupes.length === 1 ? 'y' : 'ies'}`, async (e) => {
+          e.currentTarget.disabled = true;
+          try { const n = await LegacyFiles.removeDuplicates(); toast(`Removed ${n} extra cop${n === 1 ? 'y' : 'ies'} from your Drive.`, 'good'); } catch (err) { toast(err.message, 'bad', 7000); }
+          draw();
+        }, { size: 'sm' }))) : null,
       h('details', { class: 'card' }, h('summary', null, h('strong', null, 'This browser')),
         h('p', { class: 'small muted' }, `Files you open are kept in this browser so they play instantly and work offline: ${here} of ${all.length} right now.${Drive.connected() ? ' If the browser clears them, they download again from Drive.' : ''}`),
         Drive.connected() && cached.length && here ? h('div', { class: 'row' }, btn('Free up space', async () => { const r = await Media.evictSynced(); toast(`Removed ${r.n} file${r.n === 1 ? '' : 's'} (${mb(r.bytes)}) from this browser. They’re still in your Drive.`, 'good'); if (!Session.active) Player.load(UI.videoId, { keepClip: true }); draw(); }, { size: 'sm' })) : null,
