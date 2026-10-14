@@ -1,17 +1,17 @@
 // Secrets kept for a user (a Google Drive refresh token, AI keys) are sealed with AES-GCM under the
-// KEY_ENCRYPTION_KEY Pages secret: 32 random bytes, base64 (`openssl rand -base64 32`).
-// The user id and purpose are bound in as additional data, so a sealed value copied to another
+// KEY_ENCRYPTION_KEY Pages secret, the same one that protects AI keys (server/ai.js).
+// The additional data is "<userId>:<purpose>" (AI keys use the bare user id), so the user id and purpose are bound in as additional data, so a sealed value copied to another
 // user's row, or used for another purpose, fails to open.
 import { b64urlToBytes, bytesToB64url } from './auth.js';
 
 const keyCache = new Map();
+// Same derivation as the AI keys in server/ai.js (SHA-256 of the secret), so one secret serves both.
 async function masterKey(env) {
   const raw = env.KEY_ENCRYPTION_KEY;
   if (!raw) throw Object.assign(new Error('The server has no KEY_ENCRYPTION_KEY secret, so it can’t store this safely yet.'), { status: 503 });
   if (keyCache.has(raw)) return keyCache.get(raw);
-  const bytes = Uint8Array.from(atob(raw.trim()), (c) => c.charCodeAt(0));
-  if (bytes.length !== 32) throw Object.assign(new Error('KEY_ENCRYPTION_KEY must be 32 bytes, base64-encoded.'), { status: 503 });
-  const key = await crypto.subtle.importKey('raw', bytes, 'AES-GCM', false, ['encrypt', 'decrypt']);
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+  const key = await crypto.subtle.importKey('raw', digest, 'AES-GCM', false, ['encrypt', 'decrypt']);
   keyCache.set(raw, key);
   return key;
 }
