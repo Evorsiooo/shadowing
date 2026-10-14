@@ -16,6 +16,8 @@ const CODE_TTL = 5 * 60_000;
 const ACCESS_TTL = 3600_000;
 const REFRESH_TTL = 60 * 86400_000;
 const REQUEST_TTL = 10 * 60_000;
+// Registration needs no account, so cap it site-wide: each app registers once per connection.
+const REGISTER_PER_HOUR = 300;
 
 /* ---------- where apps may send people back to ---------- */
 // Only the AI apps we support (and loopback, for command-line clients such as Claude Code or Gemini CLI).
@@ -123,8 +125,12 @@ export async function register(request, env) {
   if (!Array.isArray(grants) || !grants.includes('authorization_code')) return oauthError('invalid_client_metadata', 'grant_types must include authorization_code.');
   // Every client is public: Gemini asks for client_secret_basic, so the answer says "none" and no secret is issued.
   const name = typeof body.client_name === 'string' ? body.client_name.replace(/[\u0000-\u001f]/g, '').trim().slice(0, 80) : null;
-  const id = `mcp_${uuid()}`;
   const now = Date.now();
+  const recent = await env.DB.prepare('SELECT COUNT(*) AS n FROM oauth_clients WHERE created > ?').bind(now - 3600_000).first();
+  if (recent && recent.n >= REGISTER_PER_HOUR) {
+    return new Response(JSON.stringify({ error: 'temporarily_unavailable', error_description: 'Too many apps registered in the last hour. Try again later.' }), { status: 429, headers: { 'content-type': 'application/json', 'retry-after': '600', 'cache-control': 'no-store', ...CORS } });
+  }
+  const id = `mcp_${uuid()}`;
   await env.DB.prepare('INSERT INTO oauth_clients (id, name, redirect_uris, created) VALUES (?, ?, ?, ?)').bind(id, name, JSON.stringify(uris), now).run();
   if (Math.random() < 0.05) await cleanup(env.DB);
   return oauthJson({
@@ -144,8 +150,8 @@ async function cleanup(db) {
   await db.batch([
     db.prepare('DELETE FROM oauth_tokens WHERE expires < ?').bind(now),
     db.prepare('DELETE FROM oauth_requests WHERE expires < ?').bind(now),
-    // clients that registered a week ago and were never approved by anyone
-    db.prepare('DELETE FROM oauth_clients WHERE created < ? AND id NOT IN (SELECT client_id FROM oauth_grants)').bind(now - 7 * 86400_000),
+    // clients that registered a day ago and were never approved by anyone (a sign-in lasts 10 minutes)
+    db.prepare('DELETE FROM oauth_clients WHERE created < ? AND id NOT IN (SELECT client_id FROM oauth_grants)').bind(now - 86400_000),
   ]);
 }
 
