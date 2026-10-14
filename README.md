@@ -27,6 +27,7 @@ Everything runs on one Cloudflare account, mostly within the free tier:
 | **R2** | Videos and voice recordings, streamed back with range requests so videos seek properly |
 | **Claude API** | "Ask Claude" on notes, through the server (`server/claude.js`); the key is a Cloudflare secret |
 | **MCP server** | `/mcp/<secret>` gives Claude read/write access to all data and recordings (`functions/mcp/`) |
+| **Reminders Worker** | `workers/reminders/`: posts practice reminders to a Discord webhook. A Durable Object alarm wakes it every 15 minutes (the account's free cron triggers are used elsewhere); the API re-arms it on every app load through the `REMINDERS` service binding. The webhook URL sits in D1's `private` table, which the docs API and MCP never return. Deploy changes with `npm run deploy:reminders`. |
 
 ### API
 
@@ -38,6 +39,7 @@ All routes need a valid Access sign-in.
 - `POST /api/uploads` → `PUT /api/uploads/:id/:part` → `POST /api/uploads/:id/complete` (big videos)
 - `POST /api/import` (copy a video from a direct link into R2)
 - `POST /api/claude` (note feedback)
+- `GET|PUT /api/reminders` (webhook set or not; save/remove it), `POST /api/reminders/test`, `POST /api/reminders/arm`
 
 ### MCP tools
 
@@ -94,6 +96,8 @@ npm run dev        # http://localhost:8788
 | `server/auth.js` | Cloudflare Access token check |
 | `server/store.js` | D1 documents, R2 file streaming |
 | `server/claude.js` | Claude API call for note feedback |
+| `server/reminders.js` | When a reminder is due, its message, posting to Discord |
+| `workers/reminders/` | The reminders Worker (Durable Object alarm scheduler) |
 | `scripts/setup.mjs` | One-shot Cloudflare setup (database, storage, Access, secrets) |
 | `scripts/build.mjs` | Builds `dist/index.html` |
 

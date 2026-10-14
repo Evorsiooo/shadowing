@@ -23,6 +23,11 @@ migrations_dir = "migrations"
 binding = "FILES"
 bucket_name = "shadowing-files"
 
+# The reminders Worker (workers/reminders): the API pokes it so its schedule keeps running.
+[[services]]
+binding = "REMINDERS"
+service = "shadowing-reminders"
+
 # Secrets (set with `npx wrangler pages secret put NAME`, never committed):
 #   ANTHROPIC_API_KEY  Claude API key for note feedback
 #   MCP_TOKEN          long random string; the MCP endpoint is /mcp/<MCP_TOKEN>
