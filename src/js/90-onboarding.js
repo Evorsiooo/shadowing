@@ -4,8 +4,7 @@
    false are skipped (no video step if you already have videos, and so on).
    Each step is { id, label (shown under the progress bar), title(W), sub(W), body(W), next(W) }.
    next(W) checks or saves the step's fields; returning false stays on the step.
-   One step is still a placeholder, in its own function below so other work can replace it:
-   - onboardingStorageStep: the Google Drive sync work replaces it with the connect flow.
+   onboardingStorageStep is the device + optional Google Drive choice from 17-media.js.
    onboardingAiStep is the key and model picker from 87-ai.js. */
 const ONBOARDING_STEPS = [
   {
@@ -87,16 +86,7 @@ const ONBOARDING_STEPS = [
 ];
 
 /* placeholder until Google Drive sync lands */
-function onboardingStorageStep() {
-  const cloud = Store.mode === 'cloud';
-  return h('div', { class: 'cards' },
-    h('div', { class: 'card' }, h('h3', null, 'On this device'),
-      h('p', { class: 'small muted' }, cloud
-        ? 'Works straight away. Videos and recordings stay in this browser. Your clips, notes and progress are saved to your account, so they follow you to other devices.'
-        : `Works straight away. ${storageTitle()}`)),
-    h('div', { class: 'card', 'aria-disabled': 'true', style: { opacity: 0.6 } }, h('h3', null, 'Google Drive'),
-      h('p', { class: 'small muted' }, 'Keep a copy in your own Drive and use your videos on any device. Coming soon, and there’s nothing to decide now: you can turn it on later in Settings.')));
-}
+function onboardingStorageStep() { return storageStepBody(); } // 17-media.js
 
 /* placeholder until bring-your-own-key AI lands */
 function onboardingAiStep() {

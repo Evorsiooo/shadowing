@@ -27,17 +27,12 @@ export async function deleteDoc(db, userId, col, id) {
   await db.prepare('DELETE FROM docs WHERE user_id = ? AND col = ? AND id = ?').bind(userId, col, id).run();
 }
 
-/* ---------- R2 ownership ----------
-   New objects live under u/<userId>/, and every object (old or new) has a row in `files`. */
-export function userKey(userId, kind, name) { return `u/${userId}/${kind}/${name}`; }
+/* ---------- R2 ownership (read-only leftovers; files now live on the device or in Google Drive) ----------
+   Objects live under u/<userId>/, or have a row in `files`. */
 export async function ownsFile(db, userId, key) {
   if (key.startsWith('u/')) return key.startsWith(`u/${userId}/`);
   const row = await db.prepare('SELECT 1 AS ok FROM files WHERE key = ? AND user_id = ?').bind(key, userId).first();
   return !!row;
-}
-export async function recordFile(db, userId, key, size, kind) {
-  await db.prepare('INSERT INTO files (key, user_id, size, kind, created) VALUES (?, ?, ?, ?, ?) ON CONFLICT (key) DO UPDATE SET size = excluded.size')
-    .bind(key, userId, size ?? null, kind, Date.now()).run();
 }
 export async function forgetFile(db, userId, key) {
   await db.prepare('DELETE FROM files WHERE key = ? AND user_id = ?').bind(key, userId).run();

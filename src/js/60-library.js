@@ -20,7 +20,7 @@ function renderSidebar() {
       btn(UI.addOpen ? 'Close' : 'Add video', () => { UI.addOpen = !UI.addOpen; renderSidebar(); if (UI.addOpen) setTimeout(() => $('#addUrl') && $('#addUrl').focus(), 30); }, { icon: UI.addOpen ? 'close' : 'plus', size: 'sm', kind: UI.addOpen ? '' : 'primary' }),
       btn('', () => closeDrawer(), { icon: 'close', kind: 'ghost', title: 'Close library', txtClass: 'txt' })),
     UI.addOpen ? addVideoForm() : null,
-    active.length ? h('div', { class: 'vlist' }, active.map(videoItem)) : (!UI.addOpen ? h('p', { class: 'muted small' }, 'No videos yet. Add a direct link to an .mp4 file to get started.') : null),
+    active.length ? h('div', { class: 'vlist' }, active.map(videoItem)) : (!UI.addOpen ? h('p', { class: 'muted small' }, 'No videos yet. Add a video file or a direct link to an .mp4 file to get started.') : null),
     archived.length ? h('details', { class: 'archived' }, h('summary', null, `Archived (${archived.length})`), h('div', { class: 'vlist' }, archived.map(videoItem))) : null);
   // the close button only makes sense in the phone drawer
   const closeBtn = sb.querySelector('.row .btn.ghost');
@@ -29,36 +29,38 @@ function renderSidebar() {
 
 function addVideoForm() {
   const F = UI.addForm;
-  const cloud = Store.mode === 'cloud';
-  if (!F.source) F.source = cloud ? 'upload' : 'link';
+  const device = Store.blobMode === 'device'; // files can be kept on this device (and synced to Drive)
+  if (!F.source) F.source = device ? 'file' : 'link';
   if (F.copy == null) F.copy = true;
   const status = h('div', { role: 'status' });
   const fileIn = h('input', { type: 'file', id: 'addFile', accept: 'video/*,audio/*', onchange: (e) => { F.file = e.target.files[0] || null; if (F.file && !F.title) { F.title = F.file.name.replace(/\.\w+$/, ''); const t = $('#addTitle'); if (t) t.value = F.title; } } });
-  const source = cloud ? h('div', { class: 'seg', role: 'group', 'aria-label': 'Where the video comes from' },
-    h('button', { type: 'button', class: F.source === 'upload' ? 'on' : '', onclick: () => { F.source = 'upload'; renderSidebar(); } }, 'Upload a file'),
+  const source = device ? h('div', { class: 'seg', role: 'group', 'aria-label': 'Where the video comes from' },
+    h('button', { type: 'button', class: F.source === 'file' ? 'on' : '', onclick: () => { F.source = 'file'; renderSidebar(); } }, 'A file on this device'),
     h('button', { type: 'button', class: F.source === 'link' ? 'on' : '', onclick: () => { F.source = 'link'; renderSidebar(); } }, 'From a link')) : null;
+  const where = Drive.connected() ? 'It’s kept on this device and synced to your Google Drive.' : 'It’s kept on this device.';
   const form = h('form', { class: 'addform', onsubmit: (e) => { e.preventDefault(); submitAdd(status); } },
     source,
-    F.source === 'upload' && cloud
-      ? h('label', { class: 'field', for: 'addFile' }, 'Video file (any length)', fileIn)
+    F.source === 'file' && device
+      ? [h('label', { class: 'field', for: 'addFile' }, 'Video file (any length)', fileIn), h('p', { class: 'small muted' }, where)]
       : [
         h('label', { class: 'field', for: 'addUrl' }, 'Direct link to the .mp4 file',
-          h('input', { type: 'url', id: 'addUrl', required: true, placeholder: 'https://pomf2.lain.la/f/….mp4', value: F.url, oninput: (e) => { F.url = e.target.value.trim(); } })),
-        cloud ? h('label', { class: 'check', for: 'addCopy' }, h('input', { type: 'checkbox', id: 'addCopy', checked: F.copy, onchange: (e) => { F.copy = e.target.checked; } }), 'Keep a copy in my storage (recommended)') : null,
+          h('input', { type: 'url', id: 'addUrl', required: true, placeholder: 'https://example.com/interview.mp4', value: F.url, oninput: (e) => { F.url = e.target.value.trim(); } })),
+        device ? h('label', { class: 'check', for: 'addCopy' }, h('input', { type: 'checkbox', id: 'addCopy', checked: F.copy, onchange: (e) => { F.copy = e.target.checked; } }), 'Keep a copy, so it still plays if the link stops working (recommended)') : null,
       ],
     h('label', { class: 'field', for: 'addTitle' }, 'Title',
       h('input', { type: 'text', id: 'addTitle', placeholder: 'e.g. Interview, part 1', value: F.title, oninput: (e) => { F.title = e.target.value; } })),
     h('label', { class: 'field', for: 'addSpeaker' }, 'Speaker (optional)',
       h('input', { type: 'text', id: 'addSpeaker', placeholder: 'Who’s speaking', value: F.speaker, list: 'speakerList', oninput: (e) => { F.speaker = e.target.value; } })),
     h('datalist', { id: 'speakerList' }, [...new Set(Store.all('videos').map((v) => v.speaker).filter(Boolean))].map((s) => h('option', { value: s }))),
-    h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary', id: 'addSubmit' }, h('span', null, F.source === 'upload' && cloud ? 'Upload and add' : cloud && F.copy ? 'Copy and add' : 'Check and add'))),
+    h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary', id: 'addSubmit' }, h('span', null, F.source === 'file' && device ? 'Add video' : device && F.copy ? 'Copy and add' : 'Check and add'))),
     status);
   return form;
 }
 
 function finishAdd(fields) {
   const F = UI.addForm;
-  const v = Store.put('videos', { title: F.title.trim() || fields.fallbackTitle || 'Untitled video', url: fields.url || null, r2Key: fields.r2Key || null, size: fields.size || null, speaker: F.speaker.trim() || null, archived: false, added: new Date().toISOString() });
+  const v = Store.put('videos', { title: F.title.trim() || fields.fallbackTitle || 'Untitled video', url: fields.url || null, fileRef: fields.fileRef || null, size: fields.size || null, speaker: F.speaker.trim() || null, archived: false, added: new Date().toISOString() });
+  if (fields.file) LocalFiles.set(v.id, fields.file);
   UI.addForm = { title: '', url: '', speaker: '' };
   UI.addOpen = false;
   Player.load(v.id);
@@ -74,18 +76,18 @@ function progressBar(label) {
 
 async function submitAdd(status) {
   const F = UI.addForm;
-  const cloud = Store.mode === 'cloud';
+  const device = Store.blobMode === 'device';
   const submitBtn = $('#addSubmit');
-  if (cloud && F.source === 'upload') {
+  if (device && F.source === 'file') {
     if (!F.file) { mount(status, h('p', { class: 'formerr' }, 'Choose a video file first.')); return; }
-    const p = progressBar(`Uploading ${(F.file.size / 1048576).toFixed(0)} MB…`);
+    const p = progressBar(`Saving ${(F.file.size / 1048576).toFixed(0)} MB on this device…`);
     mount(status, p.el);
     if (submitBtn) submitBtn.disabled = true;
     try {
-      const r = await Api.uploadVideo(F.file, (f) => p.set(f, `Uploading… ${Math.round(f * 100)}%`));
-      finishAdd({ r2Key: r.key, size: r.size, fallbackTitle: F.file.name.replace(/\.\w+$/, '') });
+      const ref = await Media.add(F.file, { kind: 'video', name: F.file.name }, (f) => p.set(f, `Saving on this device… ${Math.round(f * 100)}%`));
+      finishAdd({ fileRef: ref, size: F.file.size, file: F.file, fallbackTitle: F.file.name.replace(/\.\w+$/, '') });
     } catch (e) {
-      mount(status, h('p', { class: 'formerr' }, e.message));
+      mount(status, h('p', { class: 'formerr' }, e.name === 'QuotaExceededError' ? 'There isn’t enough free space on this device for that file.' : `The file couldn’t be saved (${e.message || e.name}).`));
     } finally { if (submitBtn) submitBtn.disabled = false; }
     return;
   }
@@ -93,17 +95,28 @@ async function submitAdd(status) {
   if (!/^https?:\/\//i.test(url)) { mount(status, h('p', { class: 'formerr' }, 'Paste a full link starting with https://')); return; }
   const share = /drive\.google|docs\.google|mega\.nz|mega\.io|youtube\.com|youtu\.be|dropbox\.com\/s\/|onedrive|1drv/i.test(url);
   if (share) {
-    mount(status, h('p', { class: 'formerr' }, 'That’s a share page, not a video file. Links from Google Drive, MEGA, YouTube or Dropbox share pages won’t play. Download the file and use “Upload a file” instead.'));
+    mount(status, h('p', { class: 'formerr' }, 'That’s a share page, not a video file. Links from Google Drive, MEGA, YouTube or Dropbox share pages won’t play. Download the file, then add it with “A file on this device”.'));
     return;
   }
-  if (cloud && F.copy) {
-    mount(status, h('p', { class: 'small muted' }, 'Copying the video into your storage… this can take a minute for long videos.'));
+  if (device && F.copy) {
+    // the browser downloads the file itself; this only works when the site allows it (CORS)
+    const p = progressBar('Downloading a copy…');
+    mount(status, p.el);
     if (submitBtn) submitBtn.disabled = true;
     try {
-      const r = await Api.req('POST', '/api/import', { url });
-      finishAdd({ url, r2Key: r.key, size: r.size, fallbackTitle: guessTitle(url) });
+      let r;
+      try { r = await fetch(url, { mode: 'cors', credentials: 'omit' }); } catch { throw Object.assign(new Error('That site doesn’t let the app download its videos.'), { code: 'blocked' }); }
+      if (!r.ok || !r.body) throw new Error(`The link answered with an error (HTTP ${r.status}).`);
+      const type = (r.headers.get('content-type') || '').split(';')[0];
+      if (/text\/html/.test(type)) throw new Error('That link is a web page, not a video file. Use a direct link to an .mp4 file.');
+      const size = Number(r.headers.get('content-length')) || 0;
+      const ref = await Media.add(r.body, { kind: 'video', name: guessTitle(url) + (/\.\w{2,4}$/.test(new URL(url).pathname) ? new URL(url).pathname.match(/\.\w{2,4}$/)[0] : '.mp4'), type, size },
+        (f) => p.set(f, size ? `Downloading a copy… ${Math.round(f * 100)}%` : 'Downloading a copy…'));
+      finishAdd({ url, fileRef: ref, size: (Media.doc(Media.idOf(ref)) || {}).size || size, fallbackTitle: guessTitle(url) });
     } catch (e) {
-      mount(status, h('p', { class: 'formerr' }, e.message), h('div', { class: 'row' }, btn('Add the link without a copy', () => finishAdd({ url, fallbackTitle: guessTitle(url) }), { size: 'sm' })));
+      mount(status,
+        h('p', { class: 'formerr' }, `${e.message} You can download the file yourself and add it with “A file on this device”, or add the link without a copy.`),
+        h('div', { class: 'row' }, btn('Add the link without a copy', () => { F.copy = false; submitAdd(status); }, { size: 'sm' })));
     } finally { if (submitBtn) submitBtn.disabled = false; }
     return;
   }
@@ -145,11 +158,11 @@ function videoItem(v) {
   return h('div', { class: `vitem ${open ? 'open' : ''}` },
     editing ? editVideoForm(v) : [
       h('div', { class: 'vitem-title', role: 'button', tabindex: 0, onclick: () => { Player.load(v.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter') { Player.load(v.id); closeDrawer(); } } }, v.title || 'Untitled video'),
-      h('div', { class: 'meta' }, `${p.done}/${p.total} clips done · ${p.last ? `last practised ${fmtDay(p.last)}` : 'not practised yet'}${v.speaker ? ` · ${v.speaker}` : ''}${v.r2Key ? ' · stored' : ''}`),
+      h('div', { class: 'meta' }, `${p.done}/${p.total} clips done · ${p.last ? `last practised ${fmtDay(p.last)}` : 'not practised yet'}${v.speaker ? ` · ${v.speaker}` : ''}${v.fileRef || v.r2Key ? ' · saved' : ''}`),
       h('div', { class: 'bar vprog' }, h('i', { style: { width: (p.total ? (p.done / p.total) * 100 : 0) + '%' } })),
       h('div', { class: 'row' },
         !open ? btn('Open', () => { Player.load(v.id); closeDrawer(); }, { size: 'sm', kind: 'primary' }) : null,
-        v.url || v.r2Key ? h('a', { class: 'btn sm ghost', href: v.url || '/api/files/' + v.r2Key, target: '_blank', rel: 'noopener', title: 'Open the original link' }, icon('link'), h('span', { class: 'txt' }, 'Link')) : null,
+        v.url ? h('a', { class: 'btn sm ghost', href: v.url, target: '_blank', rel: 'noopener', title: 'Open the original link' }, icon('link'), h('span', { class: 'txt' }, 'Link')) : null,
         btn('', () => { UI.editVideoId = v.id; UI.editVideo = { title: v.title, url: v.url, speaker: v.speaker || '' }; renderSidebar(); }, { size: 'sm', kind: 'ghost', icon: 'edit', title: 'Edit title or link' }),
         v.archived ? btn('Restore', () => { Store.patch('videos', v.id, { archived: false }); renderSidebar(); toast('Video restored.'); }, { size: 'sm', icon: 'restore' })
           : btn('', () => { Store.patch('videos', v.id, { archived: true }); if (open) Player.load(null); renderSidebar(); toast('Video archived. Its clips and history are kept.'); }, { size: 'sm', kind: 'ghost', icon: 'archive', title: 'Archive (clips and history are kept)' })),

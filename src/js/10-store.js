@@ -1,5 +1,5 @@
 /* ---------- storage: artifact database + file storage, or this browser (IndexedDB) ---------- */
-const COLS = ['videos', 'clips', 'sessions', 'recordings', 'notes', 'issues', 'checkins', 'meta'];
+const COLS = ['videos', 'clips', 'sessions', 'recordings', 'notes', 'issues', 'checkins', 'meta', 'media'];
 
 const Caps = { db: null, assets: null, sample: null, downloads: null, inArtifact: false };
 
@@ -58,7 +58,7 @@ const IDB = {
 /* Google sign-in, coming back to this page afterwards */
 function signIn() { location.href = `/auth/google?next=${encodeURIComponent(location.pathname + location.search)}`; }
 
-/* ---------- cloud backend (Cloudflare Pages Functions: D1 + R2 + the user's own AI key) ---------- */
+/* ---------- cloud backend (Cloudflare Pages Functions: D1 + the user's own AI key; files stay on the device or in Drive) ---------- */
 const Api = {
   on: false,
   email: null,
@@ -98,51 +98,15 @@ const Api = {
       const d = await r.json();
       if (!r.ok) { this.problem = d.error || `Server error ${r.status}`; return false; }
       this.on = true; this.email = d.email; this.name = d.name || null; this.role = d.role || null; this.ai = d.ai || null;
+      this.drive = d.drive || { connected: false }; this.driveAvailable = !!d.driveAvailable;
       return true;
     } catch { return false; } finally { clearTimeout(timer); }
-  },
-  /* one part per request with upload progress (fetch can't report upload progress) */
-  xhr(method, url, body, onProgress) {
-    return new Promise((res, rej) => {
-      const x = new XMLHttpRequest();
-      x.open(method, url);
-      x.withCredentials = true;
-      x.responseType = 'json';
-      if (onProgress) x.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded);
-      x.onload = () => (x.status >= 200 && x.status < 300 ? res(x.response) : rej(Object.assign(new Error((x.response && x.response.error) || `Upload failed (${x.status})`), { status: x.status })));
-      x.onerror = () => rej(new Error('The upload was interrupted. Check your connection and try again.'));
-      x.send(body);
-    });
-  },
-  async uploadVideo(file, onProgress) {
-    const { key, uploadId, partSize } = await this.req('POST', '/api/uploads', { filename: file.name, type: file.type || 'video/mp4' });
-    const parts = [];
-    let done = 0;
-    try {
-      for (let i = 0, n = 1; i < file.size || n === 1; i += partSize, n++) {
-        const chunk = file.slice(i, Math.min(file.size, i + partSize));
-        let tries = 0;
-        for (;;) {
-          try {
-            const r = await this.xhr('PUT', `/api/uploads/${encodeURIComponent(uploadId)}/${n}?key=${encodeURIComponent(key)}`, chunk, (l) => onProgress && onProgress((done + l) / file.size));
-            parts.push({ partNumber: r.partNumber, etag: r.etag });
-            break;
-          } catch (e) { if (++tries >= 3 || e.status === 401) throw e; await sleep(1500 * tries); }
-        }
-        done += chunk.size;
-        if (i + partSize >= file.size) break;
-      }
-      return await this.req('POST', `/api/uploads/${encodeURIComponent(uploadId)}/complete?key=${encodeURIComponent(key)}`, { parts });
-    } catch (e) {
-      this.req('DELETE', `/api/uploads/${encodeURIComponent(uploadId)}?key=${encodeURIComponent(key)}`).catch(() => {});
-      throw e;
-    }
   },
 };
 
 const Store = {
   mode: 'memory', // 'cloud' | 'artifact' | 'local' | 'memory'
-  blobMode: 'memory', // 'r2' | 'assets' | 'local' | 'memory'
+  blobMode: 'memory', // 'device' (17-media.js) | 'assets' | 'memory'
   data: Object.fromEntries(COLS.map((c) => [c, {}])),
   timers: new Map(),
   chains: new Map(),
@@ -157,7 +121,7 @@ const Store = {
         const { data } = await Api.req('GET', '/api/docs');
         for (const col of COLS) Object.assign(this.data[col], data[col] || {});
         this.mode = 'cloud';
-        this.blobMode = 'r2';
+        this.blobMode = 'device';
         return;
       } catch (e) { this.lastError = e; Api.problem = e.message; }
     }
@@ -187,7 +151,7 @@ const Store = {
         this.mode = 'memory';
       }
     }
-    this.blobMode = Caps.assets && this.mode === 'artifact' ? 'assets' : this.mode === 'memory' ? 'memory' : 'local';
+    this.blobMode = Caps.assets && this.mode === 'artifact' ? 'assets' : this.mode === 'local' ? 'device' : 'memory';
   },
 
   all(col) { return Object.values(this.data[col]); },
@@ -252,12 +216,15 @@ const Store = {
     else toast(`Couldn't save a change (${code || 'error'}). It is kept on screen; try again shortly.`, 'bad');
   },
 
-  /* ---------- recordings & small files ---------- */
+  /* ---------- recordings & files ----------
+     refs: media:<id> (this device + Drive, 17-media.js), asset:<id> (artifact), mem:<id> (this visit),
+     and, read-only, idb:<id> (older local recordings) and r2:<key> (the old server storage) */
   async putBlob(blob, kind = 'rec') {
-    if (this.blobMode === 'r2') {
-      const type = (blob.type || 'audio/webm').split(';')[0];
-      const r = await Api.req('POST', `/api/files?kind=${kind}&name=${encodeURIComponent(blob.name || '')}`, blob, { raw: true, headers: { 'content-type': type } });
-      return r.ref;
+    if (this.blobMode === 'device') {
+      try { return await Media.add(blob, { kind }); } catch (e) {
+        if (e && e.name === 'QuotaExceededError') throw Object.assign(new Error('This device’s storage is full.'), { code: 'quota_exceeded' });
+        throw e;
+      }
     }
     if (this.blobMode === 'assets') {
       const type = /mp4|m4a|aac/.test(blob.type) ? 'video/mp4' : 'video/webm';
@@ -275,9 +242,6 @@ const Store = {
       }
     }
     const id = uid();
-    if (this.blobMode === 'local') {
-      try { await IDB.put('blobs', id, blob); return `idb:${id}`; } catch (e) { console.warn(e); }
-    }
     this.memBlobs.set(id, blob);
     return `mem:${id}`;
   },
@@ -299,6 +263,7 @@ const Store = {
     if (!ref) return null;
     const [kind, id] = ref.split(':');
     if (kind === 'mem') return this.memBlobs.get(id) || null;
+    if (kind === 'media') return Media.file(id);
     if (kind === 'idb') { try { return (await IDB.get('blobs', id)) || null; } catch { return null; } }
     if (kind === 'r2') {
       const r = await fetch('/api/files/' + ref.slice(3), { credentials: 'same-origin' });
@@ -317,6 +282,7 @@ const Store = {
     const [kind, id] = ref.split(':');
     this.urlCache.delete(ref);
     if (kind === 'mem') this.memBlobs.delete(id);
+    else if (kind === 'media') await Media.remove(id);
     else if (kind === 'idb') await IDB.del('blobs', id).catch(() => {});
     else if (kind === 'asset' && Caps.assets) await Caps.assets.delete(id).catch(() => {});
     else if (kind === 'r2') await Api.req('DELETE', '/api/files/' + ref.slice(3)).catch(() => {});

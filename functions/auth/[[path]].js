@@ -1,11 +1,14 @@
 // /auth/* — Sign in with Google and sign out.
 //   GET  /auth/google?next=/app&invite=CODE  start sign-in (shows an invite-code page in invite-only mode)
-//   GET  /auth/google/callback               Google sends the user back here
+//   GET  /auth/google/callback               Google sends the user back here (sign-in or Drive)
+//   GET  /auth/drive?next=/app               connect Google Drive for the signed-in user
+//   GET  /auth/drive/done                    end of connecting Drive in the app's small window
 //   POST /auth/logout                        sign out (also accepts GET from a plain link)
 import {
   startGoogle, readOAuthCookie, exchangeCode, verifyIdToken, upsertGoogleUser, createSession, endSession,
-  getConfig, cleanInvite, inviteUsable, cookie, OAUTH_COOKIE,
+  getConfig, cleanInvite, inviteUsable, cookie, OAUTH_COOKIE, requireUser,
 } from '../../server/auth.js';
+import { startDrive, finishDrive } from '../../server/drive.js';
 
 const APP = '/app';
 
@@ -16,6 +19,8 @@ export async function onRequest(ctx) {
   try {
     if (path === 'google' && request.method === 'GET') return await start(request, env, url);
     if (path === 'google/callback' && request.method === 'GET') return await callback(request, env, url);
+    if (path === 'drive' && request.method === 'GET') return await connectDrive(request, env, url);
+    if (path === 'drive/done' && request.method === 'GET') return driveDone(url);
     if (path === 'logout' && (request.method === 'POST' || request.method === 'GET')) {
       const headers = new Headers({ location: '/', 'cache-control': 'no-store' });
       headers.append('set-cookie', await endSession(request, env));
@@ -51,10 +56,15 @@ async function start(request, env, url) {
 async function callback(request, env, url) {
   const saved = readOAuthCookie(request);
   const clear = cookie(OAUTH_COOKIE, '', 0);
+  if (url.searchParams.get('error') && saved && saved.purpose === 'drive') {
+    const back = safeNext(saved.next);
+    return redirect(`${back}${back.includes('?') ? '&' : '?'}drive=cancelled`, clear);
+  }
   if (url.searchParams.get('error')) return page('Sign-in cancelled', `<p>Google didn’t sign you in (${esc(url.searchParams.get('error'))}).</p>${tryAgain()}`, 400, clear);
   if (!saved || !saved.state || saved.state !== url.searchParams.get('state')) {
     return page('Sign-in expired', '<p>The sign-in took too long or was started in another tab.</p>' + tryAgain(), 400, clear);
   }
+  if (saved.purpose === 'drive') return await driveCallback(request, env, url, saved, clear);
   const idToken = await exchangeCode(request, env, url.searchParams.get('code') || '', saved.verifier);
   const claims = await verifyIdToken(idToken, { clientId: env.GOOGLE_CLIENT_ID, nonce: saved.nonce });
   const res = await upsertGoogleUser(env, claims, saved.invite);
@@ -65,6 +75,44 @@ async function callback(request, env, url) {
   const headers = new Headers({ location: safeNext(saved.next), 'cache-control': 'no-store' });
   headers.append('set-cookie', clear);
   headers.append('set-cookie', await createSession(env, res.user.id));
+  return new Response(null, { status: 302, headers });
+}
+
+/* Google Drive: only for a signed-in user; the callback must come back to the same account. */
+async function connectDrive(request, env, url) {
+  const next = safeNext(url.searchParams.get('next'));
+  const auth = await requireUser(request, env);
+  if (!auth.ok) return new Response(null, { status: 302, headers: { location: `/auth/google?next=${encodeURIComponent(next)}`, 'cache-control': 'no-store' } });
+  if (!env.KEY_ENCRYPTION_KEY) return page('Drive sync isn’t set up yet', '<p>The server has no KEY_ENCRYPTION_KEY secret, so it can’t keep a Drive connection safely yet.</p><p><a href="/app">Back to the app</a></p>', 503);
+  const s = await startDrive(request, env, { id: auth.userId, email: auth.email }, next);
+  return new Response(null, { status: 302, headers: { location: s.url, 'set-cookie': s.cookie, 'cache-control': 'no-store' } });
+}
+
+async function driveCallback(request, env, url, saved, clear) {
+  const back = safeNext(saved.next);
+  const sep = back.includes('?') ? '&' : '?';
+  const auth = await requireUser(request, env);
+  if (!auth.ok || auth.userId !== saved.userId) return page('Drive not connected', '<p>You were signed out while connecting Google Drive. Sign in and try again from Settings → Storage.</p><p><a href="/app">Back to the app</a></p>', 400, clear);
+  try {
+    await finishDrive(request, env, auth.userId, url.searchParams.get('code') || '', saved.verifier);
+  } catch (e) {
+    return redirect(`${back}${sep}drive=error&reason=${encodeURIComponent(e.message).slice(0, 300)}`, clear);
+  }
+  return redirect(`${back}${sep}drive=connected`, clear);
+}
+
+/* the end of connecting Drive in the app's small window: the app notices the window close */
+function driveDone(url) {
+  const r = url.searchParams.get('drive');
+  const [title, text] = r === 'connected' ? ['Google Drive connected', 'You can close this window and go back to Euno Shadowing.']
+    : r === 'cancelled' ? ['Google Drive not connected', 'Nothing changed. You can connect it any time in Settings → Storage. Close this window to go back.']
+      : ['Google Drive not connected', url.searchParams.get('reason') || 'Something went wrong. Close this window and try again from Settings → Storage.'];
+  return page(title, `<p>${esc(text)}</p><p><button class="btn" type="button" onclick="window.close()">Close this window</button></p><script>setTimeout(function(){window.close()},${r === 'connected' ? 600 : 4000})</script>`);
+}
+
+function redirect(location, setCookie) {
+  const headers = new Headers({ location, 'cache-control': 'no-store' });
+  if (setCookie) headers.append('set-cookie', setCookie);
   return new Response(null, { status: 302, headers });
 }
 
