@@ -68,7 +68,7 @@ check((await B.call('GET', '/api/drive')).data.connected === true && (await A.ca
 await A.call('PUT', '/api/reminders', { webhook: 'https://discord.com/api/webhooks/123456/abcdefghijklmnopqrstuvwxyz' });
 check((await A.call('GET', '/api/reminders')).data.configured === true, 'A’s webhook is saved');
 check((await B.call('GET', '/api/reminders')).data.configured === false, 'B doesn’t see A’s webhook');
-check((await A.call('POST', '/api/claude', { off: 'x' })).status === 403, 'non-admins can’t use the server AI key');
+check((await A.call('POST', '/api/claude', { off: 'x' })).status >= 400, 'there’s no shared server AI key: no key, no feedback');
 check((await A.call('PUT', '/api/docs/notes/x', { a: 1 }, { origin: 'https://evil.example' })).status === 403, 'cross-site writes are refused');
 check((await fetch(`${BASE}/api/docs`)).status === 401, 'no cookie, no data');
 check((await A.call('GET', '/api/me')).data.email === A.email, '/api/me returns the signed-in user');

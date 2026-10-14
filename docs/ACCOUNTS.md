@@ -35,9 +35,16 @@ first Google sign-in with a verified email links to an existing user row with th
 Google id yet. That is how the pre-accounts data (assigned to evorsio1@gmail.com by the
 migration) reaches its owner.
 
+Admin page: admins get an **Admin** button in the app's top bar. It lists accounts (with a
+practice-session count, never their data), disables or deletes them, switches sign-up between
+open and invite-only, creates and revokes invite codes, and shows the contact-form inbox. Its
+routes are `/api/admin/*` (`server/admin.js`); each one re-checks the admin role from the
+database. Admin accounts can't be disabled or deleted from there.
+
 Local development: `DEV_NO_AUTH=1` in `.dev.vars` signs you in as `dev@localhost`, and only works
 on localhost. `node scripts/test-accounts.mjs` checks, against a local dev server, that one user
-can't read, change or delete another user's data.
+can't read, change or delete another user's data, and `node scripts/test-admin.mjs` checks that the
+admin routes refuse everyone but admins and do what the admin page needs.
 
 ## Setting up Google sign-in
 

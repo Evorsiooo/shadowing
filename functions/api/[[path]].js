@@ -4,7 +4,8 @@ import { requireUser, sameOrigin, deleteUser, sha256Hex } from '../../server/aut
 import { json, error, validCol, validId, validKey, uuid } from '../../server/util.js';
 import { allDocs, putDoc, deleteDoc, serveFile, ownsFile, forgetFile } from '../../server/store.js';
 import { driveStatus, driveAccessToken, disconnectDrive } from '../../server/drive.js';
-import { noteFeedback, claudeConfigured, claudeModel } from '../../server/claude.js';
+import { noteFeedback, aiAvailable, aiStatus, saveKey, setModel, removeKey, userModels, PROVIDERS } from '../../server/ai.js';
+import { adminRoute } from '../../server/admin.js';
 import { validWebhook, getPrivate, setPrivate, getSettings, buildReminder, sendReminder, sessionsAndCheckins, localNow, REMINDER_DEFAULTS } from '../../server/reminders.js';
 
 export async function onRequest(ctx) {
@@ -23,17 +24,23 @@ export async function onRequest(ctx) {
     const [head, ...rest] = path;
     if (head === 'health' && method === 'GET') {
       ctx.waitUntil(armReminders(env)); // keeps the reminder schedule running (cheap; no-op when already armed)
-      const claude = user.role === 'admin' && claudeConfigured(env);
+      const ai = aiAvailable(env) ? await aiStatus(env, user.id) : { configured: false };
       const drive = await driveStatus(env, user.id);
-      return json({ ok: true, email: user.email, name: user.name, role: user.role, claude, claudeModel: claude ? claudeModel(env) : null, drive, driveAvailable: !!env.KEY_ENCRYPTION_KEY, db: !!env.DB });
+      return json({ ok: true, email: user.email, name: user.name, role: user.role, ai: ai.configured ? { provider: ai.provider, providerName: ai.providerName, model: ai.model } : null, drive, driveAvailable: !!env.KEY_ENCRYPTION_KEY, db: !!env.DB });
     }
     if (head === 'me' && !rest.length && method === 'GET') return json({ email: user.email, name: user.name, picture: user.picture, role: user.role });
     if (head === 'account' && !rest.length && method === 'DELETE') return await deleteAccountRoute(env, user, request);
     if (head === 'docs') return await docsRoute(env, user, method, rest, request);
     if (head === 'files') return await filesRoute(env, user, method, rest, request);
     if (head === 'drive') return await driveRoute(env, user, method, rest);
-    if (head === 'claude' && method === 'POST') return await claudeRoute(env, user, request);
+    if (head === 'ai') return await aiRoute(env, user, method, rest, request);
+    if (head === 'claude' && method === 'POST') return await feedbackRoute(env, user, request); // old name for /api/ai/feedback
     if (head === 'reminders') return await remindersRoute(env, user, method, rest, request);
+    if (head === 'admin') {
+      // the role is read from the database on every request (requireUser), never from the browser
+      if (user.role !== 'admin') return error(403, 'Admins only.');
+      return await adminRoute(env, user, method, rest, request);
+    }
     return error(404, 'No such endpoint.');
   } catch (e) {
     console.error(e);
@@ -78,14 +85,38 @@ async function driveRoute(env, user, method, rest) {
   return error(405, 'Method not allowed.');
 }
 
-// The server key is the admin's own until bring-your-own-key AI lands; nobody else can spend it.
-async function claudeRoute(env, user, request) {
-  if (user.role !== 'admin') return error(403, 'AI feedback needs your own API key, which isn’t available yet. Use “copy prompt” instead.');
-  if (!claudeConfigured(env)) return error(503, 'Claude isn’t set up yet: add the ANTHROPIC_API_KEY secret to the Cloudflare project.');
+/* Bring-your-own-key AI: the key is write-only; the app sees the provider, model and last 4 characters */
+async function aiRoute(env, user, method, rest, request) {
+  const [action] = rest;
+  if (!action && method === 'GET') {
+    const providers = Object.entries(PROVIDERS).map(([id, p]) => ({ id, ...p }));
+    return json({ available: aiAvailable(env), providers, ...(aiAvailable(env) ? await aiStatus(env, user.id) : { configured: false }) });
+  }
+  if (!aiAvailable(env)) return error(503, 'AI keys aren’t set up on this server yet.');
+  if (!action && method === 'PUT') {
+    const body = await request.json().catch(() => ({}));
+    if (body.key != null) return json(await saveKey(env, user.id, body.provider, body.key));
+    if (body.model != null) return json(await setModel(env, user.id, body.model));
+    return error(400, 'Send a key or a model.');
+  }
+  if (!action && method === 'DELETE') { await removeKey(env, user.id); return json({ ok: true, configured: false }); }
+  if (action === 'models' && method === 'GET') return json(await userModels(env, user.id));
+  if (action === 'feedback' && method === 'POST') return feedbackRoute(env, user, request);
+  if (action === 'test' && method === 'POST') {
+    const t0 = Date.now();
+    const r = await noteFeedback(env, user.id, { sentence: 'Go and grab the car.', off: 'the vowel in “go” sounds too flat', profile: (await request.json().catch(() => ({}))).profile });
+    const ok = !!(r.reply && (r.reply.feature || r.reply.unsure || r.reply.text));
+    return json({ ok, structured: !r.reply.text, model: r.model, provider: r.provider, ms: Date.now() - t0 });
+  }
+  return error(405, 'Method not allowed.');
+}
+
+async function feedbackRoute(env, user, request) {
+  if (!aiAvailable(env)) return error(503, 'AI keys aren’t set up on this server yet. Use “copy prompt” instead.');
   const body = await request.json().catch(() => ({}));
   if (!body.off || typeof body.off !== 'string') return error(400, 'Describe what sounded off first.');
-  const reply = await noteFeedback(env, body);
-  return json({ reply });
+  const { reply, model, provider } = await noteFeedback(env, user.id, body);
+  return json({ reply, model, provider });
 }
 
 /* Discord reminders: the webhook URL is stored server-side only; the app just sees whether one is set */

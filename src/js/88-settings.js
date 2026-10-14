@@ -26,8 +26,8 @@ const SETTING_GROUPS = [
 ];
 
 function openSettings(tab = 'practice') {
-  const tabs = [['practice', 'Practice'], ['profile', 'Profile'], ['storage', 'Storage'], ['reminders', 'Reminders'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
-  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'storage' ? storageView() : tab === 'reminders' ? remindersView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
+  const tabs = [['practice', 'Practice'], ['profile', 'Profile'], ['storage', 'Storage'], ['ai', 'AI'], ['reminders', 'Reminders'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
+  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'storage' ? storageView() : tab === 'ai' ? aiPanel() : tab === 'reminders' ? remindersView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
   openModal([
     modalHead('Settings'),
     h('div', { class: 'tabs' }, tabs.map(([k, l]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab }))),
@@ -127,7 +127,7 @@ const CHECKS = [
   { key: 'mic', name: 'Microphone', run: checkMic },
   { key: 'video', name: 'Video link plays', run: checkVideoPlays },
   { key: 'sound', name: 'Reading the video’s sound (for pitch and waveform)', run: checkVideoSound },
-  { key: 'claude', name: 'Asking Claude from the app', run: checkClaude },
+  { key: 'claude', name: 'AI feedback from the app', run: checkClaude },
   { key: 'pitch', name: 'Pitch tracking on your clips', run: checkPitch },
   { key: 'align', name: 'Auto-alignment on your passes', run: checkAlign },
 ];
@@ -224,9 +224,9 @@ async function checkVideoSound() {
 }
 async function checkClaude() {
   if (Store.mode === 'cloud') {
-    if (!Api.claude) return { state: 'fail', msg: 'The server has no Claude API key yet. Add the ANTHROPIC_API_KEY secret to the Cloudflare project.' };
-    const { reply } = await Api.req('POST', '/api/claude', { sentence: 'Go and grab the car.', off: 'the vowel in go sounds too pure', aim: '', issues: [], profile: profileForAI() });
-    return reply && (reply.feature || reply.text || reply.unsure) ? { state: 'ok', msg: `Claude answered (model: ${Api.claudeModel || 'unknown'}). Feedback on notes uses your Claude API key.` } : { state: 'warn', msg: 'Claude answered in an unexpected format.' };
+    if (!Api.ai) return { state: 'warn', msg: 'No AI key saved, so notes offer “Copy prompt for AI”. Add a key in Settings → AI to get answers in the app.' };
+    const r = await Api.req('POST', '/api/ai/test', { profile: profileForAI() });
+    return r.ok ? { state: 'ok', msg: `${Api.ai.providerName} answered with ${r.model} in ${(r.ms / 1000).toFixed(1)} s.` } : { state: 'warn', msg: 'The model answered in an unexpected format. Try another model in Settings → AI.' };
   }
   if (!Caps.sample) return { state: 'fail', msg: Caps.inArtifact ? 'Claude access isn’t available in this view.' : 'This standalone version can’t reach Claude. Notes offer “Copy prompt for Claude” instead.' };
   const r = await Caps.sample('Reply with just the word OK.', { modelTier: 'quick', cache: false });

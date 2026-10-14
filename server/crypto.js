@@ -1,7 +1,7 @@
 // Secrets kept for a user (a Google Drive refresh token, AI keys) are sealed with AES-GCM under the
 // KEY_ENCRYPTION_KEY Pages secret, the same one that protects AI keys (server/ai.js).
-// The additional data is "<userId>:<purpose>" (AI keys use the bare user id), so the user id and purpose are bound in as additional data, so a sealed value copied to another
-// user's row, or used for another purpose, fails to open.
+// The additional data is "<userId>:<purpose>" (AI keys use the bare user id), so a sealed value
+// copied to another user's row, or used for another purpose, fails to open.
 import { b64urlToBytes, bytesToB64url } from './auth.js';
 
 const keyCache = new Map();

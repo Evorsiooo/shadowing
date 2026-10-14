@@ -1,5 +1,5 @@
 /* ---------- learner profile and per-language content ---------- */
-/* The profile (native language, target language and accent, optional notes) lives in
+/* The profile (name, native languages, target language and accent, optional notes) lives in
    meta/settings as `profile`. It drives the AI prompts, the listener-pack labels and the
    check-in content. Content is keyed by target language so others can be added later:
    add an entry to LANGUAGES with its accents and check-in material. */
@@ -8,9 +8,9 @@ const LANGUAGES = {
   en: {
     name: 'English',
     accents: [
-      { id: 'au', name: 'General Australian English', short: 'Australian', spelling: 'Australian' },
-      { id: 'us', name: 'General American English', short: 'American', spelling: 'American' },
-      { id: 'gb', name: 'Southern British English', short: 'British', spelling: 'British' },
+      { id: 'us', name: 'General American English', short: 'American', spelling: 'American', hint: 'The accent of most US film, TV and news.' },
+      { id: 'gb', name: 'Southern British English', short: 'British', spelling: 'British', hint: 'Often called RP or “BBC English”.' },
+      { id: 'au', name: 'General Australian English', short: 'Australian', spelling: 'Australian', hint: 'The everyday accent of most Australians.' },
     ],
     // read-aloud sets: a programme keeps the set its baseline was recorded with
     readSets: {
@@ -50,9 +50,12 @@ const LANGUAGES = {
 };
 const NATIVE_LANGUAGE_HINTS = ['English', 'French', 'Spanish', 'Portuguese', 'German', 'Italian', 'Dutch', 'Polish', 'Russian', 'Ukrainian', 'Turkish', 'Arabic', 'Hindi', 'Bengali', 'Urdu', 'Mandarin Chinese', 'Cantonese', 'Japanese', 'Korean', 'Vietnamese', 'Thai', 'Indonesian', 'Tagalog'];
 
-const PROFILE_DEFAULTS = { nativeLanguages: '', targetLanguage: 'en', accent: '', accentOther: '', notes: '', onboarded: null };
+const PROFILE_DEFAULTS = { name: '', nativeLanguages: '', targetLanguage: 'en', accent: '', accentOther: '', notes: '', onboarded: null };
 function profile() { return { ...PROFILE_DEFAULTS, ...(settings().profile || {}) }; }
 function saveProfile(fields) { saveSettings({ profile: { ...profile(), ...fields } }); }
+/* native languages are kept as one comma-separated string (what the AI prompt reads); the picker edits a list */
+function splitLanguages(s) { return [...new Set(String(s || '').split(/[,;]/).map((x) => x.trim()).filter(Boolean))]; }
+function joinLanguages(list) { return list.join(', ').slice(0, 120); }
 
 function langContent(p = profile()) { return LANGUAGES[p.targetLanguage] || LANGUAGES.en; }
 /* the target accent: { name, short, spelling }; "Other" uses the learner's own words */

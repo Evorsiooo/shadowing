@@ -482,9 +482,8 @@ function storageStepBody() {
     storageView.redraw = () => { if (wrap.isConnected) draw(); };
     const on = Drive.connected();
     mount(wrap,
-      h('p', null, 'Videos and recordings can be large, so they stay with you instead of on our server. Your practice history (clips, sessions, notes) is saved to your account either way.'),
       h('div', { class: 'cards' },
-        h('div', { class: 'card' }, h('h3', null, 'On this device'), h('p', { class: 'small muted' }, 'Always on. Files are kept in this browser, so they work offline and straight away.')),
+        h('div', { class: 'card' }, h('h3', null, 'On this device'), h('p', { class: 'small muted' }, `Always on, and works straight away. Videos and recordings stay in this browser.${Store.mode === 'cloud' ? ' Your clips, notes and progress are saved to your account, so they follow you to other devices.' : ''}`)),
         h('div', { class: 'card' }, h('h3', null, 'Google Drive (optional)'),
           h('p', { class: 'small muted' }, 'Also keep a copy in a “Euno Shadowing” folder in your own Drive, so your videos and recordings follow you to every device. The app can only see files it puts there.'),
           on ? h('p', { class: 'small' }, icon('check'), ` ${driveSummary()}`)

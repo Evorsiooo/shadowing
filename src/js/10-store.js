@@ -58,12 +58,12 @@ const IDB = {
 /* Google sign-in, coming back to this page afterwards */
 function signIn() { location.href = `/auth/google?next=${encodeURIComponent(location.pathname + location.search)}`; }
 
-/* ---------- cloud backend (Cloudflare Pages Functions: D1 + Claude; files stay on the device or in Drive) ---------- */
+/* ---------- cloud backend (Cloudflare Pages Functions: D1 + the user's own AI key; files stay on the device or in Drive) ---------- */
 const Api = {
   on: false,
   email: null,
   role: null,
-  claude: false,
+  ai: null, // {provider, providerName, model} when the user has saved an AI key
   signedOut: false,
   problem: null,
   async req(method, path, body, { raw = false, headers = {} } = {}) {
@@ -97,7 +97,7 @@ const Api = {
       if (!(r.headers.get('content-type') || '').includes('application/json')) return false;
       const d = await r.json();
       if (!r.ok) { this.problem = d.error || `Server error ${r.status}`; return false; }
-      this.on = true; this.email = d.email; this.role = d.role || null; this.claude = !!d.claude; this.claudeModel = d.claudeModel || null;
+      this.on = true; this.email = d.email; this.name = d.name || null; this.role = d.role || null; this.ai = d.ai || null;
       this.drive = d.drive || { connected: false }; this.driveAvailable = !!d.driveAvailable;
       return true;
     } catch { return false; } finally { clearTimeout(timer); }
