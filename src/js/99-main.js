@@ -129,6 +129,7 @@ async function boot() {
   if (window.ResizeObserver) { const ro = new window.ResizeObserver(scheduleFit); ro.observe($('#banners')); }
   window.addEventListener('beforeunload', () => { Store.flushAll(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) Store.flushAll(); });
+  refreshAdminBadge();
   // first launch: the setup wizard (profile, files, first video, AI, baseline); see 90-onboarding.js
   if (needsOnboarding()) openOnboarding();
 }

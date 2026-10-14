@@ -41,6 +41,7 @@ function renderChips() {
     btn('Library', () => openDrawer(), { icon: 'menu', size: 'sm', kind: 'ghost', aria: 'Library', title: 'Video library' }),
     btn('Progress', () => openProgress('habit'), { icon: 'chart', size: 'sm', aria: 'Progress', title: 'Progress' }),
     btn('Check-ins', () => openCheckins(), { icon: 'mic', size: 'sm', aria: 'Check-ins', title: 'Check-ins' }),
+    isAdmin() ? btn(Admin.open ? `Admin (${Admin.open})` : 'Admin', () => openAdmin(), { icon: 'shield', size: 'sm', kind: 'ghost', aria: 'Admin', title: Admin.open ? `Admin: ${Admin.open} message${Admin.open === 1 ? '' : 's'} to handle` : 'Admin' }) : null,
     btn('Settings', () => openSettings(), { icon: 'settings', size: 'sm', kind: 'ghost', aria: 'Settings', title: 'Settings' }));
   const lib = $('#topnav').firstChild;
   lib.classList.add('only-phone');
