@@ -21,13 +21,17 @@ Everything runs on one Cloudflare account, mostly within the free tier:
 
 | Piece | What it does |
 |-|-|
-| **Cloudflare Pages** | Serves the app (`dist/`) and runs the backend (`functions/`) |
+| **Cloudflare Pages** | Serves the public site at `/` and the app at `/app/` (`dist/`), and runs the backend (`functions/`) |
 | **Cloudflare Access** | Locks the site to your email: a one-time code, then signed in for 30 days per device. Every API call also checks the Access token itself (`server/auth.js`), so nothing is exposed even if a policy is misconfigured. |
 | **D1** | The database: every app record is a JSON document (`migrations/0001_init.sql`) |
 | **R2** | Videos and voice recordings, streamed back with range requests so videos seek properly |
 | **Claude API** | "Ask Claude" on notes, through the server (`server/claude.js`); the key is a Cloudflare secret |
 | **MCP server** | `/mcp/<secret>` gives Claude read/write access to all data and recordings (`functions/mcp/`) |
 | **Reminders Worker** | `workers/reminders/`: posts practice reminders to a Discord webhook. A Durable Object alarm wakes it every 15 minutes (the account's free cron triggers are used elsewhere); the API re-arms it on every app load through the `REMINDERS` service binding. The webhook URL sits in D1's `private` table, which the docs API and MCP never return. Deploy changes with `npm run deploy:reminders`. |
+
+### Public site
+
+The landing page, two guides (`/what-is-shadowing/`, `/accent-shadowing/`), privacy, terms and contact pages are static HTML pre-rendered by `scripts/build.mjs`, with titles, descriptions, canonical URLs, Open Graph cards and JSON-LD. The app at `/app/` is `noindex`, and `*.pages.dev` copies send `X-Robots-Tag: noindex` so only shadowing.euno.cc is indexed. The pages get a strict Content-Security-Policy; if you edit `src/site/site.css` or the inline theme script, rebuild so the hashes in `_headers` match.
 
 ### API
 
@@ -99,7 +103,8 @@ npm run dev        # http://localhost:8788
 | `server/reminders.js` | When a reminder is due, its message, posting to Discord |
 | `workers/reminders/` | The reminders Worker (Durable Object alarm scheduler) |
 | `scripts/setup.mjs` | One-shot Cloudflare setup (database, storage, Access, secrets) |
-| `scripts/build.mjs` | Builds `dist/index.html` |
+| `scripts/build.mjs` | Builds the app into `dist/app/index.html`, the public site pages, `robots.txt`, `sitemap.xml`, the web manifest and `_headers` |
+| `src/site/` | Public site: page content and SEO data (`pages.mjs`), styles, the sign-in/contact script and icons. The canonical URL and sign-in link are in `SITE` at the top of `pages.mjs`. |
 
 
 | File | What it does |

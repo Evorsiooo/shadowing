@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script>try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch { /* storage blocked */ }</script>
+<title>What is shadowing? How the technique works for pronunciation | Euno Shadowing</title>
+<meta name="description" content="Shadowing is speaking along with a recording at the same time as the speaker. Learn how it works, why it improves rhythm and intonation, and how to start.">
+<link rel="canonical" href="https://shadowing.euno.cc/what-is-shadowing/">
+<meta name="theme-color" content="#45b52a">
+<meta property="og:site_name" content="Euno Shadowing">
+<meta property="og:type" content="article">
+<meta property="og:title" content="What is shadowing? How the technique works for pronunciation">
+<meta property="og:description" content="Shadowing is speaking along with a recording at the same time as the speaker. Learn how it works, why it improves rhythm and intonation, and how to start.">
+<meta property="og:url" content="https://shadowing.euno.cc/what-is-shadowing/">
+<meta property="og:image" content="https://shadowing.euno.cc/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Euno Shadowing: the speaker’s pitch line and yours, with the lag between them">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>/* Public site (landing, guides, legal, contact). Same palette and fonts as the app. */
+:root {
+  --bg: #f4f8f1;
+  --surface: #ffffff;
+  --surface-2: #eaf2e5;
+  --line: #d5e2cd;
+  --fg: #1d2a19;
+  --muted: #5b6b55;
+  --green: #45b52a;
+  --green-dark: #2f8a19;
+  --green-soft: #def3d3;
+  --green-ink: #2f8a19;
+  --on-green: #ffffff;
+  --wattle: #f2b705;
+  --wattle-soft: #fff1c4;
+  --sky: #1c95e0;
+  --sky-soft: #d9eefb;
+  --shadow: 0 2px 0 rgba(29, 42, 25, 0.08);
+  --font-display: "Fredoka", "Nunito", ui-rounded, system-ui, sans-serif;
+  --font-body: "Nunito", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r-lg: 22px;
+  --r-md: 16px;
+  --r-sm: 11px;
+  --wrap: 1080px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111710; --surface: #192118; --surface-2: #212c1f; --line: #2d3a2a; --fg: #e6efe2; --muted: #97a891;
+    --green: #5ccc3c; --green-dark: #3a9a20; --green-soft: #22391b; --green-ink: #5ccc3c; --on-green: #0d1a09;
+    --wattle: #ffc928; --wattle-soft: #3a3214; --sky: #4cb2f2; --sky-soft: #15303f;
+    --shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111710; --surface: #192118; --surface-2: #212c1f; --line: #2d3a2a; --fg: #e6efe2; --muted: #97a891;
+  --green: #5ccc3c; --green-dark: #3a9a20; --green-soft: #22391b; --green-ink: #5ccc3c; --on-green: #0d1a09;
+  --wattle: #ffc928; --wattle-soft: #3a3214; --sky: #4cb2f2; --sky-soft: #15303f;
+  --shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.6 var(--font-body); }
+a { color: var(--green-ink); text-underline-offset: 2px; }
+h1, h2, h3 { text-wrap: balance; font-family: var(--font-display); font-weight: 600; line-height: 1.2; margin: 0 0 0.5em; }
+h1 { font-size: clamp(2rem, 5vw, 3.2rem); }
+h2 { font-size: clamp(1.5rem, 3.2vw, 2.1rem); }
+h3 { font-size: 1.2rem; }
+p { margin: 0 0 1em; }
+img, svg { max-width: 100%; height: auto; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 20px; }
+.skip { position: absolute; left: -999px; }
+.skip:focus { left: 12px; top: 12px; background: var(--surface); padding: 8px 12px; border-radius: var(--r-sm); z-index: 10; }
+
+/* header and footer */
+.site-head { border-bottom: 1px solid var(--line); background: var(--surface); }
+.site-head .wrap { display: flex; align-items: center; gap: 16px; min-height: 64px; flex-wrap: wrap; }
+.brand { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; color: var(--fg); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.brand small { font-weight: 500; color: var(--green-ink); font-size: 1rem; }
+.brand svg { width: 30px; height: 30px; }
+.site-nav { margin-left: auto; display: flex; gap: 6px 18px; align-items: center; flex-wrap: wrap; }
+.site-nav a { color: var(--fg); text-decoration: none; font-weight: 700; font-size: 0.95rem; }
+.site-nav a:hover { color: var(--green-ink); }
+.site-nav .btn { color: var(--on-green); }
+.site-foot { margin-top: 72px; border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 0.95rem; }
+.site-foot .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; padding-top: 28px; padding-bottom: 36px; align-items: baseline; }
+.site-foot nav { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.site-foot a { color: var(--muted); }
+.site-foot .copy { margin-left: auto; }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; font: 700 1rem/1 var(--font-body); text-decoration: none; border-radius: 999px; padding: 12px 20px; border: 2px solid transparent; cursor: pointer; transition: transform 0.08s ease; }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--green); color: var(--on-green); box-shadow: 0 3px 0 var(--green-dark); }
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.btn-big { font-size: 1.1rem; padding: 16px 26px; }
+.btn-sm { padding: 9px 16px; font-size: 0.92rem; }
+.btn .g { width: 20px; height: 20px; background: #fff; border-radius: 50%; padding: 2px; flex: none; }
+
+/* landing */
+.hero { padding: 64px 0 40px; }
+.hero .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+.hero .lede { font-size: 1.2rem; color: var(--muted); max-width: 34em; }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 24px 0 12px; }
+.hero .fine { font-size: 0.9rem; color: var(--muted); }
+.eyebrow { display: inline-block; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--green-ink); background: var(--green-soft); padding: 4px 12px; border-radius: 999px; margin-bottom: 16px; }
+.demo { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 18px; }
+.demo figcaption { font-size: 0.88rem; color: var(--muted); margin-top: 10px; }
+.demo svg { display: block; width: 100%; }
+.demo .grid line { stroke: var(--line); stroke-width: 1; }
+.demo .lane { fill: var(--surface-2); }
+.demo .speaker { fill: none; stroke: var(--green); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.demo .you { fill: none; stroke: var(--sky); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.demo .wave rect { fill: var(--muted); opacity: 0.35; }
+.demo .lbl { fill: var(--muted); font: 700 13px var(--font-body); }
+.demo .chip { fill: var(--wattle-soft); stroke: var(--wattle); }
+.demo .chip-t { fill: var(--fg); font: 800 14px var(--font-body); }
+.demo .key-s { fill: var(--green); }
+.demo .key-y { fill: var(--sky); }
+
+section.block { padding: 56px 0 8px; }
+section.block .intro.after { margin-top: 20px; }
+section.block > .wrap > .intro { max-width: 46em; color: var(--muted); font-size: 1.08rem; }
+.steps { list-style: none; padding: 0; margin: 28px 0 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; counter-reset: step; }
+.steps li { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 20px; counter-increment: step; box-shadow: var(--shadow); }
+.steps li::before { content: counter(step); display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: var(--on-green); font: 700 1.05rem var(--font-display); margin-bottom: 10px; }
+.steps h3 { margin-bottom: 4px; }
+.steps p { margin: 0; color: var(--muted); font-size: 0.97rem; }
+.steps .t { font-weight: 800; color: var(--fg); }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 22px; box-shadow: var(--shadow); }
+.card p { margin: 0; color: var(--muted); font-size: 0.98rem; }
+.card .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--green-soft); margin-bottom: 12px; }
+.card .ic svg { width: 22px; height: 22px; stroke: var(--green-ink); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 26px; box-shadow: var(--shadow); }
+.panel ul { margin: 0; padding-left: 1.2em; color: var(--muted); }
+.panel li { margin-bottom: 6px; }
+.panel.sky { background: var(--sky-soft); border-color: transparent; }
+.panel.wattle { background: var(--wattle-soft); border-color: transparent; }
+.faq { margin-top: 24px; max-width: 52em; }
+.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 4px 20px; margin-bottom: 10px; }
+.faq summary { cursor: pointer; font-weight: 800; padding: 14px 0; list-style-position: outside; }
+.faq details p { color: var(--muted); }
+.final { text-align: center; padding: 64px 0 8px; }
+.final .panel { padding: 40px 24px; }
+.final p { color: var(--muted); max-width: 36em; margin: 0 auto 22px; }
+
+/* articles, legal, contact */
+.page { padding: 48px 0 0; }
+.page .wrap { max-width: 760px; }
+.crumbs { font-size: 0.9rem; color: var(--muted); margin-bottom: 18px; }
+.crumbs a { color: var(--muted); }
+.page .lede { font-size: 1.15rem; color: var(--muted); }
+.page h2 { margin-top: 1.6em; }
+.page h3 { margin-top: 1.3em; }
+.page ul, .page ol { padding-left: 1.3em; }
+.page li { margin-bottom: 6px; }
+.updated { font-size: 0.92rem; color: var(--muted); }
+.callout { background: var(--green-soft); border-radius: var(--r-md); padding: 18px 22px; margin: 24px 0; }
+.callout p:last-child { margin: 0; }
+.related { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); }
+table.simple { border-collapse: collapse; width: 100%; margin: 12px 0 20px; font-size: 0.97rem; }
+table.simple th, table.simple td { text-align: left; border-bottom: 1px solid var(--line); padding: 8px 10px 8px 0; vertical-align: top; }
+
+form.contact { display: grid; gap: 16px; margin-top: 24px; }
+form.contact label { display: grid; gap: 6px; font-weight: 800; font-size: 0.95rem; }
+form.contact .opt { font-weight: 600; color: var(--muted); }
+form.contact input, form.contact select, form.contact textarea { font: inherit; color: var(--fg); background: var(--surface); border: 2px solid var(--line); border-radius: var(--r-sm); padding: 11px 13px; width: 100%; }
+form.contact input:focus, form.contact select:focus, form.contact textarea:focus { outline: none; border-color: var(--green); }
+form.contact textarea { min-height: 170px; resize: vertical; }
+form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.form-status { min-height: 1.6em; font-weight: 700; }
+.form-status.ok { color: var(--green-ink); }
+.form-status.bad { color: #c2373c; }
+
+:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  .hero .wrap { grid-template-columns: 1fr; gap: 32px; }
+  .steps { grid-template-columns: repeat(2, 1fr); }
+  .cards { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .wrap { padding: 0 16px; }
+  .hero { padding-top: 40px; }
+  .steps, .cards, .split { grid-template-columns: 1fr; }
+  .site-nav .hide-sm { display: none; }
+  .site-foot .copy { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+</style>
+<script src="/assets/site.js" defer></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"What is shadowing?","description":"Shadowing is speaking along with a recording at the same time as the speaker. Learn how it works, why it improves rhythm and intonation, and how to start.","inLanguage":"en","datePublished":"2026-10-14","dateModified":"2026-10-14","mainEntityOfPage":"https://shadowing.euno.cc/what-is-shadowing/","image":"https://shadowing.euno.cc/assets/og.png","author":{"@type":"Organization","name":"Euno Shadowing","url":"https://shadowing.euno.cc/"},"publisher":{"@type":"Organization","name":"Euno Shadowing","url":"https://shadowing.euno.cc/","logo":{"@type":"ImageObject","url":"https://shadowing.euno.cc/assets/icon-512.png"}}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Euno Shadowing","item":"https://shadowing.euno.cc/"},{"@type":"ListItem","position":2,"name":"What is shadowing?","item":"https://shadowing.euno.cc/what-is-shadowing/"}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head"><div class="wrap">
+  <a class="brand" href="/" aria-label="Euno Shadowing home"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#45b52a"/><path d="M10 38c6 0 7-14 13-14s7 18 13 18 7-22 13-22 5 10 5 10" fill="none" stroke="#bfeaa9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" transform="translate(3 3)"/><path d="M10 38c6 0 7-14 13-14s7 18 13 18 7-22 13-22 5 10 5 10" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Euno <small>Shadowing</small></span></a>
+  <nav class="site-nav" aria-label="Main">
+    <a class="hide-sm" href="/what-is-shadowing/">What is shadowing?</a>
+    <a class="hide-sm" href="/accent-shadowing/">Daily routine</a>
+    <a class="btn btn-primary btn-sm" href="/auth/google?next=%2Fapp%2F" data-signin data-signed-in="Open the app" rel="nofollow"><svg class="g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span data-label>Sign in</span></a>
+  </nav>
+</div></header>
+<main id="main">
+<article class="page">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Euno Shadowing</a> › What is shadowing?</nav>
+    <h1>What is shadowing?</h1>
+    <p class="lede">Shadowing is a speaking technique where you repeat what a speaker says while they are saying it, a fraction of a second behind them, like their shadow.</p>
+    
+    <h2>How shadowing works</h2>
+    <p>You play a short recording of a native or fluent speaker and speak along with it, out loud, at the same time. You don’t wait for the sentence to finish, and you don’t read a transcript. Your ears lead and your mouth follows a moment later.</p>
+    <p>Because you can’t stop to think, you end up copying the whole shape of the speech, not just the words: where the stress falls, how the voice rises and falls, which syllables are squeezed together and where the speaker pauses.</p>
+    <p>Conference interpreters have long used shadowing as a training exercise, and language learners have adopted it as a way to practise speaking with nobody else around.</p>
+
+    <h2>Why it helps your accent</h2>
+    <p>Most of what makes an accent noticeable isn’t individual sounds, it’s <strong>prosody</strong>: rhythm, stress and intonation. Those are hard to learn from rules, because you would need to think about them consciously while speaking. Shadowing trains them by imitation instead.</p>
+    <ul>
+      <li><strong>Rhythm and stress.</strong> Keeping pace with a speaker forces you to shorten unstressed syllables and lengthen stressed ones the way they do.</li>
+      <li><strong>Intonation.</strong> You copy the melody of whole phrases, including the parts textbooks rarely mention.</li>
+      <li><strong>Connected speech.</strong> Linking, reductions and dropped sounds come along for free, because you can’t pronounce every word separately at full speed.</li>
+      <li><strong>Fluency.</strong> Repeating the same clip many times makes the phrases automatic, so they come out more smoothly in your own speech.</li>
+    </ul>
+
+    <h2>Shadowing versus listen and repeat</h2>
+    <p>In listen-and-repeat, you hear a sentence, then say it back. That leaves time to fall back on how you think the sentence should sound. In shadowing, you speak during the sentence, which keeps your attention on what you actually hear. Both are useful; shadowing is the more demanding one, and the better one for prosody.</p>
+
+    <h2>How to start</h2>
+    <ol>
+      <li><strong>Pick one speaker</strong> whose accent you would like to have. Interviews and podcasts with clear audio and little background noise work well.</li>
+      <li><strong>Cut a short clip</strong> of one or two sentences, about 10 to 20 seconds.</li>
+      <li><strong>Listen a few times</strong> without speaking.</li>
+      <li><strong>Shadow it many times in a row</strong>, about 15 passes. Mumbling at first is fine.</li>
+      <li><strong>Record yourself</strong> and compare with the original. What still sounds different?</li>
+      <li><strong>Repeat daily.</strong> Fifteen minutes every day beats an hour once a week.</li>
+    </ol>
+    <p>For a complete daily plan, read <a href="/accent-shadowing/">how to improve your accent with shadowing</a>.</p>
+
+    <h2>Common mistakes</h2>
+    <ul>
+      <li><strong>Clips that are too long.</strong> If you can’t keep up after five or six passes, shorten the clip.</li>
+      <li><strong>Reading along.</strong> A transcript pulls you towards spelling and away from sound. Use it once to check words, then put it away.</li>
+      <li><strong>Only copying the words.</strong> The point is the melody and timing. Exaggerate them if you need to.</li>
+      <li><strong>Never listening back.</strong> You can’t hear yourself well while speaking. Record a pass and compare it with the original.</li>
+      <li><strong>Switching speakers every day.</strong> Stick with one voice for a while so the patterns can settle in.</li>
+    </ul>
+    <aside class="callout"><p><strong>Try it with a guide on the side.</strong> Euno Shadowing runs this routine for you: it loops the clip, counts passes, records you and shows your pitch and lag next to the speaker’s.</p><p><a class="btn btn-primary" href="/auth/google?next=%2Fapp%2F" data-signin rel="nofollow"><svg class="g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span data-label>Start free with Google</span></a></p></aside>
+    <div class="related"><h2>Read next</h2><p><a href="/accent-shadowing/">How to improve your English accent with shadowing: a 15-minute daily routine</a></p></div>
+  </div>
+</article>
+</main>
+<footer class="site-foot"><div class="wrap">
+  <a class="brand" href="/">Euno <small>Shadowing</small></a>
+  <nav aria-label="Footer">
+    <a href="/what-is-shadowing/">What is shadowing?</a>
+    <a href="/accent-shadowing/">Accent shadowing routine</a>
+    <a href="/contact/">Contact</a>
+    <a href="/privacy/">Privacy</a>
+    <a href="/terms/">Terms</a>
+  </nav>
+  <span class="copy">© 2026 Euno Shadowing</span>
+</div></footer>
+</body>
+</html>
