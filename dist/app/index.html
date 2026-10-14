@@ -5956,6 +5956,7 @@ function fmtWhen(iso) {
 ICONS.shield = '<path d="M12 3l7.5 3v5.5c0 4.5-3.2 8.2-7.5 9.5-4.3-1.3-7.5-5-7.5-9.5V6z"/><path d="M9 12l2 2 4-4"/>';
 
 const Admin = { tab: 'users', open: 0 };
+const AI_PROVIDER_NAMES = { anthropic: 'Anthropic', openai: 'OpenAI', openrouter: 'OpenRouter' };
 const isAdmin = () => Store.mode === 'cloud' && Api.role === 'admin';
 
 function fmtWhen(ms) {
@@ -5991,7 +5992,7 @@ async function adminUsersView() {
   return h('div', { class: 'stack' },
     h('p', { class: 'small muted' }, `${users.length} account${users.length === 1 ? '' : 's'}, ${active} active in the last 7 days. Practice data stays private: you see counts, not content.`),
     h('div', { class: 'table-wrap' }, h('table', null,
-      h('thead', null, h('tr', null, ['Account', 'Joined', 'Last seen', 'Sessions', ''].map((t) => h('th', null, t)))),
+      h('thead', null, h('tr', null, ['Account', 'Joined', 'Last seen', 'Sessions', 'Drive', 'AI key', ''].map((t) => h('th', null, t)))),
       h('tbody', null, users.map((u) => h('tr', null,
         h('td', null,
           h('div', { style: { fontWeight: 700 } }, u.name || u.email, u.role === 'admin' ? h('span', { class: 'muted small' }, ' · admin') : null, u.disabled ? h('span', { class: 'small', style: { color: 'var(--red)' } }, ' · disabled') : null),
@@ -6000,6 +6001,8 @@ async function adminUsersView() {
         h('td', null, fmtWhen(u.created)),
         h('td', null, fmtWhen(u.last_seen)),
         h('td', null, String(u.sessions)),
+        h('td', null, u.drive ? 'Connected' : h('span', { class: 'muted' }, 'No')),
+        h('td', null, u.ai ? (AI_PROVIDER_NAMES[u.ai] || u.ai) : h('span', { class: 'muted' }, 'No')),
         h('td', null, u.self || u.role === 'admin' ? null : h('div', { class: 'row', style: { justifyContent: 'flex-end' } },
           btn(u.disabled ? 'Enable' : 'Disable', () => adminSetDisabled(u, !u.disabled), { size: 'sm', title: u.disabled ? 'Let this account sign in again' : 'Sign this account out and stop it signing in' }),
           btn('Delete', () => adminConfirmDelete(u), { size: 'sm', kind: 'danger' }))))))),
