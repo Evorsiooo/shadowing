@@ -204,18 +204,23 @@ function nativeLanguagesField(draft) {
     h('p', { class: 'small muted' }, 'Add one or more. Not in the list? Type it and press Enter.'));
 }
 
-function targetLanguageField(draft) {
+function targetLanguageField(draft, onchange) {
   const langs = Object.entries(LANGUAGES);
   return h('div', { class: 'field' },
     h('span', { class: 'flabel', id: 'pfLangLbl' }, 'Language you’re practising'),
-    choiceGroup('pfLang', null, langs.map(([id, l]) => ({ value: id, title: l.name })), draft.targetLanguage, (v) => { draft.targetLanguage = v; }, 'pfLangLbl'),
+    choiceGroup('pfLang', null, langs.map(([id, l]) => ({ value: id, title: l.name })), draft.targetLanguage, (v) => {
+      // accents belong to a language, so a new language starts with no accent picked
+      if (v !== draft.targetLanguage) { draft.accent = ''; draft.accentOther = ''; }
+      draft.targetLanguage = v;
+      if (onchange) onchange(v);
+    }, 'pfLangLbl'),
     langs.length === 1 ? h('p', { class: 'small muted' }, 'More languages are on the way.') : null);
 }
 
 function accentField(draft) {
   const lang = LANGUAGES[draft.targetLanguage] || LANGUAGES.en;
   const other = h('label', { class: 'field', for: 'pfAccentOther', hidden: draft.accent !== 'other' }, 'Describe the accent',
-    h('input', { type: 'text', id: 'pfAccentOther', maxlength: 80, placeholder: 'e.g. Scottish English', value: draft.accentOther, oninput: (e) => { draft.accentOther = e.target.value; } }));
+    h('input', { type: 'text', id: 'pfAccentOther', maxlength: 80, placeholder: lang.examples.accentOther, value: draft.accentOther, oninput: (e) => { draft.accentOther = e.target.value; } }));
   return h('div', { class: 'field' },
     h('span', { class: 'flabel', id: 'pfAccentLbl' }, 'Accent you’re aiming for'),
     choiceGroup('pfAccent', null, [
@@ -243,18 +248,26 @@ function choiceGroup(name, label, options, value, onchange, labelledby) {
 
 function profileView() {
   const draft = { ...profile() };
+  const before = targetLang();
+  const accentSlot = h('div', null, accentField(draft));
+  const redrawAccent = () => mount(accentSlot, accentField(draft));
   return h('form', { class: 'stack', onsubmit: (e) => {
     e.preventDefault();
     if (!draft.name.trim()) { toast('Tell us what to call you.', 'bad'); return; }
     if (!splitLanguages(draft.nativeLanguages).length) { toast('Add at least one language you speak.', 'bad'); return; }
     if (draft.accent === 'other' && !draft.accentOther.trim()) { toast('Describe the accent you’re aiming for.', 'bad'); return; }
+    if (!draft.accent && targetLang(draft) !== before) { toast('Pick the accent you’re aiming for.', 'bad'); return; }
     saveProfile({ ...draft, name: draft.name.trim() });
-    toast('Profile saved.', 'good');
+    if (targetLang() !== before) {
+      const had = Store.all('checkins').some((c) => checkinLang(c) === targetLang());
+      toast(had ? `Switched to ${langContent().name}. Your ${langContent().name} check-ins are back.` : `Switched to ${langContent().name}. It has its own check-ins, starting with a new week 0 baseline. Your ${LANGUAGES[before].name} check-ins are kept.`, 'good', 8000);
+      renderAll();
+    } else toast('Profile saved.', 'good');
     closeModal();
   } },
   h('div', { class: 'card' }, h('h3', null, 'About you'), h('p', { class: 'small muted' }, 'Used for AI feedback, the listener pack and your check-ins.'),
-    nameField(draft), nativeLanguagesField(draft), targetLanguageField(draft)),
-  h('div', { class: 'card' }, h('h3', null, 'Your target accent'), accentField(draft), notesField(draft)),
+    nameField(draft), nativeLanguagesField(draft), targetLanguageField(draft, redrawAccent)),
+  h('div', { class: 'card' }, h('h3', null, 'Your target accent'), accentSlot, notesField(draft)),
   h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary big' }, h('span', null, 'Save profile')),
     btn('Run the setup again', () => { closeModal(true); openOnboarding(); }, { kind: 'ghost' })));
 }
