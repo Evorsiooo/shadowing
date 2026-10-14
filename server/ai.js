@@ -4,6 +4,7 @@
 // additional data, and stored in `private` (key 'ai'). They never go back to the browser.
 import Anthropic from '@anthropic-ai/sdk';
 import { getPrivate, setPrivate } from './reminders.js';
+import { limit } from './limits.js';
 
 export const PROVIDERS = {
   anthropic: { name: 'Anthropic', keyUrl: 'https://console.anthropic.com/settings/keys', keyHint: 'sk-ant-…' },
@@ -19,6 +20,7 @@ const CHEAP = {
 const MODEL_RE = /^[A-Za-z0-9_.:/@-]{1,120}$/;
 const OPENROUTER_HEADERS = { 'HTTP-Referer': 'https://shadowing.euno.cc', 'X-Title': 'Euno Shadowing' };
 const RATE_PER_HOUR = 60;
+const HOUR = 3600_000;
 
 export function aiAvailable(env) { return !!env.KEY_ENCRYPTION_KEY; }
 
@@ -44,6 +46,8 @@ async function keyFor(env, userId) {
 export async function saveKey(env, userId, provider, key) {
   if (!PROVIDERS[provider]) throw httpError(400, 'Pick Anthropic, OpenAI or OpenRouter.');
   key = String(key || '').trim();
+  // each save checks the key with the provider, so this can't be used to try out lots of keys
+  await limit(env.DB, userId, 'aiKeyRate', 10, HOUR, 'That’s a lot of keys tried in an hour. Try again a bit later.');
   if (key.length < 20 || key.length > 300 || /\s/.test(key)) throw httpError(400, `That doesn’t look like a ${PROVIDERS[provider].name} API key.`);
   const models = await listModels(provider, key); // also proves the key works
   const model = pickDefault(provider, models);
@@ -61,6 +65,7 @@ export async function setModel(env, userId, model) {
 export async function removeKey(env, userId) { await setPrivate(env.DB, userId, 'ai', null); }
 export async function userModels(env, userId) {
   const c = await keyFor(env, userId);
+  await limit(env.DB, userId, 'aiModelsRate', 30, HOUR, 'The model list was loaded a lot in the last hour. Try again a bit later.');
   const models = await listModels(c.provider, c.key);
   return { provider: c.provider, model: c.model, models, cheap: defaultModelFrom(c.provider, models) };
 }
@@ -229,14 +234,8 @@ function parseReply(text) {
 }
 
 /* at most RATE_PER_HOUR AI calls per user per hour */
-async function rateLimit(env, userId) {
-  const now = Date.now();
-  let r = {};
-  try { r = JSON.parse(await getPrivate(env.DB, userId, 'aiRate')) || {}; } catch { /* reset */ }
-  if (!r.start || now - r.start > 3600_000) r = { start: now, n: 0 };
-  if (r.n >= RATE_PER_HOUR) throw httpError(429, 'That’s a lot of AI questions in an hour. Try again a bit later.');
-  r.n++;
-  await setPrivate(env.DB, userId, 'aiRate', JSON.stringify(r));
+function rateLimit(env, userId) {
+  return limit(env.DB, userId, 'aiRate', RATE_PER_HOUR, HOUR, 'That’s a lot of AI questions in an hour. Try again a bit later.');
 }
 
 /* ---------- errors ---------- */

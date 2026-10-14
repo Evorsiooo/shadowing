@@ -100,7 +100,7 @@ async function boot() {
   if (Store.mode === 'offline') {
     mount($('#panel'), h('div', { class: 'panel-msg' }, 'Not connected.'));
     openModal([
-      modalHead(Api.signedOut ? 'Please sign in' : 'The server isn’t ready'),
+      modalHead(Api.signedOut ? 'Please sign in' : /disabled/i.test(Api.problem || '') ? 'Account disabled' : 'The server isn’t ready'),
       h('p', null, Api.signedOut ? 'Sign in with your Google account to open your practice.' : `The app’s server answered with a problem: ${Api.problem}`),
       Api.signedOut ? btn('Sign in with Google', () => signIn(), { kind: 'primary', size: 'big' }) : btn('Reload', () => location.reload(), { kind: 'primary', size: 'big' }),
     ], { narrow: true });
