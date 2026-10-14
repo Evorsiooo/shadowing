@@ -387,7 +387,7 @@ function consentPage(requestId, client, redirectUri, auth, env) {
       <li>Read only: it can’t change or delete anything</li>
       <li>Not your recordings, AI keys or Discord webhook</li>
     </ul>
-    <p class="small">Signed in as ${esc(auth.email)}. After you choose, you’ll go back to <strong>${esc(app.host)}</strong>.${app.loopback ? ' Only allow this if you just started connecting an app on this computer.' : ''} You can disconnect it any time in Settings → Connected apps.</p>
+    <p class="small">Signed in as <!--email_off-->${esc(auth.email)}<!--/email_off-->. After you choose, you’ll go back to <strong>${esc(app.host)}</strong>.${app.loopback ? ' Only allow this if you just started connecting an app on this computer.' : ''} You can disconnect it any time in Settings → Connected apps.</p>
     <form method="post" action="/oauth/authorize" class="row">
       <input type="hidden" name="request" value="${esc(requestId)}">
       <button class="btn" type="submit" name="decision" value="allow">Allow</button>
@@ -415,7 +415,7 @@ main{max-width:440px;width:100%}h1{font-size:1.4rem;margin:0 0 .5rem}a{color:inh
     headers: {
       'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-frame-options': 'DENY',
       'content-security-policy': "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'",
-      'referrer-policy': 'no-referrer',
+      'referrer-policy': 'same-origin', // not no-referrer: that makes the Allow form send Origin: null
     },
   });
 }

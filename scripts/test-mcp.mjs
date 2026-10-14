@@ -45,6 +45,8 @@ async function connect(user, redirect = CLAUDE, { decision = 'allow', clientId =
   const q = new URLSearchParams({ response_type: 'code', client_id: cid, redirect_uri: redirect, code_challenge: challenge, code_challenge_method: 'S256', state: 'xyz', scope: 'practice:read', resource: `${BASE}/mcp` });
   const page = await fetch(`${BASE}/oauth/authorize?${q}`, { headers: { cookie: user.cookie }, redirect: 'manual' });
   const html = await page.text();
+  // browsers send "Origin: null" from a no-referrer page, and the Allow button would be refused as cross-site
+  if (page.headers.get('referrer-policy') === 'no-referrer') failures++, console.log('✗ the consent page must not be no-referrer');
   const request = (/name="request" value="([^"]+)"/.exec(html) || [])[1];
   const done = await post('/oauth/authorize', { request, decision }, { cookie: user.cookie, origin: BASE });
   const loc = new URL(done.headers.get('location'));
@@ -94,6 +96,7 @@ check((await registerClient('http://127.0.0.1:33418/callback')).status === 201, 
 // sign-in as A through Claude
 const a = await connect(A);
 check(a.html.includes('Connect Claude?') && a.html.includes('claude.ai'), 'the consent page names Claude and where it returns to');
+check(a.html.includes('<!--email_off-->'), 'the email on the consent page is kept out of Cloudflare’s email hiding');
 check(a.loc.origin + a.loc.pathname === CLAUDE && a.loc.searchParams.get('state') === 'xyz' && a.loc.searchParams.get('iss') === BASE && a.code, 'Allow sends a code back to Claude with state and iss');
 check((await exchange(a.cid, a.code, b64url(randomBytes(32)))).status === 400, 'a wrong PKCE verifier is refused');
 const a2 = await connect(A, CLAUDE, { clientId: a.cid });
