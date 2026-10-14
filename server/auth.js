@@ -219,8 +219,8 @@ export async function upsertGoogleUser(env, claims, invite) {
   if (signup === 'invite' && !isAdmin) {
     code = cleanInvite(invite);
     if (!(await inviteUsable(db, code))) return { error: 'Sign-up is invite-only right now. Enter a valid invite code.', code: 'invite' };
-    const used = await db.prepare('UPDATE invites SET uses = uses + 1 WHERE code = ? AND uses < max_uses').bind(code).run();
-    if (!used.meta.changes) return { error: 'That invite code has been used up.', code: 'invite' };
+    const used = await db.prepare('UPDATE invites SET uses = uses + 1 WHERE code = ? AND uses < max_uses AND (expires IS NULL OR expires > ?)').bind(code, now).run();
+    if (!used.meta.changes) return { error: 'That invite code has been used up or has ended.', code: 'invite' };
   } else if (signup === 'closed' && !isAdmin) {
     return { error: 'Sign-up is closed right now.', code: 'invite' };
   }

@@ -4,6 +4,7 @@ import { requireUser, sameOrigin, deleteUser, sha256Hex } from '../../server/aut
 import { json, error, validCol, validId, validKey, uuid, extFor, cleanType } from '../../server/util.js';
 import { allDocs, putDoc, deleteDoc, serveFile, userKey, ownsFile, recordFile, forgetFile } from '../../server/store.js';
 import { noteFeedback, claudeConfigured, claudeModel } from '../../server/claude.js';
+import { adminRoute } from '../../server/admin.js';
 import { validWebhook, getPrivate, setPrivate, getSettings, buildReminder, sendReminder, sessionsAndCheckins, localNow, REMINDER_DEFAULTS } from '../../server/reminders.js';
 
 const PART_MAX = 95 * 1024 * 1024; // Workers request bodies are capped at 100 MB
@@ -36,6 +37,11 @@ export async function onRequest(ctx) {
     if (head === 'import' && method === 'POST') return await importRoute(env, user, request);
     if (head === 'claude' && method === 'POST') return await claudeRoute(env, user, request);
     if (head === 'reminders') return await remindersRoute(env, user, method, rest, request);
+    if (head === 'admin') {
+      // the role is read from the database on every request (requireUser), never from the browser
+      if (user.role !== 'admin') return error(403, 'Admins only.');
+      return await adminRoute(env, user, method, rest, request);
+    }
     return error(404, 'No such endpoint.');
   } catch (e) {
     console.error(e);
