@@ -26,6 +26,7 @@ Everything runs on one Cloudflare account, mostly within the free tier:
 | **D1** | The database: users and sessions, and every practice record as a JSON document keyed by user (`migrations/`) |
 | **Device storage + Google Drive** | Videos and voice recordings live in each user's Google Drive (`drive.file` scope) with a cache in the browser, or only in the browser as an opt-in (`src/js/17-media.js`, `server/drive.js`, [docs/STORAGE.md](docs/STORAGE.md)). The server never holds them. |
 | **AI (optional)** | "Ask AI" on notes, through the server (`server/ai.js`) with each user's own Anthropic, OpenAI or OpenRouter key, stored encrypted under the `KEY_ENCRYPTION_KEY` secret |
+| **MCP server** | `/mcp` lets each user connect Claude, ChatGPT or Gemini to read their own practice data, signed in with OAuth ([docs/MCP.md](docs/MCP.md)) |
 | **Reminders Worker** | `workers/reminders/`: posts each user's practice reminders to their Discord webhook and as push notifications ([docs/PUSH.md](docs/PUSH.md)). A Durable Object alarm wakes it every 15 minutes (the account's free cron triggers are used elsewhere); the API re-arms it on every app load through the `REMINDERS` service binding. Webhook URLs and push subscriptions sit in D1's `private` table, which the docs API never returns. Deploy changes with `npm run deploy:reminders`. |
 
 Cloudflare Access only guards preview builds (`*.shadowing-9ex.pages.dev`), because they share the live database.
@@ -51,6 +52,9 @@ Everything except `POST /api/support` needs a signed-in user, and every query is
 - `/api/admin/*` (admins only: users, sign-up mode, invites, support inbox)
 - Sign-in: `GET /auth/google`, `GET /auth/google/callback`, `GET|POST /auth/logout`
 
+### MCP tools
+
+All read-only and scoped to the signed-in user: `get_overview`, `list_records`, `get_record`, `search`, `fetch`. See [docs/MCP.md](docs/MCP.md).
 Per-user limits (practice data size, AI calls, key checks, Drive tokens, contact form) are listed in [docs/SPEC.md](docs/SPEC.md#limits).
 
 ## Setting it up
@@ -92,6 +96,8 @@ npm run dev        # http://localhost:8788
 | Server file | What it does |
 |-|-|
 | `functions/api/[[path]].js` | API routes |
+| `functions/mcp.js`, `server/mcp.js` | MCP server and its tools |
+| `functions/oauth/`, `functions/.well-known/`, `server/oauth.js` | OAuth for the MCP server |
 | `functions/auth/[[path]].js` | Google sign-in, sign-out and connecting Drive |
 | `functions/app/_middleware.js` | Sends signed-out visitors to sign-in before the app |
 | `server/auth.js` | Google ID token checks, sessions, users and invites |
