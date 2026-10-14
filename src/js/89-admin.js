@@ -3,6 +3,7 @@
 ICONS.shield = '<path d="M12 3l7.5 3v5.5c0 4.5-3.2 8.2-7.5 9.5-4.3-1.3-7.5-5-7.5-9.5V6z"/><path d="M9 12l2 2 4-4"/>';
 
 const Admin = { tab: 'users', open: 0 };
+const AI_PROVIDER_NAMES = { anthropic: 'Anthropic', openai: 'OpenAI', openrouter: 'OpenRouter' };
 const isAdmin = () => Store.mode === 'cloud' && Api.role === 'admin';
 
 function fmtWhen(ms) {
@@ -38,7 +39,7 @@ async function adminUsersView() {
   return h('div', { class: 'stack' },
     h('p', { class: 'small muted' }, tp(users.length, '{n} account, {active} active in the last 7 days. Practice data stays private: you see counts, not content.', '{n} accounts, {active} active in the last 7 days. Practice data stays private: you see counts, not content.', { active })),
     h('div', { class: 'table-wrap' }, h('table', null,
-      h('thead', null, h('tr', null, [t('Account'), t('Joined'), t('Last seen'), t('Sessions'), ''].map((x) => h('th', null, x)))),
+      h('thead', null, h('tr', null, [t('Account'), t('Joined'), t('Last seen'), t('Sessions'), t('Drive'), t('AI key'), ''].map((x) => h('th', null, x)))),
       h('tbody', null, users.map((u) => h('tr', null,
         h('td', null,
           h('div', { style: { fontWeight: 700 } }, u.name || u.email, u.role === 'admin' ? h('span', { class: 'muted small' }, ` · ${t('admin')}`) : null, u.disabled ? h('span', { class: 'small', style: { color: 'var(--red)' } }, ` · ${t('disabled')}`) : null),
@@ -47,6 +48,8 @@ async function adminUsersView() {
         h('td', null, fmtWhen(u.created)),
         h('td', null, fmtWhen(u.last_seen)),
         h('td', null, String(u.sessions)),
+        h('td', null, u.drive ? t('Connected@@drive') : h('span', { class: 'muted' }, t('No'))),
+        h('td', null, u.ai ? (AI_PROVIDER_NAMES[u.ai] || u.ai) : h('span', { class: 'muted' }, t('No'))),
         h('td', null, u.self || u.role === 'admin' ? null : h('div', { class: 'row', style: { justifyContent: 'flex-end' } },
           btn(u.disabled ? t('Enable') : t('Disable'), () => adminSetDisabled(u, !u.disabled), { size: 'sm', title: u.disabled ? t('Let this account sign in again') : t('Sign this account out and stop it signing in') }),
           btn(t('Delete'), () => adminConfirmDelete(u), { size: 'sm', kind: 'danger' }))))))),

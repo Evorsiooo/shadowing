@@ -4,6 +4,7 @@
 //                    in English at the root and in French and Spanish under dist/fr/ and dist/es/
 //   dist/assets/         — site script, icons and the social image
 //   dist/robots.txt, dist/sitemap.xml, dist/site.webmanifest
+//   dist/sw.js           — the service worker (reminder notifications; makes the site installable)
 //   dist/_headers        — security headers, caching and noindex rules
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, copyFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -38,11 +39,30 @@ const body = readFileSync(join(src, 'index.html'), 'utf8')
 
 const ICON_LINKS = `<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">\n<link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">\n<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">\n<link rel="manifest" href="/site.webmanifest">`;
 
+// The app's CSP is a <meta> tag so it can pin the page's own inline scripts by hash. Scripts are
+// only these; everything else the app loads is data: video links on any https site, Google Drive,
+// Google profile pictures, and blob: URLs for files on the device. Styles stay 'unsafe-inline'
+// because the app sets style attributes. frame-ancestors can't go in a meta tag; X-Frame-Options covers it.
+const appScripts = [...body.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => sha(m[1]));
+const appCsp = [
+  "default-src 'self'",
+  `script-src 'self' ${appScripts.join(' ')}`,
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  'font-src https://fonts.gstatic.com',
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' data: blob: https: http:",
+  "connect-src 'self' data: blob: https:",
+  "worker-src 'self' blob:",
+  "form-action 'self'",
+  "base-uri 'none'",
+  "object-src 'none'",
+].join('; ');
+
 mkdirSync(dist, { recursive: true });
 rmSync(join(dist, 'artifact.html'), { force: true });
 out(
   'app/index.html',
-  `<!doctype html>\n<html lang="en-AU">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<meta name="robots" content="noindex, nofollow">\n${ICON_LINKS}\n</head>\n<body>\n${body}\n</body>\n</html>\n`,
+  `<!doctype html>\n<html lang="en-AU">\n<head>\n<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy" content="${appCsp}">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<meta name="robots" content="noindex, nofollow">\n${ICON_LINKS}\n</head>\n<body>\n${body}\n</body>\n</html>\n`,
 );
 
 /* ---------- the public site ---------- */
@@ -164,6 +184,7 @@ for (const page of pages) {
 mkdirSync(join(dist, 'assets'), { recursive: true });
 for (const f of readdirSync(join(src, 'site', 'assets'))) copyFileSync(join(src, 'site', 'assets', f), join(dist, 'assets', f));
 copyFileSync(join(src, 'site', 'site.js'), join(dist, 'assets', 'site.js'));
+copyFileSync(join(src, 'site', 'sw.js'), join(dist, 'sw.js'));
 
 out('robots.txt', `User-agent: *\nDisallow: /api/\nDisallow: /auth/\n\nSitemap: ${SITE.url}/sitemap.xml\n`);
 // Every indexable page in every language, each listing its translations (xhtml:link alternates).
@@ -196,7 +217,7 @@ out(
 );
 
 // The public pages get a strict CSP (their only inline script and style are pinned by hash).
-// The app keeps its own rules for now, so its CSP is detached under /app/.
+// The app has its own CSP in a <meta> tag (above), so the site's one is detached under /app/.
 const siteCsp = [
   "default-src 'self'",
   `script-src 'self' ${[...inlineScripts].map(sha).join(' ')}`,
@@ -212,6 +233,7 @@ const siteCsp = [
 out(
   '_headers',
   `/*
+  Strict-Transport-Security: max-age=31536000
   X-Content-Type-Options: nosniff
   Referrer-Policy: same-origin
   X-Frame-Options: DENY
@@ -224,6 +246,9 @@ out(
 
 /assets/*
   Cache-Control: public, max-age=86400
+
+/sw.js
+  Cache-Control: no-cache
 
 # Preview and pages.dev copies must not compete with shadowing.euno.cc in search results.
 https://:project.pages.dev/*

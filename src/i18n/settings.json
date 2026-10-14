@@ -847,10 +847,6 @@
     "fr": "Retirer",
     "es": "Quitar"
   },
-  "Webhook removed. Reminders are off.": {
-    "fr": "Webhook retiré. Les rappels sont désactivés.",
-    "es": "Webhook quitado. Los recordatorios están desactivados."
-  },
   "Discord webhook link": {
     "fr": "Lien du webhook Discord",
     "es": "Enlace del webhook de Discord"
@@ -870,10 +866,6 @@
   "Cancel": {
     "fr": "Annuler",
     "es": "Cancelar"
-  },
-  "Get a nudge in Discord when it’s time to practise, with a link straight to the app. If you’ve already practised that day, it stays quiet.": {
-    "fr": "Reçois un petit rappel dans Discord quand c’est l’heure de pratiquer, avec un lien direct vers l’appli. Si tu as déjà pratiqué ce jour-là, il ne dit rien.",
-    "es": "Recibe un aviso en Discord cuando toque practicar, con un enlace directo a la app. Si ya practicaste ese día, no te molesta."
   },
   "Send reminders": {
     "fr": "Envoyer des rappels",
@@ -930,10 +922,6 @@
   "Send a test": {
     "fr": "Envoyer un test",
     "es": "Enviar una prueba"
-  },
-  "Test sent. Check Discord.": {
-    "fr": "Test envoyé. Regarde dans Discord.",
-    "es": "Prueba enviada. Revisa Discord."
   },
   "Last reminder {when}: sent": {
     "fr": "Dernier rappel {when} : envoyé",
@@ -1574,5 +1562,49 @@
   "These test what works in this browser on this device, with your storage. Open a video and select a clip first so the video and pitch checks have something to test.": {
     "fr": "Ces tests vérifient ce qui fonctionne dans ce navigateur sur cet appareil, avec ton stockage. Ouvre une vidéo et sélectionne d’abord un extrait pour que les tests vidéo et mélodie aient quelque chose à tester.",
     "es": "Estas pruebas comprueban qué funciona en este navegador en este dispositivo, con tu almacenamiento. Abre un video y selecciona primero un fragmento para que las pruebas de video y entonación tengan algo que probar."
+  },
+  "Connected apps": {
+    "fr": "Applis connectées",
+    "es": "Apps conectadas"
+  },
+  "Webhook removed.": {
+    "fr": "Webhook supprimé.",
+    "es": "Webhook eliminado."
+  },
+  "Get a nudge when it’s time to practise: a notification on your phone or computer, a Discord message, or both. If you’ve already practised that day, it stays quiet.": {
+    "fr": "Reçois un petit rappel quand c’est l’heure de pratiquer : une notification sur ton téléphone ou ton ordinateur, un message Discord, ou les deux. Si tu as déjà pratiqué ce jour-là, rien n’est envoyé.",
+    "es": "Recibe un aviso cuando sea hora de practicar: una notificación en tu teléfono u ordenador, un mensaje de Discord o ambos. Si ya practicaste ese día, no se envía nada."
+  },
+  "Reminders posted to a Discord channel, with a link straight to the app.": {
+    "fr": "Des rappels publiés dans un salon Discord, avec un lien direct vers l’appli.",
+    "es": "Recordatorios publicados en un canal de Discord, con un enlace directo a la app."
+  },
+  "When": {
+    "fr": "Quand",
+    "es": "Cuándo"
+  },
+  "Test sent. Check your notifications or Discord.": {
+    "fr": "Test envoyé. Regarde tes notifications ou Discord.",
+    "es": "Prueba enviada. Revisa tus notificaciones o Discord."
+  },
+  "Drive": {
+    "fr": "Drive",
+    "es": "Drive"
+  },
+  "AI key": {
+    "fr": "Clé d’IA",
+    "es": "Clave de IA"
+  },
+  "Account disabled": {
+    "fr": "Compte désactivé",
+    "es": "Cuenta desactivada"
+  },
+  "Connected@@drive": {
+    "fr": "Connecté",
+    "es": "Conectado"
+  },
+  "No": {
+    "fr": "Non",
+    "es": "No"
   }
 }

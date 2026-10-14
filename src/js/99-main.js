@@ -108,7 +108,7 @@ async function boot() {
   if (Store.mode === 'offline') {
     mount($('#panel'), h('div', { class: 'panel-msg' }, t('Not connected.')));
     openModal([
-      modalHead(Api.signedOut ? t('Please sign in') : t('The server isn’t ready')),
+      modalHead(Api.signedOut ? t('Please sign in') : /disabled/i.test(Api.problem || '') ? t('Account disabled') : t('The server isn’t ready')),
       h('p', null, Api.signedOut ? t('Sign in with your Google account to open your practice.') : t('The app’s server answered with a problem: {problem}', { problem: Api.problem })),
       Api.signedOut ? btn(t('Sign in with Google'), () => signIn(), { kind: 'primary', size: 'big' }) : btn(t('Reload'), () => location.reload(), { kind: 'primary', size: 'big' }),
     ], { narrow: true });
@@ -117,6 +117,7 @@ async function boot() {
   appMeta();
   applyTheme();
   initMedia(); // device storage and Google Drive sync (17-media.js)
+  Push.register(); // service worker: reminder notifications, and lets the browser install the app (86-push.js)
   UI.view = settings().defaultView || 'pitch';
   if (UI.videoId && !Store.get('videos', UI.videoId)) UI.videoId = null;
   if (!UI.videoId) {
