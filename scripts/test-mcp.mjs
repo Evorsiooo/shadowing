@@ -90,7 +90,9 @@ check(asm.registration_endpoint && asm.code_challenge_methods_supported.includes
 check((await registerClient('https://evil.example.com/cb')).status === 400, 'an unknown redirect can’t register');
 check((await registerClient('http://example.com/cb')).status === 400, 'a non-loopback http redirect can’t register');
 const gem = await registerClient(GEMINI, { token_endpoint_auth_method: 'client_secret_basic' });
-check(gem.status === 201 && gem.data.token_endpoint_auth_method === 'none' && !gem.data.client_secret, 'Gemini’s client_secret_basic request becomes a public client');
+check(gem.status === 201 && gem.data.token_endpoint_auth_method === 'client_secret_basic' && gem.data.client_secret, 'Gemini’s client_secret_basic request gets a client secret');
+const pub = await registerClient(CLAUDE);
+check(pub.data.token_endpoint_auth_method === 'none' && !pub.data.client_secret, 'a client that asks for nothing stays public');
 check((await registerClient('http://127.0.0.1:33418/callback')).status === 201, 'a loopback redirect (Claude Code, Gemini CLI) can register');
 
 // sign-in as A through Claude
@@ -142,7 +144,10 @@ check(lr.total === 1 && lr.records[0].sentence === 'Go and grab the car', 'list_
 
 // B through Gemini (client id in a Basic header, as Gemini sends it)
 const b = await connect(B, GEMINI, { clientId: gem.data.client_id });
-const tb = await exchange(b.cid, b.code, b.verifier, GEMINI, { authorization: `Basic ${Buffer.from(`${b.cid}:ignored-secret`).toString('base64')}` });
+const basic = (id, secret) => ({ authorization: `Basic ${Buffer.from(`${encodeURIComponent(id)}:${encodeURIComponent(secret)}`).toString('base64')}` });
+check((await exchange(b.cid, b.code, b.verifier, GEMINI, basic(b.cid, 'wrong-secret'))).status === 401, 'a wrong client secret is refused');
+check((await exchange(b.cid, b.code, b.verifier, GEMINI)).status === 401, 'a confidential client without its secret is refused');
+const tb = await exchange(b.cid, b.code, b.verifier, GEMINI, basic(b.cid, gem.data.client_secret));
 check(tb.status === 200, 'Gemini’s token request with a Basic header works');
 const bn = await tool(tb.data.access_token, 'get_record', { collection: 'notes', id: 'n1' });
 check(bn.sentence === 'B secret sentence', 'the same note id gives B its own note');
@@ -155,7 +160,7 @@ check(r1.status === 200 && r1d.refresh_token && r1d.refresh_token !== ta.data.re
 const r2 = await post('/oauth/token', { grant_type: 'refresh_token', refresh_token: ta.data.refresh_token, client_id: a.cid });
 check(r2.status === 400 && (await r2.json()).error === 'invalid_grant', 'an old refresh token is refused with invalid_grant');
 const r3 = await post('/oauth/token', { grant_type: 'refresh_token', refresh_token: r1d.refresh_token, client_id: gem.data.client_id });
-check(r3.status === 400, 'another client can’t use A’s refresh token');
+check(r3.status >= 400, 'another client can’t use A’s refresh token');
 
 // Settings → Connected apps
 const conns = await A.api('GET', '/api/connections');

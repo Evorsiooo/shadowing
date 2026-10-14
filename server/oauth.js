@@ -9,7 +9,7 @@
 //   POST /oauth/revoke      disconnect (RFC 7009)
 // Codes and tokens are random; only their SHA-256 is stored. Every token belongs to one user.
 import { randomToken, sha256Hex, bytesToB64url, requireUser, sameOrigin } from './auth.js';
-import { uuid } from './util.js';
+import { uuid, safeEqual } from './util.js';
 
 export const SCOPE = 'practice:read';
 const CODE_TTL = 5 * 60_000;
@@ -81,7 +81,7 @@ export function authServerMetadata(origin) {
     response_modes_supported: ['query'],
     grant_types_supported: ['authorization_code', 'refresh_token'],
     code_challenge_methods_supported: ['S256'],
-    token_endpoint_auth_methods_supported: ['none'],
+    token_endpoint_auth_methods_supported: ['none', 'client_secret_basic', 'client_secret_post'],
     revocation_endpoint_auth_methods_supported: ['none'],
     scopes_supported: [SCOPE, 'offline_access'],
     authorization_response_iss_parameter_supported: true,
@@ -123,7 +123,10 @@ export async function register(request, env) {
   }
   const grants = body.grant_types || ['authorization_code', 'refresh_token'];
   if (!Array.isArray(grants) || !grants.includes('authorization_code')) return oauthError('invalid_client_metadata', 'grant_types must include authorization_code.');
-  // Every client is public: Gemini asks for client_secret_basic, so the answer says "none" and no secret is issued.
+  // Public by default (Claude, ChatGPT). An app that asks for a secret (Gemini asks for client_secret_basic) gets one;
+  // only its hash is kept, and the token endpoint then requires it.
+  const method = ['client_secret_basic', 'client_secret_post'].includes(body.token_endpoint_auth_method) ? body.token_endpoint_auth_method : 'none';
+  const secret = method === 'none' ? null : randomToken(32);
   const name = typeof body.client_name === 'string' ? body.client_name.replace(/[\u0000-\u001f]/g, '').trim().slice(0, 80) : null;
   const now = Date.now();
   const recent = await env.DB.prepare('SELECT COUNT(*) AS n FROM oauth_clients WHERE created > ?').bind(now - 3600_000).first();
@@ -131,7 +134,8 @@ export async function register(request, env) {
     return new Response(JSON.stringify({ error: 'temporarily_unavailable', error_description: 'Too many apps registered in the last hour. Try again later.' }), { status: 429, headers: { 'content-type': 'application/json', 'retry-after': '600', 'cache-control': 'no-store', ...CORS } });
   }
   const id = `mcp_${uuid()}`;
-  await env.DB.prepare('INSERT INTO oauth_clients (id, name, redirect_uris, created) VALUES (?, ?, ?, ?)').bind(id, name, JSON.stringify(uris), now).run();
+  await env.DB.prepare('INSERT INTO oauth_clients (id, name, redirect_uris, created, auth_method, secret_hash) VALUES (?, ?, ?, ?, ?, ?)')
+    .bind(id, name, JSON.stringify(uris), now, method, secret ? await sha256Hex(secret) : null).run();
   if (Math.random() < 0.05) await cleanup(env.DB);
   return oauthJson({
     client_id: id,
@@ -140,7 +144,8 @@ export async function register(request, env) {
     redirect_uris: uris,
     grant_types: ['authorization_code', 'refresh_token'],
     response_types: ['code'],
-    token_endpoint_auth_method: 'none',
+    token_endpoint_auth_method: method,
+    ...(secret ? { client_secret: secret, client_secret_expires_at: 0 } : {}),
     scope: SCOPE,
   }, 201);
 }
@@ -161,10 +166,16 @@ async function getClient(db, id) {
   return row ? { ...row, redirect_uris: JSON.parse(row.redirect_uris) } : null;
 }
 
-/** RFC 8707: a `resource`, when sent, must be this server's /mcp. */
+/** RFC 8707: a `resource`, when sent, must be this server's /mcp (the bare site address is accepted too). */
 function resourceOk(resource, origin) {
   if (!resource) return true;
-  return String(resource).replace(/\/+$/, '') === mcpUrl(origin);
+  const r = String(resource).replace(/\/+$/, '');
+  return r === mcpUrl(origin) || r === origin;
+}
+
+/** Keep the latest sign-in failure on the app's row, to diagnose apps that only say "try again". */
+async function noteError(db, clientId, message) {
+  if (clientId) await db.prepare('UPDATE oauth_clients SET last_error = ? WHERE id = ?').bind(`${new Date().toISOString()} ${message}`.slice(0, 500), clientId).run().catch(() => {});
 }
 
 /* ---------- authorize ---------- */
@@ -185,18 +196,22 @@ export async function authorizeGet(request, env, url) {
 
   // Problems with the client or redirect are shown here, never sent to an unverified redirect.
   const client = await getClient(db, params.client_id);
-  if (!client) return page('Unknown app', '<p>This app isn’t registered with Euno Shadowing. Remove the connection in the app and add it again.</p>', 400);
+  if (!client) { await noteError(db, params.client_id, 'authorize: unknown client'); return page('Unknown app', '<p>This app isn’t registered with Euno Shadowing. Remove the connection in the app and add it again.</p>', 400); }
   if (!params.redirect_uri && client.redirect_uris.length === 1) params.redirect_uri = client.redirect_uris[0];
   if (!params.redirect_uri || !redirectMatches(client.redirect_uris, params.redirect_uri) || !redirectApp(params.redirect_uri, env)) {
+    await noteError(db, client.id, `authorize: redirect_uri not registered: ${params.redirect_uri}`);
     return page('Can’t connect this app', '<p>The app asked to return somewhere it didn’t register.</p>', 400);
   }
 
   if (!row) {
-    const fail = (error, description) => redirectWith(params.redirect_uri, { error, error_description: description, state: params.state, iss: origin });
-    if (params.response_type !== 'code') return fail('unsupported_response_type', 'Only response_type=code is supported.');
-    if (!params.code_challenge || params.code_challenge_method !== 'S256' || !/^[A-Za-z0-9_-]{43,128}$/.test(params.code_challenge)) return fail('invalid_request', 'PKCE with S256 is required.');
-    if (!resourceOk(params.resource, origin)) return fail('invalid_target', `The resource must be ${mcpUrl(origin)}.`);
-    if (params.state && params.state.length > 1000) return fail('invalid_request', 'state is too long.');
+    const fail = async (error, description) => {
+      await noteError(db, client.id, `authorize: ${error}: ${description} (${url.search.slice(0, 300)})`);
+      return redirectWith(params.redirect_uri, { error, error_description: description, state: params.state, iss: origin });
+    };
+    if (params.response_type !== 'code') return await fail('unsupported_response_type', 'Only response_type=code is supported.');
+    if (!params.code_challenge || params.code_challenge_method !== 'S256' || !/^[A-Za-z0-9_-]{43,128}$/.test(params.code_challenge)) return await fail('invalid_request', 'PKCE with S256 is required.');
+    if (!resourceOk(params.resource, origin)) return await fail('invalid_target', `The resource must be ${mcpUrl(origin)}.`);
+    if (params.state && params.state.length > 1000) return await fail('invalid_request', 'state is too long.');
     requestId = randomToken(24);
     const keep = { redirect_uri: params.redirect_uri, state: params.state || null, code_challenge: params.code_challenge, scope: params.scope || null, resource: params.resource || null };
     await db.prepare('INSERT INTO oauth_requests (id, client_id, user_id, params, expires) VALUES (?, ?, NULL, ?, ?)')
@@ -264,36 +279,50 @@ async function readForm(request) {
   return new Map(new URLSearchParams(text));
 }
 
-/** client_id from the body or an HTTP Basic header (Gemini sends it there). Any secret is ignored: clients are public. */
-function clientIdFrom(request, form) {
+/** Client credentials from an HTTP Basic header (Gemini sends them there) or the body. */
+function credentialsFrom(request, form) {
   const basic = /^Basic\s+(.+)$/i.exec(request.headers.get('authorization') || '');
   if (basic) {
     try {
-      const [id] = atob(basic[1].trim()).split(':');
-      return decodeURIComponent(id);
-    } catch { return null; }
+      const raw = atob(basic[1].trim());
+      const i = raw.indexOf(':');
+      const dec = (v) => decodeURIComponent(v.replace(/\+/g, ' '));
+      return i < 0 ? { id: dec(raw), secret: null } : { id: dec(raw.slice(0, i)), secret: dec(raw.slice(i + 1)) };
+    } catch { return { id: null, secret: null }; }
   }
-  return form.get('client_id') || null;
+  return { id: form.get('client_id') || null, secret: form.get('client_secret') || null };
+}
+
+/** The calling client, checking its secret when it registered with one. Public clients' secrets are ignored. */
+async function authenticateClient(db, request, form) {
+  const { id, secret } = credentialsFrom(request, form);
+  const client = await getClient(db, id);
+  if (!client) return { error: 'Unknown client. Register again.' };
+  if (client.secret_hash && (!secret || !safeEqual(await sha256Hex(secret), client.secret_hash))) {
+    await noteError(db, client.id, 'token: wrong or missing client secret');
+    return { error: 'Wrong client secret.' };
+  }
+  return { client };
 }
 
 export async function token(request, env, url) {
   const form = await readForm(request);
   const db = env.DB;
-  const clientId = clientIdFrom(request, form);
-  const client = await getClient(db, clientId);
-  if (!client) return oauthError('invalid_client', 'Unknown client. Register again.', 401);
-  if (!resourceOk(form.get('resource'), url.origin)) return oauthError('invalid_target', `The resource must be ${mcpUrl(url.origin)}.`);
+  const { client, error } = await authenticateClient(db, request, form);
+  if (!client) return oauthError('invalid_client', error, 401);
+  const fail = async (code, description) => { await noteError(db, client.id, `token: ${code}: ${description}`); return oauthError(code, description); };
+  if (!resourceOk(form.get('resource'), url.origin)) return fail('invalid_target', `The resource must be ${mcpUrl(url.origin)}.`);
   const grantType = form.get('grant_type');
   const now = Date.now();
 
   if (grantType === 'authorization_code') {
     const code = form.get('code') || '';
     const row = await db.prepare("DELETE FROM oauth_tokens WHERE id = ? AND kind = 'code' AND client_id = ? RETURNING *").bind(await sha256Hex(code), client.id).first();
-    if (!row || row.expires < now) return oauthError('invalid_grant', 'The code is wrong, used or expired.');
+    if (!row || row.expires < now) return fail('invalid_grant', 'The code is wrong, used or expired.');
     const data = JSON.parse(row.data || '{}');
-    if (form.get('redirect_uri') && form.get('redirect_uri') !== data.redirect_uri) return oauthError('invalid_grant', 'redirect_uri doesn’t match.');
+    if (form.get('redirect_uri') && form.get('redirect_uri') !== data.redirect_uri) return fail('invalid_grant', 'redirect_uri doesn’t match.');
     const verifier = form.get('code_verifier') || '';
-    if (!/^[A-Za-z0-9._~-]{43,128}$/.test(verifier) || (await s256(verifier)) !== data.code_challenge) return oauthError('invalid_grant', 'PKCE check failed.');
+    if (!/^[A-Za-z0-9._~-]{43,128}$/.test(verifier) || (await s256(verifier)) !== data.code_challenge) return fail('invalid_grant', 'PKCE check failed.');
     return oauthJson(await issueTokens(db, row));
   }
 
@@ -306,7 +335,7 @@ export async function token(request, env, url) {
     if (!ok) return oauthError('invalid_grant', 'This connection was removed.');
     return oauthJson(await issueTokens(db, row));
   }
-  return oauthError('unsupported_grant_type', 'Use authorization_code or refresh_token.');
+  return fail('unsupported_grant_type', 'Use authorization_code or refresh_token.');
 }
 
 async function s256(verifier) { return bytesToB64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))); }
@@ -327,7 +356,8 @@ async function issueTokens(db, { grant_id, user_id, client_id }) {
 export async function revoke(request, env) {
   const form = await readForm(request);
   const t = form.get('token') || '';
-  const clientId = clientIdFrom(request, form);
+  const { client } = await authenticateClient(env.DB, request, form);
+  const clientId = client && client.id;
   const row = t ? await env.DB.prepare('SELECT grant_id, client_id FROM oauth_tokens WHERE id = ?').bind(await sha256Hex(t)).first() : null;
   // revoking either token disconnects the app; unknown tokens still get 200 (RFC 7009)
   if (row && row.client_id === clientId) await removeGrant(env.DB, row.grant_id);

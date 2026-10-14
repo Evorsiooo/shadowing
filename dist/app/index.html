@@ -2,7 +2,7 @@
 <html lang="en-AU">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-CCRULp2fgpH2ml+CzyknpOYegjr5wH9hcTXK5KkHuC4=' 'sha256-gc7PjAq7qsx/0xMkX/GROj2t53TThXwYya3csOKPQ/4='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https: http:; connect-src 'self' data: blob: https:; worker-src 'self' blob:; form-action 'self'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-CCRULp2fgpH2ml+CzyknpOYegjr5wH9hcTXK5KkHuC4=' 'sha256-VObEisTIPeWRKg4jyNiL6sUJMc+juFcKMMMhPZeNGnk='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https: http:; connect-src 'self' data: blob: https:; worker-src 'self' blob:; form-action 'self'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
@@ -5835,9 +5835,9 @@ function connectedAppsView() {
       h('div', { class: 'card' }, h('h3', null, 'Server address'),
         h('div', { class: 'row' }, h('code', { style: { wordBreak: 'break-all' } }, url), btn('Copy', copy, { size: 'sm' })),
         h('ul', { class: 'small', style: { margin: '6px 0 0', paddingLeft: '20px' } },
-          h('li', null, h('strong', null, 'Claude: '), 'Settings → Connectors → Add custom connector. Paste the address and leave the advanced settings empty.'),
-          h('li', null, h('strong', null, 'ChatGPT: '), 'Settings → Apps → Advanced settings → turn on Developer mode, then Create app. Paste the address and choose OAuth. Needs a paid plan.'),
-          h('li', null, h('strong', null, 'Gemini: '), 'Settings → Connected apps → Add a custom app. Paste the address and leave Client ID and Client secret empty.')),
+          h('li', null, h('strong', null, 'Claude: '), 'Settings → Connectors → Add (top right). Give it a name, paste the address, then Continue. Leave everything as it is, then Add and Connect.'),
+          h('li', null, h('strong', null, 'ChatGPT: '), 'Plugins (sidebar) → Add (top right) → Add Custom MCP Server. Give it a name, paste the address, then Authenticate.'),
+          h('li', null, h('strong', null, 'Gemini: '), 'Settings → Connected apps → Custom (top right). Paste the address, then Connect.')),
         h('p', { class: 'small muted' }, 'You’ll be asked to sign in here and allow the app.')),
       h('div', { class: 'card' }, h('h3', null, 'Connected'),
         !list ? h('p', { class: 'small muted' }, 'Checking…')
