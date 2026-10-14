@@ -167,6 +167,17 @@ check((await mcp(r1d.access_token, 'tools/list')).status === 401, 'disconnecting
 sql(`UPDATE users SET disabled = 1 WHERE id = '${B.id}'`);
 check((await mcp(tb.data.access_token, 'tools/list')).status === 401, 'a disabled account’s token stops working');
 
+// the site-wide registration cap
+{
+  const now = Date.now();
+  const n = Number(JSON.parse(sql(`SELECT COUNT(*) AS n FROM oauth_clients WHERE created > ${now - 3600000}`))[0].results[0].n);
+  const fill = Math.max(0, 300 - n);
+  const values = Array.from({ length: fill }, (_, i) => `('mcp_cap${run}${String(i).padStart(4, '0')}', NULL, '[]', ${now})`).join(',');
+  if (fill) sql(`INSERT INTO oauth_clients (id, name, redirect_uris, created) VALUES ${values}`);
+  check((await registerClient(CLAUDE)).status === 429, 'registration stops at 300 new apps an hour');
+  sql(`DELETE FROM oauth_clients WHERE id LIKE 'mcp_cap${run}%'`);
+}
+
 // tidy up
 for (const u of [A, B]) sql(`DELETE FROM docs WHERE user_id = '${u.id}'; DELETE FROM sessions WHERE user_id = '${u.id}'; DELETE FROM oauth_tokens WHERE user_id = '${u.id}'; DELETE FROM oauth_grants WHERE user_id = '${u.id}'; DELETE FROM oauth_requests WHERE user_id = '${u.id}'; DELETE FROM users WHERE id = '${u.id}';`);
 
