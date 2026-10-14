@@ -332,7 +332,8 @@ const DEFAULT_SETTINGS = {
   echoCancellation: false, noiseSuppression: false,
   micAuto: true, micGain: 2, micDeviceId: null,
   pitchSmoothing: 5,
-  programmeStart: null,
+  programmeStart: null, // English; other languages keep theirs in programmeStarts
+  programmeStarts: {},
   defaultView: 'pitch',
 };
 function settings() {

@@ -45,19 +45,20 @@ function settingsForm() {
       if (a === 'select') return h('label', { class: 'field', for: id }, label, h('select', { id, onchange: (e) => { draft[key] = e.target.value; } }, b.map(([v, l]) => h('option', { value: v, selected: draft[key] === v }, l))));
       return h('label', { class: 'field', for: id }, label, h('input', { type: 'number', id, min: a, max: b, step, value: draft[key], oninput: (e) => { const v = parseFloat(e.target.value); if (isFinite(v)) draft[key] = clamp(v, a, b); } }));
     }))));
-  const start = h('div', { class: 'card' }, h('h3', null, 'Programme'),
-    h('label', { class: 'field', for: 'set-programmeStart' }, 'Programme start date (week 0)', h('input', { type: 'date', id: 'set-programmeStart', value: draft.programmeStart || programmeStart(), onchange: (e) => { draft.programmeStart = e.target.value || null; } })),
+  let startDraft = savedProgrammeStart();
+  const start = h('div', { class: 'card' }, h('h3', null, Object.keys(LANGUAGES).length > 1 ? `${langContent().name} programme` : 'Programme'),
+    h('label', { class: 'field', for: 'set-programmeStart' }, 'Programme start date (week 0)', h('input', { type: 'date', id: 'set-programmeStart', value: programmeStart(), onchange: (e) => { startDraft = e.target.value || null; } })),
     h('p', { class: 'small muted' }, 'Check-ins fall due 4, 8 and 12 weeks after this date.'));
   return h('form', { class: 'stack', onsubmit: (e) => {
     e.preventDefault();
     if (draft.clipMin >= draft.clipMax) { toast('The shortest clip length must be less than the longest.', 'bad'); return; }
-    saveSettings(draft);
+    saveSettings({ ...draft, ...programmeStartPatch(startDraft) });
     toast('Settings saved.', 'good');
     closeModal();
   } },
   groups, start,
   h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary big' }, h('span', null, 'Save settings')),
-    btn('Reset to defaults', () => { saveSettings({ ...DEFAULT_SETTINGS, programmeStart: s.programmeStart }); toast('Defaults restored.'); openSettings('practice'); }, { kind: 'ghost' })));
+    btn('Reset to defaults', () => { saveSettings({ ...DEFAULT_SETTINGS, programmeStart: s.programmeStart, programmeStarts: s.programmeStarts }); toast('Defaults restored.'); openSettings('practice'); }, { kind: 'ghost' })));
 }
 
 function dataView() {
