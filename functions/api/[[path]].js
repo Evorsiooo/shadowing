@@ -6,6 +6,7 @@ import { allDocs, putDoc, deleteDoc } from '../../server/store.js';
 import { driveStatus, driveAccessToken, disconnectDrive } from '../../server/drive.js';
 import { noteFeedback, aiAvailable, aiStatus, saveKey, setModel, removeKey, userModels, PROVIDERS } from '../../server/ai.js';
 import { adminRoute } from '../../server/admin.js';
+import { limit } from '../../server/limits.js';
 import { validWebhook, getPrivate, setPrivate, getSettings, buildReminder, sendReminder, sessionsAndCheckins, localNow, REMINDER_DEFAULTS, CHANNELS, getPushSubs, addPushSub, removePushSubs } from '../../server/reminders.js';
 import { pushAvailable, cleanSubscription } from '../../server/webpush.js';
 
@@ -44,7 +45,8 @@ export async function onRequest(ctx) {
     return error(404, 'No such endpoint.');
   } catch (e) {
     console.error(e);
-    return error(e.status || 500, e.message || 'Server error');
+    // only errors raised on purpose (with a status) carry a message meant for people
+    return e.status ? error(e.status, e.message) : error(500, 'Something went wrong on the server. Try again in a moment.');
   }
 }
 
@@ -68,6 +70,8 @@ async function driveRoute(env, user, method, rest) {
   const [action] = rest;
   if (!action && method === 'GET') return json(await driveStatus(env, user.id));
   if (action === 'token' && method === 'POST') {
+    // a token lasts an hour, so even several devices need only a handful
+    await limit(env.DB, user.id, 'driveTokenRate', 120, 3600_000, 'Too many Google Drive requests in the last hour. Try again a bit later.');
     try { return json(await driveAccessToken(env, user.id)); } catch (e) { return error(e.status || 502, e.message, { reconnect: !!e.reconnect }); }
   }
   if (!action && method === 'DELETE') { await disconnectDrive(env, user.id); return json({ ok: true, connected: false }); }
@@ -195,6 +199,9 @@ async function supportRoute(env, request) {
   const recent = await env.DB.prepare('SELECT COUNT(*) AS n FROM support_messages WHERE created > ? AND (ip_hash = ? OR (user_id IS NOT NULL AND user_id = ?))')
     .bind(hourAgo, ipHash, auth.ok ? auth.userId : null).first();
   if (recent && recent.n >= 5) return error(429, 'You’ve sent several messages already. Try again later.');
+  // and a ceiling for everyone together, so a flood from many addresses can't fill the inbox
+  const today = await env.DB.prepare('SELECT COUNT(*) AS n FROM support_messages WHERE created > ?').bind(Date.now() - 86400_000).first();
+  if (today && today.n >= 300) return error(429, 'The contact form is busy right now. Try again tomorrow.');
   await env.DB.prepare('INSERT INTO support_messages (id, user_id, email, message, ip_hash, created) VALUES (?, ?, ?, ?, ?, ?)')
     .bind(uuid(), auth.ok ? auth.userId : null, email, message, ipHash, Date.now()).run();
   return json({ ok: true });

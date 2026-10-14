@@ -209,7 +209,8 @@ export async function upsertGoogleUser(env, claims, invite) {
   }
   if (user) {
     if (user.disabled) return { error: 'This account is disabled.', code: 'disabled' };
-    const role = isAdmin ? 'admin' : user.role;
+    // ADMIN_EMAILS is the only way to be an admin, so taking an email off it takes the role away
+    const role = isAdmin ? 'admin' : user.role === 'admin' ? 'user' : user.role;
     await db.prepare('UPDATE users SET email = ?, name = ?, picture = ?, role = ?, last_seen = ? WHERE id = ?')
       .bind(email, claims.name || null, claims.picture || null, role, now, user.id).run();
     return { user: { ...user, email, role } };
