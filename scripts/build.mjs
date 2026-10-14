@@ -19,7 +19,12 @@ const sha = (s) => `'sha256-${createHash('sha256').update(s).digest('base64')}'`
 
 /* ---------- the app, at /app/ ---------- */
 const css = readFileSync(join(src, 'styles.css'), 'utf8');
-const js = readdirSync(join(src, 'js'))
+// Interface translations: src/i18n/*.json, merged into one table the app reads through t() (src/js/01-i18n.js).
+const i18n = {};
+for (const f of readdirSync(join(src, 'i18n')).filter((f) => f.endsWith('.json')).sort()) {
+  for (const [k, v] of Object.entries(JSON.parse(readFileSync(join(src, 'i18n', f), 'utf8')))) i18n[k] = { ...(i18n[k] || {}), ...v };
+}
+const js = `const I18N_STRINGS = ${JSON.stringify(i18n).replace(/</g, '\\u003c')};\n` + readdirSync(join(src, 'js'))
   .filter((f) => f.endsWith('.js'))
   .sort()
   .map((f) => `/* ---- ${f} ---- */\n` + readFileSync(join(src, 'js', f), 'utf8'))

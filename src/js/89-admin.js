@@ -9,7 +9,7 @@ function fmtWhen(ms) {
   if (!ms) return '—';
   const d = new Date(ms);
   const days = Math.floor((Date.now() - ms) / 86400000);
-  const date = `${d.getDate()} ${MONTHS[d.getMonth()]}${d.getFullYear() === new Date().getFullYear() ? '' : ` ${d.getFullYear()}`}`;
+  const date = fmtDate(d, d.getFullYear() === new Date().getFullYear() ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' });
   if (ms > Date.now()) return date; // invite end dates
   return days < 1 ? `today ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` : days < 2 ? 'yesterday' : date;
 }

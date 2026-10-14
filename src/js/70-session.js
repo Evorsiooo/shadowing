@@ -604,7 +604,7 @@ function idleSession() {
   return h('div', { class: 'stack' },
     h('div', { class: 'idle-cta' },
       h('div', { class: 'grow' },
-        h('span', { class: 'label' }, `${DAYS[new Date().getDay()]} · ${sugg.title}`),
+        h('span', { class: 'label' }, `${dayName(new Date().getDay())} · ${sugg.title}`),
         h('p', null, sugg.text)),
       sugg.clipId && sugg.clipId !== UI.clipId ? btn('Select it', () => selectClip(sugg.clipId), { size: 'sm' }) : null),
     h('div', { class: 'row' },

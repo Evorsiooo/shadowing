@@ -98,6 +98,7 @@ function learnerLine(P) {
   return `The learner is moving their ${P.targetLanguage} accent towards ${P.accent}. ${native}${P.notes ? ` About them: ${P.notes}` : ''}`.trim();
 }
 function spellingLine(P) {
+  if (P.replyLanguage && P.replyLanguage !== 'English') return `Answer in ${P.replyLanguage}, plainly`;
   return P.spelling ? `Answer in ${P.spelling} spelling, plainly` : 'Answer plainly';
 }
 
@@ -120,7 +121,7 @@ If unsure, use {"unsure": true, "question": "I don't know ... what did you mean 
 function claudePromptPlain(D) {
   const P = profileForAI();
   const native = P.nativeLanguages ? ` My native language is ${P.nativeLanguages}.` : '';
-  return `I'm doing shadowing practice to move my ${P.targetLanguage} accent towards ${P.accent}.${native}${P.notes ? ` ${P.notes}` : ''} Please ${P.spelling ? `answer in ${P.spelling} spelling, ` : ''}plainly, no jargon. If my description is too ambiguous, say "I don't know" and ask what I meant.
+  return `I'm doing shadowing practice to move my ${P.targetLanguage} accent towards ${P.accent}.${native}${P.notes ? ` ${P.notes}` : ''} Please answer ${P.replyLanguage && P.replyLanguage !== 'English' ? `in ${P.replyLanguage}, ` : P.spelling ? `in ${P.spelling} spelling, ` : ''}plainly, no jargon. If my description is too ambiguous, say "I don't know" and ask what I meant.
 
 Sentence: ${D.sentence.trim() || '(not given)'}
 What sounded off: ${D.off.trim()}

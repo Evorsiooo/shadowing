@@ -163,5 +163,6 @@ function profileForAI(p = profile()) {
     accent: a.name,
     spelling: a.spelling,
     notes: String(p.notes || '').slice(0, 500),
+    replyLanguage: UI_LANG_NAMES_EN[LANG] || 'English', // the interface language: feedback is written in it
   };
 }

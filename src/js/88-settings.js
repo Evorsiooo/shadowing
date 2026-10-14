@@ -310,7 +310,7 @@ function remindersView() {
               }, { kind: 'primary', size: 'sm' }),
               replacing ? btn('Cancel', () => { replacing = false; draw(); }, { size: 'sm', kind: 'ghost' }) : null));
         })();
-    const dayBtns = [1, 2, 3, 4, 5, 6, 0].map((d) => btn(DAYS[d], () => {
+    const dayBtns = [1, 2, 3, 4, 5, 6, 0].map((d) => btn(dayName(d), () => {
       const days = r.days.includes(d) ? r.days.filter((x) => x !== d) : [...r.days, d];
       saveReminders({ days }); draw();
     }, { size: 'sm', on: r.days.includes(d), pressed: r.days.includes(d) }));
@@ -337,13 +337,12 @@ function remindersView() {
         btn('Send a test', async () => {
           try { await Api.req('POST', '/api/reminders/test', { appUrl: location.origin, tz: Intl.DateTimeFormat().resolvedOptions().timeZone }); toast('Test sent. Check Discord.', 'good'); } catch (e) { toast(e.message, 'bad', 7000); }
         }, { size: 'sm', icon: 'bell', disabled: !(status && status.configured) }),
-        last ? h('span', { class: 'small muted' }, `Last reminder ${fmtWhen(last.at)}: ${last.ok ? 'sent' : `failed (${last.error})`}`) : null));
+        last ? h('span', { class: 'small muted' }, `Last reminder ${fmtReminderWhen(last.at)}: ${last.ok ? 'sent' : `failed (${last.error})`}`) : null));
   };
   draw();
   Api.req('GET', '/api/reminders').then((d) => { status = d; draw(); }).catch((e) => { status = { configured: false }; draw(); toast(e.message, 'bad'); });
   return wrap;
 }
-function fmtWhen(iso) {
-  const d = new Date(iso);
-  return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+function fmtReminderWhen(iso) {
+  return fmtDate(new Date(iso), { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 }

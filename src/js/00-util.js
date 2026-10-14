@@ -111,8 +111,6 @@ function fmtLag(lag) {
   if (Math.abs(lag) < 0.03) return 'in sync';
   return lag > 0 ? `${a} s behind` : `${a} s ahead`;
 }
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function dayKey(d = new Date()) {
   const x = d instanceof Date ? d : new Date(d);
   return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
@@ -120,8 +118,12 @@ function dayKey(d = new Date()) {
 function parseDay(k) { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); }
 function addDays(k, n) { const d = parseDay(k); d.setDate(d.getDate() + n); return dayKey(d); }
 function daysBetween(a, b) { return Math.round((parseDay(b) - parseDay(a)) / 86400000); }
-function fmtDay(k) { if (!k) return '—'; const d = parseDay(k); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; }
-function fmtDayLong(k) { const d = parseDay(k); return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; }
+/* dates in the interface language (uiLocale() is in 01-i18n.js) */
+function fmtDate(d, opts) { try { return new Intl.DateTimeFormat(uiLocale(), opts).format(d); } catch { return d.toDateString(); } }
+function fmtDay(k) { if (!k) return '—'; return fmtDate(parseDay(k), { day: 'numeric', month: 'short' }); }
+function fmtDayLong(k) { return fmtDate(parseDay(k), { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); }
+/* short weekday name, 0 = Sunday */
+function dayName(i) { const d = new Date(2024, 0, 7 + i); return fmtDate(d, { weekday: 'short' }); }
 function weekStart(k) { const d = parseDay(k); const wd = (d.getDay() + 6) % 7; return addDays(k, -wd); }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
