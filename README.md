@@ -25,7 +25,7 @@ Everything runs on one Cloudflare account, mostly within the free tier:
 | **Cloudflare Access** | Locks the site to your email: a one-time code, then signed in for 30 days per device. Every API call also checks the Access token itself (`server/auth.js`), so nothing is exposed even if a policy is misconfigured. |
 | **D1** | The database: every app record is a JSON document (`migrations/0001_init.sql`) |
 | **R2** | Videos and voice recordings, streamed back with range requests so videos seek properly |
-| **Claude API** | "Ask Claude" on notes, through the server (`server/claude.js`); the key is a Cloudflare secret |
+| **AI (optional)** | "Ask AI" on notes, through the server (`server/ai.js`) with each user's own Anthropic, OpenAI or OpenRouter key, stored encrypted under the `KEY_ENCRYPTION_KEY` secret |
 | **MCP server** | `/mcp/<secret>` gives Claude read/write access to all data and recordings (`functions/mcp/`) |
 | **Reminders Worker** | `workers/reminders/`: posts practice reminders to a Discord webhook. A Durable Object alarm wakes it every 15 minutes (the account's free cron triggers are used elsewhere); the API re-arms it on every app load through the `REMINDERS` service binding. The webhook URL sits in D1's `private` table, which the docs API and MCP never return. Deploy changes with `npm run deploy:reminders`. |
 
@@ -42,7 +42,7 @@ All routes need a valid Access sign-in.
 - `POST /api/files` (recordings), `GET|DELETE /api/files/:key`
 - `POST /api/uploads` → `PUT /api/uploads/:id/:part` → `POST /api/uploads/:id/complete` (big videos)
 - `POST /api/import` (copy a video from a direct link into R2)
-- `POST /api/claude` (note feedback)
+- `GET/PUT/DELETE /api/ai`, `GET /api/ai/models`, `POST /api/ai/test`, `POST /api/ai/feedback` (bring-your-own-key AI)
 - `GET|PUT /api/reminders` (webhook set or not; save/remove it), `POST /api/reminders/test`, `POST /api/reminders/arm`
 
 ### MCP tools
@@ -99,7 +99,7 @@ npm run dev        # http://localhost:8788
 | `functions/mcp/[[path]].js` | MCP server |
 | `server/auth.js` | Cloudflare Access token check |
 | `server/store.js` | D1 documents, R2 file streaming |
-| `server/claude.js` | Claude API call for note feedback |
+| `server/ai.js` | Encrypted per-user AI keys, model lists and note feedback (Anthropic, OpenAI, OpenRouter) |
 | `server/reminders.js` | When a reminder is due, its message, posting to Discord |
 | `workers/reminders/` | The reminders Worker (Durable Object alarm scheduler) |
 | `scripts/setup.mjs` | One-shot Cloudflare setup (database, storage, Access, secrets) |

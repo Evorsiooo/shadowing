@@ -4,9 +4,9 @@
    false are skipped (no video step if you already have videos, and so on).
    Each step is { id, label (shown under the progress bar), title(W), sub(W), body(W), next(W) }.
    next(W) checks or saves the step's fields; returning false stays on the step.
-   Two steps are still placeholders, each in its own function below so other work can replace it:
-   - onboardingStorageStep: the Google Drive sync work replaces it with the connect flow;
-   - onboardingAiStep: the bring-your-own-key work replaces it with the key and model picker. */
+   One step is still a placeholder, in its own function below so other work can replace it:
+   - onboardingStorageStep: the Google Drive sync work replaces it with the connect flow.
+   onboardingAiStep is the key and model picker from 87-ai.js. */
 const ONBOARDING_STEPS = [
   {
     id: 'name', label: 'You',
@@ -100,10 +100,10 @@ function onboardingStorageStep() {
 
 /* placeholder until bring-your-own-key AI lands */
 function onboardingAiStep() {
-  return h('div', { class: 'cards' },
-    h('div', { class: 'card' }, h('h3', null, 'Copy a prompt'), h('p', { class: 'small muted' }, 'No key needed: the app writes a prompt for you to paste into any AI chat, and you paste the answer back.')),
-    h('div', { class: 'card', 'aria-disabled': 'true', style: { opacity: 0.6 } }, h('h3', null, 'Use your own API key'),
-      h('p', { class: 'small muted' }, 'Answers right inside the app, with a key from Anthropic, OpenAI or OpenRouter and the model you pick. Coming soon: you can add a key later in Settings.')));
+  return [
+    aiPanel({ onboarding: true }),
+    h('p', { class: 'small muted' }, 'No key? Skip this step: notes give you a prompt to paste into any AI chat instead. You can add a key later in Settings → AI.'),
+  ];
 }
 
 function needsOnboarding() { return !profile().onboarded; }
