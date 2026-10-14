@@ -9,7 +9,7 @@
 /* Set the saved theme before first paint, so a light-mode choice doesn't flash dark (applyTheme in 88-settings.js keeps it in sync later). */
 try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch { /* storage blocked */ }
 </script>
-<title>Shadowing Practice</title>
+<title>Euno Shadowing</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
@@ -455,7 +455,7 @@ input.time-in { width: 76px; padding: 5px 8px; height: 32px; }
 </style>
 
 <header class="topbar">
-  <div class="brand">Shadowing <small>practice</small></div>
+  <div class="brand">Euno <small>Shadowing</small></div>
   <div class="chips" id="chips"></div>
   <nav class="topnav" id="topnav"></nav>
 </header>
@@ -1059,7 +1059,7 @@ const Store = {
   },
   async importJSON(text) {
     const parsed = JSON.parse(text);
-    if (!parsed || parsed.app !== 'shadowing-practice' || !parsed.data) throw new Error('This file is not a Shadowing Practice backup.');
+    if (!parsed || parsed.app !== 'shadowing-practice' || !parsed.data) throw new Error('This file is not a Euno Shadowing backup.');
     let n = 0;
     for (const col of COLS) {
       for (const [id, doc] of Object.entries(parsed.data[col] || {})) {
@@ -1102,6 +1102,94 @@ function saveSettings(fields) {
   Store.put('meta', { ...cur, ...fields, id: 'settings' });
 }
 function appMeta() { return Store.get('meta', 'app') || Store.put('meta', { id: 'app', created: dayKey(), usedQuestions: [] }); }
+
+/* ---- 15-profile.js ---- */
+/* ---------- learner profile and per-language content ---------- */
+/* The profile (native language, target language and accent, optional notes) lives in
+   meta/settings as `profile`. It drives the AI prompts, the listener-pack labels and the
+   check-in content. Content is keyed by target language so others can be added later:
+   add an entry to LANGUAGES with its accents and check-in material. */
+
+const LANGUAGES = {
+  en: {
+    name: 'English',
+    accents: [
+      { id: 'au', name: 'General Australian English', short: 'Australian', spelling: 'Australian' },
+      { id: 'us', name: 'General American English', short: 'American', spelling: 'American' },
+      { id: 'gb', name: 'Southern British English', short: 'British', spelling: 'British' },
+    ],
+    // read-aloud sets: a programme keeps the set its baseline was recorded with
+    readSets: {
+      'en-1': [
+        'I usually walk to work, but on rainy days I take the bus instead.',
+        'We should probably have a look at the numbers before we decide anything.',
+        'Honestly, it was a really tough week, and everyone did a fantastic job.',
+        'Could you bring the bags in from the car while I put the kettle on?',
+        'My neighbour bought a new bike, and now she rides to the beach every Saturday.',
+        'It’s not a bad start to the year, but there’s definitely a lot more to come.',
+      ],
+      // the first set, kept so programmes started with it still compare like for like
+      'en-0': [
+        'I reckon we got the most out of the car today, so I’m pretty happy with that.',
+        'The tyres went off a bit towards the end, but we managed them well enough.',
+        'Honestly, it was a really tough race, and the team did a fantastic job.',
+        'We’ll go back, have a look at the data, and hopefully come back stronger next weekend.',
+        'My mate from Melbourne bought a new car, and now he drives to the beach every Saturday.',
+        'It’s not a bad start to the year, but there’s definitely a lot more to come.',
+      ],
+    },
+    readSet: 'en-1',
+    questions: [
+      'What’s a skill you wish you’d learnt earlier, and why?', 'Describe the best meal you’ve had in the last year.', 'If you could live in any city for a year, where would it be?',
+      'What’s something most people get wrong about where you grew up?', 'Talk about a time a plan went completely wrong.', 'What would your perfect Saturday look like?',
+      'Which sport would you play professionally if you could pick any?', 'What’s a film or show you could watch again and again? Why?', 'Describe a teacher or coach who changed how you think.',
+      'What’s the most useful thing you own?', 'If you ran a café, what would make it different?', 'Talk about a trip that didn’t go as expected.',
+      'What’s a habit you’re trying to build, and how’s it going?', 'Explain how to cook something you know well.', 'What job would you be terrible at, and why?',
+      'Describe your ideal car and where you’d drive it.', 'What’s a rule you think should change?', 'Talk about a time you had to learn something quickly.',
+      'What’s the best piece of advice you’ve been given?', 'If you had a free week with no phone, what would you do?', 'Describe the place you feel most relaxed.',
+      'What’s something you changed your mind about recently?', 'Talk about a game or match you remember well.', 'What makes a good friend, in your view?',
+      'If you could ask one famous person a question, who and what?', 'Describe a normal day for you from start to finish.', 'What would you do with an extra hour every day?',
+      'What’s a small thing that always puts you in a good mood?', 'Talk about something you built, fixed or made.', 'Where do you see yourself in five years?',
+    ],
+    retellHelp: 'Retell something you watched recently (a video, an episode, a match) for about 60 seconds.',
+  },
+};
+const NATIVE_LANGUAGE_HINTS = ['English', 'French', 'Spanish', 'Portuguese', 'German', 'Italian', 'Dutch', 'Polish', 'Russian', 'Ukrainian', 'Turkish', 'Arabic', 'Hindi', 'Bengali', 'Urdu', 'Mandarin Chinese', 'Cantonese', 'Japanese', 'Korean', 'Vietnamese', 'Thai', 'Indonesian', 'Tagalog'];
+
+const PROFILE_DEFAULTS = { nativeLanguages: '', targetLanguage: 'en', accent: '', accentOther: '', notes: '', onboarded: null };
+function profile() { return { ...PROFILE_DEFAULTS, ...(settings().profile || {}) }; }
+function saveProfile(fields) { saveSettings({ profile: { ...profile(), ...fields } }); }
+
+function langContent(p = profile()) { return LANGUAGES[p.targetLanguage] || LANGUAGES.en; }
+/* the target accent: { name, short, spelling }; "Other" uses the learner's own words */
+function targetAccent(p = profile()) {
+  const lang = langContent(p);
+  const known = lang.accents.find((a) => a.id === p.accent);
+  if (known) return known;
+  const other = String(p.accentOther || '').trim().slice(0, 80);
+  if (other) return { name: other, short: other, spelling: null };
+  return { name: `a native ${lang.name} accent`, short: 'native', spelling: null };
+}
+
+/* the read-aloud set for a programme: whatever its baseline used, else the language's current set */
+function readSentences(c) {
+  const lang = langContent();
+  const base = Store.all('checkins').find((x) => x.week === 0);
+  const id = (c && c.readSet) || (base && (base.readSet || 'en-0')) || lang.readSet;
+  return { id, sentences: lang.readSets[id] || LANGUAGES.en.readSets[id] || lang.readSets[lang.readSet] };
+}
+
+/* what the AI needs to know about the learner; shared by the in-app prompt and the server */
+function profileForAI(p = profile()) {
+  const a = targetAccent(p);
+  return {
+    nativeLanguages: String(p.nativeLanguages || '').slice(0, 120),
+    targetLanguage: langContent(p).name,
+    accent: a.name,
+    spelling: a.spelling,
+    notes: String(p.notes || '').slice(0, 500),
+  };
+}
 
 /* ---- 20-dsp.js ---- */
 /* ---------- signal analysis: pitch (YIN), loudness, alignment, rough measures ---------- */
@@ -2398,7 +2486,7 @@ function renderPlayerEmpty() {
   const any = Store.all('videos').some((v) => !v.archived);
   mount($('#playerEmpty'),
     h('h2', null, any ? 'Pick a video from your library' : 'Add your first video'),
-    h('p', null, any ? 'Open a video on the right, then choose a clip, or press Cut clips to make a new one.' : 'Paste a direct link to an .mp4 file, for example an Oscar Piastri interview.'),
+    h('p', null, any ? 'Open a video on the right, then choose a clip, or press Cut clips to make a new one.' : 'Pick a video of someone with the accent you want: an interview or a talk where one person speaks clearly works best.'),
     btn(any ? 'Open the library' : 'Add a video', () => { UI.addOpen = !any; openDrawer(); renderSidebar(); setTimeout(() => { const f = $('#addUrl'); if (f) f.focus(); }, 60); }, { kind: 'primary', size: 'big', icon: any ? 'menu' : 'plus' }));
 }
 
@@ -3026,10 +3114,10 @@ function addVideoForm() {
         cloud ? h('label', { class: 'check', for: 'addCopy' }, h('input', { type: 'checkbox', id: 'addCopy', checked: F.copy, onchange: (e) => { F.copy = e.target.checked; } }), 'Keep a copy in my storage (recommended)') : null,
       ],
     h('label', { class: 'field', for: 'addTitle' }, 'Title',
-      h('input', { type: 'text', id: 'addTitle', placeholder: 'Piastri, post-race, Monza', value: F.title, oninput: (e) => { F.title = e.target.value; } })),
+      h('input', { type: 'text', id: 'addTitle', placeholder: 'e.g. Interview, part 1', value: F.title, oninput: (e) => { F.title = e.target.value; } })),
     h('label', { class: 'field', for: 'addSpeaker' }, 'Speaker (optional)',
-      h('input', { type: 'text', id: 'addSpeaker', placeholder: 'Oscar Piastri', value: F.speaker, list: 'speakerList', oninput: (e) => { F.speaker = e.target.value; } })),
-    h('datalist', { id: 'speakerList' }, [...new Set(Store.all('videos').map((v) => v.speaker).filter(Boolean).concat(['Oscar Piastri']))].map((s) => h('option', { value: s }))),
+      h('input', { type: 'text', id: 'addSpeaker', placeholder: 'Who’s speaking', value: F.speaker, list: 'speakerList', oninput: (e) => { F.speaker = e.target.value; } })),
+    h('datalist', { id: 'speakerList' }, [...new Set(Store.all('videos').map((v) => v.speaker).filter(Boolean))].map((s) => h('option', { value: s }))),
     h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary', id: 'addSubmit' }, h('span', null, F.source === 'upload' && cloud ? 'Upload and add' : cloud && F.copy ? 'Copy and add' : 'Check and add'))),
     status);
   return form;
@@ -3881,7 +3969,7 @@ function noteForm(ctx) {
       askBtn.disabled = true;
       mount(status, h('span', { class: 'muted' }, 'Thinking…'));
       try {
-        const { reply } = await Api.req('POST', '/api/claude', { sentence: D.sentence, off: D.off, aim: D.aim, issues: issueNames });
+        const { reply } = await Api.req('POST', '/api/claude', { sentence: D.sentence, off: D.off, aim: D.aim, issues: issueNames, profile: profileForAI() });
         D.reply = normaliseReply(reply);
         if (D.reply.issue && !D.issue) { D.issue = D.reply.issue; const inp = $(`#issue-${key}`); if (inp) inp.value = D.issue; }
         status.replaceChildren();
@@ -3954,29 +4042,41 @@ function replyView(r) {
     r.issue ? h('p', { class: 'small muted' }, 'Suggested issue: ', h('span', { class: 'issue-pill' }, r.issue)) : null);
 }
 
-function claudePrompt(D, issueNames) {
-  return `You are helping Adrien with shadowing practice. Adrien is 18, a French-Australian heritage speaker of English: his comprehension is native-level and he hears his own errors well, but he only started speaking English regularly at 17 and a half. He is moving his accent towards General Australian English (his model speaker is Oscar Piastri). His differences are mostly in rhythm, stress and melody rather than individual words.
+/* who the learner is, from their profile (the server builds the same text in server/claude.js) */
+function learnerLine(P) {
+  const native = P.nativeLanguages ? `Their native language: ${P.nativeLanguages}.` : '';
+  return `The learner is moving their ${P.targetLanguage} accent towards ${P.accent}. ${native}${P.notes ? ` About them: ${P.notes}` : ''}`.trim();
+}
+function spellingLine(P) {
+  return P.spelling ? `Answer in ${P.spelling} spelling, plainly` : 'Answer plainly';
+}
 
-Answer in Australian spelling, plainly, with no linguistics jargon: if you need to name a sound, describe it with everyday example words. If his description is too ambiguous to work out, do not guess: set "unsure" to true and ask what he meant.
+function claudePrompt(D, issueNames) {
+  const P = profileForAI();
+  return `You are helping a learner with shadowing practice: they repeat a model speaker's clip to pick up the accent, rhythm and melody. ${learnerLine(P)}
+
+${spellingLine(P)}, with no linguistics jargon: if you need to name a sound, describe it with everyday example words. If their description is too ambiguous to work out, do not guess: set "unsure" to true and ask what they meant.
 
 Sentence being practised: ${D.sentence.trim() || '(not given)'}
 What sounded off: ${D.off.trim()}
-What he was aiming for: ${D.aim.trim() || '(not given)'}
-Issue names he already tracks: ${issueNames.length ? issueNames.join('; ') : '(none yet)'}
+What they were aiming for: ${D.aim.trim() || '(not given)'}
+Issue names they already track: ${issueNames.length ? issueNames.join('; ') : '(none yet)'}
 
 Reply with only a JSON object, no other text:
-{"feature": "the likely General Australian English feature behind this, 1-2 sentences", "change": "what to change in his speech, 1-3 sentences", "listenFor": "what to listen for in the model clip, 1-2 sentences", "issue": "a short name (max 5 words) for this as a recurring problem; reuse one of his existing issue names if it fits", "unsure": false, "question": ""}
+{"feature": "the likely ${P.accent} feature behind this, 1-2 sentences", "change": "what to change in their speech, 1-3 sentences", "listenFor": "what to listen for in the model clip, 1-2 sentences", "issue": "a short name (max 5 words) for this as a recurring problem; reuse one of their existing issue names if it fits", "unsure": false, "question": ""}
 If unsure, use {"unsure": true, "question": "I don't know ... what did you mean by ...?", "feature": "", "change": "", "listenFor": "", "issue": ""}.`;
 }
 
 function claudePromptPlain(D) {
-  return `I'm Adrien, 18, a French-Australian heritage speaker doing shadowing practice to move my accent towards General Australian English (model speaker: Oscar Piastri). My comprehension is native-level; my accent differences are mostly in rhythm, stress and melody. Please answer in Australian spelling, plainly, no jargon. If my description is too ambiguous, say "I don't know" and ask what I meant.
+  const P = profileForAI();
+  const native = P.nativeLanguages ? ` My native language is ${P.nativeLanguages}.` : '';
+  return `I'm doing shadowing practice to move my ${P.targetLanguage} accent towards ${P.accent}.${native}${P.notes ? ` ${P.notes}` : ''} Please ${P.spelling ? `answer in ${P.spelling} spelling, ` : ''}plainly, no jargon. If my description is too ambiguous, say "I don't know" and ask what I meant.
 
 Sentence: ${D.sentence.trim() || '(not given)'}
 What sounded off: ${D.off.trim()}
 What I was aiming for: ${D.aim.trim() || '(not given)'}
 
-Tell me: 1) the likely Australian English feature, 2) what to change, 3) what to listen for in the model clip.`;
+Tell me: 1) the likely ${P.accent} feature, 2) what to change, 3) what to listen for in the model clip.`;
 }
 
 function openCopyPrompt(D, issueNames, onDone) {
@@ -4435,29 +4535,9 @@ function trendChart(points, { unit = '', dec = 1, ref = null, refLabel = 'speake
 
 /* ---------- check-ins ---------- */
 const CHECKIN_WEEKS = [0, 4, 8, 12];
-const READ_SENTENCES = [
-  'I reckon we got the most out of the car today, so I’m pretty happy with that.',
-  'The tyres went off a bit towards the end, but we managed them well enough.',
-  'Honestly, it was a really tough race, and the team did a fantastic job.',
-  'We’ll go back, have a look at the data, and hopefully come back stronger next weekend.',
-  'My mate from Melbourne bought a new car, and now he drives to the beach every Saturday.',
-  'It’s not a bad start to the year, but there’s definitely a lot more to come.',
-];
-const QUESTIONS = [
-  'What’s a skill you wish you’d learnt earlier, and why?', 'Describe the best meal you’ve had in the last year.', 'If you could live in any city for a year, where would it be?',
-  'What’s something most people get wrong about where you grew up?', 'Talk about a time a plan went completely wrong.', 'What would your perfect Saturday look like?',
-  'Which sport would you play professionally if you could pick any?', 'What’s a film or show you could watch again and again? Why?', 'Describe a teacher or coach who changed how you think.',
-  'What’s the most useful thing you own?', 'If you ran a café, what would make it different?', 'Talk about a trip that didn’t go as expected.',
-  'What’s a habit you’re trying to build, and how’s it going?', 'Explain how to cook something you know well.', 'What job would you be terrible at, and why?',
-  'Describe your ideal car and where you’d drive it.', 'What’s a rule you think should change?', 'Talk about a time you had to learn something quickly.',
-  'What’s the best piece of advice you’ve been given?', 'If you had a free week with no phone, what would you do?', 'Describe the place you feel most relaxed.',
-  'What’s something you changed your mind about recently?', 'Talk about a game, match or race you remember well.', 'What makes a good friend, in your view?',
-  'If you could ask one famous person a question, who and what?', 'Describe a normal day for you from start to finish.', 'What would you do with an extra hour every day?',
-  'What’s a small thing that always puts you in a good mood?', 'Talk about something you built, fixed or made.', 'Where do you see yourself in five years?',
-];
 const TASKS = [
   { key: 'read', name: 'Read aloud', secs: null, help: 'Read these sentences aloud at a natural pace. They are the same at every check-in.' },
-  { key: 'retell', name: 'Retelling (about 60 s)', secs: 60, help: 'Retell something you watched recently (a race, a video, an episode) for about 60 seconds.' },
+  { key: 'retell', name: 'Retelling (about 60 s)', secs: 60, help: null },
   { key: 'answer', name: 'Unseen question (about 60 s)', secs: 60, help: 'Reveal a question you haven’t seen and answer it for about 60 seconds. No preparing.' },
 ];
 
@@ -4499,7 +4579,7 @@ function openCheckins(focusWeek) {
     h('div', { class: 'cards' }, items),
     h('div', { class: 'card' },
       h('h3', null, 'Blind listener pack'),
-      h('p', { class: 'small muted' }, 'Export shuffled, unlabelled check-in samples plus real Australian clips, with a rating sheet (1 = no foreign accent, 9 = very strong accent). Enter the ratings back here to see the average per check-in.'),
+      h('p', { class: 'small muted' }, `Export shuffled, unlabelled check-in samples plus clips of real ${targetAccent().short} speakers from your library, with a rating sheet (1 = no foreign accent, 9 = very strong accent). Enter the ratings back here to see the average per check-in.`),
       h('div', { class: 'row' }, btn('Build and export pack', () => exportListenerPack(), { kind: 'primary', size: 'sm', icon: 'download' }), btn('Enter ratings', () => openRatings(), { size: 'sm' }))),
   ]);
   if (focusWeek != null) openCheckinRecorder(focusWeek);
@@ -4507,7 +4587,7 @@ function openCheckins(focusWeek) {
 
 function ensureCheckin(week) {
   let c = checkinFor(week);
-  if (!c) c = Store.put('checkins', { week, date: dayKey(), recs: { read: [], retell: [], answer: [] }, questions: [], measures: {} });
+  if (!c) c = Store.put('checkins', { week, date: dayKey(), recs: { read: [], retell: [], answer: [] }, questions: [], measures: {}, lang: profile().targetLanguage, readSet: readSentences().id });
   return c;
 }
 
@@ -4536,8 +4616,8 @@ function openCheckinRecorder(week) {
       const q = t.key === 'answer' ? cur && cur.questions && cur.questions[cur.questions.length - 1] : null;
       return h('div', { class: 'card' },
         h('div', { class: 'row' }, h('h3', { class: 'grow' }, t.name), ids.length ? h('span', { class: 'tick done' }, icon('check', 'stroke-width="3.4"')) : null),
-        h('p', { class: 'small muted' }, t.help),
-        t.key === 'read' ? h('ol', { style: { margin: 0, paddingLeft: '20px', display: 'grid', gap: '4px' } }, READ_SENTENCES.map((s) => h('li', null, s))) : null,
+        h('p', { class: 'small muted' }, t.help || langContent().retellHelp),
+        t.key === 'read' ? h('ol', { style: { margin: 0, paddingLeft: '20px', display: 'grid', gap: '4px' } }, readSentences(cur).sentences.map((s) => h('li', null, s))) : null,
         t.key === 'answer' ? h('p', { id: `ciQ-${week}`, hidden: !q }, h('strong', null, 'Question: '), h('span', null, q || '')) : null,
         takes,
         checkinRecordControls(week, t, draw));
@@ -4630,8 +4710,9 @@ async function deleteCheckinTake(week, key, recId) {
 function pickQuestion() {
   const meta = appMeta();
   const used = new Set(meta.usedQuestions || []);
-  const fresh = QUESTIONS.filter((q) => !used.has(q));
-  const q = (fresh.length ? fresh : QUESTIONS)[Math.floor(Math.random() * (fresh.length || QUESTIONS.length))];
+  const all = langContent().questions;
+  const fresh = all.filter((q) => !used.has(q));
+  const q = (fresh.length ? fresh : all)[Math.floor(Math.random() * (fresh.length || all.length))];
   Store.patch('meta', 'app', { usedQuestions: [...used, q] });
   return q;
 }
@@ -4727,7 +4808,7 @@ async function exportListenerPack() {
       items.push({ kind: 'checkin', week: w, samples: excerpt(x, 20) });
     } catch { /* skip undecodable */ }
   }
-  // one or two real Australian clips from your library
+  // one or two clips of real speakers of the target accent, from your library
   const clips = shuffle(Store.all('clips').filter((c) => !c.archived && !c.noisy));
   for (const c of clips) {
     if (items.filter((i) => i.kind === 'model').length >= 2) break;
@@ -4744,7 +4825,7 @@ async function exportListenerPack() {
   const sheet = ['Listener name,Sample,Rating (1 = no foreign accent; 9 = very strong accent),What gave it away?']
     .concat(mixed.map((_, i) => `,${letters[i]},,`)).join('\n');
   files.push({ name: 'rating-sheet.csv', data: enc.encode(sheet) });
-  files.push({ name: 'instructions.txt', data: enc.encode(`Thanks for helping!\n\nListen to each sample once or twice, in any order. For each one, rate how strong a foreign (non-Australian) accent you hear:\n1 = no foreign accent at all, 9 = very strong foreign accent.\nThen write a few words on what gave it away (a sound, the rhythm, the melody...).\nFill in rating-sheet.csv and send it back.\n`) });
+  files.push({ name: 'instructions.txt', data: enc.encode(`Thanks for helping!\n\nListen to each sample once or twice, in any order. For each one, rate how strong a foreign (non-${targetAccent().short}) accent you hear:\n1 = no foreign accent at all, 9 = very strong foreign accent.\nThen write a few words on what gave it away (a sound, the rhythm, the melody...).\nFill in rating-sheet.csv and send it back.\n`) });
   const zip = makeZip(files);
   const pack = Store.put('meta', { id: `pack-${uid()}`, kind: 'listenerPack', created: new Date().toISOString(), items: mixed.map((it, i) => ({ label: letters[i], kind: it.kind, week: it.week, clipId: it.clipId })), ratings: [] });
   const name = `listener-pack-${dayKey()}.zip`;
@@ -4791,7 +4872,7 @@ function ratingAverages() {
     for (const r of p.ratings || []) for (const row of r.rows) {
       const it = p.items.find((i) => i.label === row.label);
       if (!it) continue;
-      const label = it.kind === 'model' ? 'Australian speaker (reference)' : it.week === 0 ? 'Baseline' : `Week ${it.week}`;
+      const label = it.kind === 'model' ? `${targetAccent().short} speaker (reference)` : it.week === 0 ? 'Baseline' : `Week ${it.week}`;
       if (!out.has(label)) out.set(label, []);
       out.get(label).push(row.rating);
     }
@@ -4828,8 +4909,8 @@ const SETTING_GROUPS = [
 ];
 
 function openSettings(tab = 'practice') {
-  const tabs = [['practice', 'Practice'], ['reminders', 'Reminders'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
-  const body = tab === 'practice' ? settingsForm() : tab === 'reminders' ? remindersView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
+  const tabs = [['practice', 'Practice'], ['profile', 'Profile'], ['reminders', 'Reminders'], ['data', 'Data'], ['checks', 'Device checks'], ['look', 'Appearance']];
+  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'reminders' ? remindersView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
   openModal([
     modalHead('Settings'),
     h('div', { class: 'tabs' }, tabs.map(([k, l]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab }))),
@@ -5025,7 +5106,7 @@ async function checkVideoSound() {
 async function checkClaude() {
   if (Store.mode === 'cloud') {
     if (!Api.claude) return { state: 'fail', msg: 'The server has no Claude API key yet. Add the ANTHROPIC_API_KEY secret to the Cloudflare project.' };
-    const { reply } = await Api.req('POST', '/api/claude', { sentence: 'Go and grab the car.', off: 'the vowel in go sounds too pure', aim: '', issues: [] });
+    const { reply } = await Api.req('POST', '/api/claude', { sentence: 'Go and grab the car.', off: 'the vowel in go sounds too pure', aim: '', issues: [], profile: profileForAI() });
     return reply && (reply.feature || reply.text || reply.unsure) ? { state: 'ok', msg: `Claude answered (model: ${Api.claudeModel || 'unknown'}). Feedback on notes uses your Claude API key.` } : { state: 'warn', msg: 'Claude answered in an unexpected format.' };
   }
   if (!Caps.sample) return { state: 'fail', msg: Caps.inArtifact ? 'Claude access isn’t available in this view.' : 'This standalone version can’t reach Claude. Notes offer “Copy prompt for Claude” instead.' };
@@ -5145,6 +5226,145 @@ function remindersView() {
 function fmtWhen(iso) {
   const d = new Date(iso);
   return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+/* ---- 90-onboarding.js ---- */
+/* ---------- first-run setup ---------- */
+/* A short wizard on first launch: about you, where files live, a first video, AI feedback and
+   the week-0 baseline. Steps whose when() is false are skipped (no video step if you already
+   have videos, and so on). Steps still waiting on other work are placeholders:
+   - 'storage': the Google Drive sync work replaces body() with the connect flow;
+   - 'ai': the bring-your-own-key work replaces body() with the key and model picker.
+   A step can set next(W) to check or save its fields; returning false stays on the step. */
+const ONBOARDING_STEPS = [
+  {
+    id: 'profile', title: 'About you',
+    body: (W) => profileFields(W.draft),
+    next: (W) => {
+      if (!W.draft.accent) { toast('Pick the accent you’re aiming for.', 'bad'); return false; }
+      if (W.draft.accent === 'other' && !W.draft.accentOther.trim()) { toast('Describe the accent you’re aiming for.', 'bad'); return false; }
+      saveProfile(W.draft);
+      return true;
+    },
+  },
+  {
+    id: 'storage', title: 'Where your files live',
+    body: () => [
+      h('p', null, 'Your videos and recordings can be large, so they’re kept with you rather than on our server.'),
+      h('div', { class: 'cards' },
+        h('div', { class: 'card' }, h('h3', null, 'On this device'), h('p', { class: 'small muted' }, `Works straight away. ${storageTitle()}`)),
+        h('div', { class: 'card', 'aria-disabled': 'true', style: { opacity: 0.6 } }, h('h3', null, 'Google Drive'), h('p', { class: 'small muted' }, 'Keep a copy in your own Drive and use it on any device. Coming soon: you’ll be able to turn it on in Settings.'))),
+    ],
+  },
+  {
+    id: 'video', title: 'Your first video',
+    when: () => !Store.all('videos').some((v) => !v.archived),
+    body: (W) => [
+      h('p', null, 'You’ll practise with short clips from a video of someone whose accent you want. What works best:'),
+      h('ul', { style: { margin: 0, paddingLeft: '20px', display: 'grid', gap: '4px' } },
+        h('li', null, 'One person speaking naturally: an interview, a podcast, a talk or a vlog.'),
+        h('li', null, 'Clear sound, with little music or background noise.'),
+        h('li', null, 'A file on your device, or a direct link to an .mp4 file.')),
+      h('p', { class: 'small muted' }, 'You’ll cut it into clips of one sentence or so (10 to 20 seconds) after it’s added.'),
+      h('label', { class: 'check', for: 'obVideo' }, h('input', { type: 'checkbox', id: 'obVideo', checked: W.addVideo, onchange: (e) => { W.addVideo = e.target.checked; } }), 'Open the “Add a video” form when I finish'),
+    ],
+  },
+  {
+    id: 'ai', title: 'AI feedback (optional)',
+    body: () => [
+      h('p', null, 'After a recorded pass you can write down what sounded off and get advice on it. This is optional.'),
+      h('div', { class: 'cards' },
+        h('div', { class: 'card' }, h('h3', null, 'Copy a prompt'), h('p', { class: 'small muted' }, 'No key needed: the app writes a prompt for you to paste into any AI chat, and you paste the answer back.')),
+        h('div', { class: 'card', 'aria-disabled': 'true', style: { opacity: 0.6 } }, h('h3', null, 'Use your own API key'), h('p', { class: 'small muted' }, 'Answers right inside the app, with a key from Anthropic, OpenAI or OpenRouter and the model you pick. Coming soon in Settings.'))),
+    ],
+  },
+  {
+    id: 'baseline', title: 'Your starting point',
+    when: () => !checkinHasAll(checkinFor(0)),
+    body: (W) => [
+      h('p', null, 'Before your first session, record a week 0 baseline: six sentences read aloud, a 60-second retelling and a 60-second answer to a question you haven’t seen. It takes about 3 minutes, and your check-ins at weeks 4, 8 and 12 are compared with it.'),
+      h('div', { class: 'seg', role: 'group', 'aria-label': 'When to record the baseline' },
+        h('button', { type: 'button', class: W.baseline ? 'on' : '', onclick: () => { W.baseline = true; renderOnboarding(W); } }, 'Record it now'),
+        h('button', { type: 'button', class: W.baseline ? '' : 'on', onclick: () => { W.baseline = false; renderOnboarding(W); } }, 'Later')),
+    ],
+  },
+];
+
+function needsOnboarding() { return !profile().onboarded; }
+
+function openOnboarding() {
+  const W = { i: 0, draft: { ...profile() }, addVideo: true, baseline: true };
+  W.steps = ONBOARDING_STEPS.filter((s) => !s.when || s.when());
+  renderOnboarding(W);
+}
+
+function renderOnboarding(W) {
+  const step = W.steps[W.i];
+  const last = W.i === W.steps.length - 1;
+  const go = () => {
+    if (step.next && step.next(W) === false) return;
+    if (last) finishOnboarding(W); else { W.i++; renderOnboarding(W); }
+  };
+  openModal([
+    modalHead(W.i === 0 ? 'Welcome to Euno Shadowing' : step.title, `Step ${W.i + 1} of ${W.steps.length}${W.i === 0 ? ` · ${step.title}` : ''}`),
+    h('div', { class: 'stack' }, step.body(W)),
+    h('div', { class: 'row' },
+      W.i > 0 ? btn('Back', () => { W.i--; renderOnboarding(W); }, { kind: 'ghost' }) : null,
+      h('span', { class: 'grow' }),
+      btn(last ? 'Finish' : 'Next', go, { kind: 'primary', size: 'big' })),
+  ], { narrow: true, onClose: () => finishOnboarding(W, true) });
+}
+
+/* closing early keeps whatever was filled in; everything can be changed later in Settings → Profile */
+function finishOnboarding(W, closed) {
+  saveProfile({ onboarded: new Date().toISOString() });
+  lsSet('welcomed', true);
+  if (closed) return;
+  closeModal(true);
+  renderAll();
+  if (W.steps.some((s) => s.id === 'video') && W.addVideo) {
+    UI.addOpen = true;
+    renderSidebar();
+    if (!W.baseline || !W.steps.some((s) => s.id === 'baseline')) { openDrawer(); setTimeout(() => { const f = $('#addUrl') || $('#addFile'); if (f) f.focus(); }, 60); }
+  }
+  if (W.baseline && W.steps.some((s) => s.id === 'baseline')) openCheckins(0);
+}
+
+/* the profile fields, shared by onboarding and Settings → Profile; edits go into draft */
+function profileFields(draft) {
+  const lang = LANGUAGES[draft.targetLanguage] || LANGUAGES.en;
+  const other = h('label', { class: 'field', for: 'pfAccentOther', hidden: draft.accent !== 'other' }, 'Describe the accent',
+    h('input', { type: 'text', id: 'pfAccentOther', maxlength: 80, placeholder: 'e.g. Scottish English', value: draft.accentOther, oninput: (e) => { draft.accentOther = e.target.value; } }));
+  return [
+    h('label', { class: 'field', for: 'pfNative' }, 'Your native language(s)',
+      h('input', { type: 'text', id: 'pfNative', maxlength: 120, list: 'pfNativeList', placeholder: 'e.g. French', value: draft.nativeLanguages, oninput: (e) => { draft.nativeLanguages = e.target.value; } }),
+      h('datalist', { id: 'pfNativeList' }, NATIVE_LANGUAGE_HINTS.map((l) => h('option', { value: l })))),
+    h('label', { class: 'field', for: 'pfLang' }, 'Language you’re practising',
+      h('select', { id: 'pfLang', onchange: (e) => { draft.targetLanguage = e.target.value; } },
+        Object.entries(LANGUAGES).map(([id, l]) => h('option', { value: id, selected: id === draft.targetLanguage }, l.name)))),
+    Object.keys(LANGUAGES).length === 1 ? h('p', { class: 'small muted' }, 'More languages are on the way.') : null,
+    h('label', { class: 'field', for: 'pfAccent' }, 'Accent you’re aiming for',
+      h('select', { id: 'pfAccent', onchange: (e) => { draft.accent = e.target.value; other.hidden = draft.accent !== 'other'; } },
+        h('option', { value: '', selected: !draft.accent, disabled: true }, 'Choose one'),
+        lang.accents.map((a) => h('option', { value: a.id, selected: draft.accent === a.id }, a.name)),
+        h('option', { value: 'other', selected: draft.accent === 'other' }, 'Other'))),
+    other,
+    h('label', { class: 'field', for: 'pfNotes' }, 'Anything the AI feedback should know (optional)',
+      h('textarea', { id: 'pfNotes', rows: 2, maxlength: 500, placeholder: 'e.g. I understand everything but only started speaking it recently; rhythm is my weak spot.', value: draft.notes, oninput: (e) => { draft.notes = e.target.value; } })),
+  ];
+}
+
+function profileView() {
+  const draft = { ...profile() };
+  return h('form', { class: 'stack', onsubmit: (e) => {
+    e.preventDefault();
+    if (draft.accent === 'other' && !draft.accentOther.trim()) { toast('Describe the accent you’re aiming for.', 'bad'); return; }
+    saveProfile(draft);
+    toast('Profile saved.', 'good');
+    closeModal();
+  } },
+  h('div', { class: 'card' }, h('h3', null, 'About you'), h('p', { class: 'small muted' }, 'Used for AI feedback, the listener pack and your check-ins.'), profileFields(draft)),
+  h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary big' }, h('span', null, 'Save profile'))));
 }
 
 /* ---- 99-main.js ---- */
@@ -5279,16 +5499,8 @@ async function boot() {
   if (window.ResizeObserver) { const ro = new window.ResizeObserver(scheduleFit); ro.observe($('#banners')); }
   window.addEventListener('beforeunload', () => { Store.flushAll(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) Store.flushAll(); });
-  // first launch: the baseline must come before the first practice
-  const base = checkinFor(0);
-  if (!checkinHasAll(base) && !Store.all('sessions').some((s) => !s.empty) && !lsGet('dismissed', {}).baseline && !lsGet('welcomed', false)) {
-    lsSet('welcomed', true);
-    openModal([
-      modalHead('G’day, Adrien'),
-      h('p', null, 'Before your first shadowing session, record your week 0 baseline: six sentences read aloud, a 60-second retelling and a 60-second answer to a question you haven’t seen. It takes about 3 minutes, and every later check-in is compared with it.'),
-      h('div', { class: 'row' }, btn('Record my baseline', () => openCheckins(0), { kind: 'primary', size: 'big', icon: 'mic' }), btn('Later', () => closeModal(), { kind: 'ghost' })),
-    ], { narrow: true });
-  }
+  // first launch: the setup wizard (profile, files, first video, AI, baseline); see 90-onboarding.js
+  if (needsOnboarding()) openOnboarding();
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
