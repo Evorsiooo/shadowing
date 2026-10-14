@@ -109,3 +109,31 @@ export async function disconnectDrive(env, userId) {
 function revoke(token) {
   return fetch(GOOGLE_REVOKE, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ token }) }).catch(() => {});
 }
+
+/**
+ * Copy one file from the old R2 storage straight into the user's Drive folder (server to Google,
+ * so a big video never has to pass through the browser). Returns { fileId, size, type }.
+ */
+export async function copyR2ToDrive(env, userId, { key, name, folderId, mediaId, kind }) {
+  const obj = await env.FILES.get(key);
+  if (!obj) throw Object.assign(new Error('That file isn’t in the old storage any more.'), { status: 404 });
+  const type = (obj.httpMetadata && obj.httpMetadata.contentType) || 'application/octet-stream';
+  const { accessToken } = await driveAccessToken(env, userId);
+  const start = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id', {
+    method: 'POST',
+    headers: { authorization: `Bearer ${accessToken}`, 'content-type': 'application/json; charset=UTF-8', 'x-upload-content-type': type, 'x-upload-content-length': String(obj.size) },
+    body: JSON.stringify({ name, parents: [folderId], appProperties: { euno: '1', mediaId, kind: kind || '' } }),
+  });
+  if (!start.ok) {
+    const d = await start.json().catch(() => ({}));
+    throw Object.assign(new Error(`Google Drive refused the upload (${(d.error && d.error.message) || start.status}).`), { status: 502 });
+  }
+  const session = start.headers.get('location');
+  // a known length lets Workers stream the body instead of buffering it
+  const body = new FixedLengthStream(obj.size);
+  obj.body.pipeTo(body.writable).catch(() => {}); // a failure shows up as the upload failing
+  const put = await fetch(session, { method: 'PUT', headers: { 'content-length': String(obj.size) }, body: body.readable });
+  const d = await put.json().catch(() => ({}));
+  if (!put.ok || !d.id) throw Object.assign(new Error(`The upload to Google Drive failed (${(d.error && d.error.message) || put.status}).`), { status: 502 });
+  return { fileId: d.id, size: obj.size, type };
+}

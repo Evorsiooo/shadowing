@@ -1,4 +1,4 @@
-# Storage: on the device, with optional Google Drive sync
+# Storage: Google Drive, with a copy in the browser
 
 Videos and voice recordings never go to the server. The server's D1 database only keeps
 practice data (videos' titles and clips, sessions, notes, check-ins, settings) and, for users
@@ -11,9 +11,12 @@ who turn on Drive sync, a sealed Google refresh token.
   at its file with `fileRef`; a recording with `ref`.
 - **On this device.** The bytes are kept in the browser's Origin Private File System, or in
   IndexedDB where OPFS can't be written from the page (`DeviceFiles` in `src/js/17-media.js`).
-  The app asks the browser for persistent storage the first time it saves a file, and
-  Settings → Storage has a "Keep them safe" button.
-- **Google Drive (optional).** Turned on in onboarding or Settings → Storage. The app asks for the
+  The app asks the browser for persistent storage (Chrome decides by itself and usually says no for
+  new sites; nothing depends on it).
+- **Google Drive (the default home).** Onboarding recommends connecting it, and so does Settings → Storage.
+  Without it, files stay in the browser only. "Keep files only in this browser" in Settings → Storage
+  is the opt-in for people who don't want Drive (`meta/storage.deviceOnly`); it stops the reminders.
+  With Drive on, the browser copy is only a cache. The app asks for the
   `drive.file` scope, which only covers files the app itself creates; Google lists it as
   non-sensitive, so no security review is needed. Files go into a "Euno Shadowing" folder in the
   user's Drive. `providers.gdrive` records each file's Drive id.
@@ -40,8 +43,10 @@ who turn on Drive sync, a sealed Google refresh token.
 Before accounts, files went to R2. R2 is now read-only (`GET|DELETE /api/files/:key`).
 Settings → Storage shows "Files in the old server storage" when any are left:
 
-1. **Move** copies each file to this device (and to Drive when connected) and points the
-   videos and recordings at the copy. The server copy stays.
+1. **Move N files to Drive** (needs Drive connected). The server copies each file straight from R2
+   into the user's Drive folder (`POST /api/drive/copy-old`, one file per request, so a big video
+   never passes through the browser). Then the app points the videos and recordings at the Drive
+   copy. The server copy stays. If it stops partway, pressing Move again carries on from there.
 2. **Delete the server copies** appears once the moved files are in Drive.
 
 After that, the `files` table and the `FILES` binding can be dropped.

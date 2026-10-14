@@ -178,8 +178,8 @@ async function checkFiles() {
     const q = await DeviceFiles.estimate();
     const free = q ? ` About ${((q.quota - q.usage) / 1073741824).toFixed(1)} GB free for this browser.` : '';
     return Drive.connected()
-      ? { state: 'ok', msg: `Recordings and videos are kept on this device and synced to your Google Drive.${free}` }
-      : { state: 'warn', msg: `Recordings and videos are kept on this device only. Connect Google Drive in Settings → Storage to have them on your other devices.${free}` };
+      ? { state: 'ok', msg: `Recordings and videos go into your Google Drive, with a copy in this browser for quick playback.${free}` }
+      : { state: 'warn', msg: `Recordings and videos are only in this browser. Connect Google Drive in Settings → Storage to keep them safe and on your other devices.${free}` };
   }
   if (Store.blobMode === 'assets') {
     const blob = new Blob([new Uint8Array(2048)], { type: 'video/webm' });
