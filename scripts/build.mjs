@@ -1,5 +1,7 @@
 // Builds the site into dist/ for Cloudflare Pages:
-//   dist/app/index.html  — the whole app as one page (styles and scripts inlined), served at /app/
+//   dist/app/index.html  — the app's page, served at /app/
+//   dist/assets/h/       — the app's script and styles (minified) and the fonts, named by content hash
+//                          so browsers keep them for a year and fetch new ones only after a change
 //   dist/index.html, dist/<page>/index.html, dist/404.html — the public site (src/site/), pre-rendered,
 //                    in English at the root and in French and Spanish under dist/fr/ and dist/es/
 //   dist/assets/         — site script, icons and the social image
@@ -10,6 +12,7 @@ import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, copyFileSy
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import { transformSync } from 'esbuild';
 import { SITE, LOGO, LANGS, DEFAULT_LANG, langPath, pages, signInButton } from '../src/site/pages.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -19,8 +22,32 @@ const out = (path, text) => { mkdirSync(dirname(join(dist, path)), { recursive: 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const sha = (s) => `'sha256-${createHash('sha256').update(s).digest('base64')}'`;
 
+/* ---------- fingerprinted files: dist/assets/h/<name>.<hash>.<ext>, cached for a year ---------- */
+rmSync(join(dist, 'assets', 'h'), { recursive: true, force: true });
+function fingerprint(name, ext, content) {
+  const path = `assets/h/${name}.${createHash('sha256').update(content).digest('hex').slice(0, 10)}.${ext}`;
+  out(path, content);
+  return `/${path}`;
+}
+
+/* ---------- fonts: Fredoka and Nunito (SIL OFL, src/fonts/), served from this site ---------- */
+// Variable fonts, Latin and Latin Extended subsets as Google Fonts cuts them; browsers fetch the
+// extended file only when a page uses one of its characters.
+const SUBSETS = {
+  latin: 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD',
+  'latin-ext': 'U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF',
+};
+const FAMILIES = [['Fredoka', 'fredoka', '500 700'], ['Nunito', 'nunito', '400 800']];
+const fontFiles = {};
+for (const [, file] of FAMILIES) for (const sub of Object.keys(SUBSETS)) fontFiles[`${file}-${sub}`] = fingerprint(`${file}-${sub}`, 'woff2', readFileSync(join(src, 'fonts', `${file}-${sub}.woff2`)));
+const fontCss = FAMILIES.flatMap(([family, file, weight]) => Object.entries(SUBSETS).map(([sub, range]) =>
+  `@font-face{font-family:'${family}';font-style:normal;font-weight:${weight};font-display:swap;src:url(${fontFiles[`${file}-${sub}`]}) format('woff2');unicode-range:${range}}`)).join('\n');
+// the Latin files are needed for the first paint of every page, so fetch them straight away
+const FONT_PRELOADS = ['fredoka-latin', 'nunito-latin'].map((k) => `<link rel="preload" href="${fontFiles[k]}" as="font" type="font/woff2" crossorigin>`).join('\n');
+const minify = (code, loader) => transformSync(code, { loader, minify: true, legalComments: 'none' }).code;
+
 /* ---------- the app, at /app/ ---------- */
-const css = readFileSync(join(src, 'styles.css'), 'utf8');
+const css = fontCss + '\n' + readFileSync(join(src, 'styles.css'), 'utf8');
 // Interface translations: src/i18n/*.json, merged into one table the app reads through t() (src/js/01-i18n.js).
 const i18n = {};
 for (const f of readdirSync(join(src, 'i18n')).filter((f) => f.endsWith('.json')).sort()) {
@@ -33,22 +60,26 @@ const js = `const I18N_STRINGS = ${JSON.stringify(i18n).replace(/</g, '\\u003c')
   .join('\n');
 if (js.includes('</script')) throw new Error('A script contains "</script", which would break the inline page.');
 
+const appCss = fingerprint('app', 'css', minify(css, 'css'));
+const appJs = fingerprint('app', 'js', minify(js, 'js'));
 const body = readFileSync(join(src, 'index.html'), 'utf8')
-  .replace('/*@STYLES@*/', () => css)
-  .replace('/*@SCRIPTS@*/', () => js);
+  .replace('<!--@FONTS@-->', () => FONT_PRELOADS)
+  // relative, so dist/app/index.html also opens from disk (without the server it runs in browser storage)
+  .replace('@STYLES@', () => `..${appCss}`)
+  .replace('@SCRIPTS@', () => `..${appJs}`);
 
 const ICON_LINKS = `<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">\n<link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">\n<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">\n<link rel="manifest" href="/site.webmanifest">`;
 
 // The app's CSP is a <meta> tag so it can pin the page's own inline scripts by hash. Scripts are
-// only these; everything else the app loads is data: video links on any https site, Google Drive,
+// only these and this site's own files; everything else the app loads is data: video links on any https site, Google Drive,
 // Google profile pictures, and blob: URLs for files on the device. Styles stay 'unsafe-inline'
 // because the app sets style attributes. frame-ancestors can't go in a meta tag; X-Frame-Options covers it.
 const appScripts = [...body.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => sha(m[1]));
 const appCsp = [
   "default-src 'self'",
   `script-src 'self' ${appScripts.join(' ')}`,
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  'font-src https://fonts.gstatic.com',
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self'",
   "img-src 'self' data: blob: https:",
   "media-src 'self' data: blob: https: http:",
   "connect-src 'self' data: blob: https:",
@@ -66,7 +97,7 @@ out(
 );
 
 /* ---------- the public site ---------- */
-const siteCss = readFileSync(join(src, 'site', 'site.css'), 'utf8');
+const siteCss = minify(fontCss + '\n' + readFileSync(join(src, 'site', 'site.css'), 'utf8'), 'css');
 // Same as the app's first-paint theme script (src/index.html), so the saved light/dark choice applies here too.
 const themeJs = `try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch { /* storage blocked */ }`;
 const year = SITE.updated.slice(0, 4);
@@ -153,9 +184,7 @@ function render(page) {
 <script>${themeJs}</script>
 ${meta}
 ${ICON_LINKS}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+${FONT_PRELOADS}
 <style>${siteCss}</style>
 <script src="/assets/site.js" defer></script>${ldTag}
 </head>
@@ -221,8 +250,8 @@ out(
 const siteCsp = [
   "default-src 'self'",
   `script-src 'self' ${[...inlineScripts].map(sha).join(' ')}`,
-  `style-src 'self' ${[...inlineStyles].map(sha).join(' ')} https://fonts.googleapis.com`,
-  'font-src https://fonts.gstatic.com',
+  `style-src 'self' ${[...inlineStyles].map(sha).join(' ')}`,
+  "font-src 'self'",
   "img-src 'self' data:",
   "connect-src 'self'",
   "form-action 'self'",
@@ -247,6 +276,10 @@ out(
 /assets/*
   Cache-Control: public, max-age=86400
 
+/assets/h/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+
 /sw.js
   Cache-Control: no-cache
 
@@ -258,4 +291,4 @@ https://:version.:project.pages.dev/*
   X-Robots-Tag: noindex
 `,
 );
-console.log(`built dist/app/index.html (${(body.length / 1024).toFixed(0)} KB) and ${pages.length} site pages in ${LANGS.length} languages (${LANGS.map((l) => l.code).join(', ')})`);
+console.log(`built dist/app/index.html (${(body.length / 1024).toFixed(1)} KB; script ${appJs}, styles ${appCss}) and ${pages.length} site pages in ${LANGS.length} languages (${LANGS.map((l) => l.code).join(', ')})`);

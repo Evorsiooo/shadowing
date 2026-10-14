@@ -63,8 +63,6 @@ export const MESSAGES = {
   'Nothing changed. You can connect it any time in Settings → Storage. Close this window to go back.': { fr: 'Rien n’a changé. Tu peux le connecter quand tu veux dans Réglages → Stockage. Ferme cette fenêtre pour revenir.', es: 'No cambió nada. Puedes conectarlo cuando quieras en Ajustes → Almacenamiento. Cierra esta ventana para volver.' },
   'Something went wrong. Close this window and try again from Settings → Storage.': { fr: 'Un problème est survenu. Ferme cette fenêtre et réessaie depuis Réglages → Stockage.', es: 'Algo salió mal. Cierra esta ventana y vuelve a intentarlo desde Ajustes → Almacenamiento.' },
   'Close this window': { fr: 'Fermer cette fenêtre', es: 'Cerrar esta ventana' },
-  'Back in a moment': { fr: 'De retour dans un instant', es: 'Volvemos en un momento' },
-  'Euno Shadowing can’t reach its database right now. Your practice data is safe. Reload this page in a minute.': { fr: 'Euno Shadowing n’arrive pas à joindre sa base de données pour le moment. Tes données de pratique sont en sécurité. Recharge cette page dans une minute.', es: 'Euno Shadowing no puede conectar con su base de datos ahora mismo. Tus datos de práctica están a salvo. Recarga esta página en un minuto.' },
 
   // ---------- Google Drive ----------
   'Google refused the Drive connection ({status}).': { fr: 'Google a refusé la connexion à Drive ({status}).', es: 'Google rechazó la conexión con Drive ({status}).' },

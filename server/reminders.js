@@ -97,7 +97,12 @@ export function buildReminder(data, settings, { today, late = false, test = fals
   lines.push('', T('Short on time? A 5-minute bad-day session still counts.'));
   const title = test ? T('Test reminder: it works ✅')
     : late ? T('Still time for today’s shadowing') : T('Time for today’s shadowing 🎧');
-  return { title, lines, url: r.appUrl || null, settings: r };
+  return { title, lines, url: appLink(r.appUrl), settings: r };
+}
+
+/** The app's address for reminder links. Settings keep the site's origin (appUrl); the app lives at /app/. */
+export function appLink(appUrl) {
+  try { const u = new URL(appUrl); return u.protocol === 'https:' ? `${u.origin}/app/` : null; } catch { return null; }
 }
 
 /* ---------- channels: each knows whether a user set it up, and how to send ---------- */
@@ -124,7 +129,7 @@ export const CHANNELS = {
       return subs.length ? subs : null;
     },
     format(rem) {
-      return { title: rem.title, body: rem.lines.filter(Boolean).join('\n'), url: rem.url ? `${rem.url.replace(/\/$/, '')}/app/` : '/app/', tag: 'euno-reminder' };
+      return { title: rem.title, body: rem.lines.filter(Boolean).join('\n'), url: rem.url || '/app/', tag: 'euno-reminder' };
     },
     async send(env, userId, subs, rem) {
       const msg = this.format(rem);
