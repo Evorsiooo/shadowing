@@ -24,7 +24,11 @@ export const REMINDER_DEFAULTS = {
   checkins: true, // mention a due check-in
   tz: 'UTC',
   appUrl: '',
+  discordUserId: '', // optional: mention this Discord user so the reminder pings them
 };
+
+const USER_ID_RE = /^\d{17,20}$/;
+export function validUserId(id) { return typeof id === 'string' && USER_ID_RE.test(id.trim()); }
 
 /* ---------- dates in the user's time zone ---------- */
 export function localNow(tz, now = new Date()) {
@@ -85,7 +89,10 @@ export function buildMessage(data, settings, { today, late = false, test = false
     : late ? 'Still time for today’s shadowing' : 'Time for today’s shadowing 🎧';
   const embed = { title, description: lines.join('\n'), color: 0x58cc02 };
   if (r.appUrl) embed.url = r.appUrl; // the title links to the app
-  return { username: 'Shadowing practice', content: r.appUrl ? `<${r.appUrl}>` : '', embeds: [embed], allowed_mentions: { parse: [] } };
+  // Mentions only ping from `content`, and only the user listed in allowed_mentions (nothing else can ping)
+  const userId = validUserId(r.discordUserId) ? r.discordUserId.trim() : null;
+  const content = [userId ? `<@${userId}>` : '', r.appUrl ? `<${r.appUrl}>` : ''].filter(Boolean).join(' ');
+  return { username: 'Shadowing practice', content, embeds: [embed], allowed_mentions: userId ? { parse: [], users: [userId] } : { parse: [] } };
 }
 
 export async function postDiscord(url, payload) {
