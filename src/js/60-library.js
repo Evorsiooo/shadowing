@@ -160,7 +160,7 @@ function videoItem(v) {
   return h('div', { class: `vitem ${open ? 'open' : ''}` },
     editing ? editVideoForm(v) : [
       h('div', { class: 'vitem-title', role: 'button', tabindex: 0, onclick: () => { Player.load(v.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter') { Player.load(v.id); closeDrawer(); } } }, v.title || 'Untitled video'),
-      h('div', { class: 'meta' }, `${p.done}/${p.total} clips done · ${p.last ? `last practised ${fmtDay(p.last)}` : 'not practised yet'}${v.speaker ? ` · ${v.speaker}` : ''}${v.fileRef ? ` · ${mediaStatus(v.fileRef) || 'saved'}` : v.r2Key ? ' · old storage' : ''}`),
+      h('div', { class: 'meta' }, `${p.done}/${p.total} clips done · ${p.last ? `last practised ${fmtDay(p.last)}` : 'not practised yet'}${v.speaker ? ` · ${v.speaker}` : ''}${v.fileRef ? ` · ${mediaStatus(v.fileRef) || 'saved'}` : ''}`),
       h('div', { class: 'bar vprog' }, h('i', { style: { width: (p.total ? (p.done / p.total) * 100 : 0) + '%' } })),
       h('div', { class: 'row' },
         !open ? btn('Open', () => { Player.load(v.id); closeDrawer(); }, { size: 'sm', kind: 'primary' }) : null,

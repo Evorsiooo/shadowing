@@ -418,131 +418,6 @@ function showMissingVideo(vid) {
   el.hidden = false;
 }
 
-/* Files kept in the old server storage (R2) before storage moved to Drive. The server copies each
-   one straight into the user's Drive (a big video never passes through the browser), then the app
-   points its videos and recordings at the Drive copy. The server copy is deleted only when asked. */
-const LegacyFiles = {
-  /* every place a server file is referenced: [{ key, col, id, path }] */
-  refs() {
-    const out = [];
-    const walk = (col, id, v, path) => {
-      if (typeof v === 'string') { if (v.startsWith('r2:')) out.push({ key: v.slice(3), col, id, path }); return; }
-      if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(col, id, x, [...path, k]);
-    };
-    for (const col of COLS) {
-      if (col === 'media') continue;
-      for (const doc of Store.all(col)) {
-        if (col === 'videos' && doc.r2Key) out.push({ key: doc.r2Key, col, id: doc.id, path: null });
-        walk(col, doc.id, doc, []);
-      }
-    }
-    return out;
-  },
-  count() { return new Set(this.refs().map((r) => r.key)).size; },
-  /* copy one server file into Drive, a piece at a time; onPiece(fraction) */
-  async copyOne(body, onPiece) {
-    let r = await Api.req('POST', '/api/drive/copy-old', body);
-    while (!r.done) {
-      onPiece && onPiece(r.size ? r.offset / r.size : 0);
-      const next = { ...body, session: r.session, offset: r.offset };
-      try { r = await Api.req('POST', '/api/drive/copy-old', next); } catch (e) {
-        if (e.code === 'signedout' || e.status === 404 || e.status === 409) throw e;
-        // a piece failed: ask Google how much it has, then carry on from there
-        await sleep(2000);
-        const at = await Api.req('POST', '/api/drive/copy-old', { ...next, check: true });
-        r = at.done ? at : await Api.req('POST', '/api/drive/copy-old', { ...body, session: at.session, offset: at.offset });
-      }
-    }
-    return r;
-  },
-  /* onProgress(done, total, fraction of the current file); keeps going past a file that fails */
-  running: null,
-  progress: null,
-  listener: null,
-  move(onProgress) {
-    // one run at a time: pressing Move again joins the running one, and Settings redrawn
-    // mid-run takes over the progress line
-    this.listener = onProgress;
-    if (!this.running) {
-      this.running = this.moveAll((d, t, f) => { this.progress = [d, t, f]; this.listener && this.listener(d, t, f); })
-        .finally(() => { this.running = null; this.progress = null; this.listener = null; });
-    }
-    return this.running;
-  },
-  async moveAll(onProgress) {
-    if (!Drive.connected()) throw new Error('Connect Google Drive first.');
-    const refs = this.refs();
-    const keys = [...new Set(refs.map((r) => r.key))];
-    const folderId = await Drive.folder();
-    let done = 0;
-    const failed = [];
-    for (const key of keys) {
-      onProgress && onProgress(done, keys.length, 0);
-      // a file already copied on an earlier, interrupted run is reused
-      let d = Store.all('media').find((m) => m.legacyKey === key && m.providers && m.providers.gdrive);
-      if (!d) {
-        const kind = key.split('/').slice(-2, -1)[0] || 'misc';
-        const video = refs.find((x) => x.key === key && x.col === 'videos');
-        const name = video ? `${(Store.get('videos', video.id) || {}).title || 'video'}.${key.split('.').pop()}` : key.split('/').pop();
-        const id = uid();
-        let r;
-        try {
-          r = await this.copyOne({ key, name, folderId, mediaId: id, kind }, (f) => onProgress && onProgress(done, keys.length, f));
-        } catch (e) {
-          if (e.code === 'signedout' || e.status === 409) throw e;
-          failed.push({ name, error: e });
-          continue;
-        }
-        d = Store.put('media', { id, name, type: r.type, size: r.size, kind, created: new Date().toISOString(), providers: { gdrive: r.fileId }, legacyKey: key });
-        await Store.flushAll();
-      }
-      const ref = `media:${d.id}`;
-      for (const x of refs.filter((y) => y.key === key)) {
-        const doc = Store.get(x.col, x.id);
-        if (!doc) continue;
-        if (!x.path) { Store.patch(x.col, x.id, { fileRef: ref, r2Key: null, legacyR2Key: key }); continue; }
-        let o = doc;
-        for (const p of x.path.slice(0, -1)) o = o[p];
-        o[x.path[x.path.length - 1]] = ref;
-        Store.schedule(x.col, x.id);
-      }
-      done++;
-    }
-    onProgress && onProgress(done, keys.length, 0);
-    await Store.flushAll();
-    if (failed.length) {
-      throw Object.assign(new Error(`Moved ${done} of ${keys.length} files. ${failed.length === 1 ? `“${failed[0].name}” didn’t copy` : `${failed.length} didn’t copy`} (${failed[0].error.message}).`), { moved: done });
-    }
-    return keys.length;
-  },
-  /* server copies whose replacement is in Drive: safe to delete */
-  deletable() { return Store.all('media').filter((d) => d.legacyKey && d.providers && d.providers.gdrive); },
-  async deleteServerCopies() {
-    const keys = new Set();
-    for (const d of this.deletable()) {
-      if (!keys.has(d.legacyKey)) await Api.req('DELETE', '/api/files/' + d.legacyKey).catch((e) => { if (e.status !== 404) throw e; });
-      keys.add(d.legacyKey);
-      Store.patch('media', d.id, { legacyKey: null });
-    }
-    return keys.size;
-  },
-  /* extra Drive copies from a move that ran twice: moved files nothing points at */
-  duplicates() {
-    const used = new Set();
-    const walk = (v) => {
-      if (typeof v === 'string') { if (v.startsWith('media:')) used.add(v.slice(6)); return; }
-      if (v && typeof v === 'object') for (const x of Object.values(v)) walk(x);
-    };
-    for (const col of COLS) if (col !== 'media') for (const doc of Store.all(col)) walk(doc);
-    return Store.all('media').filter((d) => 'legacyKey' in d && !used.has(d.id) && !this.running);
-  },
-  async removeDuplicates() {
-    let n = 0;
-    for (const d of this.duplicates()) { await Media.remove(d.id); n++; }
-    return n;
-  },
-};
-
 /* ---------- where files live: Google Drive by default; "only this browser" is an opt-in ---------- */
 function storagePrefs() { return Store.get('meta', 'storage') || {}; }
 function deviceOnly() { return !!storagePrefs().deviceOnly; }
@@ -600,16 +475,10 @@ function storageView() {
   const draw = async () => {
     const all = Store.all('media');
     const here = (await Promise.all(all.map((d) => DeviceFiles.has(d.id)))).filter(Boolean).length;
-    const legacy = Store.mode === 'cloud' ? LegacyFiles.count() : 0;
-    const deletable = Store.mode === 'cloud' ? [...new Set(LegacyFiles.deletable().map((d) => d.legacyKey))] : [];
     const pending = Drive.connected() ? all.filter((d) => !(d.providers && d.providers.gdrive)) : [];
     const mb = (b) => `${(b / 1048576).toFixed(b < 10 * 1048576 ? 1 : 0)} MB`;
     const cached = all.filter((d) => d.providers && d.providers.gdrive);
-    const status = h('p', { class: 'small muted', role: 'status' });
-    const showMove = (d, t, f) => { status.textContent = d < t ? `Copying file ${d + 1} of ${t} to your Drive${f ? ` (${Math.round(f * 100)}%)` : ''}… keep this page open.` : `Copied ${t} file${t === 1 ? '' : 's'}.`; };
-    if (LegacyFiles.running) { LegacyFiles.listener = showMove; if (LegacyFiles.progress) showMove(...LegacyFiles.progress); }
     const cloud = Store.mode === 'cloud';
-    const dupes = cloud && Drive.connected() ? LegacyFiles.duplicates() : [];
     mount(root,
       h('div', { class: 'card' }, h('h3', null, 'Google Drive'),
         h('p', null, driveSummary()),
@@ -626,39 +495,6 @@ function storageView() {
               draw();
             }, { size: 'sm', kind: 'ghost' }))
           : h('div', { class: 'row' }, btn('Connect Google Drive', async () => { await Drive.connect(); draw(); }, { kind: 'primary', size: 'sm' }))),
-      legacy || deletable.length ? h('div', { class: 'card' }, h('h3', null, 'Files in the old server storage'),
-        legacy ? [
-          h('p', null, `${legacy} file${legacy === 1 ? ' is' : 's are'} still in the server storage the app used before. Server storage is going away, so move ${legacy === 1 ? 'it' : 'them'} into your Google Drive. The server copies stay until you delete them.`),
-          Drive.connected()
-            ? h('div', { class: 'row' }, btn(`Move ${legacy} file${legacy === 1 ? '' : 's'} to Drive`, async (e) => {
-              e.currentTarget.disabled = true;
-              try {
-                const n = await LegacyFiles.move(showMove);
-                toast(`Moved ${n} file${n === 1 ? '' : 's'} to your Google Drive.`, 'good', 6000);
-                if (!Session.active) Player.load(UI.videoId, { keepClip: true });
-              } catch (err) {
-                status.textContent = '';
-                toast(`${err.message} Press Move again to try the rest.`, 'bad', 12000);
-                if (err.moved && !Session.active) Player.load(UI.videoId, { keepClip: true });
-              }
-              draw();
-            }, { kind: 'primary', size: 'sm', disabled: !!LegacyFiles.running }))
-            : h('p', { class: 'small muted' }, 'Connect Google Drive above first.'),
-          status] : null,
-        deletable.length ? [
-          h('p', null, `${deletable.length} file${deletable.length === 1 ? ' is' : 's are'} safely in your Google Drive now, so the server copies can be deleted.`),
-          h('div', { class: 'row' }, btn('Delete the server copies', async () => {
-            if (!confirm(`Delete ${deletable.length} file${deletable.length === 1 ? '' : 's'} from the server? The copies in your Google Drive stay.`)) return;
-            try { const n = await LegacyFiles.deleteServerCopies(); toast(`Deleted ${n} server cop${n === 1 ? 'y' : 'ies'}.`, 'good'); } catch (err) { toast(err.message, 'bad', 7000); }
-            draw();
-          }, { size: 'sm', kind: 'danger' }))] : null) : null,
-      dupes.length ? h('div', { class: 'card' }, h('h3', null, 'Extra copies in your Drive'),
-        h('p', null, `The move ran twice, so ${dupes.length} file${dupes.length === 1 ? ' is' : 's are'} in your Drive twice (${mb(dupes.reduce((a, d) => a + (d.size || 0), 0))}). Nothing in the app uses the extra copies.`),
-        h('div', { class: 'row' }, btn(`Remove ${dupes.length} extra cop${dupes.length === 1 ? 'y' : 'ies'}`, async (e) => {
-          e.currentTarget.disabled = true;
-          try { const n = await LegacyFiles.removeDuplicates(); toast(`Removed ${n} extra cop${n === 1 ? 'y' : 'ies'} from your Drive.`, 'good'); } catch (err) { toast(err.message, 'bad', 7000); }
-          draw();
-        }, { size: 'sm' }))) : null,
       h('details', { class: 'card' }, h('summary', null, h('strong', null, 'This browser')),
         h('p', { class: 'small muted' }, `Files you open are kept in this browser so they play instantly and work offline: ${here} of ${all.length} right now.${Drive.connected() ? ' If the browser clears them, they download again from Drive.' : ''}`),
         Drive.connected() && cached.length && here ? h('div', { class: 'row' }, btn('Free up space', async () => { const r = await Media.evictSynced(); toast(`Removed ${r.n} file${r.n === 1 ? '' : 's'} (${mb(r.bytes)}) from this browser. They’re still in your Drive.`, 'good'); if (!Session.active) Player.load(UI.videoId, { keepClip: true }); draw(); }, { size: 'sm' })) : null,

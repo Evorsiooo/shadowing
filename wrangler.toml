@@ -15,12 +15,6 @@ database_name = "shadowing"
 database_id = "fe8dc4c5-4122-44b1-b4da-fcbeda64ac41"
 migrations_dir = "migrations"
 
-# Read-only leftovers from before files moved to the device and Google Drive (docs/STORAGE.md).
-# Remove this binding once every file has been moved out.
-[[r2_buckets]]
-binding = "FILES"
-bucket_name = "shadowing-files"
-
 # The reminders Worker (workers/reminders): the API pokes it so its schedule keeps running.
 [[services]]
 binding = "REMINDERS"

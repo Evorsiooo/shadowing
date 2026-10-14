@@ -208,7 +208,7 @@ async function checkVideoPlays() {
   if (!v) return { state: '', msg: 'Open a video first.' };
   if (LocalFiles.get(v.id)) return { state: 'warn', msg: 'Playing from a file on this device, so the link wasn’t tested.' };
   const r = await checkPlayable(videoSrc(v));
-  return r.ok ? { state: 'ok', msg: `“${v.title}” plays from its ${v.fileRef || v.r2Key || v.assetId ? 'stored copy' : 'link'} (${fmtTime(r.duration)} long).` } : { state: 'fail', msg: r.reason };
+  return r.ok ? { state: 'ok', msg: `“${v.title}” plays from its ${v.fileRef || v.assetId ? 'stored copy' : 'link'} (${fmtTime(r.duration)} long).` } : { state: 'fail', msg: r.reason };
 }
 async function checkVideoSound() {
   const v = Player.current();

@@ -23,8 +23,3 @@ export function safeEqual(a, b) {
   for (let i = 0; i < Math.max(ea.length, eb.length); i++) diff |= (ea[i] || 0) ^ (eb[i] || 0);
   return diff === 0;
 }
-
-// R2 keys: u/<userId>/<kind>/<name> for new files, <kind>/<name> for files from before accounts
-export function validKey(key) {
-  return typeof key === 'string' && /^(u\/[A-Za-z0-9_-]{1,64}\/)?(rec|video|checkin|misc)\/[A-Za-z0-9_.-]{1,120}$/.test(key);
-}

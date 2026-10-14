@@ -47,15 +47,12 @@ check(!Object.keys(bDocs.videos).length && !Object.keys(bDocs.sessions).length, 
 await B.call('DELETE', '/api/docs/notes/shared-id');
 check((await A.call('GET', '/api/docs')).data.data.notes['shared-id'], 'B deleting "its" note leaves A’s note alone');
 
-// files: new uploads no longer go to the server; the R2 leftovers are read-only and owner-only
+// files: the server no longer stores files at all
 check((await A.call('POST', '/api/files?kind=rec', new Uint8Array([1, 2, 3, 4]), { 'content-type': 'audio/webm' })).status !== 200, 'the server no longer accepts file uploads');
 check((await A.call('POST', '/api/uploads', { filename: 'x.mp4', type: 'video/mp4' })).status === 404, 'multipart uploads are gone');
 check((await A.call('POST', '/api/import', { url: 'https://example.com/x.mp4' })).status === 404, 'import by link on the server is gone');
-const legacy = JSON.parse(sql('SELECT key FROM files LIMIT 1'))[0].results[0];
-if (legacy) {
-  check((await B.call('GET', `/api/files/${legacy.key}`)).status === 404, 'B can’t read a stored file owned by someone else');
-  check((await B.call('DELETE', `/api/files/${legacy.key}`)).status === 404, 'B can’t delete a stored file owned by someone else');
-}
+check((await A.call('GET', '/api/files/rec/x.webm')).status === 404, 'the old file storage is gone');
+check((await A.call('POST', '/api/drive/copy-old', {})).status === 405, 'copying from the old storage is gone');
 
 // Google Drive: per-user connection, no token without one
 check((await A.call('GET', '/api/drive')).data.connected === false, 'A starts with Drive not connected');
@@ -81,7 +78,7 @@ check((await B.call('POST', '/api/support', { message: 'Hello from B' })).status
 check((await A.call('DELETE', '/api/account', { confirm: 'wrong@example.com' })).status === 400, 'deletion needs the email typed in');
 check((await A.call('DELETE', '/api/account', { confirm: A.email })).status === 200, 'A deletes its account');
 check((await A.call('GET', '/api/docs')).status === 401, 'A’s session is gone');
-const left = JSON.parse(sql(`SELECT (SELECT COUNT(*) FROM docs WHERE user_id = '${A.id}') + (SELECT COUNT(*) FROM private WHERE user_id = '${A.id}') + (SELECT COUNT(*) FROM files WHERE user_id = '${A.id}') + (SELECT COUNT(*) FROM users WHERE id = '${A.id}') AS n`))[0].results[0].n;
+const left = JSON.parse(sql(`SELECT (SELECT COUNT(*) FROM docs WHERE user_id = '${A.id}') + (SELECT COUNT(*) FROM private WHERE user_id = '${A.id}') + (SELECT COUNT(*) FROM users WHERE id = '${A.id}') AS n`))[0].results[0].n;
 check(left === 0, 'nothing of A’s is left in the database');
 check((await B.call('GET', '/api/docs')).status === 200, 'B is unaffected');
 
