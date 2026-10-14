@@ -16,9 +16,9 @@ function connectedAppsView() {
       h('div', { class: 'card' }, h('h3', null, t('Server address')),
         h('div', { class: 'row' }, h('code', { style: { wordBreak: 'break-all' } }, url), btn(t('Copy'), copy, { size: 'sm' })),
         h('ul', { class: 'small', style: { margin: '6px 0 0', paddingLeft: '20px' } },
-          h('li', null, h('strong', null, 'Claude: '), t('Settings → Connectors → Add custom connector. Paste the address and leave the advanced settings empty.')),
-          h('li', null, h('strong', null, 'ChatGPT: '), t('Settings → Apps → Advanced settings → turn on Developer mode, then Create app. Paste the address and choose OAuth. Needs a paid plan.')),
-          h('li', null, h('strong', null, 'Gemini: '), t('Settings → Connected apps → Add a custom app. Paste the address and leave Client ID and Client secret empty.'))),
+          h('li', null, h('strong', null, 'Claude: '), t('Settings → Connectors → Add (top right). Give it a name, paste the address, then Continue. Leave everything as it is, then Add and Connect.')),
+          h('li', null, h('strong', null, 'ChatGPT: '), t('Plugins (sidebar) → Add (top right) → Add Custom MCP Server. Give it a name, paste the address, then Authenticate.')),
+          h('li', null, h('strong', null, 'Gemini: '), t('Settings → Connected apps → Custom (top right). Paste the address, then Connect.'))),
         h('p', { class: 'small muted' }, t('You’ll be asked to sign in here and allow the app.'))),
       h('div', { class: 'card' }, h('h3', null, t('Connected')),
         !list ? h('p', { class: 'small muted' }, t('Checking…'))

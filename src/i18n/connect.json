@@ -91,17 +91,17 @@
     "fr": "Copier",
     "es": "Copiar"
   },
-  "Settings → Connectors → Add custom connector. Paste the address and leave the advanced settings empty.": {
-    "fr": "Settings → Connectors → Add custom connector. Colle l’adresse et laisse les réglages avancés vides.",
-    "es": "Settings → Connectors → Add custom connector. Pega la dirección y deja vacía la configuración avanzada."
+  "Settings → Connectors → Add (top right). Give it a name, paste the address, then Continue. Leave everything as it is, then Add and Connect.": {
+    "fr": "Settings → Connectors → Add (en haut à droite). Donne-lui un nom, colle l’adresse, puis Continue. Ne change rien d’autre, puis Add et Connect.",
+    "es": "Settings → Connectors → Add (arriba a la derecha). Ponle un nombre, pega la dirección y luego Continue. Deja todo como está y luego Add y Connect."
   },
-  "Settings → Apps → Advanced settings → turn on Developer mode, then Create app. Paste the address and choose OAuth. Needs a paid plan.": {
-    "fr": "Settings → Apps → Advanced settings → active Developer mode, puis Create app. Colle l’adresse et choisis OAuth. Il faut un abonnement payant.",
-    "es": "Settings → Apps → Advanced settings → activa Developer mode y luego Create app. Pega la dirección y elige OAuth. Necesita un plan de pago."
+  "Plugins (sidebar) → Add (top right) → Add Custom MCP Server. Give it a name, paste the address, then Authenticate.": {
+    "fr": "Plugins (barre latérale) → Add (en haut à droite) → Add Custom MCP Server. Donne-lui un nom, colle l’adresse, puis Authenticate.",
+    "es": "Plugins (barra lateral) → Add (arriba a la derecha) → Add Custom MCP Server. Ponle un nombre, pega la dirección y luego Authenticate."
   },
-  "Settings → Connected apps → Add a custom app. Paste the address and leave Client ID and Client secret empty.": {
-    "fr": "Settings → Connected apps → Add a custom app. Colle l’adresse et laisse Client ID et Client secret vides.",
-    "es": "Settings → Connected apps → Add a custom app. Pega la dirección y deja vacíos Client ID y Client secret."
+  "Settings → Connected apps → Custom (top right). Paste the address, then Connect.": {
+    "fr": "Settings → Connected apps → Custom (en haut à droite). Colle l’adresse, puis Connect.",
+    "es": "Settings → Connected apps → Custom (arriba a la derecha). Pega la dirección y luego Connect."
   },
   "You’ll be asked to sign in here and allow the app.": {
     "fr": "On te demandera de te connecter ici et d’autoriser l’appli.",

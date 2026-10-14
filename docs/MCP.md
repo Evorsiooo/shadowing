@@ -5,7 +5,7 @@ Anyone with an account can connect Claude, ChatGPT or Gemini to Euno Shadowing a
 ## How a connection works
 
 1. The AI app calls `/mcp` and gets a `401` whose `WWW-Authenticate` header points to `/.well-known/oauth-protected-resource/mcp`. That document names this site as the authorization server (`/.well-known/oauth-authorization-server`).
-2. The app registers itself at `POST /oauth/register` (dynamic client registration, RFC 7591). Registration needs no account, so it is capped at 300 new apps an hour across the site; apps nobody approved are deleted after a day. Every client is public (`token_endpoint_auth_method: none`). Gemini asks for `client_secret_basic`; it is registered as public anyway, and gets no secret.
+2. The app registers itself at `POST /oauth/register` (dynamic client registration, RFC 7591). Registration needs no account, so it is capped at 300 new apps an hour across the site; apps nobody approved are deleted after a day. Clients are public (`token_endpoint_auth_method: none`) unless they ask for `client_secret_basic` or `client_secret_post`, as Gemini does. Those get a client secret, only its hash is stored, and the token endpoint then requires it.
 3. The user is sent to `/oauth/authorize`. If they aren't signed in, they go through Google sign-in first, then come back to the consent page. That page names the app, where it will return to, and what it can read.
 4. On **Allow**, the app gets a one-use code (5 minutes, PKCE S256 required). It trades the code at `POST /oauth/token` for an access token (1 hour) and a refresh token (60 days, replaced on every use).
 5. The app calls `/mcp` with `Authorization: Bearer <token>`. Each token belongs to one user, and every query filters on that user's id.
@@ -50,4 +50,6 @@ The script makes two throwaway users. It runs the full sign-in for each, as Clau
 
 - **Claude:** Settings → Connectors → Add custom connector. It needs the `401` with `resource_metadata`, a refresh token, and form-encoded token requests. It also supports Client ID Metadata Documents, but falls back to registration when the server doesn't advertise them.
 - **ChatGPT:** custom apps need Developer mode, on a paid plan. ChatGPT sends the RFC 8707 `resource` parameter, which must be `https://shadowing.euno.cc/mcp`.
-- **Gemini:** Settings → Connected apps → Add a custom app. Leave Client ID and secret empty, and Gemini registers itself. It sends the client id in an HTTP Basic header at `/oauth/token`.
+- **Gemini:** Settings → Connected apps → Custom. Leave Client ID and secret empty, and Gemini registers itself as a confidential client (`client_secret_basic`). It sends its credentials in an HTTP Basic header at `/oauth/token`.
+
+When an app fails to connect, check `last_error` on its `oauth_clients` row. It holds the latest authorize or token failure for that app.
