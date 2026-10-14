@@ -40,18 +40,8 @@ who turn on Drive sync, a sealed Google refresh token.
 
 ## The old R2 files
 
-Before accounts, files went to R2. R2 is now read-only (`GET|DELETE /api/files/:key`).
-Settings → Storage shows "Files in the old server storage" when any are left:
-
-1. **Move N files to Drive** (needs Drive connected). The server copies each file straight from R2
-   into the user's Drive folder (`POST /api/drive/copy-old`), so a big video never passes through the
-   browser. Each request copies one 16 MB piece of a Drive resumable upload, so none runs long; the
-   browser calls it again with the returned `session` and `offset` until the file is done. Then the
-   app points the videos and recordings at the Drive copy. The server copy stays. A file that fails
-   doesn't stop the others; pressing Move again retries what's left.
-2. **Delete the server copies** appears once the moved files are in Drive.
-
-After that, the `files` table and the `FILES` binding can be dropped.
+Before accounts, files went to Cloudflare R2. On 2026-10-14 every one was copied into its owner's
+Google Drive and deleted from R2; the `files` table (migration 0004) and the `FILES` binding are gone.
 
 ## Setup (once)
 

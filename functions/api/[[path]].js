@@ -1,9 +1,9 @@
 // /api/* — the app's backend. Everything here except /api/support needs a signed-in user,
 // and every query is scoped to that user's id.
 import { requireUser, sameOrigin, deleteUser, sha256Hex } from '../../server/auth.js';
-import { json, error, validCol, validId, validKey, uuid } from '../../server/util.js';
-import { allDocs, putDoc, deleteDoc, serveFile, ownsFile, forgetFile } from '../../server/store.js';
-import { driveStatus, driveAccessToken, disconnectDrive, copyR2ToDrive } from '../../server/drive.js';
+import { json, error, validCol, validId, uuid } from '../../server/util.js';
+import { allDocs, putDoc, deleteDoc } from '../../server/store.js';
+import { driveStatus, driveAccessToken, disconnectDrive } from '../../server/drive.js';
 import { noteFeedback, aiAvailable, aiStatus, saveKey, setModel, removeKey, userModels, PROVIDERS } from '../../server/ai.js';
 import { adminRoute } from '../../server/admin.js';
 import { validWebhook, getPrivate, setPrivate, getSettings, buildReminder, sendReminder, sessionsAndCheckins, localNow, REMINDER_DEFAULTS } from '../../server/reminders.js';
@@ -31,8 +31,7 @@ export async function onRequest(ctx) {
     if (head === 'me' && !rest.length && method === 'GET') return json({ email: user.email, name: user.name, picture: user.picture, role: user.role });
     if (head === 'account' && !rest.length && method === 'DELETE') return await deleteAccountRoute(env, user, request);
     if (head === 'docs') return await docsRoute(env, user, method, rest, request);
-    if (head === 'files') return await filesRoute(env, user, method, rest, request);
-    if (head === 'drive') return await driveRoute(env, user, method, rest, request);
+    if (head === 'drive') return await driveRoute(env, user, method, rest);
     if (head === 'ai') return await aiRoute(env, user, method, rest, request);
     if (head === 'claude' && method === 'POST') return await feedbackRoute(env, user, request); // old name for /api/ai/feedback
     if (head === 'reminders') return await remindersRoute(env, user, method, rest, request);
@@ -62,42 +61,15 @@ async function docsRoute(env, user, method, rest, request) {
   return error(405, 'Method not allowed.');
 }
 
-/* Files kept in R2 before storage moved to the device and Google Drive. Read-only now: the app
-   copies them out (Settings → Storage) and deletes each one once it's safely copied. */
-async function filesRoute(env, user, method, rest, request) {
-  const key = rest.join('/');
-  if (!validKey(key)) return error(400, 'Bad file key.');
-  if (!env.FILES || !(await ownsFile(env.DB, user.id, key))) return error(404, 'Not found.');
-  if (method === 'GET' || method === 'HEAD') return serveFile(env.FILES, key, request);
-  if (method === 'DELETE') { await env.FILES.delete(key); await forgetFile(env.DB, user.id, key); return json({ ok: true }); }
-  return error(405, 'Method not allowed.');
-}
-
 /* Google Drive sync: status, a short-lived access token for the browser, disconnect.
    Connecting happens at /auth/drive (a Google consent screen). */
-async function driveRoute(env, user, method, rest, request) {
+async function driveRoute(env, user, method, rest) {
   const [action] = rest;
   if (!action && method === 'GET') return json(await driveStatus(env, user.id));
   if (action === 'token' && method === 'POST') {
     try { return json(await driveAccessToken(env, user.id)); } catch (e) { return error(e.status || 502, e.message, { reconnect: !!e.reconnect }); }
   }
   if (!action && method === 'DELETE') { await disconnectDrive(env, user.id); return json({ ok: true, connected: false }); }
-  // copy one file from the old R2 storage into the user's Drive, one piece per request (the R2 copy stays until deleted)
-  if (action === 'copy-old' && method === 'POST') {
-    const body = await request.json().catch(() => ({}));
-    if (!validKey(body.key) || !env.FILES || !(await ownsFile(env.DB, user.id, body.key))) return error(404, 'Not found.');
-    if (typeof body.folderId !== 'string' || !/^[A-Za-z0-9_-]{10,200}$/.test(body.folderId)) return error(400, 'Bad Drive folder.');
-    const name = String(body.name || body.key.split('/').pop()).slice(0, 200);
-    try {
-      return json(await copyR2ToDrive(env, user.id, {
-        key: body.key, name, folderId: body.folderId, mediaId: String(body.mediaId || '').slice(0, 64), kind: String(body.kind || '').slice(0, 20),
-        session: body.session || null, offset: body.offset, check: !!body.check,
-      }));
-    } catch (e) {
-      console.error('copy-old', body.key, e.message);
-      return error(e.status || 502, e.message, { reconnect: !!e.reconnect, restart: !!e.restart });
-    }
-  }
   return error(405, 'Method not allowed.');
 }
 

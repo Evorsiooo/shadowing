@@ -156,7 +156,6 @@ const Player = {
     const reason = share
       ? 'This looks like a share page, not a direct video file. Share pages from Google Drive, MEGA, YouTube and similar sites don\'t play here. Use a direct link that ends in .mp4.'
       : vid.fileRef ? 'The saved file didn’t play. This browser may not play its format; an .mp4 file works everywhere.'
-      : vid.r2Key ? 'The stored copy didn’t load. If you were signed out, reload the page; otherwise upload the file again.'
       : Caps.inArtifact && !LocalFiles.get(vid.id) && !vid.assetId
         ? 'Inside a Claude artifact, videos from other websites are blocked by the page\'s security rules. Pick the same video file from this device, or store a short copy here (20 MB maximum).'
         : 'The link didn\'t load as a video. Check it opens directly as an .mp4 file in a new tab.';

@@ -14,7 +14,7 @@ API query is scoped to the signed-in user.
 - `/app` is the app. Signed-out visitors are sent to Google sign-in and come back.
 - `GET /api/me` returns `{ email, name, picture, role }` or 401.
 - `DELETE /api/account` with `{ "confirm": "<your email>" }` deletes the account and everything
-  the server keeps for it (docs, private values, sessions, R2 files) and revokes its Google Drive access.
+  the server keeps for it (docs, private values, sessions) and revokes its Google Drive access.
 - `POST /api/support` with `{ message, email? }` stores a contact-form message (signed in or not;
   rate-limited; Cloudflare Turnstile is checked when `TURNSTILE_SECRET` is set).
 
@@ -25,7 +25,6 @@ API query is scoped to the signed-in user.
 | `users` | id, google_sub, email, name, picture, role (`user`/`admin`), disabled, invite_code, created, last_seen |
 | `sessions` | hashed session id, user_id, expiry |
 | `docs`, `private` | as before, plus `user_id` in the primary key |
-| `files` | owner of each R2 object (new keys are `u/<userId>/…`) |
 | `config` | site settings; `signup` is `open` or `invite` |
 | `invites` | invite codes: uses, max uses, expiry |
 | `support_messages` | contact-form inbox |

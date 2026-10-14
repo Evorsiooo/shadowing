@@ -218,7 +218,7 @@ const Store = {
 
   /* ---------- recordings & files ----------
      refs: media:<id> (this device + Drive, 17-media.js), asset:<id> (artifact), mem:<id> (this visit),
-     and, read-only, idb:<id> (older local recordings) and r2:<key> (the old server storage) */
+     and, read-only, idb:<id> (older local recordings) */
   async putBlob(blob, kind = 'rec') {
     if (this.blobMode === 'device') {
       try { return await Media.add(blob, { kind }); } catch (e) {
@@ -251,7 +251,6 @@ const Store = {
     const [kind, id] = ref.split(':');
     let url = null;
     if (kind === 'asset') url = '/_blob/' + id;
-    else if (kind === 'r2') url = '/api/files/' + ref.slice(3);
     else {
       const b = await this.getBlob(ref);
       if (b) url = URL.createObjectURL(b);
@@ -265,10 +264,6 @@ const Store = {
     if (kind === 'mem') return this.memBlobs.get(id) || null;
     if (kind === 'media') return Media.file(id);
     if (kind === 'idb') { try { return (await IDB.get('blobs', id)) || null; } catch { return null; } }
-    if (kind === 'r2') {
-      const r = await fetch('/api/files/' + ref.slice(3), { credentials: 'same-origin' });
-      return r.ok ? r.blob() : null;
-    }
     if (kind === 'asset') {
       const url = this.urlCache.get(ref) || '/_blob/' + id;
       const r = await fetch(url);
@@ -285,7 +280,6 @@ const Store = {
     else if (kind === 'media') await Media.remove(id);
     else if (kind === 'idb') await IDB.del('blobs', id).catch(() => {});
     else if (kind === 'asset' && Caps.assets) await Caps.assets.delete(id).catch(() => {});
-    else if (kind === 'r2') await Api.req('DELETE', '/api/files/' + ref.slice(3)).catch(() => {});
   },
 
   /* ---------- backup ---------- */

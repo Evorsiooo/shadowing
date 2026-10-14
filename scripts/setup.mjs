@@ -24,7 +24,6 @@ const TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const ACCOUNT = process.env.CLOUDFLARE_ACCOUNT_ID;
 const PROJECT = opt('project', 'shadowing');
 const DB_NAME = 'shadowing';
-const BUCKET = 'shadowing-files';
 if (!TOKEN || !ACCOUNT) die('Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID first.');
 
 const env = { ...process.env, WRANGLER_SEND_METRICS: 'false', CI: '1' };
@@ -65,11 +64,6 @@ toml = toml.replace(/database_id = ".*"/, `database_id = "${db.uuid}"`);
 writeFileSync(tomlPath, toml);
 wrangler(['d1', 'migrations', 'apply', DB_NAME, '--remote']);
 console.log('  migrations applied');
-
-// 2. R2 bucket
-step('R2 bucket');
-const out = wrangler(['r2', 'bucket', 'create', BUCKET], { allowFail: true });
-console.log(/already exists/i.test(out) ? '  exists' : '  created');
 
 // 3. Pages project (created by connecting the GitHub repo in the dashboard)
 step('Pages project');

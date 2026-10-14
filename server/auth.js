@@ -237,22 +237,17 @@ export async function upsertGoogleUser(env, claims, invite) {
   return { user: { id, email, role: isAdmin ? 'admin' : 'user' } };
 }
 
-/** Delete an account and everything the server keeps for it. Returns the R2 keys it owned. */
+/** Delete an account and everything the server keeps for it. */
 export async function deleteUser(env, userId) {
   const db = env.DB;
   await disconnectDrive(env, userId).catch(() => {}); // revoke the app's Drive access; their files stay in their Drive
-  const { results: files } = await db.prepare('SELECT key FROM files WHERE user_id = ?').bind(userId).all();
-  const keys = files.map((f) => f.key);
-  if (env.FILES && keys.length) for (let i = 0; i < keys.length; i += 1000) await env.FILES.delete(keys.slice(i, i + 1000));
   await db.batch([
     db.prepare('DELETE FROM docs WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM private WHERE user_id = ?').bind(userId),
-    db.prepare('DELETE FROM files WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM sessions WHERE user_id = ?').bind(userId),
     db.prepare('UPDATE support_messages SET user_id = NULL WHERE user_id = ?').bind(userId),
     db.prepare('DELETE FROM users WHERE id = ?').bind(userId),
   ]);
-  return keys;
 }
 
 /** Reject cross-site writes: a mutating request must come from this site (or a non-browser client). */

@@ -171,7 +171,7 @@ const LocalFiles = {
 function videoSrc(v) {
   if (!v) return '';
   // a stored file (fileRef) plays once attachVideoFile() has put it in LocalFiles
-  return LocalFiles.url(v.id) || (v.fileRef ? '' : v.r2Key ? '/api/files/' + v.r2Key : v.assetId ? '/_blob/' + v.assetId : v.url);
+  return LocalFiles.url(v.id) || (v.fileRef ? '' : v.assetId ? '/_blob/' + v.assetId : v.url);
 }
 
 /* ---------- microphone ---------- */

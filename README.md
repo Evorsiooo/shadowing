@@ -39,7 +39,6 @@ All routes need a valid Access sign-in.
 
 - `GET /api/health`
 - `GET /api/docs`, `PUT|DELETE /api/docs/:collection/:id`
-- `GET|DELETE /api/files/:key` (files left in the old R2 storage, until they're moved)
 - `GET|DELETE /api/drive` (Drive sync status; disconnect), `POST /api/drive/token` (short-lived Drive token for the browser); connecting is `GET /auth/drive`
 - `GET/PUT/DELETE /api/ai`, `GET /api/ai/models`, `POST /api/ai/test`, `POST /api/ai/feedback` (bring-your-own-key AI)
 - `GET|PUT /api/reminders` (webhook set or not; save/remove it), `POST /api/reminders/test`, `POST /api/reminders/arm`
@@ -65,7 +64,6 @@ The site deploys from GitHub: Cloudflare rebuilds it on every push to `main`. Da
    - Cloudflare Pages: Edit
    - Workers Scripts: Edit
    - D1: Edit
-   - Workers R2 Storage: Edit
    - Access: Apps and Policies: Edit
    - Access: Organizations, Identity Providers, and Groups: Read
 4. **Run setup** (re-runnable; it skips anything that already exists):
@@ -73,7 +71,7 @@ The site deploys from GitHub: Cloudflare rebuilds it on every push to `main`. Da
    npm install
    CLOUDFLARE_API_TOKEN=… CLOUDFLARE_ACCOUNT_ID=… ANTHROPIC_API_KEY=… npm run setup -- --email you@example.com
    ```
-   It creates the D1 database and R2 bucket, locks the site with Access and sets the secrets. It also writes the database id and Access settings into `wrangler.toml`, and saves the MCP URL in `.secrets/mcp-url.txt` (git-ignored).
+   It creates the D1 database, locks the site with Access and sets the secrets. It also writes the database id and Access settings into `wrangler.toml`, and saves the MCP URL in `.secrets/mcp-url.txt` (git-ignored).
 5. **Commit `wrangler.toml` and merge it to `main`.** Cloudflare redeploys with everything connected.
 6. **Connect Claude:** claude.ai → Settings → Connectors → Add custom connector, and paste the MCP URL.
 
@@ -97,7 +95,7 @@ npm run dev        # http://localhost:8788
 | `functions/api/[[path]].js` | API routes |
 | `functions/mcp/[[path]].js` | MCP server |
 | `server/auth.js` | Cloudflare Access token check |
-| `server/store.js` | D1 documents, reading the old R2 files |
+| `server/store.js` | D1 documents |
 | `server/drive.js` | Google Drive connection: sealed refresh token, short-lived access tokens |
 | `server/crypto.js` | Seals per-user secrets with `KEY_ENCRYPTION_KEY` |
 | `server/ai.js` | Encrypted per-user AI keys, model lists and note feedback (Anthropic, OpenAI, OpenRouter) |
@@ -112,7 +110,7 @@ npm run dev        # http://localhost:8788
 |-|-|
 | `src/js/00-util.js` | DOM helpers, icons, dates, toasts, modal, confetti, zip writer |
 | `src/js/10-store.js` | Storage: the server API (D1), or IndexedDB fallback; settings |
-| `src/js/17-media.js` | Video and recording files: device storage, Google Drive sync, moving old R2 files, Settings → Storage |
+| `src/js/17-media.js` | Video and recording files: device storage, Google Drive sync, Settings → Storage |
 | `src/js/20-dsp.js` | Pitch (YIN), loudness, pauses, alignment, rough measures, WAV encoder |
 | `src/js/30-audio.js` | Decoding video sound, microphone, recording |
 | `src/js/40-player.js` | Player, controls, scrubber, brackets, clip selection |
