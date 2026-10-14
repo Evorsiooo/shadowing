@@ -56,7 +56,14 @@ function fitLayout() {
   Panel.onTime(Player.time()); // the chart may have changed size
 }
 
+/* labels written in index.html are set here, so they follow the interface language */
+function renderStaticLabels() {
+  $('#scrubber').setAttribute('aria-label', t('Video timeline'));
+  $('#sidebar').setAttribute('aria-label', t('Video library'));
+}
+
 function renderAll() {
+  renderStaticLabels();
   applyLayout();
   renderChips();
   renderBanners();
@@ -83,7 +90,7 @@ function onKey(e) {
   else if (k === 'o' || k === 'O' || k === ']') markEdge('end');
   else if (k === ',' || k === '<') Player.stepRate(-1);
   else if (k === '.' || k === '>') Player.stepRate(1);
-  else if (k === 'l' || k === 'L') { UI.loop = !UI.loop; renderControls(); toast(UI.loop ? 'Loop on' : 'Loop off'); }
+  else if (k === 'l' || k === 'L') { UI.loop = !UI.loop; renderControls(); toast(UI.loop ? t('Loop on') : t('Loop off')); }
   else if (k === 'ArrowLeft') { e.preventDefault(); Player.seek(Player.time() - 2); }
   else if (k === 'ArrowRight') { e.preventDefault(); Player.seek(Player.time() + 2); }
   else if (k === 'Enter' && Session.active && (Session.phase === 'intro' || Session.phase === 'armed')) Session.go();
@@ -93,16 +100,17 @@ function onKey(e) {
 }
 
 async function boot() {
+  renderStaticLabels();
   Player.init();
   renderControls();
-  mount($('#panel'), h('div', { class: 'panel-msg' }, 'Loading your practice data…'));
+  mount($('#panel'), h('div', { class: 'panel-msg' }, t('Loading your practice data…')));
   await Store.init();
   if (Store.mode === 'offline') {
-    mount($('#panel'), h('div', { class: 'panel-msg' }, 'Not connected.'));
+    mount($('#panel'), h('div', { class: 'panel-msg' }, t('Not connected.')));
     openModal([
-      modalHead(Api.signedOut ? 'Please sign in' : 'The server isn’t ready'),
-      h('p', null, Api.signedOut ? 'Sign in with your Google account to open your practice.' : `The app’s server answered with a problem: ${Api.problem}`),
-      Api.signedOut ? btn('Sign in with Google', () => signIn(), { kind: 'primary', size: 'big' }) : btn('Reload', () => location.reload(), { kind: 'primary', size: 'big' }),
+      modalHead(Api.signedOut ? t('Please sign in') : t('The server isn’t ready')),
+      h('p', null, Api.signedOut ? t('Sign in with your Google account to open your practice.') : t('The app’s server answered with a problem: {problem}', { problem: Api.problem })),
+      Api.signedOut ? btn(t('Sign in with Google'), () => signIn(), { kind: 'primary', size: 'big' }) : btn(t('Reload'), () => location.reload(), { kind: 'primary', size: 'big' }),
     ], { narrow: true });
     return;
   }

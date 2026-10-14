@@ -3,29 +3,36 @@ function buildPlan(mode) {
   const s = settings();
   if (mode === 'badday') {
     return [
-      { key: 'listen', name: 'Listen', passes: s.badListenPasses, minutes: Math.max(1, Math.round(s.badMinutes * 0.3)), speak: false },
-      { key: 'shadow', name: 'Shadow', passes: s.badShadowPasses, minutes: Math.max(1, Math.round(s.badMinutes * 0.7)), speak: true },
+      { key: 'listen', name: N_('Listen'), passes: s.badListenPasses, minutes: Math.max(1, Math.round(s.badMinutes * 0.3)), speak: false },
+      { key: 'shadow', name: N_('Shadow'), passes: s.badShadowPasses, minutes: Math.max(1, Math.round(s.badMinutes * 0.7)), speak: true },
     ];
   }
   if (mode === 'review') {
     return [
-      { key: 'listen', name: 'Listen', passes: 1, minutes: 1, speak: false },
-      { key: 'shadow', name: 'Shadow', passes: s.reviewShadowPasses, minutes: 3, speak: true },
-      { key: 'record', name: 'Record & compare', passes: 1, minutes: 1, speak: true, recordLast: 'step3' },
+      { key: 'listen', name: N_('Listen'), passes: 1, minutes: 1, speak: false },
+      { key: 'shadow', name: N_('Shadow'), passes: s.reviewShadowPasses, minutes: 3, speak: true },
+      { key: 'record', name: N_('Record & compare'), passes: 1, minutes: 1, speak: true, recordLast: 'step3' },
     ];
   }
   return [
-    { key: 'listen', name: 'Listen', passes: s.listenPasses, minutes: s.listenMinutes, speak: false },
-    { key: 'shadow', name: 'Shadow', passes: s.shadowPasses, minutes: s.shadowMinutes, speak: true },
-    { key: 'record', name: 'Record & compare', passes: 1, minutes: s.recordMinutes, speak: true, recordLast: 'step3' },
-    { key: 'again', name: 'Shadow again', passes: s.againPasses + 1, minutes: s.againMinutes, speak: true, recordLast: 'final' },
+    { key: 'listen', name: N_('Listen'), passes: s.listenPasses, minutes: s.listenMinutes, speak: false },
+    { key: 'shadow', name: N_('Shadow'), passes: s.shadowPasses, minutes: s.shadowMinutes, speak: true },
+    { key: 'record', name: N_('Record & compare'), passes: 1, minutes: s.recordMinutes, speak: true, recordLast: 'step3' },
+    { key: 'again', name: N_('Shadow again'), passes: s.againPasses + 1, minutes: s.againMinutes, speak: true, recordLast: 'final' },
   ];
 }
 const STEP_HELP = {
-  listen: 'Just listen. Don’t speak yet; take in the rhythm and melody.',
-  shadow: 'Speak along at the same time as the speaker. Copy everything: rhythm, melody and sounds.',
-  record: 'Headphones on. Shadow one pass while it records, then compare it with the original.',
-  again: 'Shadow again, copying as closely as you can. The last pass records so you can compare it with step 3.',
+  listen: N_('Just listen. Don’t speak yet; take in the rhythm and melody.'),
+  shadow: N_('Speak along at the same time as the speaker. Copy everything: rhythm, melody and sounds.'),
+  record: N_('Headphones on. Shadow one pass while it records, then compare it with the original.'),
+  again: N_('Shadow again, copying as closely as you can. The last pass records so you can compare it with step 3.'),
+};
+/* label of the button that starts each step */
+const STEP_START = {
+  listen: N_('Start listening'),
+  shadow: N_('Start shadowing'),
+  record: N_('Start recording'),
+  again: N_('Start shadowing again'),
 };
 
 const Session = {
@@ -58,9 +65,9 @@ const Session = {
   isRecordedPass() { const st = this.step(); return !!(st && st.recordLast && this.pass === st.passes - 1); },
 
   start(clipIds, mode = 'full') {
-    if (this.active) { toast('A session is already running.'); return; }
+    if (this.active) { toast(t('A session is already running.')); return; }
     const ids = clipIds.filter((id) => Store.get('clips', id));
-    if (!ids.length) { toast('Pick a clip first.'); return; }
+    if (!ids.length) { toast(t('Pick a clip first.')); return; }
     this.queue = ids.slice(1);
     this.begin(ids[0], mode);
   },
@@ -104,7 +111,7 @@ const Session = {
   timerText() {
     const total = this.totalMinutes() * 60;
     const left = total - this.elapsed;
-    return left >= 0 ? `${fmtTime(left)} left` : `${fmtTime(-left)} over · that’s fine`;
+    return left >= 0 ? t('{time} left', { time: fmtTime(left) }) : t('{time} over · that’s fine', { time: fmtTime(-left) });
   },
 
   /* ---------- passes ---------- */
@@ -192,7 +199,7 @@ const Session = {
             recId = r.id;
             this.doc.recs[st.recordLast] = recId;
           } catch (e) {
-            toast(`The recording couldn’t be saved (${e.code || e.message || 'error'}). You can still listen to it now.`, 'bad', 6000);
+            toast(t('The recording couldn’t be saved ({error}). You can still listen to it now.', { error: e.code || e.message || 'error' }), 'bad', 6000);
           }
         }
         entry.recorded = true; entry.recId = recId;
@@ -331,7 +338,7 @@ const Session = {
   },
   switchToBadDay() {
     if (!this.active) return;
-    if (this.stepIdx > 1) { toast('You’re past the shadowing step already. Finish or end the session instead.'); return; }
+    if (this.stepIdx > 1) { toast(t('You’re past the shadowing step already. Finish or end the session instead.')); return; }
     const done = this.pass;
     const key = this.step().key;
     this.mode = 'badday';
@@ -340,7 +347,7 @@ const Session = {
     this.stepIdx = this.plan.findIndex((p) => p.key === key);
     this.pass = Math.min(done, this.step().passes - 1);
     this.saveDoc();
-    toast('Switched to the 5-minute version. Every bit counts.');
+    toast(t('Switched to the 5-minute version. Every bit counts.'));
     renderSession();
   },
   flagCantKeepUp() {
@@ -350,12 +357,14 @@ const Session = {
     const clip = this.clip();
     const len = clip.end - clip.start;
     openModal([
-      modalHead('Can’t keep up?'),
-      h('p', null, `This clip is ${fmtSec(len)} long. Shadowing gets much easier with a shorter clip: try cutting it to one sentence${len > 12 ? ` of about ${Math.max(6, Math.round(len * 0.6))} seconds` : ''}. Slowing to 0.75x also helps for a few passes.`),
+      modalHead(t('Can’t keep up?')),
+      h('p', null, len > 12
+        ? t('This clip is {len} long. Shadowing gets much easier with a shorter clip: try cutting it to one sentence of about {sec} seconds. Slowing to 0.75x also helps for a few passes.', { len: fmtSec(len), sec: Math.max(6, Math.round(len * 0.6)) })
+        : t('This clip is {len} long. Shadowing gets much easier with a shorter clip: try cutting it to one sentence. Slowing to 0.75x also helps for a few passes.', { len: fmtSec(len) })),
       h('div', { class: 'row' },
-        btn('Slow to 0.75x', () => { Player.setRate(0.75); closeModal(); }, { kind: 'primary' }),
-        btn('End and shorten the clip', async () => { closeModal(); await this.finish(true); editClip(clip.id); }, { icon: 'scissors' }),
-        btn('Keep going', () => closeModal(), { kind: 'ghost' })),
+        btn(t('Slow to 0.75x'), () => { Player.setRate(0.75); closeModal(); }, { kind: 'primary' }),
+        btn(t('End and shorten the clip'), async () => { closeModal(); await this.finish(true); editClip(clip.id); }, { icon: 'scissors' }),
+        btn(t('Keep going'), () => closeModal(), { kind: 'ghost' })),
     ], { narrow: true });
   },
   saveDoc() {
@@ -452,29 +461,29 @@ function renderSession() {
     const cur = i === S.stepIdx;
     const pct = done ? 100 : cur ? (S.pass / p.passes) * 100 : 0;
     return h('div', { class: `step ${done ? 'done' : ''} ${cur ? 'cur' : ''}` },
-      h('span', { class: 'step-name' }, `${i + 1}. ${p.name}`),
+      h('span', { class: 'step-name' }, `${i + 1}. ${t(p.name)}`),
       h('div', { class: 'bar' }, h('i', { style: { width: pct + '%' } })));
   }));
-  const counter = st ? h('div', { class: 'counter' }, `${st.name}: ${Math.min(S.pass + (S.phase === 'playing' || S.phase === 'recording' ? 1 : 0), st.passes)}`, h('small', null, ` / ${st.passes}`)) : null;
+  const counter = st ? h('div', { class: 'counter' }, t('{step}: {n}', { step: t(st.name), n: Math.min(S.pass + (S.phase === 'playing' || S.phase === 'recording' ? 1 : 0), st.passes) }), h('small', null, ` / ${st.passes}`)) : null;
   const left = st ? Math.max(0, st.passes - S.pass) : 0;
   let main;
   if (S.phase === 'intro') {
     main = [
-      h('div', { class: 'grow' }, h('h3', null, `Step ${S.stepIdx + 1}: ${st.name}`), h('p', { class: 'session-hint' }, STEP_HELP[st.key] + ` ${st.passes} pass${st.passes > 1 ? 'es' : ''}, about ${st.minutes} min.`)),
-      btn(`Start ${st.name.toLowerCase()}`, () => S.go(), { kind: 'primary', size: 'big', icon: 'play' }),
+      h('div', { class: 'grow' }, h('h3', null, t('Step {n}: {step}', { n: S.stepIdx + 1, step: t(st.name) })), h('p', { class: 'session-hint' }, `${t(STEP_HELP[st.key])} ${tp(st.passes, '{n} pass, about {min} min.', '{n} passes, about {min} min.', { min: st.minutes })}`)),
+      btn(t(STEP_START[st.key]), () => S.go(), { kind: 'primary', size: 'big', icon: 'play' }),
     ];
   } else if (S.phase === 'armed') {
     if (!Mic.stream && !Mic.error) Mic.open().then((ok) => { if (!ok) renderSession(); });
     main = [
       h('div', { class: 'grow stack' },
-        h('h3', null, st.recordLast === 'final' ? 'Final recorded pass' : 'Recorded pass'),
-        h('p', { class: 'row session-hint' }, icon('headphones'), 'Headphones on (wired is best), or the microphone will pick up the clip.'),
+        h('h3', null, st.recordLast === 'final' ? t('Final recorded pass') : t('Recorded pass')),
+        h('p', { class: 'row session-hint' }, icon('headphones'), t('Headphones on (wired is best), or the microphone will pick up the clip.')),
         micControl(),
         Mic.error ? h('p', { class: 'warnline' }, Mic.error) : null),
       Mic.error ? h('div', { class: 'row' },
-        filePickButton('Upload a recording', 'audio/*,video/*', (f) => uploadPassRecording(f), { icon: 'upload' }),
-        btn('Skip recording', () => S.skipRecording(), { kind: 'ghost' })) : null,
-      btn('Record this pass', () => S.go(), { kind: 'blue', size: 'big', icon: 'mic' }),
+        filePickButton(t('Upload a recording'), 'audio/*,video/*', (f) => uploadPassRecording(f), { icon: 'upload' }),
+        btn(t('Skip recording'), () => S.skipRecording(), { kind: 'ghost' })) : null,
+      btn(t('Record this pass'), () => S.go(), { kind: 'blue', size: 'big', icon: 'mic' }),
     ];
   } else if (S.phase === 'review') {
     main = [h('div', { class: 'grow' }, passReviewCard())];
@@ -483,27 +492,27 @@ function renderSession() {
     main = [
       counter,
       h('div', { class: 'grow' },
-        h('p', { class: 'session-hint' }, paused ? 'Paused. Press play (or Space) to restart this pass.' : S.phase === 'recording' ? 'Recording… shadow along now.' : S.phase === 'gap' ? `Next pass in a moment · ${left} to go` : st.speak ? 'Speak along with the speaker.' : 'Listen only.'),
-        S.liveThisPass || S.phase === 'recording' ? [h('p', { class: 'small muted' }, 'Your pitch line is drawing in the panel below.'), micControl()] : null),
-      btn('', () => S.togglePause(), { icon: paused ? 'play' : 'pause', title: paused ? 'Resume (Space)' : 'Pause (Space)', kind: paused ? 'primary' : '' }),
-      btn('', () => S.repeatPass(), { icon: 'replay', title: 'Repeat this pass without counting it (R)' }),
+        h('p', { class: 'session-hint' }, paused ? t('Paused. Press play (or Space) to restart this pass.') : S.phase === 'recording' ? t('Recording… shadow along now.') : S.phase === 'gap' ? t('Next pass in a moment · {n} to go', { n: left }) : st.speak ? t('Speak along with the speaker.') : t('Listen only.')),
+        S.liveThisPass || S.phase === 'recording' ? [h('p', { class: 'small muted' }, t('Your pitch line is drawing in the panel below.')), micControl()] : null),
+      btn('', () => S.togglePause(), { icon: paused ? 'play' : 'pause', title: paused ? t('Resume (Space)') : t('Pause (Space)'), kind: paused ? 'primary' : '' }),
+      btn('', () => S.repeatPass(), { icon: 'replay', title: t('Repeat this pass without counting it (R)') }),
     ];
   }
   const showCant = st && st.key === 'shadow' && S.pass >= settings().shortenHintAfter && S.phase !== 'review';
   mount(el,
     h('div', { class: 'row', style: { marginBottom: '10px' } },
-      h('span', { class: 'label' }, S.mode === 'badday' ? 'Bad-day session' : S.mode === 'review' ? 'Review run' : 'Today’s session'),
+      h('span', { class: 'label' }, S.mode === 'badday' ? t('Bad-day session') : S.mode === 'review' ? t('Review run') : t('Today’s session')),
       h('strong', { class: 'grow', style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, clip ? clipName(clip) : ''),
-      S.queue.length ? h('span', { class: 'queue-pill' }, `${S.queue.length} more queued`) : null,
+      S.queue.length ? h('span', { class: 'queue-pill' }, tp(S.queue.length, '{n} more queued', '{n} more queued')) : null,
       h('span', { class: 'timer row' }, icon('clock', 'width="18" height="18"'), h('span', { id: 'sessTimer' }, S.timerText()))),
     steps,
     h('div', { class: 'session-main' }, main),
     h('div', { class: 'row', style: { marginTop: '12px' } },
-      showCant ? btn('I can’t keep up', () => S.flagCantKeepUp(), { size: 'sm', kind: 'wattle' }) : null,
-      S.mode === 'full' && S.stepIdx <= 1 ? btn('Bad day? Switch to 5 min', () => S.switchToBadDay(), { size: 'sm', icon: 'bad' }) : null,
+      showCant ? btn(t('I can’t keep up'), () => S.flagCantKeepUp(), { size: 'sm', kind: 'wattle' }) : null,
+      S.mode === 'full' && S.stepIdx <= 1 ? btn(t('Bad day? Switch to 5 min'), () => S.switchToBadDay(), { size: 'sm', icon: 'bad' }) : null,
       h('span', { class: 'spacer' }),
-      btn('Skip step', () => S.skipStep(), { size: 'sm', icon: 'skip' }),
-      btn('End session', () => S.finish(true), { size: 'sm', kind: 'danger', icon: 'stop', title: 'End now; progress so far is saved' })));
+      btn(t('Skip step'), () => S.skipStep(), { size: 'sm', icon: 'skip' }),
+      btn(t('End session'), () => S.finish(true), { size: 'sm', kind: 'danger', icon: 'stop', title: t('End now; progress so far is saved') })));
 }
 
 Session.skipRecording = function () {
@@ -532,7 +541,7 @@ async function uploadPassRecording(file) {
     S.phase = 'review';
     renderSession(); renderPanel();
   } catch (e) {
-    toast(`That file couldn’t be read as audio (${e.message || 'error'}).`, 'bad');
+    toast(t('That file couldn’t be read as audio ({error}).', { error: e.message || 'error' }), 'bad');
   }
 }
 
@@ -560,7 +569,7 @@ function playSynced(clip, url, analysis, { withOriginal = false, then } = {}) {
     Player.play();
     if (startAt >= 0) { a.currentTime = startAt; a.play().catch(() => {}); } else setTimeout(() => a.play().catch(() => {}), -startAt * 1000);
   };
-  a.addEventListener('error', () => { restoreMute(); toast('The recording couldn’t play.', 'bad'); }, { once: true });
+  a.addEventListener('error', () => { restoreMute(); toast(t('The recording couldn’t play.'), 'bad'); }, { once: true });
   if (a.readyState >= 1) go(); else a.addEventListener('loadedmetadata', go, { once: true });
   a.load();
   return a;
@@ -576,22 +585,22 @@ function passReviewCard() {
   const step3 = R.slot === 'final' ? Store.get('recordings', S.doc.recs.step3) : null;
   return h('div', { class: 'stack' },
     h('div', { class: 'row' },
-      h('h3', { class: 'grow' }, R.slot === 'final' ? 'Final pass recorded' : 'Pass recorded'),
+      h('h3', { class: 'grow' }, R.slot === 'final' ? t('Final pass recorded') : t('Pass recorded')),
       an ? h('span', { class: 'lag' }, fmtLag(an.lag)) : null,
-      an && an.manual ? h('span', { class: 'small muted' }, settings().alignMode === 'manual' ? '(manual offset)' : '(auto-alignment unsure; manual offset used)') : null),
+      an && an.manual ? h('span', { class: 'small muted' }, settings().alignMode === 'manual' ? t('(manual offset)') : t('(auto-alignment unsure; manual offset used)')) : null),
     h('div', { class: 'row' },
-      btn('Original', () => playOriginal(clip), { size: 'sm', icon: 'play' }),
-      btn('Mine', () => playMine(clip, R.url, an), { size: 'sm', icon: 'mic' }),
-      btn('Original then mine', () => playOriginal(clip, () => setTimeout(() => playMine(clip, R.url, an), 300)), { size: 'sm' }),
-      btn('Both together', () => playBoth(clip, R.url, an), { size: 'sm' }),
-      btn('', () => { Player2.stop(); Player.v.pause(); Player.v.muted = UI.volume === 0; Session.preview = null; }, { size: 'sm', icon: 'stop', title: 'Stop playback' })),
-    step3 ? h('div', { class: 'row' }, h('span', { class: 'small muted grow' }, 'Compare with your step 3 recording from this session:'),
-      btn('Compare overlaid', () => openCompare(step3.id, R.recId, R.url), { size: 'sm', kind: 'blue' })) : null,
+      btn(t('Original'), () => playOriginal(clip), { size: 'sm', icon: 'play' }),
+      btn(t('Mine'), () => playMine(clip, R.url, an), { size: 'sm', icon: 'mic' }),
+      btn(t('Original then mine'), () => playOriginal(clip, () => setTimeout(() => playMine(clip, R.url, an), 300)), { size: 'sm' }),
+      btn(t('Both together'), () => playBoth(clip, R.url, an), { size: 'sm' }),
+      btn('', () => { Player2.stop(); Player.v.pause(); Player.v.muted = UI.volume === 0; Session.preview = null; }, { size: 'sm', icon: 'stop', title: t('Stop playback') })),
+    step3 ? h('div', { class: 'row' }, h('span', { class: 'small muted grow' }, t('Compare with your step 3 recording from this session:')),
+      btn(t('Compare overlaid'), () => openCompare(step3.id, R.recId, R.url), { size: 'sm', kind: 'blue' })) : null,
     noteForm({ clipId: clip.id, sessionId: S.doc.id, recId: R.recId, pass: S.pass, step: S.step().key }),
     h('div', { class: 'row' },
-      btn('Redo this pass', () => S.repeatPass(), { kind: 'ghost', icon: 'replay' }),
+      btn(t('Redo this pass'), () => S.repeatPass(), { kind: 'ghost', icon: 'replay' }),
       h('span', { class: 'spacer' }),
-      btn('Continue', () => S.continueAfterReview(), { kind: 'primary', size: 'big', icon: 'play' })));
+      btn(t('Continue'), () => S.continueAfterReview(), { kind: 'primary', size: 'big', icon: 'play' })));
 }
 
 /* ---------- idle strip: what to practise today ---------- */
@@ -606,26 +615,26 @@ function idleSession() {
       h('div', { class: 'grow' },
         h('span', { class: 'label' }, `${dayName(new Date().getDay())} · ${sugg.title}`),
         h('p', null, sugg.text)),
-      sugg.clipId && sugg.clipId !== UI.clipId ? btn('Select it', () => selectClip(sugg.clipId), { size: 'sm' }) : null),
+      sugg.clipId && sugg.clipId !== UI.clipId ? btn(t('Select it'), () => selectClip(sugg.clipId), { size: 'sm' }) : null),
     h('div', { class: 'row' },
-      btn(queued.length > 1 ? `Start queue (${queued.length} clips)` : 'Start 15-minute session', () => Session.start(queued.length ? queued : [UI.clipId], 'full'),
+      btn(queued.length > 1 ? t('Start queue ({n} clips)', { n: queued.length }) : t('Start 15-minute session'), () => Session.start(queued.length ? queued : [UI.clipId], 'full'),
         { kind: 'primary', size: 'big', icon: 'play', disabled: !clip && !queued.length }),
-      btn(`Bad-day session (${s.badMinutes} min)`, () => Session.start(queued.length ? queued : [UI.clipId], 'badday'), { icon: 'bad', disabled: !clip && !queued.length }),
-      reviewDue.length ? btn(`Review run (${reviewDue.length} due)`, () => Session.start(reviewDue.map((c) => c.id), 'review'), { kind: 'blue', icon: 'history' }) : null,
-      clip ? h('span', { class: 'small muted' }, clip.done ? `“${clipName(clip)}” is done. Practise it again any time.` : `Clip: ${clipName(clip)} · ${fmtSec(clip.end - clip.start)}`) : h('span', { class: 'small muted' }, 'Select a clip on the timeline or in the library.')));
+      btn(t('Bad-day session ({n} min)', { n: s.badMinutes }), () => Session.start(queued.length ? queued : [UI.clipId], 'badday'), { icon: 'bad', disabled: !clip && !queued.length }),
+      reviewDue.length ? btn(t('Review run ({n} due)', { n: reviewDue.length }), () => Session.start(reviewDue.map((c) => c.id), 'review'), { kind: 'blue', icon: 'history' }) : null,
+      clip ? h('span', { class: 'small muted' }, clip.done ? t('“{clip}” is done. Practise it again any time.', { clip: clipName(clip) }) : t('Clip: {clip} · {len}', { clip: clipName(clip), len: fmtSec(clip.end - clip.start) })) : h('span', { class: 'small muted' }, t('Select a clip on the timeline or in the library.'))));
 }
 
 function rotationSuggestion() {
   const today = new Date().getDay();
   const yesterday = addDays(dayKey(), -1);
   const lastSess = Store.all('sessions').filter((x) => x.date === yesterday && !x.empty).sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1))[0];
-  if (today === 0) return { title: 'Rest day', text: 'Sunday is the suggested rest day. A short session still counts if you feel like it.' };
+  if (today === 0) return { title: t('Rest day'), text: t('Sunday is the suggested rest day. A short session still counts if you feel like it.') };
   if ([2, 4, 6].includes(today) && lastSess) {
     const c = Store.get('clips', lastSess.clipId);
-    if (c) return { title: 'Repeat day', text: `Suggested: repeat yesterday’s clip, “${clipName(c)}”.`, clipId: c.id };
+    if (c) return { title: t('Repeat day'), text: t('Suggested: repeat yesterday’s clip, “{clip}”.', { clip: clipName(c) }), clipId: c.id };
   }
-  if ([1, 3, 5].includes(today)) return { title: 'New clip day', text: 'Suggested: start a new clip today (Mon, Wed and Fri are new-clip days).' };
-  return { title: 'Practice day', text: 'Pick any clip. The rotation is only a suggestion.' };
+  if ([1, 3, 5].includes(today)) return { title: t('New clip day'), text: t('Suggested: start a new clip today (Mon, Wed and Fri are new-clip days).') };
+  return { title: t('Practice day'), text: t('Pick any clip. The rotation is only a suggestion.') };
 }
 function reviewDueClips() {
   const s = settings();
@@ -640,17 +649,17 @@ function showSessionSummary(sum, streakBefore, nextClipId) {
   if (sum.tickNew || grew) celebrate(sum.tickNew ? 1.2 : 0.8);
   const recs = [sum.recs.step3, sum.recs.final].filter(Boolean);
   openModal([
-    modalHead(sum.complete ? 'Session complete!' : 'Session saved'),
+    modalHead(sum.complete ? t('Session complete!') : t('Session saved')),
     h('div', { class: 'card celebrate' },
       h('div', { class: 'big-num' }, `${info.streak}`),
-      h('p', null, h('strong', null, `day streak${grew ? ' · it grew!' : ''}`)),
-      h('p', { class: 'muted' }, `${sum.passes} passes · ${sum.minutes} min · ${info.weekCount}/${settings().weeklyTarget} sessions this week`),
-      sum.tickNew ? h('p', { class: 'formok' }, `“${clipName(clip)}” gets its tick.`) : null,
-      !sum.complete && sum.mode === 'full' ? h('p', { class: 'small muted' }, 'Progress so far is saved. The clip gets its tick after one complete session.') : null),
-    recs.length === 2 ? btn('Compare step 3 with your final pass', () => openCompare(sum.recs.step3, sum.recs.final), { kind: 'blue' }) : null,
+      h('p', null, h('strong', null, grew ? tp(info.streak, 'day streak · it grew!', 'day streak · it grew!') : tp(info.streak, 'day streak', 'day streak'))),
+      h('p', { class: 'muted' }, tp(sum.passes, '{n} pass · {min} min · {week}/{target} sessions this week', '{n} passes · {min} min · {week}/{target} sessions this week', { min: sum.minutes, week: info.weekCount, target: settings().weeklyTarget })),
+      sum.tickNew ? h('p', { class: 'formok' }, t('“{clip}” gets its tick.', { clip: clipName(clip) })) : null,
+      !sum.complete && sum.mode === 'full' ? h('p', { class: 'small muted' }, t('Progress so far is saved. The clip gets its tick after one complete session.')) : null),
+    recs.length === 2 ? btn(t('Compare step 3 with your final pass'), () => openCompare(sum.recs.step3, sum.recs.final), { kind: 'blue' }) : null,
     h('div', { class: 'row' },
-      nextClipId ? btn('Next clip in the queue', () => { closeModal(); Session.begin(nextClipId, sum.mode === 'review' ? 'review' : 'full'); }, { kind: 'primary', size: 'big', icon: 'play' }) : btn('Done', () => closeModal(), { kind: 'primary', size: 'big' }),
-      btn('Clip history', () => openHistory(sum.clipId), { icon: 'history' }),
+      nextClipId ? btn(t('Next clip in the queue'), () => { closeModal(); Session.begin(nextClipId, sum.mode === 'review' ? 'review' : 'full'); }, { kind: 'primary', size: 'big', icon: 'play' }) : btn(t('Done'), () => closeModal(), { kind: 'primary', size: 'big' }),
+      btn(t('Clip history'), () => openHistory(sum.clipId), { icon: 'history' }),
       h('span', { class: 'spacer' }),
       deleteSessionButton(sum.sessionId, () => closeModal())),
   ], { narrow: true });

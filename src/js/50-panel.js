@@ -41,39 +41,39 @@ function renderPanel() {
 
 function panelEmpty() {
   if (UI.cutMode) return [
-    h('div', { class: 'panel-head' }, h('h3', null, 'New clip'), h('span', { class: 'spacer' }), btn('Done', () => setCutMode(false), { size: 'sm', kind: 'ghost', title: 'Leave clip mode (Esc)' })),
+    h('div', { class: 'panel-head' }, h('h3', null, t('New clip')), h('span', { class: 'spacer' }), btn(t('Done'), () => setCutMode(false), { size: 'sm', kind: 'ghost', title: t('Leave clip mode (Esc)') })),
     h('div', { class: 'newclip-box' },
-      h('p', null, h('strong', null, 'Select a part of the video on the scrub bar'), ' by dragging along it.'),
-      h('p', { class: 'muted' }, 'Or play the video and press ', h('strong', null, 'Start'), ' (I) under the video where the sentence begins, then ', h('strong', null, 'End'), ' (O) where it finishes.'))];
+      h('p', null, t('Select a part of the video on the scrub bar by dragging along it.')),
+      h('p', { class: 'muted' }, t('Or play the video and press Start (I) under the video where the sentence begins, then End (O) where it finishes.')))];
   return h('div', { class: 'panel-msg' },
-    h('h3', null, 'Analysis panel'),
-    h('p', null, 'Select a clip to see the speaker’s pitch line, or press Cut clips under the video to make a new one.'));
+    h('h3', null, t('Analysis panel')),
+    h('p', null, t('Select a clip to see the speaker’s pitch line, or press Cut clips under the video to make a new one.')));
 }
 
 /* ---------- analysis view ---------- */
 function buildAnalysis(clip) {
   const vid = Store.get('videos', clip.videoId);
   const audio = VideoAudio.state(clip.videoId);
-  const canvas = h('canvas', { class: 'analysis', 'aria-label': UI.overlay ? 'Pitch or loudness of the speaker and you on one chart' : 'Pitch or loudness lanes: speaker on top, you below' });
+  const canvas = h('canvas', { class: 'analysis', 'aria-label': UI.overlay ? t('Pitch or loudness of the speaker and you on one chart') : t('Pitch or loudness lanes: speaker on top, you below') });
   Panel.canvas = canvas;
   const head = h('div', { class: 'panel-head' },
-    h('div', { class: 'seg', role: 'group', 'aria-label': 'View' },
-      h('button', { type: 'button', class: UI.view === 'pitch' ? 'on' : '', onclick: () => { UI.view = 'pitch'; renderPanel(); } }, 'Pitch'),
-      h('button', { type: 'button', class: UI.view === 'wave' ? 'on' : '', onclick: () => { UI.view = 'wave'; renderPanel(); } }, 'Waveform')),
-    h('div', { class: 'seg', role: 'group', 'aria-label': 'Layout' },
-      h('button', { type: 'button', class: UI.overlay ? '' : 'on', title: 'Speaker on top, you below', onclick: () => setOverlay(false) }, 'Separate'),
-      h('button', { type: 'button', class: UI.overlay ? 'on' : '', title: 'Both lines on one chart', onclick: () => setOverlay(true) }, 'Overlaid')),
+    h('div', { class: 'seg', role: 'group', 'aria-label': t('View') },
+      h('button', { type: 'button', class: UI.view === 'pitch' ? 'on' : '', onclick: () => { UI.view = 'pitch'; renderPanel(); } }, t('Pitch')),
+      h('button', { type: 'button', class: UI.view === 'wave' ? 'on' : '', onclick: () => { UI.view = 'wave'; renderPanel(); } }, t('Waveform'))),
+    h('div', { class: 'seg', role: 'group', 'aria-label': t('Layout') },
+      h('button', { type: 'button', class: UI.overlay ? '' : 'on', title: t('Speaker on top, you below'), onclick: () => setOverlay(false) }, t('Separate')),
+      h('button', { type: 'button', class: UI.overlay ? 'on' : '', title: t('Both lines on one chart'), onclick: () => setOverlay(true) }, t('Overlaid'))),
     h('span', { class: 'lag', id: 'lagLabel' }),
     h('span', { class: 'spacer' }),
     h('span', { class: 'small muted', id: 'relLabel' }),
-    !Session.active ? btn('Edit clip', () => editClip(clip.id), { icon: 'scissors', title: 'Change the clip’s start, end, length or label' }) : null,
-    btn(clip.noisy ? 'Flagged noisy' : 'Too noisy?', () => { Store.patch('clips', clip.id, { noisy: !clip.noisy }); toast(clip.noisy ? 'Clip flagged as too noisy. Its pitch line is shown faded.' : 'Noisy flag removed.'); renderPanel(); renderSidebar(); },
-      { icon: 'flag', on: clip.noisy, title: 'Flag this clip as too noisy for a reliable pitch line' }));
+    !Session.active ? btn(t('Edit clip'), () => editClip(clip.id), { icon: 'scissors', title: t('Change the clip’s start, end, length or label') }) : null,
+    btn(clip.noisy ? t('Flagged noisy') : t('Too noisy?'), () => { Store.patch('clips', clip.id, { noisy: !clip.noisy }); toast(clip.noisy ? t('Clip flagged as too noisy. Its pitch line is shown faded.') : t('Noisy flag removed.')); renderPanel(); renderSidebar(); },
+      { icon: 'flag', on: clip.noisy, title: t('Flag this clip as too noisy for a reliable pitch line') }));
   if (!clip.model) {
     let msg;
-    if (audio.status === 'loading' || audio.status === 'decoding') msg = h('p', null, `Reading the video’s sound… ${audio.progress ? Math.round(audio.progress * 100) + '%' : ''}`);
-    else if (audio.status === 'error') msg = [h('p', null, audio.error), filePickButton('Load the video file from this device', 'video/*,audio/*', (f) => useLocalFile(vid, f), { kind: 'primary', icon: 'folder' })];
-    else msg = [h('p', null, 'The model line for this clip hasn’t been worked out yet.'), btn('Work it out now', () => ensureModels(vid).then(renderPanel), { kind: 'primary' })];
+    if (audio.status === 'loading' || audio.status === 'decoding') msg = h('p', null, t('Reading the video’s sound… {pct}', { pct: audio.progress ? Math.round(audio.progress * 100) + '%' : '' }));
+    else if (audio.status === 'error') msg = [h('p', null, audio.error), filePickButton(t('Load the video file from this device'), 'video/*,audio/*', (f) => useLocalFile(vid, f), { kind: 'primary', icon: 'folder' })];
+    else msg = [h('p', null, t('The model line for this clip hasn’t been worked out yet.')), btn(t('Work it out now'), () => ensureModels(vid).then(renderPanel), { kind: 'primary' })];
     return [head, h('div', { class: 'panel-msg' }, msg), canvas];
   }
   bindAnalysisCanvas(canvas, clip);
@@ -97,9 +97,9 @@ function bindAnalysisCanvas(canvas, clip) {
 
 function updateAnalysisHead(clip) {
   const lag = $('#lagLabel');
-  if (lag) lag.textContent = Panel.lastPass && Panel.lastPass.clipId === clip.id ? `Last pass: ${fmtLag(Panel.lastPass.lag)}${Panel.lastPass.manual ? ' (manual offset)' : ''}` : '';
+  if (lag) lag.textContent = Panel.lastPass && Panel.lastPass.clipId === clip.id ? (Panel.lastPass.manual ? t('Last pass: {lag} (manual offset)', { lag: fmtLag(Panel.lastPass.lag) }) : t('Last pass: {lag}', { lag: fmtLag(Panel.lastPass.lag) })) : '';
   const rel = $('#relLabel');
-  if (rel && clip.model) rel.textContent = clip.model.reliability < 0.55 || clip.noisy ? 'Pitch line unreliable in places' : '';
+  if (rel && clip.model) rel.textContent = clip.model.reliability < 0.55 || clip.noisy ? t('Pitch line unreliable in places') : '';
 }
 
 /* tiny "higher / lower" marks so it's clear which way is up on a pitch chart */
@@ -110,8 +110,8 @@ function pitchHints(g, W, dpr, lanes, color) {
   g.font = `700 ${9.5 * dpr}px Nunito, system-ui, sans-serif`;
   g.textAlign = 'right';
   for (const L of lanes) {
-    g.fillText('▲ higher', W - 8 * dpr, L.top + 13 * dpr);
-    g.fillText('▼ lower', W - 8 * dpr, L.top + L.h - 6 * dpr);
+    g.fillText(t('▲ higher'), W - 8 * dpr, L.top + 13 * dpr);
+    g.fillText(t('▼ lower'), W - 8 * dpr, L.top + L.h - 6 * dpr);
   }
   g.restore();
 }
@@ -126,7 +126,7 @@ function sizeCanvas(c) {
 function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 
 /* draws the speaker and you either in two lanes, or overlaid on one chart */
-Panel.drawAnalysis = function (t) {
+Panel.drawAnalysis = function (now) {
   const c = this.canvas;
   const clip = Store.get('clips', UI.clipId);
   if (!c || !clip || !clip.model) return;
@@ -138,8 +138,8 @@ Panel.drawAnalysis = function (t) {
   const ov = !!UI.overlay;
   const green = cssVar('--green'), sky = cssVar('--sky');
   const lanes = ov
-    ? [{ top: 0, h: H, name: 'Speaker', color: green }, { top: 0, h: H, name: 'You', color: sky }]
-    : [{ top: 0, h: H / 2 - 2 * dpr, name: 'Speaker', color: green }, { top: H / 2 + 2 * dpr, h: H / 2 - 2 * dpr, name: 'You', color: sky }];
+    ? [{ top: 0, h: H, name: t('Speaker'), color: green }, { top: 0, h: H, name: t('You'), color: sky }]
+    : [{ top: 0, h: H / 2 - 2 * dpr, name: t('Speaker'), color: green }, { top: H / 2 + 2 * dpr, h: H / 2 - 2 * dpr, name: t('You'), color: sky }];
   const muted = cssVar('--muted'), line = cssVar('--line');
   g.font = `800 ${11 * dpr}px Nunito, system-ui, sans-serif`;
   for (const L of ov ? lanes.slice(0, 1) : lanes) {
@@ -160,10 +160,10 @@ Panel.drawAnalysis = function (t) {
   if (UI.view === 'pitch') {
     g.fillStyle = muted;
     g.textAlign = 'right';
-    if (ov) g.fillText('each voice’s own average', W - 8 * dpr, H / 2 - 5 * dpr);
+    if (ov) g.fillText(t('each voice’s own average'), W - 8 * dpr, H / 2 - 5 * dpr);
     else {
-      g.fillText('speaker’s average', W - 8 * dpr, lanes[0].top + lanes[0].h / 2 - 5 * dpr);
-      g.fillText('your average', W - 8 * dpr, lanes[1].top + lanes[1].h / 2 - 5 * dpr);
+      g.fillText(t('speaker’s average'), W - 8 * dpr, lanes[0].top + lanes[0].h / 2 - 5 * dpr);
+      g.fillText(t('your average'), W - 8 * dpr, lanes[1].top + lanes[1].h / 2 - 5 * dpr);
     }
     g.textAlign = 'left';
   }
@@ -247,14 +247,14 @@ Panel.drawAnalysis = function (t) {
   } else {
     g.fillStyle = muted;
     g.textAlign = 'center';
-    g.fillText(Mic.error && Session.active ? 'Microphone unavailable' : 'Your line appears here when you record a pass', W / 2, ov ? H - 12 * dpr : lanes[1].top + lanes[1].h * 0.25);
+    g.fillText(Mic.error && Session.active ? t('Microphone unavailable') : t('Your line appears here when you record a pass'), W / 2, ov ? H - 12 * dpr : lanes[1].top + lanes[1].h * 0.25);
     g.textAlign = 'left';
   }
 
   // playhead
-  if (t >= clip.start - 0.5 && t <= clip.end + 0.5) {
+  if (now >= clip.start - 0.5 && now <= clip.end + 0.5) {
     g.fillStyle = cssVar('--ochre');
-    g.fillRect(x(clamp(t - clip.start, 0, dur)) - dpr, 0, 2 * dpr, H);
+    g.fillRect(x(clamp(now - clip.start, 0, dur)) - dpr, 0, 2 * dpr, H);
   }
 };
 
@@ -263,7 +263,7 @@ const MARGIN = 1.5;
 function buildEditor(vid) {
   const s = settings();
   const audio = VideoAudio.state(vid.id);
-  const canvas = h('canvas', { class: 'editor', 'aria-label': 'Zoomed waveform of the selection; drag the yellow edges onto quiet gaps' });
+  const canvas = h('canvas', { class: 'editor', 'aria-label': t('Zoomed waveform of the selection; drag the yellow edges onto quiet gaps') });
   Panel.canvas = canvas;
   bindEditorCanvas(canvas);
   const R = Panel.refs;
@@ -277,42 +277,42 @@ function buildEditor(vid) {
   // typed times: m:ss.s or plain seconds; length moves the end
   const applyTyped = (which, raw) => {
     const v = parseTime(raw);
-    if (v == null) { toast('Type a time like 3:35.2 or a number of seconds.'); updateEditor(); return; }
+    if (v == null) { toast(t('Type a time like 3:35.2 or a number of seconds.')); updateEditor(); return; }
     const d = Player.duration() || 1e9;
     if (which === 'start') UI.sel.start = clamp(round(v, 2), 0, UI.sel.end - 0.5);
     else if (which === 'end') UI.sel.end = clamp(round(v, 2), UI.sel.start + 0.5, d);
     else UI.sel.end = clamp(round(UI.sel.start + Math.max(0.5, v), 2), UI.sel.start + 0.5, d);
     Panel.editor = null; updateEditor(); renderScrubber(); loadSelAudio();
   };
-  const timeInput = (which, id) => h('input', { type: 'text', id, class: 'num time-in', inputmode: 'decimal', 'aria-label': which,
+  const timeInput = (which, id, aria) => h('input', { type: 'text', id, class: 'num time-in', inputmode: 'decimal', 'aria-label': aria,
     onchange: (e) => applyTyped(which, e.target.value), onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } });
-  R.startT = timeInput('start', 'selStart');
-  R.endT = timeInput('end', 'selEnd');
-  R.lenT = timeInput('length', 'selLen');
-  R.label = h('input', { type: 'text', id: 'clipLabel', placeholder: 'A few words of what’s said (optional)', value: UI.sel.label || '', oninput: (e) => { UI.sel.label = e.target.value; } });
+  R.startT = timeInput('start', 'selStart', t('Start@@clip edge'));
+  R.endT = timeInput('end', 'selEnd', t('End'));
+  R.lenT = timeInput('length', 'selLen', t('Length (s)'));
+  R.label = h('input', { type: 'text', id: 'clipLabel', placeholder: t('A few words of what’s said (optional)'), value: UI.sel.label || '', oninput: (e) => { UI.sel.label = e.target.value; } });
   let msg = null;
-  if (audio.status === 'loading' || audio.status === 'decoding') msg = h('p', { class: 'small muted', id: 'audioMsg' }, 'Reading the video’s sound for the zoomed waveform…');
-  else if (audio.status === 'error') msg = h('div', { class: 'row small' }, h('p', { class: 'grow muted' }, audio.error + ' You can still cut the clip with the nudge buttons and by ear.'), filePickButton('Load the file', 'video/*,audio/*', (f) => useLocalFile(vid, f), { size: 'sm', icon: 'folder' }));
+  if (audio.status === 'loading' || audio.status === 'decoding') msg = h('p', { class: 'small muted', id: 'audioMsg' }, t('Reading the video’s sound for the zoomed waveform…'));
+  else if (audio.status === 'error') msg = h('div', { class: 'row small' }, h('p', { class: 'grow muted' }, t('{error} You can still cut the clip with the nudge buttons and by ear.', { error: audio.error })), filePickButton(t('Load the file'), 'video/*,audio/*', (f) => useLocalFile(vid, f), { size: 'sm', icon: 'folder' }));
   const editing = UI.sel.clipId;
   const field = (label, forId, ...kids) => h('div', { class: 'efield' }, h('label', { class: 'label', for: forId }, label), h('div', { class: 'nudge' }, ...kids));
   return [
     h('div', { class: 'panel-head' },
-      h('h3', null, editing ? 'Edit clip' : 'New clip'),
+      h('h3', null, editing ? t('Edit clip') : t('New clip')),
       R.len,
-      h('span', { class: 'small muted' }, `aim for ${s.clipMin}–${s.clipMax} s`),
+      h('span', { class: 'small muted' }, t('aim for {min}–{max} s', { min: s.clipMin, max: s.clipMax })),
       h('span', { class: 'spacer' }),
-      (R.playSel = btn('Play selection', () => togglePlaySelection(), { icon: 'play', size: 'sm', id: 'playSelBtn' })),
-      btn('Cancel', () => cancelCut(), { kind: 'ghost', size: 'sm', title: 'Discard the selection and leave clip mode (Esc)' }),
-      btn('Save and shadow', () => saveSelection(true), { kind: 'blue', icon: 'mic', size: 'sm', title: 'Save the clip and start a session with it' }),
-      btn(editing ? 'Save changes' : 'Save clip', () => saveSelection(false), { kind: 'primary', icon: 'check', size: 'sm' })),
+      (R.playSel = btn(t('Play selection'), () => togglePlaySelection(), { icon: 'play', size: 'sm', id: 'playSelBtn' })),
+      btn(t('Cancel'), () => cancelCut(), { kind: 'ghost', size: 'sm', title: t('Discard the selection and leave clip mode (Esc)') }),
+      btn(t('Save and shadow'), () => saveSelection(true), { kind: 'blue', icon: 'mic', size: 'sm', title: t('Save the clip and start a session with it') }),
+      btn(editing ? t('Save changes') : t('Save clip'), () => saveSelection(false), { kind: 'primary', icon: 'check', size: 'sm' })),
     msg,
     canvas,
     R.warn,
     h('div', { class: 'editor-row' },
-      field('Start', 'selStart', R.startT, btn('−0.1', nudge('start', -0.1), { size: 'sm', title: 'Start 0.1 s earlier' }), btn('+0.1', nudge('start', 0.1), { size: 'sm', title: 'Start 0.1 s later' }), btn('Snap', () => snapEdge('start'), { size: 'sm', title: 'Move the start into the nearest pause' })),
-      field('End', 'selEnd', R.endT, btn('−0.1', nudge('end', -0.1), { size: 'sm', title: 'End 0.1 s earlier' }), btn('+0.1', nudge('end', 0.1), { size: 'sm', title: 'End 0.1 s later' }), btn('Snap', () => snapEdge('end'), { size: 'sm', title: 'Move the end into the nearest pause' })),
-      field('Length (s)', 'selLen', R.lenT),
-      h('div', { class: 'efield grow' }, h('label', { class: 'label', for: 'clipLabel' }, 'Label'), R.label)),
+      field(t('Start@@clip edge'), 'selStart', R.startT, btn('−0.1', nudge('start', -0.1), { size: 'sm', title: t('Start 0.1 s earlier') }), btn('+0.1', nudge('start', 0.1), { size: 'sm', title: t('Start 0.1 s later') }), btn(t('Snap'), () => snapEdge('start'), { size: 'sm', title: t('Move the start into the nearest pause') })),
+      field(t('End'), 'selEnd', R.endT, btn('−0.1', nudge('end', -0.1), { size: 'sm', title: t('End 0.1 s earlier') }), btn('+0.1', nudge('end', 0.1), { size: 'sm', title: t('End 0.1 s later') }), btn(t('Snap'), () => snapEdge('end'), { size: 'sm', title: t('Move the end into the nearest pause') })),
+      field(t('Length (s)'), 'selLen', R.lenT),
+      h('div', { class: 'efield grow' }, h('label', { class: 'label', for: 'clipLabel' }, t('Label')), R.label)),
   ];
 }
 
@@ -327,7 +327,7 @@ function syncPlaySelButton() {
   const b = $('#playSelBtn');
   if (!b) return;
   const playing = !Player.v.paused || Player.waitingLoop;
-  const next = btn(playing ? 'Stop' : 'Play selection', () => togglePlaySelection(), { icon: playing ? 'stop' : 'play', size: 'sm', id: 'playSelBtn' });
+  const next = btn(playing ? t('Stop') : t('Play selection'), () => togglePlaySelection(), { icon: playing ? 'stop' : 'play', size: 'sm', id: 'playSelBtn' });
   b.replaceWith(next);
   Panel.refs.playSel = next;
 }
@@ -366,18 +366,18 @@ function edgeOnSpeech(E, t) {
 function snapEdge(which) {
   const vid = Player.current();
   const E = editorData(vid);
-  if (!E.ready) { toast('The waveform isn’t available, so there are no gaps to snap to. Nudge by ear instead.'); return; }
-  const t = UI.sel[which];
+  if (!E.ready) { toast(t('The waveform isn’t available, so there are no gaps to snap to. Nudge by ear instead.')); return; }
+  const at = UI.sel[which];
   let best = null;
   for (const p of E.pauses) {
     const a = E.w0 + p.a * HOP_S, b = E.w0 + p.b * HOP_S;
     const mid = which === 'start' ? Math.max(a, b - 0.15) : Math.min(b, a + 0.15);
-    const d = Math.abs(mid - t);
+    const d = Math.abs(mid - at);
     if (d < 2 && (!best || d < best.d)) best = { d, t: mid };
   }
-  if (!best) { toast('No pause found within 2 seconds of that edge.'); return; }
+  if (!best) { toast(t('No pause found within 2 seconds of that edge.')); return; }
   UI.sel[which] = round(best.t, 2);
-  if (UI.sel.end - UI.sel.start < 1) { toast('Snapping there would make the clip too short.'); return; }
+  if (UI.sel.end - UI.sel.start < 1) { toast(t('Snapping there would make the clip too short.')); return; }
   updateEditor(); renderScrubber();
 }
 
@@ -398,14 +398,14 @@ function updateEditor() {
   const E = editorData(Player.current());
   const warns = [];
   if (E.ready) {
-    if (edgeOnSpeech(E, sel.start)) warns.push('The start lands mid-word. Move it into a gap.');
-    if (edgeOnSpeech(E, sel.end)) warns.push('The end lands mid-word. Move it into a gap so the sentence isn’t cut in half.');
+    if (edgeOnSpeech(E, sel.start)) warns.push(t('The start lands mid-word. Move it into a gap.'));
+    if (edgeOnSpeech(E, sel.end)) warns.push(t('The end lands mid-word. Move it into a gap so the sentence isn’t cut in half.'));
   }
   R.warn.textContent = warns.join(' ');
   Panel.drawEditor(Player.time());
 }
 
-Panel.drawEditor = function (t) {
+Panel.drawEditor = function (now) {
   const c = this.canvas;
   const vid = Player.current();
   if (!c || !UI.sel || !vid) return;
@@ -442,7 +442,7 @@ Panel.drawEditor = function (t) {
     g.fillStyle = cssVar('--muted');
     g.font = `800 ${12 * dpr}px Nunito, system-ui, sans-serif`;
     g.textAlign = 'center';
-    g.fillText('Waveform unavailable', W / 2, H / 2);
+    g.fillText(t('Waveform unavailable'), W / 2, H / 2);
     g.textAlign = 'left';
   }
   // edges as brackets
@@ -455,7 +455,7 @@ Panel.drawEditor = function (t) {
     g.fillRect(dir > 0 ? xx : xx - 12 * dpr, H - 4 * dpr, 12 * dpr, 4 * dpr);
   }
   // playhead
-  if (t >= v0 && t <= v1) { g.fillStyle = cssVar('--ochre'); g.fillRect(X(t) - dpr, 0, 2 * dpr, H); }
+  if (now >= v0 && now <= v1) { g.fillStyle = cssVar('--ochre'); g.fillRect(X(now) - dpr, 0, 2 * dpr, H); }
 };
 
 function bindEditorCanvas(c) {
@@ -497,10 +497,10 @@ function saveSelection(shadowNow) {
   let clip;
   if (sel.clipId) {
     clip = Store.patch('clips', sel.clipId, { start: round(sel.start, 2), end: round(sel.end, 2), label: (sel.label || '').trim(), model: null });
-    toast('Clip updated.', 'good');
+    toast(t('Clip updated.'), 'good');
   } else {
     clip = Store.put('clips', { videoId: vid.id, start: round(sel.start, 2), end: round(sel.end, 2), label: (sel.label || '').trim(), done: false, archived: false, noisy: false, created: new Date().toISOString() });
-    toast('Clip saved. Cut another, or shadow it now.', 'good');
+    toast(t('Clip saved. Cut another, or shadow it now.'), 'good');
   }
   if (!computeModel(clip)) ensureModels(vid);
   UI.sel = null;

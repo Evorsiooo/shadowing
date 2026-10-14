@@ -87,7 +87,7 @@ const VideoAudio = {
         }
         if (!lastErr.permanent) {
           e.status = 'error';
-          e.error = `Couldn't read the video's sound (${lastErr.message || 'network error'}). Try again in a moment.`;
+          e.error = t('Couldn’t read the video’s sound ({msg}). Try again in a moment.', { msg: lastErr.message || t('network error') });
           Bus.emit('videoaudio', video.id);
           return e;
         }
@@ -98,7 +98,7 @@ const VideoAudio = {
       const size = local ? 0 : video.size || 0;
       if (size > 150 * 1024 * 1024) {
         e.status = 'error';
-        e.error = `This video's sound can't be read in pieces in this browser (${e.mp4Failed}), and the file is too big (${Math.round(size / 1048576)} MB) to read whole. Chrome or Edge can read it.`;
+        e.error = t('This video’s sound can’t be read in pieces in this browser ({reason}), and the file is too big ({mb} MB) to read whole. Chrome or Edge can read it.', { reason: e.mp4Failed, mb: Math.round(size / 1048576) });
         Bus.emit('videoaudio', video.id);
         return e;
       }
@@ -147,8 +147,8 @@ const VideoAudio = {
     } catch (e) {
       entry.status = 'error';
       entry.error = e.code === 'blocked'
-        ? "This video's host doesn't let the app read its sound (no CORS permission, or the page's security rules block it). Playback still works if the video plays. For the waveform and pitch line, load a copy of the video file from this device."
-        : e.code === 'http' ? `The video link answered with an error (${e.message}).` : `The sound couldn't be decoded (${e.message || 'unknown error'}).`;
+        ? t('This video’s host doesn’t let the app read its sound (no CORS permission, or the page’s security rules block it). Playback still works if the video plays. For the waveform and pitch line, load a copy of the video file from this device.')
+        : e.code === 'http' ? t('The video link answered with an error ({msg}).', { msg: e.message }) : t('The sound couldn’t be decoded ({msg}).', { msg: e.message || t('unknown error') });
     }
   },
 };
@@ -186,7 +186,7 @@ const Mic = {
     const s = settings();
     const ctx = AudioEng.getCtx();
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      this.error = 'This browser view has no microphone access.';
+      this.error = t('This browser view has no microphone access.');
       return false;
     }
     try {
@@ -197,14 +197,14 @@ const Mic = {
         // the chosen mic is unplugged: fall back to the default one
         if (!s.micDeviceId || (e.name !== 'OverconstrainedError' && e.name !== 'NotFoundError')) throw e;
         this.stream = await navigator.mediaDevices.getUserMedia({ audio });
-        toast('Your chosen microphone isn’t connected, so the default one is being used.');
+        toast(t('Your chosen microphone isn’t connected, so the default one is being used.'));
       }
     } catch (e) {
       this.error = e && e.name === 'NotAllowedError'
         ? (Caps.inArtifact
-          ? 'Microphone access was refused. Inside a Claude artifact the microphone is blocked; use the website version to record, or upload recordings from your phone.'
-          : 'Microphone access was refused. Allow the microphone for this site in your browser’s address bar, then try again.')
-        : e && e.name === 'NotFoundError' ? 'No microphone was found.' : `The microphone couldn't start (${(e && e.name) || 'error'}).`;
+          ? t('Microphone access was refused. Inside a Claude artifact the microphone is blocked; use the website version to record, or upload recordings from your phone.')
+          : t('Microphone access was refused. Allow the microphone for this site in your browser’s address bar, then try again.'))
+        : e && e.name === 'NotFoundError' ? t('No microphone was found.') : t('The microphone couldn’t start ({name}).', { name: (e && e.name) || 'error' });
       return false;
     }
     this.error = null;
@@ -285,30 +285,30 @@ const Mic = {
 function micControl() {
   const s = settings();
   const fill = h('i', { style: { width: '0%' } });
-  const meter = h('div', { class: 'bar mic-meter', title: 'Microphone level' }, fill);
+  const meter = h('div', { class: 'bar mic-meter', title: t('Microphone level') }, fill);
   const val = h('span', { class: 'small muted num' });
-  const slider = h('input', { type: 'range', id: 'micGain', min: 0.5, max: 12, step: 0.5, value: s.micGain, 'aria-label': 'Microphone boost', disabled: s.micAuto,
+  const slider = h('input', { type: 'range', id: 'micGain', min: 0.5, max: 12, step: 0.5, value: s.micGain, 'aria-label': t('Microphone boost'), disabled: s.micAuto,
     oninput: (e) => { const x = +e.target.value; saveSettings({ micGain: x }); Mic.setGain(x); val.textContent = `${x}x`; } });
-  val.textContent = s.micAuto ? 'auto' : `${s.micGain}x`;
+  val.textContent = s.micAuto ? t('auto') : `${s.micGain}x`;
   const auto = h('label', { class: 'check', for: 'micAuto' }, h('input', { type: 'checkbox', id: 'micAuto', checked: s.micAuto, onchange: (e) => {
     saveSettings({ micAuto: e.target.checked });
     slider.disabled = e.target.checked;
-    val.textContent = e.target.checked ? 'auto' : `${settings().micGain}x`;
+    val.textContent = e.target.checked ? t('auto') : `${settings().micGain}x`;
     if (!e.target.checked) Mic.setGain(settings().micGain);
-    if (Mic.stream) toast('Re-open the microphone (next pass) for the browser part of automatic volume to change.');
-  } }), 'Automatic volume');
-  const pick = h('select', { id: 'micDevice', 'aria-label': 'Microphone', class: 'mic-select', onchange: async (e) => {
+    if (Mic.stream) toast(t('Re-open the microphone (next pass) for the browser part of automatic volume to change.'));
+  } }), t('Automatic volume'));
+  const pick = h('select', { id: 'micDevice', 'aria-label': t('Microphone'), class: 'mic-select', onchange: async (e) => {
     saveSettings({ micDeviceId: e.target.value || null });
     if (Mic.stream) {
-      if (Session.rec) { toast('The new microphone is used from the next pass.'); return; }
+      if (Session.rec) { toast(t('The new microphone is used from the next pass.')); return; }
       await Mic.reopen();
     }
-  } }, h('option', { value: '' }, 'Default microphone'));
+  } }, h('option', { value: '' }, t('Default microphone')));
   const fillDevices = async () => {
     const list = await Mic.devices();
     const cur = settings().micDeviceId || '';
-    mount(pick, h('option', { value: '' }, 'Default microphone'),
-      list.filter((d) => d.deviceId && d.deviceId !== 'default').map((d, i) => h('option', { value: d.deviceId, selected: d.deviceId === cur }, d.label || `Microphone ${i + 1}`)));
+    mount(pick, h('option', { value: '' }, t('Default microphone')),
+      list.filter((d) => d.deviceId && d.deviceId !== 'default').map((d, i) => h('option', { value: d.deviceId, selected: d.deviceId === cur }, d.label || t('Microphone {n}', { n: i + 1 }))));
   };
   fillDevices();
   if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener('devicechange', () => { if (pick.isConnected) fillDevices(); });
@@ -319,7 +319,7 @@ function micControl() {
     const pct = clamp((Mic.level + 60) / 60, 0, 1) * 100;
     fill.style.width = pct + '%';
     fill.style.background = Mic.level > -3 ? 'var(--red)' : Mic.level > -35 ? 'var(--green)' : 'var(--wattle)';
-    if (settings().micAuto && Mic.gain) val.textContent = `auto ${Mic.gain.gain.value.toFixed(1)}x`;
+    if (settings().micAuto && Mic.gain) val.textContent = `auto ${fmtNum(Mic.gain.gain.value, 1)}x`;
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
@@ -373,11 +373,11 @@ const Player2 = {
   async play(ref, { onend } = {}) {
     this.stop();
     const url = typeof ref === 'string' && !ref.includes(':') ? ref : await Store.blobUrl(ref);
-    if (!url) { toast("That recording couldn't be found.", 'bad'); return null; }
+    if (!url) { toast(t('That recording couldn’t be found.'), 'bad'); return null; }
     const a = new window.Audio(url);
     this.el = a;
     a.onended = () => { onend && onend(); };
-    a.play().catch(() => toast("The recording couldn't play in this browser.", 'bad'));
+    a.play().catch(() => toast(t('The recording couldn’t play in this browser.'), 'bad'));
     return a;
   },
   stop() { if (this.el) { this.el.pause(); this.el = null; } },

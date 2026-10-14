@@ -70,6 +70,20 @@ img, svg { max-width: 100%; height: auto; }
 .site-foot a { color: var(--muted); }
 .site-foot .copy { margin-left: auto; }
 
+/* language switcher: a small menu in the header, plain links in the footer */
+.lang-menu { position: relative; }
+.lang-menu summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-weight: 800; font-size: 0.88rem; color: var(--fg); padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; }
+.lang-menu summary::-webkit-details-marker { display: none; }
+.lang-menu summary:hover, .lang-menu[open] summary { border-color: var(--green); color: var(--green-ink); }
+.lang-menu summary svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.lang-list { position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; min-width: 150px; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); padding: 6px; }
+.site-nav .lang-list a { padding: 8px 10px; border-radius: 8px; font-weight: 700; }
+.site-nav .lang-list a:hover { background: var(--surface-2); }
+.site-nav .lang-list a[aria-current] { color: var(--green-ink); }
+.site-nav .lang-list a[aria-current]::after { content: " ✓"; }
+.foot-langs a[aria-current] { color: var(--fg); font-weight: 800; text-decoration: none; }
+.updated.ref { font-style: italic; }
+
 /* buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; font: 700 1rem/1 var(--font-body); text-decoration: none; border-radius: 999px; padding: 12px 20px; border: 2px solid transparent; cursor: pointer; transition: transform 0.08s ease; }
 .btn:active { transform: translateY(1px); }
@@ -197,6 +211,10 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
   .hero { padding-top: 40px; }
   .steps, .cards, .split { grid-template-columns: 1fr; }
   .site-nav .hide-sm { display: none; }
+  .site-head .wrap { gap: 10px; }
+  .site-nav { gap: 6px 10px; }
+  .lang-menu summary { padding: 6px 8px; }
+  .lang-menu summary svg, .site-nav .btn-sm .g { display: none; }
   .site-foot .copy { margin-left: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .btn, .faq summary i, .faq summary i::before, .faq summary i::after { transition: none; } }

@@ -104,12 +104,14 @@ function parseTime(raw) {
   if (parts.some((p) => p === '' || isNaN(+p))) return null;
   return parts.reduce((acc, p) => acc * 60 + +p, 0);
 }
-function fmtSec(s, dec = 1) { return `${(+s).toFixed(dec)} s`; }
+/* a number with a fixed number of decimals, in the interface language (0,14 in French) */
+function fmtNum(v, dec = 0) { try { return new Intl.NumberFormat(uiLocale(), { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v); } catch { return (+v).toFixed(dec); } }
+function fmtSec(s, dec = 1) { return `${fmtNum(+s, dec)} s`; }
 function fmtLag(lag) {
   if (lag == null || !isFinite(lag)) return '—';
-  const a = Math.abs(lag).toFixed(2);
-  if (Math.abs(lag) < 0.03) return 'in sync';
-  return lag > 0 ? `${a} s behind` : `${a} s ahead`;
+  const a = fmtNum(Math.abs(lag), 2);
+  if (Math.abs(lag) < 0.03) return t('in sync');
+  return lag > 0 ? t('{a} s behind', { a }) : t('{a} s ahead', { a });
 }
 function dayKey(d = new Date()) {
   const x = d instanceof Date ? d : new Date(d);
@@ -173,7 +175,7 @@ function closeModal(silent) {
 function modalHead(title, sub) {
   return h('div', { class: 'modal-head' },
     h('div', { class: 'grow' }, h('h2', null, title), sub ? h('p', { class: 'muted small' }, sub) : null),
-    btn('', () => closeModal(), { icon: 'close', kind: 'ghost', title: 'Close', aria: 'Close' }));
+    btn('', () => closeModal(), { icon: 'close', kind: 'ghost', title: t('Close'), aria: t('Close') }));
 }
 function isModalOpen() { return !!$('#modalRoot').firstChild; }
 

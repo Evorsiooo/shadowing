@@ -34,23 +34,23 @@ function renderChips() {
   const s = streakInfo();
   const target = settings().weeklyTarget;
   mount($('#chips'),
-    h('span', { class: `chip streak ${s.practisedToday ? '' : 'cold'}`, title: 'Day streak (one rest day in a row is allowed)' }, icon('flame'), `${s.streak} day${s.streak === 1 ? '' : 's'}`),
-    h('span', { class: 'chip', title: 'Days practised this week' }, icon('calendar'), `${s.weekCount}/${target} this week`),
-    h('button', { type: 'button', class: 'chip mode', title: storageTitle(), onclick: () => toast(storageTitle(), '', 6000) }, icon(Store.mode === 'cloud' || Store.mode === 'artifact' ? 'check' : 'folder'), Store.mode === 'cloud' || Store.mode === 'artifact' ? 'Synced' : Store.mode === 'local' ? 'This browser' : 'Not saved'));
+    h('span', { class: `chip streak ${s.practisedToday ? '' : 'cold'}`, title: t('Day streak (one rest day in a row is allowed)') }, icon('flame'), tp(s.streak, '{n} day', '{n} days')),
+    h('span', { class: 'chip', title: t('Days practised this week') }, icon('calendar'), t('{done}/{target} this week', { done: s.weekCount, target })),
+    h('button', { type: 'button', class: 'chip mode', title: storageTitle(), onclick: () => toast(storageTitle(), '', 6000) }, icon(Store.mode === 'cloud' || Store.mode === 'artifact' ? 'check' : 'folder'), Store.mode === 'cloud' || Store.mode === 'artifact' ? t('Synced') : Store.mode === 'local' ? t('This browser') : t('Not saved')));
   mount($('#topnav'),
-    btn('Library', () => openDrawer(), { icon: 'menu', size: 'sm', kind: 'ghost', aria: 'Library', title: 'Video library' }),
-    btn('Progress', () => openProgress('habit'), { icon: 'chart', size: 'sm', aria: 'Progress', title: 'Progress' }),
-    btn('Check-ins', () => openCheckins(), { icon: 'mic', size: 'sm', aria: 'Check-ins', title: 'Check-ins' }),
-    isAdmin() ? btn(Admin.open ? `Admin (${Admin.open})` : 'Admin', () => openAdmin(), { icon: 'shield', size: 'sm', kind: 'ghost', aria: 'Admin', title: Admin.open ? `Admin: ${Admin.open} message${Admin.open === 1 ? '' : 's'} to handle` : 'Admin' }) : null,
-    btn('Settings', () => openSettings(), { icon: 'settings', size: 'sm', kind: 'ghost', aria: 'Settings', title: 'Settings' }));
+    btn(t('Library'), () => openDrawer(), { icon: 'menu', size: 'sm', kind: 'ghost', aria: t('Library'), title: t('Video library') }),
+    btn(t('Progress'), () => openProgress('habit'), { icon: 'chart', size: 'sm', aria: t('Progress'), title: t('Progress') }),
+    btn(t('Check-ins'), () => openCheckins(), { icon: 'mic', size: 'sm', aria: t('Check-ins'), title: t('Check-ins') }),
+    isAdmin() ? btn(Admin.open ? t('Admin ({n})', { n: Admin.open }) : t('Admin'), () => openAdmin(), { icon: 'shield', size: 'sm', kind: 'ghost', aria: t('Admin'), title: Admin.open ? tp(Admin.open, 'Admin: {n} message to handle', 'Admin: {n} messages to handle') : t('Admin') }) : null,
+    btn(t('Settings'), () => openSettings(), { icon: 'settings', size: 'sm', kind: 'ghost', aria: t('Settings'), title: t('Settings') }));
   const lib = $('#topnav').firstChild;
   lib.classList.add('only-phone');
 }
 function storageTitle() {
-  return Store.mode === 'cloud' ? `Your practice history is saved to your account${Api.email ? ` (${Api.email})` : ''}. ${Drive.connected() ? 'Videos and recordings are in your Google Drive.' : 'Videos and recordings are only in this browser until you connect Google Drive (Settings → Storage).'}`
-    : Store.mode === 'artifact' ? 'Saved in the artifact’s database; available on every device.'
-    : Store.mode === 'local' ? 'Saved in this browser only. Back up from Settings → Data.'
-      : 'Storage is blocked here; nothing will be kept after you close the page.';
+  return Store.mode === 'cloud' ? `${Api.email ? t('Your practice history is saved to your account ({email}).', { email: Api.email }) : t('Your practice history is saved to your account.')} ${Drive.connected() ? t('Videos and recordings are in your Google Drive.') : t('Videos and recordings are only in this browser until you connect Google Drive (Settings → Storage).')}`
+    : Store.mode === 'artifact' ? t('Saved in the artifact’s database; available on every device.')
+    : Store.mode === 'local' ? t('Saved in this browser only. Back up from Settings → Data.')
+      : t('Storage is blocked here; nothing will be kept after you close the page.');
 }
 
 function renderBanners() {
@@ -62,33 +62,33 @@ function renderBanners() {
   const anySession = Store.all('sessions').some((s) => !s.empty);
   if (!checkinHasAll(base) && !dismissed.baseline) {
     out.push(h('div', { class: 'banner info' },
-      h('p', null, anySession ? 'Your week 0 baseline isn’t finished yet. Record it soon so later check-ins have something to compare with.' : 'Before your first practice, record your week 0 baseline (about 3 minutes). Every later check-in is compared with it.'),
-      btn('Record baseline', () => openCheckins(0), { kind: 'primary', size: 'sm', icon: 'mic' }),
-      btn('Later', dismiss('baseline'), { kind: 'ghost', size: 'sm' })));
+      h('p', null, anySession ? t('Your week 0 baseline isn’t finished yet. Record it soon so later check-ins have something to compare with.') : t('Before your first practice, record your week 0 baseline (about 3 minutes). Every later check-in is compared with it.')),
+      btn(t('Record baseline'), () => openCheckins(0), { kind: 'primary', size: 'sm', icon: 'mic' }),
+      btn(t('Later'), dismiss('baseline'), { kind: 'ghost', size: 'sm' })));
   }
   if (info.missedYesterday && !info.practisedToday) {
     out.push(h('div', { class: 'banner' },
-      h('p', null, 'You missed yesterday. Don’t skip two days in a row: even a 5-minute bad-day session keeps the streak alive.'),
-      btn('Bad-day session', () => Session.start(UI.queue.length ? UI.queue : [UI.clipId || lastClipId()].filter(Boolean), 'badday'), { kind: 'wattle', size: 'sm', icon: 'bad' })));
+      h('p', null, t('You missed yesterday. Don’t skip two days in a row: even a 5-minute bad-day session keeps the streak alive.')),
+      btn(t('Bad-day session'), () => Session.start(UI.queue.length ? UI.queue : [UI.clipId || lastClipId()].filter(Boolean), 'badday'), { kind: 'wattle', size: 'sm', icon: 'bad' })));
   }
   const due = dueCheckin();
   if (due != null && due !== 0) {
-    out.push(h('div', { class: 'banner info' }, h('p', null, `Week ${due} check-in is due. It takes about 3 minutes.`), btn('Start check-in', () => openCheckins(due), { kind: 'primary', size: 'sm' })));
+    out.push(h('div', { class: 'banner info' }, h('p', null, t('Week {n} check-in is due. It takes about 3 minutes.', { n: due })), btn(t('Start check-in'), () => openCheckins(due), { kind: 'primary', size: 'sm' })));
   }
   if (Api.signedOut && Store.mode === 'cloud') {
-    out.unshift(h('div', { class: 'banner' }, h('p', null, 'You’re signed out, so changes can’t be saved right now. Sign in again to keep saving.'), btn('Sign in', () => signIn(), { kind: 'primary', size: 'sm' })));
+    out.unshift(h('div', { class: 'banner' }, h('p', null, t('You’re signed out, so changes can’t be saved right now. Sign in again to keep saving.')), btn(t('Sign in'), () => signIn(), { kind: 'primary', size: 'sm' })));
   }
   if (Store.mode === 'cloud') { /* nothing to explain */ } else if (Caps.inArtifact && !dismissed.artifactNote) {
     out.push(h('div', { class: 'banner info' },
-      h('p', null, 'You’re using the Claude artifact version: your data syncs and Claude feedback works, but the microphone and outside video links may be blocked here. Run the checks to see what works on this device.'),
-      btn('Run checks', () => openSettings('checks'), { size: 'sm', icon: 'flask' }),
-      btn('Got it', dismiss('artifactNote'), { kind: 'ghost', size: 'sm' })));
+      h('p', null, t('You’re using the Claude artifact version: your data syncs and Claude feedback works, but the microphone and outside video links may be blocked here. Run the checks to see what works on this device.')),
+      btn(t('Run checks'), () => openSettings('checks'), { size: 'sm', icon: 'flask' }),
+      btn(t('Got it'), dismiss('artifactNote'), { kind: 'ghost', size: 'sm' })));
   } else if (!Caps.inArtifact && Store.mode === 'local' && !dismissed.localNote) {
     out.push(h('div', { class: 'banner info' },
-      h('p', null, 'Standalone version: the microphone and video links work, and your data stays in this browser. Back it up from Settings → Data now and then.'),
-      btn('Got it', dismiss('localNote'), { kind: 'ghost', size: 'sm' })));
+      h('p', null, t('Standalone version: the microphone and video links work, and your data stays in this browser. Back it up from Settings → Data now and then.')),
+      btn(t('Got it'), dismiss('localNote'), { kind: 'ghost', size: 'sm' })));
   }
-  if (Store.mode === 'memory') out.push(h('div', { class: 'banner' }, h('p', null, 'Storage is blocked in this view, so nothing will be kept. Open the app in a normal browser window.')));
+  if (Store.mode === 'memory') out.push(h('div', { class: 'banner' }, h('p', null, t('Storage is blocked in this view, so nothing will be kept. Open the app in a normal browser window.'))));
   mount($('#banners'), out);
   $('#banners').hidden = !out.length;
 }
@@ -99,10 +99,10 @@ function lastClipId() {
 
 /* ---------- progress modal ---------- */
 function openProgress(tab = 'habit') {
-  const tabs = [['habit', 'Habit'], ['issues', 'Issues'], ['measures', 'Measures'], ['clips', 'Clips']];
+  const tabs = [['habit', t('Habit')], ['issues', t('Issues')], ['measures', t('Measures')], ['clips', t('Clips')]];
   const body = tab === 'habit' ? habitView() : tab === 'issues' ? issuesView() : tab === 'measures' ? measuresView() : clipsOverview();
   openModal([
-    modalHead('Progress'),
+    modalHead(t('Progress')),
     h('div', { class: 'tabs' }, tabs.map(([k, l]) => btn(l, () => openProgress(k), { size: 'sm', on: k === tab }))),
     body,
   ]);
@@ -118,20 +118,20 @@ function habitView() {
   const lags = weeklyLag();
   return h('div', { class: 'stack' },
     h('div', { class: 'cards' },
-      h('div', { class: 'card' }, h('span', { class: 'label' }, 'Day streak'), h('div', { class: 'stat' }, s.streak), h('p', { class: 'small muted' }, 'One rest day in a row is allowed; two breaks it.')),
-      h('div', { class: 'card' }, h('span', { class: 'label' }, 'This week'), h('div', { class: 'stat' }, `${s.weekCount}/${target}`), h('div', { class: 'bar big' }, h('i', { style: { width: Math.min(100, (s.weekCount / target) * 100) + '%' } }))),
-      h('div', { class: 'card' }, h('span', { class: 'label' }, 'Total practice'), h('div', { class: 'stat' }, `${s.minutes} min`), h('p', { class: 'small muted' }, ((n) => `${n} session${n === 1 ? '' : 's'}`)(Store.all('sessions').filter((x) => !x.empty).length)))),
+      h('div', { class: 'card' }, h('span', { class: 'label' }, t('Day streak')), h('div', { class: 'stat' }, s.streak), h('p', { class: 'small muted' }, t('One rest day in a row is allowed; two breaks it.'))),
+      h('div', { class: 'card' }, h('span', { class: 'label' }, t('This week')), h('div', { class: 'stat' }, `${s.weekCount}/${target}`), h('div', { class: 'bar big' }, h('i', { style: { width: Math.min(100, (s.weekCount / target) * 100) + '%' } }))),
+      h('div', { class: 'card' }, h('span', { class: 'label' }, t('Total practice')), h('div', { class: 'stat' }, t('{n} min', { n: s.minutes })), h('p', { class: 'small muted' }, tp(Store.all('sessions').filter((x) => !x.empty).length, '{n} session', '{n} sessions')))),
     h('div', { class: 'card' },
-      h('h3', null, 'Last 12 weeks'),
+      h('h3', null, t('Last 12 weeks')),
       h('div', { class: 'cal' },
-        h('span', null, ''), ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d) => h('span', { style: { textAlign: 'center' } }, d)),
+        h('span', null, ''), [1, 2, 3, 4, 5, 6, 0].map((i) => h('span', { style: { textAlign: 'center' }, title: dayName(i) }, dayName(i).charAt(0).toUpperCase())),
         weeks.map((w) => [h('span', null, fmtDay(w)), [0, 1, 2, 3, 4, 5, 6].map((i) => {
           const d = addDays(w, i);
           const k = s.days.get(d);
-          return h('span', { class: `d ${k || ''} ${d === today ? 'today' : ''} ${d > today ? 'future' : ''}`, title: `${fmtDayLong(d)}${k ? (k === 'bad' ? ' · bad-day session' : ' · full session') : ''}` }, k === 'full' ? '✓' : k === 'bad' ? '·' : '');
+          return h('span', { class: `d ${k || ''} ${d === today ? 'today' : ''} ${d > today ? 'future' : ''}`, title: fmtDayLong(d) + (k ? ' · ' + (k === 'bad' ? t('bad-day session') : t('full session')) : '') }, k === 'full' ? '✓' : k === 'bad' ? '·' : '');
         })])),
-      h('div', { class: 'legend' }, h('span', null, h('i', { style: { background: 'var(--green)' } }), 'Full session'), h('span', null, h('i', { style: { background: 'var(--wattle)' } }), 'Bad-day session'), h('span', null, h('i', { style: { background: 'var(--surface-2)' } }), 'Not practised'))),
-    lags.length > 1 ? h('div', { class: 'card trend' }, h('h3', null, 'Average lag behind the speaker, by week'), h('p', { class: 'small muted' }, 'Shrinking lag over the weeks counts as progress. Rough measure.'), trendChart(lags.map((l) => ({ x: fmtDay(l.week), y: l.lag })), { unit: ' s', dec: 2 })) : null);
+      h('div', { class: 'legend' }, h('span', null, h('i', { style: { background: 'var(--green)' } }), t('Full session')), h('span', null, h('i', { style: { background: 'var(--wattle)' } }), t('Bad-day session')), h('span', null, h('i', { style: { background: 'var(--surface-2)' } }), t('Not practised')))),
+    lags.length > 1 ? h('div', { class: 'card trend' }, h('h3', null, t('Average lag behind the speaker, by week')), h('p', { class: 'small muted' }, t('Shrinking lag over the weeks counts as progress. Rough measure.')), trendChart(lags.map((l) => ({ x: fmtDay(l.week), y: l.lag })), { unit: ' s', dec: 2 })) : null);
 }
 
 function weeklyLag() {
@@ -150,20 +150,20 @@ function weeklyLag() {
 function clipsOverview() {
   const clips = Store.all('clips').filter((c) => !c.archived).sort((a, b) => (a.created < b.created ? 1 : -1));
   return h('div', { class: 'table-wrap' }, clips.length ? h('table', null,
-    h('thead', null, h('tr', null, h('th', null, 'Clip'), h('th', null, 'Video'), h('th', null, 'Length'), h('th', null, 'Sessions'), h('th', null, 'Done'), h('th', null, ''))),
+    h('thead', null, h('tr', null, h('th', null, t('Clip')), h('th', null, t('Video')), h('th', null, t('Length')), h('th', null, t('Sessions')), h('th', null, t('Done@@column')), h('th', null, ''))),
     h('tbody', null, clips.map((c) => {
       const v = Store.get('videos', c.videoId);
       const n = Store.all('sessions').filter((s) => s.clipId === c.id && !s.empty).length;
       return h('tr', null, h('td', null, clipName(c)), h('td', null, v ? v.title : '—'), h('td', { class: 'num' }, fmtSec(c.end - c.start)), h('td', { class: 'num' }, n),
-        h('td', null, c.done ? h('span', { class: 'tick done' }, icon('check', 'stroke-width="3.4"')) : ''), h('td', null, btn('History', () => openHistory(c.id), { size: 'sm', kind: 'ghost' })));
-    }))) : h('p', { class: 'muted' }, 'No clips yet.'));
+        h('td', null, c.done ? h('span', { class: 'tick done' }, icon('check', 'stroke-width="3.4"')) : ''), h('td', null, btn(t('History'), () => openHistory(c.id), { size: 'sm', kind: 'ghost' })));
+    }))) : h('p', { class: 'muted' }, t('No clips yet.')));
 }
 
 /* small SVG line chart, drawn to one scale */
-function trendChart(points, { unit = '', dec = 1, ref = null, refLabel = 'speaker' } = {}) {
+function trendChart(points, { unit = '', dec = 1, ref = null, refLabel = t('speaker') } = {}) {
   const W = 560, H = 170, L = 46, R = 14, T = 14, B = 28;
   const ys = points.map((p) => p.y).concat(ref != null ? [ref] : []).filter((v) => v != null && isFinite(v));
-  if (!ys.length) return h('p', { class: 'muted small' }, 'Not enough data yet.');
+  if (!ys.length) return h('p', { class: 'muted small' }, t('Not enough data yet.'));
   let lo = Math.min(...ys), hi = Math.max(...ys);
   if (hi - lo < 1e-6) { lo -= 1; hi += 1; }
   const pad = (hi - lo) * 0.15; lo -= pad; hi += pad;
@@ -177,7 +177,7 @@ function trendChart(points, { unit = '', dec = 1, ref = null, refLabel = 'speake
   const ticks = [lo + pad, (lo + hi) / 2, hi - pad];
   for (const t of ticks) {
     el('line', { x1: L, x2: W - R, y1: Y(t), y2: Y(t), stroke: 'var(--line)', 'stroke-width': 1 });
-    el('text', { x: L - 6, y: Y(t) + 4, 'text-anchor': 'end' }, t.toFixed(dec) + unit);
+    el('text', { x: L - 6, y: Y(t) + 4, 'text-anchor': 'end' }, fmtNum(t, dec) + unit);
   }
   if (ref != null) {
     el('line', { x1: L, x2: W - R, y1: Y(ref), y2: Y(ref), stroke: 'var(--green)', 'stroke-width': 2, 'stroke-dasharray': '6 5' });
@@ -193,9 +193,9 @@ function trendChart(points, { unit = '', dec = 1, ref = null, refLabel = 'speake
 /* ---------- check-ins ---------- */
 const CHECKIN_WEEKS = [0, 4, 8, 12];
 const TASKS = [
-  { key: 'read', name: 'Read aloud', secs: null, help: 'Read these sentences aloud at a natural pace. They are the same at every check-in.' },
-  { key: 'retell', name: 'Retelling (about 60 s)', secs: 60, help: null },
-  { key: 'answer', name: 'Unseen question (about 60 s)', secs: 60, help: 'Reveal a question you haven’t seen and answer it for about 60 seconds. No preparing.' },
+  { key: 'read', name: N_('Read aloud'), secs: null, help: N_('Read these sentences aloud at a natural pace. They are the same at every check-in.') },
+  { key: 'retell', name: N_('Retelling (about 60 s)'), secs: 60, help: null },
+  { key: 'answer', name: N_('Unseen question (about 60 s)'), secs: 60, help: N_('Reveal a question you haven’t seen and answer it for about 60 seconds. No preparing.') },
 ];
 
 /* each target language is its own programme: its own check-ins and start date. English keeps
@@ -233,20 +233,20 @@ function openCheckins(focusWeek) {
     const count = c ? TASKS.filter((t) => c.recs && c.recs[t.key] && c.recs[t.key].length).length : 0;
     return h('div', { class: 'card' },
       h('div', { class: 'row' },
-        h('h3', { class: 'grow' }, w === 0 ? 'Week 0 · baseline' : `Week ${w}`),
+        h('h3', { class: 'grow' }, w === 0 ? t('Week 0 · baseline') : t('Week {n}', { n: w })),
         done ? h('span', { class: 'tick done' }, icon('check', 'stroke-width="3.4"')) : h('span', { class: 'small muted' }, `${count}/3`)),
-      h('p', { class: 'small muted' }, c && c.date ? `Recorded ${fmtDay(c.date)}` : w === 0 ? 'Record before your first practice' : `Due ${fmtDay(due)}`),
+      h('p', { class: 'small muted' }, c && c.date ? t('Recorded {date}', { date: fmtDay(c.date) }) : w === 0 ? t('Record before your first practice') : t('Due {date}', { date: fmtDay(due) })),
       h('div', { class: 'row' },
-        btn(done ? 'Open' : count ? 'Continue' : 'Start', () => openCheckinRecorder(w), { size: 'sm', kind: done ? '' : 'primary' }),
-        done && w !== 0 && checkinHasAll(checkinFor(0)) ? btn('Compare with baseline', () => openCheckinCompare(w), { size: 'sm', kind: 'blue' }) : null));
+        btn(done ? t('Open') : count ? t('Continue') : t('Start'), () => openCheckinRecorder(w), { size: 'sm', kind: done ? '' : 'primary' }),
+        done && w !== 0 && checkinHasAll(checkinFor(0)) ? btn(t('Compare with baseline'), () => openCheckinCompare(w), { size: 'sm', kind: 'blue' }) : null));
   });
   openModal([
-    modalHead('Check-ins', 'Weeks 0, 4, 8 and 12. Recordings are never overwritten.'),
+    modalHead(t('Check-ins'), t('Weeks 0, 4, 8 and 12. Recordings are never overwritten.')),
     h('div', { class: 'cards' }, items),
     h('div', { class: 'card' },
-      h('h3', null, 'Blind listener pack'),
-      h('p', { class: 'small muted' }, `Export shuffled, unlabelled check-in samples plus clips of real ${targetAccent().short} speakers from your library, with a rating sheet (1 = no foreign accent, 9 = very strong accent). Enter the ratings back here to see the average per check-in.`),
-      h('div', { class: 'row' }, btn('Build and export pack', () => exportListenerPack(), { kind: 'primary', size: 'sm', icon: 'download' }), btn('Enter ratings', () => openRatings(), { size: 'sm' }))),
+      h('h3', null, t('Blind listener pack')),
+      h('p', { class: 'small muted' }, t('Export shuffled, unlabelled check-in samples plus clips of real {accent} speakers from your library, with a rating sheet (1 = no foreign accent, 9 = very strong accent). Enter the ratings back here to see the average per check-in.', { accent: t(targetAccent().short) })),
+      h('div', { class: 'row' }, btn(t('Build and export pack'), () => exportListenerPack(), { kind: 'primary', size: 'sm', icon: 'download' }), btn(t('Enter ratings'), () => openRatings(), { size: 'sm' }))),
   ]);
   if (focusWeek != null) openCheckinRecorder(focusWeek);
 }
@@ -262,40 +262,40 @@ function openCheckinRecorder(week) {
   const body = h('div', { class: 'stack' });
   const draw = async () => {
     const cur = checkinFor(week);
-    const cards = await Promise.all(TASKS.map(async (t) => {
-      const ids = (cur && cur.recs && cur.recs[t.key]) || [];
+    const cards = await Promise.all(TASKS.map(async (task) => {
+      const ids = (cur && cur.recs && cur.recs[task.key]) || [];
       const takes = await Promise.all(ids.map(async (id, i) => {
         const r = Store.get('recordings', id);
         const row = h('div', { class: 'audio-row' });
         const normal = async () => mount(row,
-          h('span', { class: 'small', style: { fontWeight: 800 } }, `Take ${i + 1}`),
+          h('span', { class: 'small', style: { fontWeight: 800 } }, t('Take {n}', { n: i + 1 })),
           await recAudio(r),
           r && r.durationSec ? h('span', { class: 'small muted num' }, fmtTime(r.durationSec)) : null,
-          btn('Delete', () => confirmRow(), { size: 'sm', kind: 'ghost', title: `Delete take ${i + 1}` }));
+          btn(t('Delete'), () => confirmRow(), { size: 'sm', kind: 'ghost', title: t('Delete take {n}', { n: i + 1 }) }));
         const confirmRow = () => mount(row,
-          h('span', { class: 'small', style: { fontWeight: 800 } }, `Delete take ${i + 1}? This can’t be undone.`),
-          btn('Delete', async () => { await deleteCheckinTake(week, t.key, id); draw(); }, { size: 'sm', kind: 'danger' }),
-          btn('Keep it', () => normal(), { size: 'sm', kind: 'ghost' }));
+          h('span', { class: 'small', style: { fontWeight: 800 } }, t('Delete take {n}? This can’t be undone.', { n: i + 1 })),
+          btn(t('Delete'), async () => { await deleteCheckinTake(week, task.key, id); draw(); }, { size: 'sm', kind: 'danger' }),
+          btn(t('Keep it'), () => normal(), { size: 'sm', kind: 'ghost' }));
         await normal();
         return row;
       }));
-      const q = t.key === 'answer' ? cur && cur.questions && cur.questions[cur.questions.length - 1] : null;
+      const q = task.key === 'answer' ? cur && cur.questions && cur.questions[cur.questions.length - 1] : null;
       return h('div', { class: 'card' },
-        h('div', { class: 'row' }, h('h3', { class: 'grow' }, t.name), ids.length ? h('span', { class: 'tick done' }, icon('check', 'stroke-width="3.4"')) : null),
-        h('p', { class: 'small muted' }, t.help || langContent().retellHelp),
-        t.key === 'read' ? h('ol', { style: { margin: 0, paddingLeft: '20px', display: 'grid', gap: '4px' } }, readSentences(cur).sentences.map((s) => h('li', null, s))) : null,
-        t.key === 'answer' ? h('p', { id: `ciQ-${week}`, hidden: !q }, h('strong', null, 'Question: '), h('span', null, q || '')) : null,
+        h('div', { class: 'row' }, h('h3', { class: 'grow' }, t(task.name)), ids.length ? h('span', { class: 'tick done' }, icon('check', 'stroke-width="3.4"')) : null),
+        h('p', { class: 'small muted' }, t(task.help || langContent().retellHelp)),
+        task.key === 'read' ? h('ol', { style: { margin: 0, paddingLeft: '20px', display: 'grid', gap: '4px' } }, readSentences(cur).sentences.map((s) => h('li', null, s))) : null,
+        task.key === 'answer' ? h('p', { id: `ciQ-${week}`, hidden: !q }, h('strong', null, t('Question: ')), h('span', null, q || '')) : null,
         takes,
-        checkinRecordControls(week, t, draw));
+        checkinRecordControls(week, task, draw));
     }));
     mount(body, cards);
   };
   draw();
   openModal([
-    modalHead(week === 0 ? 'Week 0 baseline' : `Week ${week} check-in`, 'Use the same microphone and room each time. Headphones aren’t needed here.'),
+    modalHead(week === 0 ? t('Week 0 baseline') : t('Week {n} check-in', { n: week }), t('Use the same microphone and room each time. Headphones aren’t needed here.')),
     micControl(),
     body,
-    h('div', { class: 'row' }, btn('Back to check-ins', () => openCheckins(), { kind: 'ghost' })),
+    h('div', { class: 'row' }, btn(t('Back to check-ins'), () => openCheckins(), { kind: 'ghost' })),
   ], { onClose: () => { renderBanners(); } });
 }
 
@@ -312,7 +312,7 @@ function checkinRecordControls(week, task, redraw) {
     rec = null;
     Mic.close();
     await saveCheckinTake(week, task.key, res.blob, res.samples);
-    toast('Saved.', 'good');
+    toast(t('Saved.'), 'good');
     redraw();
   };
   const start = async () => {
@@ -323,7 +323,7 @@ function checkinRecordControls(week, task, redraw) {
         Store.patch('checkins', c.id, { questions: [...(c.questions || []), q] });
         const qEl = $(`#ciQ-${week}`);
         if (qEl) { qEl.hidden = false; qEl.lastChild.textContent = q; }
-        toast('Question revealed. Start answering now.');
+        toast(t('Question revealed. Start answering now.'));
       }
     }
     AudioEng.getCtx();
@@ -331,19 +331,19 @@ function checkinRecordControls(week, task, redraw) {
     rec = new Recording();
     rec.start();
     t0 = performance.now();
-    mount(wrap, btn('Stop and save', stop, { kind: 'danger', icon: 'stop' }), status);
+    mount(wrap, btn(t('Stop and save'), stop, { kind: 'danger', icon: 'stop' }), status);
     timer = setInterval(() => {
       const s = (performance.now() - t0) / 1000;
       // the target is soft: going over is fine, so finish the sentence; a hard stop only at 3x the target
-      if (!task.secs) status.textContent = `${fmtTime(s)} recording`;
-      else if (s < task.secs) status.textContent = `${Math.ceil(task.secs - s)} s left`;
-      else { status.textContent = `Time’s up: finish your sentence, then stop (+${fmtTime(s - task.secs)})`; status.style.color = 'var(--ochre)'; status.style.fontWeight = '800'; }
+      if (!task.secs) status.textContent = t('{time} recording', { time: fmtTime(s) });
+      else if (s < task.secs) status.textContent = t('{n} s left', { n: Math.ceil(task.secs - s) });
+      else { status.textContent = t('Time’s up: finish your sentence, then stop (+{time})', { time: fmtTime(s - task.secs) }); status.style.color = 'var(--ochre)'; status.style.fontWeight = '800'; }
       if (task.secs && s >= task.secs * 3) stop();
     }, 250);
   };
   wrap.append(
-    btn(has ? 'Record another take' : task.key === 'answer' ? 'Reveal question and record' : 'Record', start, { kind: has ? '' : 'primary', icon: 'mic', size: 'sm' }),
-    filePickButton('Upload a file', 'audio/*,video/*', async (f) => { try { const samples = await AudioEng.decodeBlob(f); await saveCheckinTake(week, task.key, f, samples); toast('Saved.', 'good'); redraw(); } catch (e) { toast(`That file couldn’t be read (${e.message || 'error'}).`, 'bad'); } }, { size: 'sm', kind: 'ghost', icon: 'upload' }),
+    btn(has ? t('Record another take') : task.key === 'answer' ? t('Reveal question and record') : t('Record'), start, { kind: has ? '' : 'primary', icon: 'mic', size: 'sm' }),
+    filePickButton(t('Upload a file'), 'audio/*,video/*', async (f) => { try { const samples = await AudioEng.decodeBlob(f); await saveCheckinTake(week, task.key, f, samples); toast(t('Saved.'), 'good'); redraw(); } catch (e) { toast(t('That file couldn’t be read ({error}).', { error: e.message || 'error' }), 'bad'); } }, { size: 'sm', kind: 'ghost', icon: 'upload' }),
     status);
   return wrap;
 }
@@ -370,7 +370,7 @@ async function deleteCheckinTake(week, key, recId) {
     delete Store.data.recordings[recId];
     Store.schedule('recordings', recId, 0);
   }
-  toast('Take deleted.');
+  toast(t('Take deleted.'));
 }
 
 function pickQuestion() {
@@ -386,7 +386,7 @@ function pickQuestion() {
 async function saveCheckinTake(week, key, blob, samples) {
   const c = ensureCheckin(week);
   let ref;
-  try { ref = await Store.putBlob(blob, 'checkin'); } catch (e) { toast(`The recording couldn’t be stored (${e.message || e.code || 'error'}).`, 'bad', 6000); return; }
+  try { ref = await Store.putBlob(blob, 'checkin'); } catch (e) { toast(t('The recording couldn’t be stored ({error}).', { error: e.message || e.code || 'error' }), 'bad', 6000); return; }
   let measures = null, analysis = null;
   if (samples && samples.length > SR) {
     const m = DSP.modelFromSamples(samples, settings().pitchSmoothing);
@@ -401,7 +401,7 @@ async function saveCheckinTake(week, key, blob, samples) {
   allMeasures.lag = lagWin;
   Store.patch('checkins', c.id, { recs, measures: allMeasures, date: c.date || dayKey() });
   if (week === 0 && !savedProgrammeStart()) saveSettings(programmeStartPatch(c.date || dayKey()));
-  if (checkinHasAll(checkinFor(week))) { celebrate(1); toast(`Week ${week} check-in complete!`, 'good'); }
+  if (checkinHasAll(checkinFor(week))) { celebrate(1); toast(t('Week {n} check-in complete!', { n: week }), 'good'); }
 }
 function sessionsLagBefore(date) {
   const from = addDays(date, -28);
@@ -412,15 +412,15 @@ function sessionsLagBefore(date) {
 
 async function openCheckinCompare(week) {
   const A = checkinFor(0), B = checkinFor(week);
-  const rows = await Promise.all(TASKS.map(async (t) => {
-    const ra = Store.get('recordings', (A.recs[t.key] || []).slice(-1)[0]);
-    const rb = Store.get('recordings', (B.recs[t.key] || []).slice(-1)[0]);
-    return h('div', { class: 'card' }, h('h3', null, t.name),
+  const rows = await Promise.all(TASKS.map(async (task) => {
+    const ra = Store.get('recordings', (A.recs[task.key] || []).slice(-1)[0]);
+    const rb = Store.get('recordings', (B.recs[task.key] || []).slice(-1)[0]);
+    return h('div', { class: 'card' }, h('h3', null, t(task.name)),
       h('div', { class: 'cards' },
-        h('div', { class: 'stack' }, h('span', { class: 'label' }, 'Baseline'), await recAudio(ra)),
-        h('div', { class: 'stack' }, h('span', { class: 'label' }, `Week ${week}`), await recAudio(rb))));
+        h('div', { class: 'stack' }, h('span', { class: 'label' }, t('Baseline')), await recAudio(ra)),
+        h('div', { class: 'stack' }, h('span', { class: 'label' }, t('Week {n}', { n: week })), await recAudio(rb))));
   }));
-  openModal([modalHead(`Week ${week} vs baseline`), rows, measuresTable([A, B]), btn('Back', () => openCheckins(), { kind: 'ghost' })]);
+  openModal([modalHead(t('Week {n} vs baseline', { n: week })), rows, measuresTable([A, B]), btn(t('Back'), () => openCheckins(), { kind: 'ghost' })]);
 }
 
 function modelReference() {
@@ -429,20 +429,20 @@ function modelReference() {
 }
 
 const MEASURE_DEFS = [
-  { key: 'rate', name: 'Speaking rate', unit: ' syll/s', dec: 2, from: 'read' },
-  { key: 'stressRatio', name: 'Stressed ÷ unstressed syllable length', unit: '×', dec: 2, from: 'read' },
-  { key: 'range', name: 'Pitch range', unit: ' st', dec: 1, from: 'read' },
-  { key: 'lag', name: 'Average lag behind the speaker', unit: ' s', dec: 2, from: null },
+  { key: 'rate', name: N_('Speaking rate'), unit: ' syll/s', dec: 2, from: 'read' },
+  { key: 'stressRatio', name: N_('Stressed ÷ unstressed syllable length'), unit: '×', dec: 2, from: 'read' },
+  { key: 'range', name: N_('Pitch range'), unit: ' st', dec: 1, from: 'read' },
+  { key: 'lag', name: N_('Average lag behind the speaker'), unit: ' s', dec: 2, from: null },
 ];
 /* the stressed/unstressed ratio only means something in stress-timed languages like English */
 function measureDefs() { return MEASURE_DEFS.filter((d) => d.key !== 'stressRatio' || langContent().timing === 'stress'); }
 function measuresTable(cis) {
   const ref = modelReference();
   return h('div', { class: 'table-wrap' }, h('table', null,
-    h('thead', null, h('tr', null, h('th', null, 'Measure'), cis.map((c) => h('th', null, c.week === 0 ? 'Baseline' : `Week ${c.week}`)), h('th', null, ref.n ? `Speaker (${ref.n} clips)` : 'Speaker'))),
-    h('tbody', null, measureDefs().map((d) => h('tr', null, h('td', null, d.name),
-      cis.map((c) => { const v = d.from ? c.measures && c.measures[d.from] && c.measures[d.from][d.key] : c.measures && c.measures.lag; return h('td', { class: 'num' }, v != null && isFinite(v) ? v.toFixed(d.dec) + d.unit : '—'); }),
-      h('td', { class: 'num' }, d.key !== 'lag' && ref[d.key] != null && isFinite(ref[d.key]) ? ref[d.key].toFixed(d.dec) + d.unit : '—'))))));
+    h('thead', null, h('tr', null, h('th', null, t('Measure')), cis.map((c) => h('th', null, c.week === 0 ? t('Baseline') : t('Week {n}', { n: c.week }))), h('th', null, ref.n ? tp(ref.n, 'Speaker ({n} clip)', 'Speaker ({n} clips)') : t('Speaker')))),
+    h('tbody', null, measureDefs().map((d) => h('tr', null, h('td', null, t(d.name)),
+      cis.map((c) => { const v = d.from ? c.measures && c.measures[d.from] && c.measures[d.from][d.key] : c.measures && c.measures.lag; return h('td', { class: 'num' }, v != null && isFinite(v) ? fmtNum(v, d.dec) + d.unit : '—'); }),
+      h('td', { class: 'num' }, d.key !== 'lag' && ref[d.key] != null && isFinite(ref[d.key]) ? fmtNum(ref[d.key], d.dec) + d.unit : '—'))))));
 }
 
 function measuresView() {
@@ -450,18 +450,18 @@ function measuresView() {
   const ref = modelReference();
   const ratings = ratingAverages();
   return h('div', { class: 'stack' },
-    h('div', { class: 'banner info' }, h('p', null, 'These are rough measures worked out from your read-aloud recordings, compared with the speaker’s clips. They are not an accent score; use them to spot trends over the weeks.')),
-    cis.length ? measuresTable(cis) : h('p', { class: 'muted' }, 'Measures appear after your first check-in.'),
-    cis.length > 1 ? h('div', { class: 'cards' }, measureDefs().map((d) => h('div', { class: 'card' }, h('h4', null, d.name),
-      trendChart(cis.map((c) => ({ x: c.week === 0 ? 'Base' : `Wk ${c.week}`, y: d.from ? c.measures[d.from] && c.measures[d.from][d.key] : c.measures.lag })), { unit: d.unit.trim() === '×' ? '' : '', dec: d.dec, ref: d.key !== 'lag' && isFinite(ref[d.key]) ? ref[d.key] : null })))) : null,
-    ratings.length ? h('div', { class: 'card' }, h('h3', null, 'Blind listener ratings'), h('p', { class: 'small muted' }, '1 = no foreign accent, 9 = very strong accent.'),
-      h('div', { class: 'table-wrap' }, h('table', null, h('thead', null, h('tr', null, h('th', null, 'Sample'), h('th', null, 'Average'), h('th', null, 'Ratings'))),
-        h('tbody', null, ratings.map((r) => h('tr', null, h('td', null, r.label), h('td', { class: 'num' }, r.avg.toFixed(1)), h('td', { class: 'num' }, r.n))))))) : null);
+    h('div', { class: 'banner info' }, h('p', null, t('These are rough measures worked out from your read-aloud recordings, compared with the speaker’s clips. They are not an accent score; use them to spot trends over the weeks.'))),
+    cis.length ? measuresTable(cis) : h('p', { class: 'muted' }, t('Measures appear after your first check-in.')),
+    cis.length > 1 ? h('div', { class: 'cards' }, measureDefs().map((d) => h('div', { class: 'card' }, h('h4', null, t(d.name)),
+      trendChart(cis.map((c) => ({ x: c.week === 0 ? t('Base') : t('Wk {n}', { n: c.week }), y: d.from ? c.measures[d.from] && c.measures[d.from][d.key] : c.measures.lag })), { unit: d.unit.trim() === '×' ? '' : '', dec: d.dec, ref: d.key !== 'lag' && isFinite(ref[d.key]) ? ref[d.key] : null })))) : null,
+    ratings.length ? h('div', { class: 'card' }, h('h3', null, t('Blind listener ratings')), h('p', { class: 'small muted' }, t('1 = no foreign accent, 9 = very strong accent.')),
+      h('div', { class: 'table-wrap' }, h('table', null, h('thead', null, h('tr', null, h('th', null, t('Sample')), h('th', null, t('Average')), h('th', null, t('Ratings')))),
+        h('tbody', null, ratings.map((r) => h('tr', null, h('td', null, r.label), h('td', { class: 'num' }, fmtNum(r.avg, 1)), h('td', { class: 'num' }, r.n))))))) : null);
 }
 
 /* ---------- blind listener pack ---------- */
 async function exportListenerPack() {
-  toast('Building the pack… this can take a little while.');
+  toast(t('Building the pack… this can take a little while.'));
   const items = [];
   for (const w of CHECKIN_WEEKS) {
     const c = checkinFor(w);
@@ -485,25 +485,26 @@ async function exportListenerPack() {
     if (!st || st.status !== 'ready') continue;
     items.push({ kind: 'model', clipId: c.id, samples: VideoAudio.slice(v.id, c.start, Math.min(c.end, c.start + 20)) });
   }
-  if (items.filter((i) => i.kind === 'checkin').length < 1) { toast('Record at least one check-in first.', 'bad'); return; }
+  if (items.filter((i) => i.kind === 'checkin').length < 1) { toast(t('Record at least one check-in first.'), 'bad'); return; }
   const mixed = shuffle(items);
   const letters = 'ABCDEFGHIJ';
   const enc = new TextEncoder();
-  const files = mixed.map((it, i) => ({ name: `Sample ${letters[i]}.wav`, data: DSP.wav(it.samples) }));
-  const sheet = ['Listener name,Sample,Rating (1 = no foreign accent; 9 = very strong accent),What gave it away?']
+  const files = mixed.map((it, i) => ({ name: t('Sample {letter}.wav', { letter: letters[i] }), data: DSP.wav(it.samples) }));
+  const csvCell = (x) => (/[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x);
+  const sheet = [[t('Listener name'), t('Sample'), t('Rating (1 = no foreign accent; 9 = very strong accent)'), t('What gave it away?')].map(csvCell).join(',')]
     .concat(mixed.map((_, i) => `,${letters[i]},,`)).join('\n');
   files.push({ name: 'rating-sheet.csv', data: enc.encode(sheet) });
-  files.push({ name: 'instructions.txt', data: enc.encode(`Thanks for helping!\n\nListen to each sample once or twice, in any order. For each one, rate how strong a foreign (non-${targetAccent().short}) accent you hear:\n1 = no foreign accent at all, 9 = very strong foreign accent.\nThen write a few words on what gave it away (a sound, the rhythm, the melody...).\nFill in rating-sheet.csv and send it back.\n`) });
+  files.push({ name: 'instructions.txt', data: enc.encode(t('Thanks for helping!\n\nListen to each sample once or twice, in any order. For each one, rate how strong a foreign (non-{accent}) accent you hear:\n1 = no foreign accent at all, 9 = very strong foreign accent.\nThen write a few words on what gave it away (a sound, the rhythm, the melody...).\nFill in rating-sheet.csv and send it back.\n', { accent: t(targetAccent().short) })) });
   const zip = makeZip(files);
   const pack = Store.put('meta', { id: `pack-${uid()}`, kind: 'listenerPack', lang: targetLang(), created: new Date().toISOString(), items: mixed.map((it, i) => ({ label: letters[i], kind: it.kind, week: it.week, clipId: it.clipId })), ratings: [] });
   const name = `listener-pack-${dayKey()}.zip`;
   if (Caps.downloads) {
-    try { await Caps.downloads.save({ filename: name, data: zip }); toast('Pack saved.', 'good'); } catch (e) { if (e.code !== 'declined') toast(`Couldn’t save the file (${e.code}).`, 'bad'); }
+    try { await Caps.downloads.save({ filename: name, data: zip }); toast(t('Pack saved.'), 'good'); } catch (e) { if (e.code !== 'declined') toast(t('Couldn’t save the file ({error}).', { error: e.code }), 'bad'); }
   } else {
     const a = h('a', { href: URL.createObjectURL(zip), download: name });
     document.body.appendChild(a); a.click(); a.remove();
   }
-  toast(`Pack ${fmtDay(dayKey())} keeps the answer key here, so the listeners can't see which is which.`);
+  toast(t('Pack {date} keeps the answer key here, so the listeners can’t see which is which.', { date: fmtDay(dayKey()) }));
   return pack;
 }
 function excerpt(x, secs) {
@@ -515,24 +516,24 @@ function listenerPacks() { const lang = targetLang(); return Store.all('meta').f
 
 function openRatings() {
   const packs = listenerPacks();
-  if (!packs.length) { toast('Export a listener pack first.'); return; }
+  if (!packs.length) { toast(t('Export a listener pack first.')); return; }
   const pack = packs[0];
   const F = { listener: '', vals: {} };
   const form = h('form', { class: 'stack', onsubmit: (e) => {
     e.preventDefault();
     const rows = pack.items.map((it) => ({ label: it.label, rating: +F.vals[it.label]?.rating || null, comment: F.vals[it.label]?.comment || '' })).filter((r) => r.rating >= 1 && r.rating <= 9);
-    if (!rows.length) { toast('Enter at least one rating from 1 to 9.'); return; }
+    if (!rows.length) { toast(t('Enter at least one rating from 1 to 9.')); return; }
     Store.patch('meta', pack.id, { ratings: [...(pack.ratings || []), { listener: F.listener.trim() || 'Listener', rows, at: dayKey() }] });
-    toast('Ratings saved.', 'good');
+    toast(t('Ratings saved.'), 'good');
     openProgress('measures');
   } },
-  h('label', { class: 'field', for: 'rListener' }, 'Listener name', h('input', { type: 'text', id: 'rListener', oninput: (e) => { F.listener = e.target.value; } })),
-  h('div', { class: 'table-wrap' }, h('table', null, h('thead', null, h('tr', null, h('th', null, 'Sample'), h('th', null, 'Rating 1–9'), h('th', null, 'What gave it away?'))),
+  h('label', { class: 'field', for: 'rListener' }, t('Listener name'), h('input', { type: 'text', id: 'rListener', oninput: (e) => { F.listener = e.target.value; } })),
+  h('div', { class: 'table-wrap' }, h('table', null, h('thead', null, h('tr', null, h('th', null, t('Sample')), h('th', null, t('Rating 1–9')), h('th', null, t('What gave it away?')))),
     h('tbody', null, pack.items.map((it) => h('tr', null, h('td', null, it.label),
       h('td', null, h('input', { type: 'number', min: 1, max: 9, id: `r-${it.label}`, style: { width: '80px' }, oninput: (e) => { (F.vals[it.label] ||= {}).rating = e.target.value; } })),
       h('td', null, h('input', { type: 'text', id: `c-${it.label}`, oninput: (e) => { (F.vals[it.label] ||= {}).comment = e.target.value; } }))))))),
-  h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary' }, h('span', null, 'Save ratings'))));
-  openModal([modalHead('Enter listener ratings', `Pack from ${fmtDay(dayKey(new Date(pack.created)))} · ${(pack.ratings || []).length} listener(s) so far`), form]);
+  h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary' }, h('span', null, t('Save ratings')))));
+  openModal([modalHead(t('Enter listener ratings'), tp((pack.ratings || []).length, 'Pack from {date} · {n} listener so far', 'Pack from {date} · {n} listeners so far', { date: fmtDay(dayKey(new Date(pack.created))) })), form]);
 }
 function ratingAverages() {
   const out = new Map();
@@ -540,7 +541,7 @@ function ratingAverages() {
     for (const r of p.ratings || []) for (const row of r.rows) {
       const it = p.items.find((i) => i.label === row.label);
       if (!it) continue;
-      const label = it.kind === 'model' ? `${targetAccent().short} speaker (reference)` : it.week === 0 ? 'Baseline' : `Week ${it.week}`;
+      const label = it.kind === 'model' ? t('{accent} speaker (reference)', { accent: t(targetAccent().short) }) : it.week === 0 ? t('Baseline') : t('Week {n}', { n: it.week });
       if (!out.has(label)) out.set(label, []);
       out.get(label).push(row.rating);
     }

@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="fr-FR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script>try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch { /* storage blocked */ }</script>
+<title>Euno Shadowing : le shadowing au quotidien pour ton accent en anglais</title>
+<meta name="description" content="Euno Shadowing est un coach gratuit pour travailler ton accent par le shadowing. Parle en même temps que de vrais extraits, compare ta mélodie et ton rythme à ceux du locuteur, et suis ton accent sur 12 semaines.">
+<link rel="canonical" href="https://shadowing.euno.cc/fr/">
+<link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/">
+<link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/">
+<link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/">
+<link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/">
+<meta name="theme-color" content="#45b52a">
+<meta property="og:site_name" content="Euno Shadowing">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Euno Shadowing : le shadowing au quotidien pour ton accent en anglais">
+<meta property="og:description" content="Euno Shadowing est un coach gratuit pour travailler ton accent par le shadowing. Parle en même temps que de vrais extraits, compare ta mélodie et ton rythme à ceux du locuteur, et suis ton accent sur 12 semaines.">
+<meta property="og:url" content="https://shadowing.euno.cc/fr/">
+<meta property="og:image" content="https://shadowing.euno.cc/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Euno Shadowing : la courbe de mélodie du locuteur et la tienne, avec le décalage entre les deux">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:locale:alternate" content="en_AU">
+<meta property="og:locale:alternate" content="es_ES">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>/* Public site (landing, guides, legal, contact). Same palette and fonts as the app. */
+:root {
+  --bg: #f4f8f1;
+  --surface: #ffffff;
+  --surface-2: #eaf2e5;
+  --line: #d5e2cd;
+  --fg: #1d2a19;
+  --muted: #5b6b55;
+  --green: #45b52a;
+  --green-dark: #2f8a19;
+  --green-soft: #def3d3;
+  --green-ink: #2f8a19;
+  --on-green: #ffffff;
+  --wattle: #f2b705;
+  --wattle-soft: #fff1c4;
+  --sky: #1c95e0;
+  --sky-soft: #d9eefb;
+  --shadow: 0 2px 0 rgba(29, 42, 25, 0.08);
+  --font-display: "Fredoka", "Nunito", ui-rounded, system-ui, sans-serif;
+  --font-body: "Nunito", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r-lg: 22px;
+  --r-md: 16px;
+  --r-sm: 11px;
+  --wrap: 1080px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111710; --surface: #192118; --surface-2: #212c1f; --line: #2d3a2a; --fg: #e6efe2; --muted: #97a891;
+    --green: #5ccc3c; --green-dark: #3a9a20; --green-soft: #22391b; --green-ink: #5ccc3c; --on-green: #0d1a09;
+    --wattle: #ffc928; --wattle-soft: #3a3214; --sky: #4cb2f2; --sky-soft: #15303f;
+    --shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111710; --surface: #192118; --surface-2: #212c1f; --line: #2d3a2a; --fg: #e6efe2; --muted: #97a891;
+  --green: #5ccc3c; --green-dark: #3a9a20; --green-soft: #22391b; --green-ink: #5ccc3c; --on-green: #0d1a09;
+  --wattle: #ffc928; --wattle-soft: #3a3214; --sky: #4cb2f2; --sky-soft: #15303f;
+  --shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.6 var(--font-body); }
+a { color: var(--green-ink); text-underline-offset: 2px; }
+h1, h2, h3 { text-wrap: balance; font-family: var(--font-display); font-weight: 600; line-height: 1.2; margin: 0 0 0.5em; }
+h1 { font-size: clamp(2rem, 5vw, 3.2rem); }
+h2 { font-size: clamp(1.5rem, 3.2vw, 2.1rem); }
+h3 { font-size: 1.2rem; }
+p { margin: 0 0 1em; }
+img, svg { max-width: 100%; height: auto; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 20px; }
+.skip { position: absolute; left: -999px; }
+.skip:focus { left: 12px; top: 12px; background: var(--surface); padding: 8px 12px; border-radius: var(--r-sm); z-index: 10; }
+
+/* header and footer */
+.site-head { border-bottom: 1px solid var(--line); background: var(--surface); }
+.site-head .wrap { display: flex; align-items: center; gap: 16px; min-height: 64px; flex-wrap: wrap; }
+.brand { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; color: var(--fg); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.brand small { font-weight: 500; color: var(--green-ink); font-size: 1rem; }
+.brand svg { width: 30px; height: 30px; }
+.site-nav { margin-left: auto; display: flex; gap: 6px 18px; align-items: center; flex-wrap: wrap; }
+.site-nav a { color: var(--fg); text-decoration: none; font-weight: 700; font-size: 0.95rem; }
+.site-nav a:hover { color: var(--green-ink); }
+.site-nav .btn { color: var(--on-green); }
+.site-foot { margin-top: 72px; border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 0.95rem; }
+.site-foot .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; padding-top: 28px; padding-bottom: 36px; align-items: baseline; }
+.site-foot nav { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.site-foot a { color: var(--muted); }
+.site-foot .copy { margin-left: auto; }
+
+/* language switcher: a small menu in the header, plain links in the footer */
+.lang-menu { position: relative; }
+.lang-menu summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-weight: 800; font-size: 0.88rem; color: var(--fg); padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; }
+.lang-menu summary::-webkit-details-marker { display: none; }
+.lang-menu summary:hover, .lang-menu[open] summary { border-color: var(--green); color: var(--green-ink); }
+.lang-menu summary svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.lang-list { position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; min-width: 150px; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); padding: 6px; }
+.site-nav .lang-list a { padding: 8px 10px; border-radius: 8px; font-weight: 700; }
+.site-nav .lang-list a:hover { background: var(--surface-2); }
+.site-nav .lang-list a[aria-current] { color: var(--green-ink); }
+.site-nav .lang-list a[aria-current]::after { content: " ✓"; }
+.foot-langs a[aria-current] { color: var(--fg); font-weight: 800; text-decoration: none; }
+.updated.ref { font-style: italic; }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; font: 700 1rem/1 var(--font-body); text-decoration: none; border-radius: 999px; padding: 12px 20px; border: 2px solid transparent; cursor: pointer; transition: transform 0.08s ease; }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--green); color: var(--on-green); box-shadow: 0 3px 0 var(--green-dark); }
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.btn-big { font-size: 1.1rem; padding: 16px 26px; }
+.btn-sm { padding: 9px 16px; font-size: 0.92rem; }
+.btn .g { width: 20px; height: 20px; background: #fff; border-radius: 50%; padding: 2px; flex: none; }
+
+/* landing */
+.hero { padding: 64px 0 40px; }
+.hero .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+.hero .lede { font-size: 1.2rem; color: var(--muted); max-width: 34em; }
+.hero .cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 24px 0 12px; }
+.hero .fine { font-size: 0.9rem; color: var(--muted); }
+.eyebrow { display: inline-block; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--green-ink); background: var(--green-soft); padding: 4px 12px; border-radius: 999px; margin-bottom: 16px; }
+.demo { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 18px; }
+.demo figcaption { font-size: 0.88rem; color: var(--muted); margin-top: 10px; }
+.demo svg { display: block; width: 100%; }
+.demo .grid line { stroke: var(--line); stroke-width: 1; }
+.demo .lane { fill: var(--surface-2); }
+.demo .speaker { fill: none; stroke: var(--green); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.demo .you { fill: none; stroke: var(--sky); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.demo .wave rect { fill: var(--muted); opacity: 0.35; }
+.demo .lbl { fill: var(--muted); font: 700 13px var(--font-body); }
+.demo .chip { fill: var(--wattle-soft); stroke: var(--wattle); }
+.demo .chip-t { fill: var(--fg); font: 800 14px var(--font-body); }
+.demo .key-s { fill: var(--green); }
+.demo .key-y { fill: var(--sky); }
+
+section.block { padding: 56px 0 8px; }
+section.block .intro.after { margin-top: 20px; }
+section.block > .wrap > .intro { max-width: 46em; color: var(--muted); font-size: 1.08rem; }
+.steps { list-style: none; padding: 0; margin: 28px 0 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; counter-reset: step; }
+.steps li { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 20px; counter-increment: step; box-shadow: var(--shadow); }
+.steps li::before { content: counter(step); display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: var(--on-green); font: 700 1.05rem var(--font-display); margin-bottom: 10px; }
+.steps h3 { margin-bottom: 4px; }
+.steps p { margin: 0; color: var(--muted); font-size: 0.97rem; }
+.steps .t { font-weight: 800; color: var(--fg); }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 22px; box-shadow: var(--shadow); }
+.card p { margin: 0; color: var(--muted); font-size: 0.98rem; }
+.card .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--green-soft); margin-bottom: 12px; }
+.card .ic svg { width: 22px; height: 22px; stroke: var(--green-ink); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 26px; box-shadow: var(--shadow); }
+.panel ul { margin: 0; padding-left: 1.2em; color: var(--muted); }
+.panel li { margin-bottom: 6px; }
+.panel.sky { background: var(--sky-soft); border-color: transparent; }
+.panel.wattle { background: var(--wattle-soft); border-color: transparent; }
+.faq-wrap { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr); gap: 40px; align-items: start; }
+.faq-intro { position: sticky; top: 24px; }
+.faq-intro p { color: var(--muted); }
+.faq-more { font-weight: 700; }
+.faq { display: grid; gap: 10px; }
+.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow); transition: border-color 0.15s; }
+.faq details:hover { border-color: color-mix(in srgb, var(--line), var(--green) 40%); }
+.faq details[open] { border-color: var(--green); }
+.faq summary { cursor: pointer; font-weight: 800; font-size: 1.04rem; padding: 18px 20px; display: flex; align-items: center; gap: 16px; list-style: none; border-radius: var(--r-md); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary span { flex: 1 1 auto; }
+.faq summary i { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--green-soft); position: relative; transition: transform 0.2s ease, background-color 0.15s; }
+.faq summary i::before, .faq summary i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 2.5px; margin: -1.25px 0 0 -6px; background: var(--green-ink); border-radius: 2px; transition: transform 0.2s ease; }
+.faq summary i::after { transform: rotate(90deg); }
+.faq details[open] summary i { background: var(--green); transform: rotate(180deg); }
+.faq details[open] summary i::before, .faq details[open] summary i::after { background: var(--on-green); }
+.faq details[open] summary i::after { transform: rotate(0deg); }
+.faq summary:hover span { color: var(--green-ink); }
+.faq .a { padding: 0 20px 6px; }
+.faq .a p { color: var(--muted); margin: 0 0 14px; }
+.final { text-align: center; padding: 64px 0 8px; }
+.final .panel { padding: 40px 24px; }
+.final p { color: var(--muted); max-width: 36em; margin: 0 auto 22px; }
+
+/* articles, legal, contact */
+.page { padding: 48px 0 0; }
+.page .wrap { max-width: 760px; }
+.crumbs { font-size: 0.9rem; color: var(--muted); margin-bottom: 18px; }
+.crumbs a { color: var(--muted); }
+.page .lede { font-size: 1.15rem; color: var(--muted); }
+.page h2 { margin-top: 1.6em; }
+.page h3 { margin-top: 1.3em; }
+.page ul, .page ol { padding-left: 1.3em; }
+.page li { margin-bottom: 6px; }
+.updated { font-size: 0.92rem; color: var(--muted); }
+.callout { background: var(--green-soft); border-radius: var(--r-md); padding: 18px 22px; margin: 24px 0; }
+.callout p:last-child { margin: 0; }
+.related { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); }
+table.simple { border-collapse: collapse; width: 100%; margin: 12px 0 20px; font-size: 0.97rem; }
+table.simple th, table.simple td { text-align: left; border-bottom: 1px solid var(--line); padding: 8px 10px 8px 0; vertical-align: top; }
+
+form.contact { display: grid; gap: 16px; margin-top: 24px; }
+form.contact label { display: grid; grid-template-columns: max-content 1fr; gap: 6px; font-weight: 800; font-size: 0.95rem; }
+form.contact label > :is(input, select, textarea) { grid-column: 1 / -1; }
+form.contact .opt { font-weight: 600; color: var(--muted); }
+form.contact input, form.contact select, form.contact textarea { font: inherit; font-weight: 600; color: var(--fg); background-color: var(--surface); border: 2px solid var(--line); border-radius: var(--r-sm); padding: 11px 14px; width: 100%; transition: border-color 0.15s, box-shadow 0.15s; }
+form.contact input::placeholder, form.contact textarea::placeholder { color: var(--muted); opacity: 0.75; }
+form.contact input:hover, form.contact select:hover, form.contact textarea:hover { border-color: color-mix(in srgb, var(--line), var(--muted) 35%); }
+form.contact input:focus, form.contact select:focus, form.contact textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+form.contact select {
+  appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 40px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 20px) 50%, calc(100% - 14px) 50%; background-size: 6px 6px, 6px 6px; background-repeat: no-repeat;
+}
+form.contact select option { background: var(--surface); color: var(--fg); }
+form.contact textarea { min-height: 170px; resize: vertical; }
+form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.form-status { min-height: 1.6em; font-weight: 700; }
+.form-status.ok { color: var(--green-ink); }
+.form-status.bad { color: #c2373c; }
+
+:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  .faq-wrap { grid-template-columns: 1fr; gap: 8px; }
+  .faq-intro { position: static; }
+  .hero .wrap { grid-template-columns: 1fr; gap: 32px; }
+  .steps { grid-template-columns: repeat(2, 1fr); }
+  .cards { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .wrap { padding: 0 16px; }
+  .hero { padding-top: 40px; }
+  .steps, .cards, .split { grid-template-columns: 1fr; }
+  .site-nav .hide-sm { display: none; }
+  .site-head .wrap { gap: 10px; }
+  .site-nav { gap: 6px 10px; }
+  .lang-menu summary { padding: 6px 8px; }
+  .lang-menu summary svg, .site-nav .btn-sm .g { display: none; }
+  .site-foot .copy { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .btn, .faq summary i, .faq summary i::before, .faq summary i::after { transition: none; } }
+</style>
+<script src="/assets/site.js" defer></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebApplication","name":"Euno Shadowing","url":"https://shadowing.euno.cc/fr/","description":"Euno Shadowing est un coach gratuit pour travailler ton accent par le shadowing. Parle en même temps que de vrais extraits, compare ta mélodie et ton rythme à ceux du locuteur, et suis ton accent sur 12 semaines.","applicationCategory":"EducationalApplication","operatingSystem":"Tous (navigateur web)","browserRequirements":"Nécessite un navigateur récent avec accès au micro.","inLanguage":"fr","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["Séances de shadowing guidées en quatre étapes","Comparaison de la mélodie et du rythme avec le locuteur","Enregistrement et écoute côte à côte","Notes avec retours de l’IA en option (avec ta propre clé)","Bilans sur 12 semaines par rapport à un point de départ","Rappels d’entraînement sur Discord"],"image":"https://shadowing.euno.cc/assets/og.png"},{"@type":"WebSite","name":"Euno Shadowing","url":"https://shadowing.euno.cc/fr/","inLanguage":"fr"},{"@type":"FAQPage","inLanguage":"fr","mainEntity":[{"@type":"Question","name":"C’est quoi le shadowing ?","acceptedAnswer":{"@type":"Answer","text":"Faire du shadowing, c’est parler en même temps qu’un enregistrement, en copiant le rythme, la mélodie et les sons du locuteur d’aussi près que possible. Ça entraîne ta façon de parler, pas seulement ta compréhension. Lire le guide complet."}},{"@type":"Question","name":"C’est payant ?","acceptedAnswer":{"@type":"Answer","text":"Non. Euno Shadowing est gratuit. Les retours de l’IA sont optionnels et utilisent ta propre clé API : l’usage de l’IA t’est facturé directement par le fournisseur que tu choisis, et c’est toi qui choisis le modèle."}},{"@type":"Question","name":"Quelles langues et quels accents ?","acceptedAnswer":{"@type":"Answer","text":"Tu peux pratiquer l’anglais (australien, américain ou britannique du Sud), le français (parisien ou québécois) ou l’espagnol (mexicain, d’Espagne ou rioplatense), ou indiquer un autre accent de ces langues. L’application est disponible en français, en anglais et en espagnol. D’autres langues, comme le japonais et l’allemand, sont prévues."}},{"@type":"Question","name":"Où sont stockés mes vidéos et mes enregistrements ?","acceptedAnswer":{"@type":"Answer","text":"Sur ton appareil, dans le stockage de ton navigateur. Si tu les veux sur plusieurs appareils, tu peux activer la synchronisation Google Drive : les fichiers vont dans un dossier « Euno Shadowing » de ton propre Drive. Notre serveur ne garde que tes notes d’entraînement et tes progrès, jamais l’audio ni la vidéo."}},{"@type":"Question","name":"Quelles vidéos puis-je utiliser ?","acceptedAnswer":{"@type":"Answer","text":"N’importe quel fichier vidéo ou audio que tu as le droit d’utiliser pour t’entraîner : importe un fichier depuis ton appareil ou colle un lien direct vers un .mp4. Les interviews, podcasts et conférences avec un seul locuteur bien audible marchent le mieux."}},{"@type":"Question","name":"Faut-il une clé d’IA ?","acceptedAnswer":{"@type":"Answer","text":"Non. Tout fonctionne sans. Avec une clé Anthropic, OpenAI ou OpenRouter, tu peux demander un retour sur ce qui sonnait faux dans ton enregistrement. Sans clé, Euno rédige le prompt pour que tu le colles dans n’importe quel chatbot."}},{"@type":"Question","name":"Faut-il un micro ?","acceptedAnswer":{"@type":"Answer","text":"Oui, pour enregistrer tes passages et tes bilans. Un casque ou des écouteurs aident, pour que la voix du locuteur ne passe pas dans ton enregistrement."}}]}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="site-head"><div class="wrap">
+  <a class="brand" href="/fr/" aria-label="Euno Shadowing, accueil"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#45b52a"/><path d="M10 38c6 0 7-14 13-14s7 18 13 18 7-22 13-22 5 10 5 10" fill="none" stroke="#bfeaa9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" transform="translate(3 3)"/><path d="M10 38c6 0 7-14 13-14s7 18 13 18 7-22 13-22 5 10 5 10" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Euno <small>Shadowing</small></span></a>
+  <nav class="site-nav" aria-label="Navigation principale">
+    <a class="hide-sm" href="/fr/what-is-shadowing/">C’est quoi le shadowing ?</a>
+    <a class="hide-sm" href="/fr/accent-shadowing/">Routine quotidienne</a>
+    <details class="lang-menu">
+      <summary aria-label="Langue : français"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg><span>FR</span></summary>
+      <div class="lang-list" role="group" aria-label="Langue"><a href="/" hreflang="en" lang="en" data-lang-switch="en">English</a><a href="/fr/" hreflang="fr" lang="fr" data-lang-switch="fr" aria-current="true">Français</a><a href="/es/" hreflang="es" lang="es" data-lang-switch="es">Español</a></div>
+    </details>
+    <a class="btn btn-primary btn-sm" href="/auth/google" data-signin data-signed-in="Ouvrir l’app" rel="nofollow"><svg class="g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span data-label>Se connecter</span></a>
+  </nav>
+</div></header>
+<main id="main">
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">Entraînement d’accent gratuit</span>
+      <h1>Parle davantage comme les gens que tu écoutes.</h1>
+      <p class="lede">Euno Shadowing est un coach quotidien pour le shadowing : choisis un court extrait, parle en même temps que lui, et vois ta mélodie et ton rythme à côté de ceux du locuteur. Quinze minutes par jour, et ton accent évolue.</p>
+      <div class="cta"><a class="btn btn-primary btn-big" href="/auth/google" data-signin rel="nofollow"><svg class="g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span data-label>Commencer avec Google</span></a><a class="btn btn-ghost btn-big" href="#how">Comment ça marche</a></div>
+      <p class="fine">Gratuit. Dans ton navigateur. Tes vidéos et tes enregistrements restent sur ton appareil.</p>
+    </div>
+    <figure class="demo"><svg viewBox="0 0 560 320" role="img" aria-labelledby="demoT demoD">
+  <title id="demoT">Courbes de mélodie du locuteur et de l’apprenant</title>
+  <desc id="demoD">Deux courbes de mélodie sur un court extrait. Celle de l’apprenant suit de près celle du locuteur, avec environ 0,18 seconde de décalage et des montées et descentes un peu plus plates.</desc>
+  <rect class="lane" x="0" y="0" width="560" height="320" rx="14"/>
+  <g class="grid"><line x1="20" y1="70" x2="540" y2="70"/><line x1="20" y1="130" x2="540" y2="130"/><line x1="20" y1="190" x2="540" y2="190"/></g>
+  <path class="speaker" d="M20 160 C60 120 90 95 120 125 S170 190 200 160 S260 70 300 92 S360 170 390 150 S450 105 480 130 S520 180 540 170"/>
+  <path class="you" d="M34 160 C74 132 104 112 134 132 S184 180 214 157 S274 92 314 106 S374 162 404 147 S464 118 494 134 S530 168 546 164"/>
+  <g class="wave"><rect x="20" y="292" width="5" height="8" rx="2"/><rect x="28.2" y="291" width="5" height="9" rx="2"/><rect x="36.4" y="295" width="5" height="5" rx="2"/><rect x="44.599999999999994" y="292" width="5" height="8" rx="2"/><rect x="52.8" y="288" width="5" height="12" rx="2"/><rect x="61" y="284" width="5" height="16" rx="2"/><rect x="69.19999999999999" y="294" width="5" height="6" rx="2"/><rect x="77.39999999999999" y="267" width="5" height="33" rx="2"/><rect x="85.6" y="274" width="5" height="26" rx="2"/><rect x="93.8" y="280" width="5" height="20" rx="2"/><rect x="102" y="285" width="5" height="15" rx="2"/><rect x="110.19999999999999" y="265" width="5" height="35" rx="2"/><rect x="118.39999999999999" y="272" width="5" height="28" rx="2"/><rect x="126.6" y="293" width="5" height="7" rx="2"/><rect x="134.79999999999998" y="282" width="5" height="18" rx="2"/><rect x="143" y="290" width="5" height="10" rx="2"/><rect x="151.2" y="283" width="5" height="17" rx="2"/><rect x="159.39999999999998" y="294" width="5" height="6" rx="2"/><rect x="167.6" y="290" width="5" height="10" rx="2"/><rect x="175.79999999999998" y="292" width="5" height="8" rx="2"/><rect x="184" y="295" width="5" height="5" rx="2"/><rect x="192.2" y="296" width="5" height="4" rx="2"/><rect x="200.39999999999998" y="286" width="5" height="14" rx="2"/><rect x="208.6" y="282" width="5" height="18" rx="2"/><rect x="216.79999999999998" y="294" width="5" height="6" rx="2"/><rect x="224.99999999999997" y="285" width="5" height="15" rx="2"/><rect x="233.2" y="268" width="5" height="32" rx="2"/><rect x="241.39999999999998" y="290" width="5" height="10" rx="2"/><rect x="249.59999999999997" y="281" width="5" height="19" rx="2"/><rect x="257.79999999999995" y="274" width="5" height="26" rx="2"/><rect x="266" y="269" width="5" height="31" rx="2"/><rect x="274.2" y="285" width="5" height="15" rx="2"/><rect x="282.4" y="290" width="5" height="10" rx="2"/><rect x="290.59999999999997" y="263" width="5" height="37" rx="2"/><rect x="298.79999999999995" y="283" width="5" height="17" rx="2"/><rect x="307" y="290" width="5" height="10" rx="2"/><rect x="315.2" y="286" width="5" height="14" rx="2"/><rect x="323.4" y="291" width="5" height="9" rx="2"/><rect x="331.59999999999997" y="294" width="5" height="6" rx="2"/><rect x="339.79999999999995" y="289" width="5" height="11" rx="2"/><rect x="348" y="293" width="5" height="7" rx="2"/><rect x="356.2" y="293" width="5" height="7" rx="2"/><rect x="364.4" y="295" width="5" height="5" rx="2"/><rect x="372.59999999999997" y="282" width="5" height="18" rx="2"/><rect x="380.79999999999995" y="291" width="5" height="9" rx="2"/><rect x="388.99999999999994" y="275" width="5" height="25" rx="2"/><rect x="397.2" y="282" width="5" height="18" rx="2"/><rect x="405.4" y="288" width="5" height="12" rx="2"/><rect x="413.59999999999997" y="274" width="5" height="26" rx="2"/><rect x="421.79999999999995" y="280" width="5" height="20" rx="2"/><rect x="429.99999999999994" y="266" width="5" height="34" rx="2"/><rect x="438.2" y="270" width="5" height="30" rx="2"/><rect x="446.4" y="291" width="5" height="9" rx="2"/><rect x="454.59999999999997" y="289" width="5" height="11" rx="2"/><rect x="462.79999999999995" y="283" width="5" height="17" rx="2"/><rect x="470.99999999999994" y="294" width="5" height="6" rx="2"/><rect x="479.19999999999993" y="295" width="5" height="5" rx="2"/><rect x="487.4" y="290" width="5" height="10" rx="2"/><rect x="495.59999999999997" y="288" width="5" height="12" rx="2"/><rect x="503.79999999999995" y="290" width="5" height="10" rx="2"/><rect x="511.99999999999994" y="288" width="5" height="12" rx="2"/><rect x="520.1999999999999" y="293" width="5" height="7" rx="2"/><rect x="528.4" y="291" width="5" height="9" rx="2"/><rect x="536.5999999999999" y="289" width="5" height="11" rx="2"/></g>
+  <circle class="key-s" cx="28" cy="28" r="6"/><text class="lbl" x="40" y="33">Locuteur</text>
+  <circle class="key-y" cx="118" cy="28" r="6"/><text class="lbl" x="130" y="33">Toi</text>
+  <rect class="chip" x="364" y="12" width="180" height="34" rx="17"/><text class="chip-t" x="454" y="34" text-anchor="middle">Décalage : 0,18 s</text>
+</svg><figcaption>Après chaque passage, Euno aligne ta voix sur celle du locuteur et te montre ton décalage et les endroits où ta mélodie était trop plate.</figcaption></figure>
+  </div>
+</section>
+
+<section class="block" id="how">
+  <div class="wrap">
+    <h2>Une séance de 15 minutes, toute prête</h2>
+    <p class="intro">Chaque séance porte sur un extrait d’une ou deux phrases. Euno le passe en boucle, compte tes passages et gère le temps : tu n’as plus qu’à écouter et parler.</p>
+    <ol class="steps">
+      <li><h3>Écouter</h3><p><span class="t">2 min.</span> Écoute l’extrait trois fois sans parler. Repère le rythme et les endroits où la voix monte et descend.</p></li>
+      <li><h3>Faire du shadowing</h3><p><span class="t">7 min.</span> Parle en même temps que le locuteur, environ 15 passages, sans transcription. Copie tout : rythme, mélodie et sons.</p></li>
+      <li><h3>Enregistrer et comparer</h3><p><span class="t">2 min.</span> Enregistre un passage et écoute-le à côté de l’original. Regarde ta courbe de mélodie et ton décalage.</p></li>
+      <li><h3>Recommencer</h3><p><span class="t">4 min.</span> Environ 8 passages de plus, puis un dernier enregistrement à comparer avec le premier.</p></li>
+    </ol>
+    <p class="intro after">Pas le temps ? Le mode jour sans propose une version de cinq minutes, pour ne jamais sauter un jour. Chaque durée et chaque nombre de passages se règle.</p>
+  </div>
+</section>
+
+<section class="block" id="features">
+  <div class="wrap">
+    <h2>Tout ce qu’il faut pour une routine de shadowing</h2>
+    <div class="cards">
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg></div><h3>Des extraits de n’importe quelle vidéo</h3><p>Ajoute une vidéo, puis fais glisser sur la frise pour couper un extrait. Une forme d’onde zoomée t’aide à couper pile dans les pauses.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M2 12h2l2-6 4 12 4-14 4 10 2-2h2"/></svg></div><h3>Vois ta mélodie</h3><p>Le suivi de la hauteur trace l’intonation du locuteur et la tienne, chacune par rapport à sa propre voix, pour voir où ta voix reste trop plate.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg></div><h3>Mesure ton décalage</h3><p>Après chaque passage, Euno aligne ton enregistrement sur l’extrait et te dit de combien tu étais en retard ou en avance.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg></div><h3>Enregistre et compare</h3><p>Écoute l’original, puis toi, l’un après l’autre ou les deux ensemble. Tes enregistrements de l’étape 3 et de la fin sont gardés pour chaque extrait.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg></div><h3>Des notes qui repèrent les tendances</h3><p>Note ce qui sonnait faux. Les problèmes qui reviennent forment une liste de points faibles, pour savoir quoi travailler ensuite.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div><h3>Bilans sur 12 semaines</h3><p>Enregistre un point de départ, puis fais un bilan aux semaines 4, 8 et 12 avec les mêmes exercices, et entends le chemin parcouru.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="privacy">
+  <div class="wrap">
+    <h2>Ta voix reste à toi</h2>
+    <div class="split">
+      <div class="panel sky">
+        <h3>Tes fichiers sur ton appareil, ou dans ton propre Drive</h3>
+        <ul>
+          <li>Les vidéos et les enregistrements de ta voix sont stockés dans ton navigateur, sur ton appareil.</li>
+          <li>Tu les veux aussi sur un autre appareil ? Active la synchronisation Google Drive : ils vont dans un dossier de ton propre Drive.</li>
+          <li>Notre serveur ne garde que tes notes d’entraînement, tes réglages et tes progrès, que tu peux exporter ou supprimer quand tu veux.</li>
+        </ul>
+      </div>
+      <div class="panel wattle">
+        <h3>Des retours de l’IA avec ta propre clé, si tu veux</h3>
+        <ul>
+          <li>Apporte une clé Anthropic, OpenAI ou OpenRouter et choisis le modèle, du moins cher et rapide au plus performant.</li>
+          <li>Ta clé est chiffrée sur notre serveur et n’est plus jamais affichée, même pas à toi.</li>
+          <li>Pas de clé ? Euno rédige le prompt pour que tu le colles dans n’importe quel chatbot.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="faq">
+  <div class="wrap">
+    <div class="faq-wrap">
+      <div class="faq-intro">
+        <h2>Questions</h2>
+        <p>Les réponses courtes. Les guides vont plus loin sur <a href="/fr/what-is-shadowing/">ce qu’est le shadowing</a> et <a href="/fr/accent-shadowing/">la routine quotidienne</a>.</p>
+        <p class="faq-more">Autre chose ? <a href="/fr/contact/">Envoie-nous un message</a>.</p>
+      </div>
+      <div class="faq">
+        <details><summary><span>C’est quoi le shadowing ?</span><i aria-hidden="true"></i></summary><div class="a"><p>Faire du shadowing, c’est parler en même temps qu’un enregistrement, en copiant le rythme, la mélodie et les sons du locuteur d’aussi près que possible. Ça entraîne ta façon de parler, pas seulement ta compréhension. <a href="/fr/what-is-shadowing/">Lire le guide complet</a>.</p></div></details>
+        <details><summary><span>C’est payant ?</span><i aria-hidden="true"></i></summary><div class="a"><p>Non. Euno Shadowing est gratuit. Les retours de l’IA sont optionnels et utilisent ta propre clé API : l’usage de l’IA t’est facturé directement par le fournisseur que tu choisis, et c’est toi qui choisis le modèle.</p></div></details>
+        <details><summary><span>Quelles langues et quels accents ?</span><i aria-hidden="true"></i></summary><div class="a"><p>Tu peux pratiquer l’anglais (australien, américain ou britannique du Sud), le français (parisien ou québécois) ou l’espagnol (mexicain, d’Espagne ou rioplatense), ou indiquer un autre accent de ces langues. L’application est disponible en français, en anglais et en espagnol. D’autres langues, comme le japonais et l’allemand, sont prévues.</p></div></details>
+        <details><summary><span>Où sont stockés mes vidéos et mes enregistrements ?</span><i aria-hidden="true"></i></summary><div class="a"><p>Sur ton appareil, dans le stockage de ton navigateur. Si tu les veux sur plusieurs appareils, tu peux activer la synchronisation Google Drive : les fichiers vont dans un dossier « Euno Shadowing » de ton propre Drive. Notre serveur ne garde que tes notes d’entraînement et tes progrès, jamais l’audio ni la vidéo.</p></div></details>
+        <details><summary><span>Quelles vidéos puis-je utiliser ?</span><i aria-hidden="true"></i></summary><div class="a"><p>N’importe quel fichier vidéo ou audio que tu as le droit d’utiliser pour t’entraîner : importe un fichier depuis ton appareil ou colle un lien direct vers un .mp4. Les interviews, podcasts et conférences avec un seul locuteur bien audible marchent le mieux.</p></div></details>
+        <details><summary><span>Faut-il une clé d’IA ?</span><i aria-hidden="true"></i></summary><div class="a"><p>Non. Tout fonctionne sans. Avec une clé Anthropic, OpenAI ou OpenRouter, tu peux demander un retour sur ce qui sonnait faux dans ton enregistrement. Sans clé, Euno rédige le prompt pour que tu le colles dans n’importe quel chatbot.</p></div></details>
+        <details><summary><span>Faut-il un micro ?</span><i aria-hidden="true"></i></summary><div class="a"><p>Oui, pour enregistrer tes passages et tes bilans. Un casque ou des écouteurs aident, pour que la voix du locuteur ne passe pas dans ton enregistrement.</p></div></details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <div class="panel">
+      <h2>Ton premier extrait prend deux minutes</h2>
+      <p>Connecte-toi avec Google, choisis un locuteur dont tu veux l’accent, et commence ta première séance aujourd’hui.</p>
+      <a class="btn btn-primary btn-big" href="/auth/google" data-signin rel="nofollow"><svg class="g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span data-label>Se connecter avec Google</span></a>
+    </div>
+  </div>
+</section>
+</main>
+<footer class="site-foot"><div class="wrap">
+  <a class="brand" href="/fr/">Euno <small>Shadowing</small></a>
+  <nav aria-label="Pied de page">
+    <a href="/fr/what-is-shadowing/">C’est quoi le shadowing ?</a>
+    <a href="/fr/accent-shadowing/">Routine de shadowing pour l’accent</a>
+    <a href="/fr/contact/">Contact</a>
+    <a href="/fr/privacy/">Confidentialité</a>
+    <a href="/fr/terms/">Conditions</a>
+  </nav>
+  <nav class="foot-langs" aria-label="Langue"><a href="/" hreflang="en" lang="en" data-lang-switch="en">English</a><a href="/fr/" hreflang="fr" lang="fr" data-lang-switch="fr" aria-current="true">Français</a><a href="/es/" hreflang="es" lang="es" data-lang-switch="es">Español</a></nav>
+  <span class="copy">© 2026 Euno Shadowing</span>
+</div></footer>
+</body>
+</html>

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-AU">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -7,6 +7,10 @@
 <title>What is shadowing? How the technique works for pronunciation | Euno Shadowing</title>
 <meta name="description" content="Shadowing is speaking along with a recording at the same time as the speaker. Learn how it works, why it improves rhythm and intonation, and how to start.">
 <link rel="canonical" href="https://shadowing.euno.cc/what-is-shadowing/">
+<link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/what-is-shadowing/">
+<link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/what-is-shadowing/">
+<link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/what-is-shadowing/">
+<link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/what-is-shadowing/">
 <meta name="theme-color" content="#45b52a">
 <meta property="og:site_name" content="Euno Shadowing">
 <meta property="og:type" content="article">
@@ -17,7 +21,9 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Euno Shadowing: the speaker’s pitch line and yours, with the lag between them">
-<meta property="og:locale" content="en_US">
+<meta property="og:locale" content="en_AU">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="es_ES">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">
@@ -97,6 +103,20 @@ img, svg { max-width: 100%; height: auto; }
 .site-foot nav { display: flex; flex-wrap: wrap; gap: 8px 20px; }
 .site-foot a { color: var(--muted); }
 .site-foot .copy { margin-left: auto; }
+
+/* language switcher: a small menu in the header, plain links in the footer */
+.lang-menu { position: relative; }
+.lang-menu summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-weight: 800; font-size: 0.88rem; color: var(--fg); padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; }
+.lang-menu summary::-webkit-details-marker { display: none; }
+.lang-menu summary:hover, .lang-menu[open] summary { border-color: var(--green); color: var(--green-ink); }
+.lang-menu summary svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.lang-list { position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; min-width: 150px; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); padding: 6px; }
+.site-nav .lang-list a { padding: 8px 10px; border-radius: 8px; font-weight: 700; }
+.site-nav .lang-list a:hover { background: var(--surface-2); }
+.site-nav .lang-list a[aria-current] { color: var(--green-ink); }
+.site-nav .lang-list a[aria-current]::after { content: " ✓"; }
+.foot-langs a[aria-current] { color: var(--fg); font-weight: 800; text-decoration: none; }
+.updated.ref { font-style: italic; }
 
 /* buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; font: 700 1rem/1 var(--font-body); text-decoration: none; border-radius: 999px; padding: 12px 20px; border: 2px solid transparent; cursor: pointer; transition: transform 0.08s ease; }
@@ -225,6 +245,10 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
   .hero { padding-top: 40px; }
   .steps, .cards, .split { grid-template-columns: 1fr; }
   .site-nav .hide-sm { display: none; }
+  .site-head .wrap { gap: 10px; }
+  .site-nav { gap: 6px 10px; }
+  .lang-menu summary { padding: 6px 8px; }
+  .lang-menu summary svg, .site-nav .btn-sm .g { display: none; }
   .site-foot .copy { margin-left: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .btn, .faq summary i, .faq summary i::before, .faq summary i::after { transition: none; } }
@@ -239,6 +263,10 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
   <nav class="site-nav" aria-label="Main">
     <a class="hide-sm" href="/what-is-shadowing/">What is shadowing?</a>
     <a class="hide-sm" href="/accent-shadowing/">Daily routine</a>
+    <details class="lang-menu">
+      <summary aria-label="Language: English"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg><span>EN</span></summary>
+      <div class="lang-list" role="group" aria-label="Language"><a href="/what-is-shadowing/" hreflang="en" lang="en" data-lang-switch="en" aria-current="true">English</a><a href="/fr/what-is-shadowing/" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a><a href="/es/what-is-shadowing/" hreflang="es" lang="es" data-lang-switch="es">Español</a></div>
+    </details>
     <a class="btn btn-primary btn-sm" href="/auth/google" data-signin data-signed-in="Open the app" rel="nofollow"><svg class="g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span data-label>Sign in</span></a>
   </nav>
 </div></header>
@@ -248,7 +276,6 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
     <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Euno Shadowing</a> › What is shadowing?</nav>
     <h1>What is shadowing?</h1>
     <p class="lede">Shadowing is a speaking technique where you repeat what a speaker says while they are saying it, a fraction of a second behind them, like their shadow.</p>
-    
     <h2>How shadowing works</h2>
     <p>You play a short recording of a native or fluent speaker and speak along with it, out loud, at the same time. You don’t wait for the sentence to finish, and you don’t read a transcript. Your ears lead and your mouth follows a moment later.</p>
     <p>Because you can’t stop to think, you end up copying the whole shape of the speech, not just the words: where the stress falls, how the voice rises and falls, which syllables are squeezed together and where the speaker pauses.</p>
@@ -299,6 +326,7 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
     <a href="/privacy/">Privacy</a>
     <a href="/terms/">Terms</a>
   </nav>
+  <nav class="foot-langs" aria-label="Language"><a href="/what-is-shadowing/" hreflang="en" lang="en" data-lang-switch="en" aria-current="true">English</a><a href="/fr/what-is-shadowing/" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a><a href="/es/what-is-shadowing/" hreflang="es" lang="es" data-lang-switch="es">Español</a></nav>
   <span class="copy">© 2026 Euno Shadowing</span>
 </div></footer>
 </body>

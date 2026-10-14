@@ -4,6 +4,7 @@
      t('Week {n}', { n: 4 })                 -> placeholders in braces
      tp(n, '{n} day', '{n} days')            -> plural pair; the right form for the language
      N_('Read aloud')                        -> marks a string kept in a constant; translate it with t() when shown
+     t('Start@@clip edge')                   -> '@@' adds context when one English word has two meanings; English shows 'Start'
    Translations live in src/i18n/*.json as { "English text": { "fr": "...", "es": "..." } }; the build merges
    them into I18N_STRINGS. Plural entries use the key "one|other" and the same shape in each language.
    Never call t() at the top level of a file: the language can change while the page is open.
@@ -25,7 +26,7 @@ document.documentElement.lang = uiLocale();
 function fillVars(s, vars) { return vars ? s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] != null ? vars[k] : m)) : s; }
 function t(key, vars) {
   const e = typeof I18N_STRINGS !== 'undefined' && I18N_STRINGS[key];
-  return fillVars((LANG !== 'en' && e && e[LANG]) || key, vars);
+  return fillVars((LANG !== 'en' && e && e[LANG]) || key.split('@@')[0], vars);
 }
 function tp(n, one, other, vars) {
   const key = `${one}|${other}`;
