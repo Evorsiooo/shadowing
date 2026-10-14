@@ -5050,7 +5050,7 @@ function openShortcuts() {
 }
 
 /* ---------- Discord reminders ---------- */
-const REMINDER_DEFAULTS = { enabled: false, time: '18:00', lateTime: '', days: [1, 2, 3, 4, 5, 6, 0], skipIfDone: true, checkins: true };
+const REMINDER_DEFAULTS = { enabled: false, time: '18:00', lateTime: '', days: [1, 2, 3, 4, 5, 6, 0], skipIfDone: true, checkins: true, discordUserId: '' };
 function reminderSettings() { return { ...REMINDER_DEFAULTS, ...(settings().reminders || {}) }; }
 function saveReminders(fields) {
   // the reminder Worker needs the time zone and the app's address; take them from this device
@@ -5105,6 +5105,13 @@ function remindersView() {
       h('div', { class: 'stack' }, h('span', { class: 'label' }, 'Days'), h('div', { class: 'row' }, dayBtns)),
       h('label', { class: 'check', for: 'rem-skip' }, h('input', { type: 'checkbox', id: 'rem-skip', checked: r.skipIfDone, onchange: (e) => saveReminders({ skipIfDone: e.target.checked }) }), 'Skip the reminder if I’ve already practised that day'),
       h('label', { class: 'check', for: 'rem-ci' }, h('input', { type: 'checkbox', id: 'rem-ci', checked: r.checkins, onchange: (e) => saveReminders({ checkins: e.target.checked }) }), 'Mention when a check-in is due'),
+      h('label', { class: 'field', for: 'rem-user' }, 'Your Discord user ID (optional, to get pinged)',
+        h('input', { type: 'text', id: 'rem-user', inputmode: 'numeric', placeholder: 'e.g. 123456789012345678', value: r.discordUserId, autocomplete: 'off', spellcheck: 'false', onchange: (e) => {
+          const id = e.target.value.replace(/\s/g, '');
+          if (id && !/^\d{17,20}$/.test(id)) { toast('That doesn’t look like a Discord user ID (17 to 20 digits).', 'bad', 7000); return; }
+          saveReminders({ discordUserId: id }); toast(id ? 'You’ll be pinged in reminders.' : 'Reminders won’t ping you.');
+        } })),
+      h('p', { class: 'small muted' }, 'In Discord: Settings → Advanced → turn on Developer Mode, then right-click your name → Copy User ID. Leave empty for reminders without a ping.'),
       h('p', { class: 'small muted' }, `Times are in ${Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'} (this device’s time zone). Reminders go out within 15 minutes of the time you set.`),
       h('div', { class: 'row' },
         btn('Send a test', async () => {
