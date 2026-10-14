@@ -44,9 +44,11 @@ Before accounts, files went to R2. R2 is now read-only (`GET|DELETE /api/files/:
 Settings → Storage shows "Files in the old server storage" when any are left:
 
 1. **Move N files to Drive** (needs Drive connected). The server copies each file straight from R2
-   into the user's Drive folder (`POST /api/drive/copy-old`, one file per request, so a big video
-   never passes through the browser). Then the app points the videos and recordings at the Drive
-   copy. The server copy stays. If it stops partway, pressing Move again carries on from there.
+   into the user's Drive folder (`POST /api/drive/copy-old`), so a big video never passes through the
+   browser. Each request copies one 16 MB piece of a Drive resumable upload, so none runs long; the
+   browser calls it again with the returned `session` and `offset` until the file is done. Then the
+   app points the videos and recordings at the Drive copy. The server copy stays. A file that fails
+   doesn't stop the others; pressing Move again retries what's left.
 2. **Delete the server copies** appears once the moved files are in Drive.
 
 After that, the `files` table and the `FILES` binding can be dropped.
