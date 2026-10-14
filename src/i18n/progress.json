@@ -1,0 +1,1010 @@
+{
+  "Write what sounded off first.": {
+    "fr": "Écris d’abord ce qui sonnait faux.",
+    "es": "Primero escribe lo que sonó raro."
+  },
+  "Thinking…": {
+    "fr": "Réflexion…",
+    "es": "Pensando…"
+  },
+  "Copy prompt instead": {
+    "fr": "Copier le prompt à la place",
+    "es": "Copiar el prompt en su lugar"
+  },
+  "Thinking… (this uses your Claude plan)": {
+    "fr": "Réflexion… (ça utilise ton forfait Claude)",
+    "es": "Pensando… (esto usa tu plan de Claude)"
+  },
+  "Claude isn’t allowed for this page. Use “Copy prompt” and paste the reply instead.": {
+    "fr": "Claude n’est pas autorisé sur cette page. Utilise « Copier le prompt » et colle la réponse à la place.",
+    "es": "Claude no está permitido en esta página. Usa “Copiar prompt” y pega la respuesta en su lugar."
+  },
+  "Claude is busy or your usage limit was reached. Try again in a little while.": {
+    "fr": "Claude est occupé ou ta limite d’utilisation est atteinte. Réessaie dans un moment.",
+    "es": "Claude está ocupado o llegaste a tu límite de uso. Vuelve a intentarlo en un rato."
+  },
+  "Claude didn’t answer ({code}).": {
+    "fr": "Claude n’a pas répondu ({code}).",
+    "es": "Claude no respondió ({code})."
+  },
+  "Ask AI": {
+    "fr": "Demander à l’IA",
+    "es": "Preguntar a la IA"
+  },
+  "Copy prompt for AI": {
+    "fr": "Copier le prompt pour l’IA",
+    "es": "Copiar prompt para la IA"
+  },
+  "Ask Claude": {
+    "fr": "Demander à Claude",
+    "es": "Preguntar a Claude"
+  },
+  "Copy prompt for Claude": {
+    "fr": "Copier le prompt pour Claude",
+    "es": "Copiar prompt para Claude"
+  },
+  "What sounded off?": {
+    "fr": "Qu’est-ce qui sonnait faux ?",
+    "es": "¿Qué sonó raro?"
+  },
+  "Sentence (optional)": {
+    "fr": "Phrase (facultatif)",
+    "es": "Frase (opcional)"
+  },
+  "What the speaker says": {
+    "fr": "Ce que dit le locuteur",
+    "es": "Lo que dice el hablante"
+  },
+  "Aiming for (optional)": {
+    "fr": "Ce que tu vises (facultatif)",
+    "es": "Lo que buscas (opcional)"
+  },
+  "Recurring issue (optional)": {
+    "fr": "Point faible récurrent (facultatif)",
+    "es": "Punto débil recurrente (opcional)"
+  },
+  "Pick or name one": {
+    "fr": "Choisis-en un ou nomme-le",
+    "es": "Elige uno o ponle nombre"
+  },
+  "Update note": {
+    "fr": "Mettre à jour la note",
+    "es": "Actualizar nota"
+  },
+  "Save note": {
+    "fr": "Enregistrer la note",
+    "es": "Guardar nota"
+  },
+  "Note saved.": {
+    "fr": "Note enregistrée.",
+    "es": "Nota guardada."
+  },
+  "Note saved · edit": {
+    "fr": "Note enregistrée · modifier",
+    "es": "Nota guardada · editar"
+  },
+  "What sounded off? Add a note": {
+    "fr": "Qu’est-ce qui sonnait faux ? Ajoute une note",
+    "es": "¿Qué sonó raro? Añade una nota"
+  },
+  "Feedback": {
+    "fr": "Retour",
+    "es": "Comentarios"
+  },
+  "Not sure what you meant": {
+    "fr": "Pas sûr de ce que tu voulais dire",
+    "es": "No sé bien qué quisiste decir"
+  },
+  "I don’t know what you meant. Can you describe it differently?": {
+    "fr": "Je ne sais pas ce que tu voulais dire. Tu peux le décrire autrement ?",
+    "es": "No sé qué quisiste decir. ¿Puedes describirlo de otra forma?"
+  },
+  "Likely feature": {
+    "fr": "Trait probable",
+    "es": "Rasgo probable"
+  },
+  "What to change": {
+    "fr": "Ce qu’il faut changer",
+    "es": "Qué cambiar"
+  },
+  "Listen for this in the clip": {
+    "fr": "Écoute ceci dans l’extrait",
+    "es": "Escucha esto en el fragmento"
+  },
+  "Suggested issue: ": {
+    "fr": "Point faible suggéré : ",
+    "es": "Punto débil sugerido: "
+  },
+  "Paste the reply here": {
+    "fr": "Colle la réponse ici",
+    "es": "Pega la respuesta aquí"
+  },
+  "Ask an AI": {
+    "fr": "Demander à une IA",
+    "es": "Preguntar a una IA"
+  },
+  "Copy the prompt into any AI chat (Claude, ChatGPT, Gemini…), then paste the reply back here so it’s saved with the note.": {
+    "fr": "Copie le prompt dans n’importe quel chat d’IA (Claude, ChatGPT, Gemini…), puis colle la réponse ici pour qu’elle soit enregistrée avec la note.",
+    "es": "Copia el prompt en cualquier chat de IA (Claude, ChatGPT, Gemini…) y luego pega aquí la respuesta para que se guarde con la nota."
+  },
+  "To get answers right here instead, add your own API key in Settings → AI.": {
+    "fr": "Pour avoir les réponses directement ici, ajoute ta propre clé API dans Réglages → IA.",
+    "es": "Para recibir las respuestas aquí mismo, añade tu propia clave de API en Ajustes → IA."
+  },
+  "Copy prompt": {
+    "fr": "Copier le prompt",
+    "es": "Copiar prompt"
+  },
+  "Prompt copied.": {
+    "fr": "Prompt copié.",
+    "es": "Prompt copiado."
+  },
+  "Select-all done; press Ctrl+C to copy.": {
+    "fr": "Tout est sélectionné ; appuie sur Ctrl+C pour copier.",
+    "es": "Todo seleccionado; pulsa Ctrl+C para copiar."
+  },
+  "The reply": {
+    "fr": "La réponse",
+    "es": "La respuesta"
+  },
+  "Save reply": {
+    "fr": "Enregistrer la réponse",
+    "es": "Guardar respuesta"
+  },
+  "Problems pulled from your notes. Ones that keep coming back over several days are the ones to target in step 4.": {
+    "fr": "Les problèmes tirés de tes notes. Ceux qui reviennent sur plusieurs jours sont ceux à cibler à l’étape 4.",
+    "es": "Problemas sacados de tus notas. Los que vuelven a aparecer durante varios días son los que hay que trabajar en el paso 4."
+  },
+  "Issue": {
+    "fr": "Point faible",
+    "es": "Punto débil"
+  },
+  "Notes": {
+    "fr": "Notes",
+    "es": "Notas"
+  },
+  "Last 14 days": {
+    "fr": "14 derniers jours",
+    "es": "Últimos 14 días"
+  },
+  "Days seen": {
+    "fr": "Jours vus",
+    "es": "Días visto"
+  },
+  "Mark {name} as sorted": {
+    "fr": "Marquer {name} comme réglé",
+    "es": "Marcar {name} como resuelto"
+  },
+  "Tick when it no longer comes back": {
+    "fr": "Coche quand ça ne revient plus",
+    "es": "Márcalo cuando ya no vuelva a aparecer"
+  },
+  "target this next": {
+    "fr": "à travailler ensuite",
+    "es": "trabajar esto ahora"
+  },
+  "Rename": {
+    "fr": "Renommer",
+    "es": "Renombrar"
+  },
+  "Merge": {
+    "fr": "Fusionner",
+    "es": "Combinar"
+  },
+  "No issues yet. They appear when you add notes after recorded passes.": {
+    "fr": "Aucun point faible pour l’instant. Ils apparaissent quand tu ajoutes des notes après des passages enregistrés.",
+    "es": "Aún no hay puntos débiles. Aparecen cuando añades notas después de pasadas grabadas."
+  },
+  "Rename issue": {
+    "fr": "Renommer le point faible",
+    "es": "Renombrar punto débil"
+  },
+  "Save": {
+    "fr": "Enregistrer",
+    "es": "Guardar"
+  },
+  "Merge “{name}” into…": {
+    "fr": "Fusionner « {name} » avec…",
+    "es": "Combinar “{name}” con…"
+  },
+  "{n} note|{n} notes": {
+    "fr": "{n} note|{n} notes",
+    "es": "{n} nota|{n} notas"
+  },
+  "Back to issues": {
+    "fr": "Retour aux points faibles",
+    "es": "Volver a los puntos débiles"
+  },
+  "Sounded off: ": {
+    "fr": "Sonnait faux : ",
+    "es": "Sonó raro: "
+  },
+  "Aiming for: ": {
+    "fr": "Objectif : ",
+    "es": "Lo que buscabas: "
+  },
+  "Pitch of {voices} on one chart": {
+    "fr": "Mélodie de {voices} sur un même graphique",
+    "es": "Entonación de {voices} en un solo gráfico"
+  },
+  "Loudness of {voices} on one chart": {
+    "fr": "Volume de {voices} sur un même graphique",
+    "es": "Volumen de {voices} en un solo gráfico"
+  },
+  "Recording not available.": {
+    "fr": "Enregistrement indisponible.",
+    "es": "Grabación no disponible."
+  },
+  "Speaker": {
+    "fr": "Locuteur",
+    "es": "Hablante"
+  },
+  "Step 3": {
+    "fr": "Étape 3",
+    "es": "Paso 3"
+  },
+  "Final": {
+    "fr": "Final",
+    "es": "Final"
+  },
+  "View": {
+    "fr": "Affichage",
+    "es": "Vista"
+  },
+  "Pitch": {
+    "fr": "Mélodie",
+    "es": "Entonación"
+  },
+  "Waveform": {
+    "fr": "Forme d’onde",
+    "es": "Forma de onda"
+  },
+  "Step 3 vs final pass": {
+    "fr": "Étape 3 vs passage final",
+    "es": "Paso 3 vs pasada final"
+  },
+  "Each line is shown against that voice’s own average pitch. A final line that follows the speaker’s shape more closely than step 3, or a smaller lag, is progress.": {
+    "fr": "Chaque courbe est tracée par rapport à la hauteur moyenne de cette voix. Une courbe finale qui suit la forme du locuteur de plus près qu’à l’étape 3, ou un décalage plus petit, c’est un progrès.",
+    "es": "Cada línea se muestra respecto al tono medio de esa voz. Si la línea final sigue la forma del hablante más de cerca que en el paso 3, o el retraso es menor, has progresado."
+  },
+  "Delete session": {
+    "fr": "Supprimer la séance",
+    "es": "Eliminar sesión"
+  },
+  "Delete this session, its recordings and notes?": {
+    "fr": "Supprimer cette séance, ses enregistrements et ses notes ?",
+    "es": "¿Eliminar esta sesión, sus grabaciones y sus notas?"
+  },
+  "Delete": {
+    "fr": "Supprimer",
+    "es": "Eliminar"
+  },
+  "Keep it": {
+    "fr": "La garder",
+    "es": "Conservarla"
+  },
+  "Session deleted.": {
+    "fr": "Séance supprimée.",
+    "es": "Sesión eliminada."
+  },
+  "bad-day": {
+    "fr": "jour sans",
+    "es": "día malo"
+  },
+  "review": {
+    "fr": "révision",
+    "es": "repaso"
+  },
+  "full": {
+    "fr": "complète",
+    "es": "completa"
+  },
+  "{n} min": {
+    "fr": "{n} min",
+    "es": "{n} min"
+  },
+  "{n} pass|{n} passes": {
+    "fr": "{n} passage|{n} passages",
+    "es": "{n} pasada|{n} pasadas"
+  },
+  "avg {lag}": {
+    "fr": "moy. {lag}",
+    "es": "media {lag}"
+  },
+  "Pass {n}": {
+    "fr": "Passage {n}",
+    "es": "Pasada {n}"
+  },
+  "Compare step 3 and final": {
+    "fr": "Comparer l’étape 3 et le final",
+    "es": "Comparar el paso 3 y el final"
+  },
+  "History: {clip}": {
+    "fr": "Historique : {clip}",
+    "es": "Historial: {clip}"
+  },
+  "{n} session · newest first|{n} sessions · newest first": {
+    "fr": "{n} séance · plus récentes d’abord|{n} séances · plus récentes d’abord",
+    "es": "{n} sesión · más recientes primero|{n} sesiones · más recientes primero"
+  },
+  "No sessions on this clip yet.": {
+    "fr": "Aucune séance sur cet extrait pour l’instant.",
+    "es": "Aún no hay sesiones con este fragmento."
+  },
+  "Day streak (one rest day in a row is allowed)": {
+    "fr": "Série de jours (un jour de repos d’affilée est permis)",
+    "es": "Racha de días (se permite un día de descanso seguido)"
+  },
+  "{n} day|{n} days": {
+    "fr": "{n} jour|{n} jours",
+    "es": "{n} día|{n} días"
+  },
+  "Days practised this week": {
+    "fr": "Jours de pratique cette semaine",
+    "es": "Días de práctica esta semana"
+  },
+  "{done}/{target} this week": {
+    "fr": "{done}/{target} cette semaine",
+    "es": "{done}/{target} esta semana"
+  },
+  "Synced": {
+    "fr": "Synchronisé",
+    "es": "Sincronizado"
+  },
+  "This browser": {
+    "fr": "Ce navigateur",
+    "es": "Este navegador"
+  },
+  "Not saved": {
+    "fr": "Non enregistré",
+    "es": "Sin guardar"
+  },
+  "Library": {
+    "fr": "Bibliothèque",
+    "es": "Biblioteca"
+  },
+  "Video library": {
+    "fr": "Bibliothèque de vidéos",
+    "es": "Biblioteca de videos"
+  },
+  "Progress": {
+    "fr": "Progrès",
+    "es": "Progreso"
+  },
+  "Check-ins": {
+    "fr": "Bilans",
+    "es": "Evaluaciones"
+  },
+  "Admin ({n})": {
+    "fr": "Admin ({n})",
+    "es": "Admin ({n})"
+  },
+  "Admin": {
+    "fr": "Admin",
+    "es": "Administración"
+  },
+  "Admin: {n} message to handle|Admin: {n} messages to handle": {
+    "fr": "Admin : {n} message à traiter|Admin : {n} messages à traiter",
+    "es": "Admin: {n} mensaje por atender|Admin: {n} mensajes por atender"
+  },
+  "Settings": {
+    "fr": "Réglages",
+    "es": "Ajustes"
+  },
+  "Your practice history is saved to your account ({email}).": {
+    "fr": "Ton historique de pratique est enregistré sur ton compte ({email}).",
+    "es": "Tu historial de práctica se guarda en tu cuenta ({email})."
+  },
+  "Your practice history is saved to your account.": {
+    "fr": "Ton historique de pratique est enregistré sur ton compte.",
+    "es": "Tu historial de práctica se guarda en tu cuenta."
+  },
+  "Videos and recordings are in your Google Drive.": {
+    "fr": "Les vidéos et les enregistrements sont dans ton Google Drive.",
+    "es": "Los videos y las grabaciones están en tu Google Drive."
+  },
+  "Videos and recordings are only in this browser until you connect Google Drive (Settings → Storage).": {
+    "fr": "Les vidéos et les enregistrements restent dans ce navigateur tant que tu n’as pas connecté Google Drive (Réglages → Stockage).",
+    "es": "Los videos y las grabaciones solo están en este navegador hasta que conectes Google Drive (Ajustes → Almacenamiento)."
+  },
+  "Saved in the artifact’s database; available on every device.": {
+    "fr": "Enregistré dans la base de données de l’artifact ; disponible sur tous tes appareils.",
+    "es": "Guardado en la base de datos del artifact; disponible en todos tus dispositivos."
+  },
+  "Saved in this browser only. Back up from Settings → Data.": {
+    "fr": "Enregistré dans ce navigateur uniquement. Fais une sauvegarde depuis Réglages → Données.",
+    "es": "Guardado solo en este navegador. Haz una copia de seguridad desde Ajustes → Datos."
+  },
+  "Storage is blocked here; nothing will be kept after you close the page.": {
+    "fr": "Le stockage est bloqué ici ; rien ne sera conservé quand tu fermeras la page.",
+    "es": "El almacenamiento está bloqueado aquí; no se guardará nada al cerrar la página."
+  },
+  "Your week 0 baseline isn’t finished yet. Record it soon so later check-ins have something to compare with.": {
+    "fr": "Ton point de départ (semaine 0) n’est pas encore terminé. Enregistre-le vite pour que les prochains bilans aient une base de comparaison.",
+    "es": "Tu punto de partida (semana 0) aún no está terminado. Grábalo pronto para que las próximas evaluaciones tengan con qué compararse."
+  },
+  "Before your first practice, record your week 0 baseline (about 3 minutes). Every later check-in is compared with it.": {
+    "fr": "Avant ta première pratique, enregistre ton point de départ de la semaine 0 (environ 3 minutes). Chaque bilan suivant sera comparé avec lui.",
+    "es": "Antes de tu primera práctica, graba tu punto de partida de la semana 0 (unos 3 minutos). Cada evaluación posterior se compara con él."
+  },
+  "Record baseline": {
+    "fr": "Enregistrer le point de départ",
+    "es": "Grabar punto de partida"
+  },
+  "Later": {
+    "fr": "Plus tard",
+    "es": "Más tarde"
+  },
+  "You missed yesterday. Don’t skip two days in a row: even a 5-minute bad-day session keeps the streak alive.": {
+    "fr": "Tu as sauté hier. Ne saute pas deux jours d’affilée : même une séance « jour sans » de 5 minutes garde ta série en vie.",
+    "es": "Ayer no practicaste. No te saltes dos días seguidos: incluso una sesión de día malo de 5 minutos mantiene viva la racha."
+  },
+  "Bad-day session": {
+    "fr": "Séance jour sans",
+    "es": "Sesión de día malo"
+  },
+  "Week {n} check-in is due. It takes about 3 minutes.": {
+    "fr": "C’est l’heure du bilan de la semaine {n}. Ça prend environ 3 minutes.",
+    "es": "Toca la evaluación de la semana {n}. Lleva unos 3 minutos."
+  },
+  "Start check-in": {
+    "fr": "Commencer le bilan",
+    "es": "Empezar evaluación"
+  },
+  "You’re signed out, so changes can’t be saved right now. Sign in again to keep saving.": {
+    "fr": "Tu es déconnecté, donc les modifications ne peuvent pas être enregistrées pour l’instant. Reconnecte-toi pour continuer à enregistrer.",
+    "es": "Cerraste sesión, así que ahora no se pueden guardar los cambios. Vuelve a iniciar sesión para seguir guardando."
+  },
+  "Sign in": {
+    "fr": "Se connecter",
+    "es": "Iniciar sesión"
+  },
+  "You’re using the Claude artifact version: your data syncs and Claude feedback works, but the microphone and outside video links may be blocked here. Run the checks to see what works on this device.": {
+    "fr": "Tu utilises la version artifact de Claude : tes données se synchronisent et les retours de Claude fonctionnent, mais le micro et les liens vidéo externes peuvent être bloqués ici. Lance les vérifications pour voir ce qui marche sur cet appareil.",
+    "es": "Estás usando la versión artifact de Claude: tus datos se sincronizan y los comentarios de Claude funcionan, pero el micrófono y los enlaces a videos externos pueden estar bloqueados aquí. Ejecuta las comprobaciones para ver qué funciona en este dispositivo."
+  },
+  "Run checks": {
+    "fr": "Lancer les vérifications",
+    "es": "Ejecutar comprobaciones"
+  },
+  "Got it": {
+    "fr": "Compris",
+    "es": "Entendido"
+  },
+  "Standalone version: the microphone and video links work, and your data stays in this browser. Back it up from Settings → Data now and then.": {
+    "fr": "Version autonome : le micro et les liens vidéo fonctionnent, et tes données restent dans ce navigateur. Sauvegarde-les de temps en temps depuis Réglages → Données.",
+    "es": "Versión independiente: el micrófono y los enlaces de video funcionan, y tus datos se quedan en este navegador. Haz una copia de seguridad de vez en cuando desde Ajustes → Datos."
+  },
+  "Storage is blocked in this view, so nothing will be kept. Open the app in a normal browser window.": {
+    "fr": "Le stockage est bloqué dans cette vue, donc rien ne sera conservé. Ouvre l’appli dans une fenêtre de navigateur normale.",
+    "es": "El almacenamiento está bloqueado en esta vista, así que no se guardará nada. Abre la app en una ventana normal del navegador."
+  },
+  "Habit": {
+    "fr": "Habitude",
+    "es": "Hábito"
+  },
+  "Issues": {
+    "fr": "Points faibles",
+    "es": "Puntos débiles"
+  },
+  "Measures": {
+    "fr": "Mesures",
+    "es": "Medidas"
+  },
+  "Clips": {
+    "fr": "Extraits",
+    "es": "Fragmentos"
+  },
+  "Day streak": {
+    "fr": "Série de jours",
+    "es": "Racha de días"
+  },
+  "One rest day in a row is allowed; two breaks it.": {
+    "fr": "Un jour de repos d’affilée est permis ; deux cassent la série.",
+    "es": "Se permite un día de descanso seguido; dos rompen la racha."
+  },
+  "This week": {
+    "fr": "Cette semaine",
+    "es": "Esta semana"
+  },
+  "Total practice": {
+    "fr": "Pratique totale",
+    "es": "Práctica total"
+  },
+  "{n} session|{n} sessions": {
+    "fr": "{n} séance|{n} séances",
+    "es": "{n} sesión|{n} sesiones"
+  },
+  "Last 12 weeks": {
+    "fr": "12 dernières semaines",
+    "es": "Últimas 12 semanas"
+  },
+  "bad-day session": {
+    "fr": "séance jour sans",
+    "es": "sesión de día malo"
+  },
+  "full session": {
+    "fr": "séance complète",
+    "es": "sesión completa"
+  },
+  "Full session": {
+    "fr": "Séance complète",
+    "es": "Sesión completa"
+  },
+  "Not practised": {
+    "fr": "Pas de pratique",
+    "es": "Sin práctica"
+  },
+  "Average lag behind the speaker, by week": {
+    "fr": "Décalage moyen sur le locuteur, par semaine",
+    "es": "Retraso medio respecto al hablante, por semana"
+  },
+  "Shrinking lag over the weeks counts as progress. Rough measure.": {
+    "fr": "Un décalage qui diminue au fil des semaines, c’est un progrès. Mesure approximative.",
+    "es": "Un retraso que baja con las semanas cuenta como progreso. Medida aproximada."
+  },
+  "Clip": {
+    "fr": "Extrait",
+    "es": "Fragmento"
+  },
+  "Video": {
+    "fr": "Vidéo",
+    "es": "Video"
+  },
+  "Length": {
+    "fr": "Durée",
+    "es": "Duración"
+  },
+  "Sessions": {
+    "fr": "Séances",
+    "es": "Sesiones"
+  },
+  "Done": {
+    "fr": "Terminé",
+    "es": "Listo"
+  },
+  "History": {
+    "fr": "Historique",
+    "es": "Historial"
+  },
+  "No clips yet.": {
+    "fr": "Aucun extrait pour l’instant.",
+    "es": "Aún no hay fragmentos."
+  },
+  "speaker": {
+    "fr": "locuteur",
+    "es": "hablante"
+  },
+  "Not enough data yet.": {
+    "fr": "Pas encore assez de données.",
+    "es": "Aún no hay suficientes datos."
+  },
+  "Read aloud": {
+    "fr": "Lecture à voix haute",
+    "es": "Lectura en voz alta"
+  },
+  "Read these sentences aloud at a natural pace. They are the same at every check-in.": {
+    "fr": "Lis ces phrases à voix haute à un rythme naturel. Ce sont les mêmes à chaque bilan.",
+    "es": "Lee estas frases en voz alta a un ritmo natural. Son las mismas en cada evaluación."
+  },
+  "Retelling (about 60 s)": {
+    "fr": "Récit (environ 60 s)",
+    "es": "Relato (unos 60 s)"
+  },
+  "Unseen question (about 60 s)": {
+    "fr": "Question surprise (environ 60 s)",
+    "es": "Pregunta sorpresa (unos 60 s)"
+  },
+  "Reveal a question you haven’t seen and answer it for about 60 seconds. No preparing.": {
+    "fr": "Découvre une question que tu n’as jamais vue et réponds-y pendant environ 60 secondes. Sans préparation.",
+    "es": "Descubre una pregunta que no has visto y respóndela durante unos 60 segundos. Sin preparar."
+  },
+  "Week 0 · baseline": {
+    "fr": "Semaine 0 · point de départ",
+    "es": "Semana 0 · punto de partida"
+  },
+  "Week {n}": {
+    "fr": "Semaine {n}",
+    "es": "Semana {n}"
+  },
+  "Recorded {date}": {
+    "fr": "Enregistré le {date}",
+    "es": "Grabado el {date}"
+  },
+  "Record before your first practice": {
+    "fr": "À enregistrer avant ta première pratique",
+    "es": "Grábalo antes de tu primera práctica"
+  },
+  "Due {date}": {
+    "fr": "Prévu le {date}",
+    "es": "Para el {date}"
+  },
+  "Open": {
+    "fr": "Ouvrir",
+    "es": "Abrir"
+  },
+  "Continue": {
+    "fr": "Continuer",
+    "es": "Continuar"
+  },
+  "Start": {
+    "fr": "Commencer",
+    "es": "Empezar"
+  },
+  "Compare with baseline": {
+    "fr": "Comparer au point de départ",
+    "es": "Comparar con el punto de partida"
+  },
+  "Weeks 0, 4, 8 and 12. Recordings are never overwritten.": {
+    "fr": "Semaines 0, 4, 8 et 12. Les enregistrements ne sont jamais écrasés.",
+    "es": "Semanas 0, 4, 8 y 12. Las grabaciones nunca se sobrescriben."
+  },
+  "Blind listener pack": {
+    "fr": "Pack d’écoute à l’aveugle",
+    "es": "Paquete de escucha a ciegas"
+  },
+  "Export shuffled, unlabelled check-in samples plus clips of real {accent} speakers from your library, with a rating sheet (1 = no foreign accent, 9 = very strong accent). Enter the ratings back here to see the average per check-in.": {
+    "fr": "Exporte des échantillons de bilans mélangés et anonymes, plus des extraits de vrais locuteurs ({accent}) de ta bibliothèque, avec une grille de notation (1 = aucun accent étranger, 9 = accent très marqué). Saisis les notes ici pour voir la moyenne par bilan.",
+    "es": "Exporta muestras de evaluaciones mezcladas y sin etiquetar, más fragmentos de hablantes reales ({accent}) de tu biblioteca, con una hoja de puntuación (1 = sin acento extranjero, 9 = acento muy marcado). Introduce aquí las puntuaciones para ver la media por evaluación."
+  },
+  "Build and export pack": {
+    "fr": "Créer et exporter le pack",
+    "es": "Crear y exportar el paquete"
+  },
+  "Enter ratings": {
+    "fr": "Saisir les notes",
+    "es": "Introducir puntuaciones"
+  },
+  "Take {n}": {
+    "fr": "Prise {n}",
+    "es": "Toma {n}"
+  },
+  "Delete take {n}": {
+    "fr": "Supprimer la prise {n}",
+    "es": "Eliminar la toma {n}"
+  },
+  "Delete take {n}? This can’t be undone.": {
+    "fr": "Supprimer la prise {n} ? C’est irréversible.",
+    "es": "¿Eliminar la toma {n}? No se puede deshacer."
+  },
+  "Question: ": {
+    "fr": "Question : ",
+    "es": "Pregunta: "
+  },
+  "Week 0 baseline": {
+    "fr": "Point de départ (semaine 0)",
+    "es": "Punto de partida (semana 0)"
+  },
+  "Week {n} check-in": {
+    "fr": "Bilan de la semaine {n}",
+    "es": "Evaluación de la semana {n}"
+  },
+  "Use the same microphone and room each time. Headphones aren’t needed here.": {
+    "fr": "Utilise le même micro et la même pièce à chaque fois. Pas besoin de casque ici.",
+    "es": "Usa el mismo micrófono y la misma habitación cada vez. Aquí no hacen falta auriculares."
+  },
+  "Back to check-ins": {
+    "fr": "Retour aux bilans",
+    "es": "Volver a las evaluaciones"
+  },
+  "Saved.": {
+    "fr": "Enregistré.",
+    "es": "Guardado."
+  },
+  "Question revealed. Start answering now.": {
+    "fr": "Question dévoilée. Commence à répondre maintenant.",
+    "es": "Pregunta revelada. Empieza a responder ya."
+  },
+  "Stop and save": {
+    "fr": "Arrêter et enregistrer",
+    "es": "Detener y guardar"
+  },
+  "{time} recording": {
+    "fr": "{time} d’enregistrement",
+    "es": "{time} grabando"
+  },
+  "{n} s left": {
+    "fr": "Encore {n} s",
+    "es": "Quedan {n} s"
+  },
+  "Time’s up: finish your sentence, then stop (+{time})": {
+    "fr": "Temps écoulé : finis ta phrase, puis arrête (+{time})",
+    "es": "Se acabó el tiempo: termina la frase y luego detén (+{time})"
+  },
+  "Record another take": {
+    "fr": "Enregistrer une autre prise",
+    "es": "Grabar otra toma"
+  },
+  "Reveal question and record": {
+    "fr": "Dévoiler la question et enregistrer",
+    "es": "Revelar la pregunta y grabar"
+  },
+  "Record": {
+    "fr": "Enregistrer",
+    "es": "Grabar"
+  },
+  "Upload a file": {
+    "fr": "Importer un fichier",
+    "es": "Subir un archivo"
+  },
+  "That file couldn’t be read ({error}).": {
+    "fr": "Impossible de lire ce fichier ({error}).",
+    "es": "No se pudo leer ese archivo ({error})."
+  },
+  "Take deleted.": {
+    "fr": "Prise supprimée.",
+    "es": "Toma eliminada."
+  },
+  "The recording couldn’t be stored ({error}).": {
+    "fr": "Impossible de stocker l’enregistrement ({error}).",
+    "es": "No se pudo guardar la grabación ({error})."
+  },
+  "Week {n} check-in complete!": {
+    "fr": "Bilan de la semaine {n} terminé !",
+    "es": "¡Evaluación de la semana {n} completada!"
+  },
+  "Baseline": {
+    "fr": "Point de départ",
+    "es": "Punto de partida"
+  },
+  "Week {n} vs baseline": {
+    "fr": "Semaine {n} vs point de départ",
+    "es": "Semana {n} vs punto de partida"
+  },
+  "Back": {
+    "fr": "Retour",
+    "es": "Atrás"
+  },
+  "Speaking rate": {
+    "fr": "Débit de parole",
+    "es": "Velocidad de habla"
+  },
+  "Stressed ÷ unstressed syllable length": {
+    "fr": "Durée syllabes accentuées ÷ non accentuées",
+    "es": "Duración sílabas tónicas ÷ átonas"
+  },
+  "Pitch range": {
+    "fr": "Étendue de la mélodie",
+    "es": "Rango de entonación"
+  },
+  "Average lag behind the speaker": {
+    "fr": "Décalage moyen sur le locuteur",
+    "es": "Retraso medio respecto al hablante"
+  },
+  "Measure": {
+    "fr": "Mesure",
+    "es": "Medida"
+  },
+  "Speaker ({n} clip)|Speaker ({n} clips)": {
+    "fr": "Locuteur ({n} extrait)|Locuteur ({n} extraits)",
+    "es": "Hablante ({n} fragmento)|Hablante ({n} fragmentos)"
+  },
+  "These are rough measures worked out from your read-aloud recordings, compared with the speaker’s clips. They are not an accent score; use them to spot trends over the weeks.": {
+    "fr": "Ce sont des mesures approximatives calculées à partir de tes lectures à voix haute, comparées aux extraits du locuteur. Ce n’est pas une note d’accent : sers-t’en pour repérer les tendances au fil des semaines.",
+    "es": "Son medidas aproximadas calculadas a partir de tus lecturas en voz alta, comparadas con los fragmentos del hablante. No son una nota de acento; úsalas para ver tendencias a lo largo de las semanas."
+  },
+  "Measures appear after your first check-in.": {
+    "fr": "Les mesures apparaissent après ton premier bilan.",
+    "es": "Las medidas aparecen después de tu primera evaluación."
+  },
+  "Base": {
+    "fr": "Départ",
+    "es": "Inicio"
+  },
+  "Wk {n}": {
+    "fr": "S{n}",
+    "es": "Sem {n}"
+  },
+  "Blind listener ratings": {
+    "fr": "Notes d’écoute à l’aveugle",
+    "es": "Puntuaciones de escucha a ciegas"
+  },
+  "1 = no foreign accent, 9 = very strong accent.": {
+    "fr": "1 = aucun accent étranger, 9 = accent très marqué.",
+    "es": "1 = sin acento extranjero, 9 = acento muy marcado."
+  },
+  "Sample": {
+    "fr": "Échantillon",
+    "es": "Muestra"
+  },
+  "Average": {
+    "fr": "Moyenne",
+    "es": "Media"
+  },
+  "Ratings": {
+    "fr": "Notes",
+    "es": "Puntuaciones"
+  },
+  "Building the pack… this can take a little while.": {
+    "fr": "Création du pack… ça peut prendre un moment.",
+    "es": "Creando el paquete… puede tardar un poco."
+  },
+  "Record at least one check-in first.": {
+    "fr": "Enregistre d’abord au moins un bilan.",
+    "es": "Primero graba al menos una evaluación."
+  },
+  "Sample {letter}.wav": {
+    "fr": "Échantillon {letter}.wav",
+    "es": "Muestra {letter}.wav"
+  },
+  "Listener name": {
+    "fr": "Nom de l’auditeur",
+    "es": "Nombre del oyente"
+  },
+  "Rating (1 = no foreign accent; 9 = very strong accent)": {
+    "fr": "Note (1 = aucun accent étranger ; 9 = accent très marqué)",
+    "es": "Puntuación (1 = sin acento extranjero; 9 = acento muy marcado)"
+  },
+  "What gave it away?": {
+    "fr": "Qu’est-ce qui l’a trahi ?",
+    "es": "¿Qué lo delató?"
+  },
+  "Thanks for helping!\n\nListen to each sample once or twice, in any order. For each one, rate how strong a foreign (non-{accent}) accent you hear:\n1 = no foreign accent at all, 9 = very strong foreign accent.\nThen write a few words on what gave it away (a sound, the rhythm, the melody...).\nFill in rating-sheet.csv and send it back.\n": {
+    "fr": "Merci pour ton aide !\n\nÉcoute chaque échantillon une ou deux fois, dans l’ordre que tu veux. Pour chacun, note la force de l’accent étranger que tu entends (par rapport à un accent {accent}) :\n1 = aucun accent étranger, 9 = accent étranger très marqué.\nEnsuite, écris quelques mots sur ce qui l’a trahi (un son, le rythme, la mélodie...).\nRemplis rating-sheet.csv et renvoie-le.\n",
+    "es": "¡Gracias por ayudar!\n\nEscucha cada muestra una o dos veces, en el orden que quieras. Para cada una, puntúa lo fuerte que es el acento extranjero que oyes (respecto a un acento {accent}):\n1 = ningún acento extranjero, 9 = acento extranjero muy marcado.\nLuego escribe unas palabras sobre qué lo delató (un sonido, el ritmo, la entonación...).\nRellena rating-sheet.csv y envíalo de vuelta.\n"
+  },
+  "Pack saved.": {
+    "fr": "Pack enregistré.",
+    "es": "Paquete guardado."
+  },
+  "Couldn’t save the file ({error}).": {
+    "fr": "Impossible d’enregistrer le fichier ({error}).",
+    "es": "No se pudo guardar el archivo ({error})."
+  },
+  "Pack {date} keeps the answer key here, so the listeners can’t see which is which.": {
+    "fr": "Le corrigé du pack du {date} reste ici, pour que les auditeurs ne sachent pas qui est qui.",
+    "es": "La clave de respuestas del paquete del {date} se queda aquí, para que los oyentes no sepan cuál es cuál."
+  },
+  "Export a listener pack first.": {
+    "fr": "Exporte d’abord un pack d’écoute à l’aveugle.",
+    "es": "Primero exporta un paquete de escucha a ciegas."
+  },
+  "Enter at least one rating from 1 to 9.": {
+    "fr": "Saisis au moins une note de 1 à 9.",
+    "es": "Introduce al menos una puntuación del 1 al 9."
+  },
+  "Ratings saved.": {
+    "fr": "Notes enregistrées.",
+    "es": "Puntuaciones guardadas."
+  },
+  "Rating 1–9": {
+    "fr": "Note 1–9",
+    "es": "Puntuación 1–9"
+  },
+  "Save ratings": {
+    "fr": "Enregistrer les notes",
+    "es": "Guardar puntuaciones"
+  },
+  "Enter listener ratings": {
+    "fr": "Saisir les notes des auditeurs",
+    "es": "Introducir puntuaciones de oyentes"
+  },
+  "Pack from {date} · {n} listener so far|Pack from {date} · {n} listeners so far": {
+    "fr": "Pack du {date} · {n} auditeur pour l’instant|Pack du {date} · {n} auditeurs pour l’instant",
+    "es": "Paquete del {date} · {n} oyente hasta ahora|Paquete del {date} · {n} oyentes hasta ahora"
+  },
+  "{accent} speaker (reference)": {
+    "fr": "Locuteur {accent} (référence)",
+    "es": "Hablante {accent} (referencia)"
+  },
+  "Using your own AI key needs the online version of the app. Notes still offer a prompt you can copy into any AI chat.": {
+    "fr": "Pour utiliser ta propre clé d’IA, il faut la version en ligne de l’appli. Les notes proposent quand même un prompt à copier dans n’importe quel chat d’IA.",
+    "es": "Para usar tu propia clave de IA necesitas la versión en línea de la app. Las notas siguen ofreciendo un prompt que puedes copiar en cualquier chat de IA."
+  },
+  "Save key": {
+    "fr": "Enregistrer la clé",
+    "es": "Guardar clave"
+  },
+  "Paste your API key first.": {
+    "fr": "Colle d’abord ta clé API.",
+    "es": "Primero pega tu clave de API."
+  },
+  "Key saved. Using {model}.": {
+    "fr": "Clé enregistrée. Modèle utilisé : {model}.",
+    "es": "Clave guardada. Usando {model}."
+  },
+  "AI provider": {
+    "fr": "Fournisseur d’IA",
+    "es": "Proveedor de IA"
+  },
+  "{provider} API key": {
+    "fr": "Clé API {provider}",
+    "es": "Clave de API de {provider}"
+  },
+  "Get one at {link}.": {
+    "fr": "Obtiens-en une sur {link}.",
+    "es": "Consigue una en {link}."
+  },
+  "It’s stored encrypted on our server, only used for your feedback, and never shown again. You pay your provider directly; one answer on the default model costs a tiny fraction of a cent.": {
+    "fr": "Elle est stockée chiffrée sur notre serveur, utilisée uniquement pour tes retours, et plus jamais affichée. Tu paies ton fournisseur directement ; une réponse avec le modèle par défaut coûte une infime fraction de centime.",
+    "es": "Se guarda cifrada en nuestro servidor, solo se usa para tus comentarios y nunca se vuelve a mostrar. Pagas directamente a tu proveedor; una respuesta con el modelo predeterminado cuesta una mínima fracción de céntimo."
+  },
+  "Cancel": {
+    "fr": "Annuler",
+    "es": "Cancelar"
+  },
+  "Loading models…": {
+    "fr": "Chargement des modèles…",
+    "es": "Cargando modelos…"
+  },
+  "Try again": {
+    "fr": "Réessayer",
+    "es": "Reintentar"
+  },
+  "cheap and fast": {
+    "fr": "économique et rapide",
+    "es": "barato y rápido"
+  },
+  "Find a model": {
+    "fr": "Chercher un modèle",
+    "es": "Buscar un modelo"
+  },
+  "e.g. haiku, mini, flash": {
+    "fr": "ex. haiku, mini, flash",
+    "es": "p. ej. haiku, mini, flash"
+  },
+  "Model": {
+    "fr": "Modèle",
+    "es": "Modelo"
+  },
+  "Now using {model}.": {
+    "fr": "Modèle utilisé : {model}.",
+    "es": "Ahora usando {model}."
+  },
+  "Short feedback like this doesn’t need a big model.": {
+    "fr": "Des retours courts comme ceux-ci n’ont pas besoin d’un gros modèle.",
+    "es": "Comentarios cortos como estos no necesitan un modelo grande."
+  },
+  "Use {model}": {
+    "fr": "Utiliser {model}",
+    "es": "Usar {model}"
+  },
+  "Checking…": {
+    "fr": "Vérification…",
+    "es": "Comprobando…"
+  },
+  "AI keys aren’t switched on for this site yet. Notes still offer a prompt you can copy into any AI chat.": {
+    "fr": "Les clés d’IA ne sont pas encore activées sur ce site. Les notes proposent quand même un prompt à copier dans n’importe quel chat d’IA.",
+    "es": "Las claves de IA aún no están activadas en este sitio. Las notas siguen ofreciendo un prompt que puedes copiar en cualquier chat de IA."
+  },
+  "Get feedback on your notes right inside the app, using your own key from Anthropic, OpenAI or OpenRouter. This is optional: without a key, notes give you a prompt to copy into any AI chat.": {
+    "fr": "Reçois des retours sur tes notes directement dans l’appli, avec ta propre clé Anthropic, OpenAI ou OpenRouter. C’est facultatif : sans clé, les notes te donnent un prompt à copier dans n’importe quel chat d’IA.",
+    "es": "Recibe comentarios sobre tus notas dentro de la app, con tu propia clave de Anthropic, OpenAI u OpenRouter. Es opcional: sin clave, las notas te dan un prompt para copiar en cualquier chat de IA."
+  },
+  "Test key": {
+    "fr": "Tester la clé",
+    "es": "Probar clave"
+  },
+  "Asking…": {
+    "fr": "Question en cours…",
+    "es": "Preguntando…"
+  },
+  "It works: {model} answered in {secs} s.": {
+    "fr": "Ça marche : {model} a répondu en {secs} s.",
+    "es": "Funciona: {model} respondió en {secs} s."
+  },
+  "The model answered, but not in the expected format. Try another model.": {
+    "fr": "Le modèle a répondu, mais pas au format attendu. Essaie un autre modèle.",
+    "es": "El modelo respondió, pero no en el formato esperado. Prueba otro modelo."
+  },
+  "{provider} key saved ({hint})": {
+    "fr": "Clé {provider} enregistrée ({hint})",
+    "es": "Clave de {provider} guardada ({hint})"
+  },
+  "Replace key": {
+    "fr": "Remplacer la clé",
+    "es": "Reemplazar clave"
+  },
+  "Remove key": {
+    "fr": "Supprimer la clé",
+    "es": "Eliminar clave"
+  },
+  "Key removed. Notes will offer “Copy prompt for AI”.": {
+    "fr": "Clé supprimée. Les notes proposeront « Copier le prompt pour l’IA ».",
+    "es": "Clave eliminada. Las notas ofrecerán “Copiar prompt para la IA”."
+  },
+  "Done@@column": {
+    "fr": "Terminé",
+    "es": "Hecho"
+  }
+}

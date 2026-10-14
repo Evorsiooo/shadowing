@@ -9,10 +9,14 @@ import {
   getConfig, cleanInvite, inviteUsable, cookie, OAUTH_COOKIE, requireUser,
 } from '../../server/auth.js';
 import { startDrive, finishDrive } from '../../server/drive.js';
+import { requestLang, localise } from '../../server/i18n.js';
 
 const APP = '/app';
 
-export async function onRequest(ctx) {
+// messages and pages go out in the user's language (server/i18n.js)
+export async function onRequest(ctx) { return localise(await handle(ctx), requestLang(ctx.request)); }
+
+async function handle(ctx) {
   const { request, env, params } = ctx;
   const path = (Array.isArray(params.path) ? params.path : []).join('/');
   const url = new URL(request.url);

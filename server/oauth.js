@@ -9,6 +9,7 @@
 //   POST /oauth/revoke      disconnect (RFC 7009)
 // Codes and tokens are random; only their SHA-256 is stored. Every token belongs to one user.
 import { randomToken, sha256Hex, bytesToB64url, requireUser, sameOrigin } from './auth.js';
+import { requestLang, tr } from './i18n.js';
 import { uuid, safeEqual } from './util.js';
 
 export const SCOPE = 'practice:read';
@@ -228,7 +229,7 @@ export async function authorizeGet(request, env, url) {
   // the request belongs to whoever first opened it signed in
   if (row && row.user_id && row.user_id !== auth.userId) return page('This sign-in belongs to someone else', '<p>Go back to the app you were connecting and start again.</p>', 403);
   await db.prepare('UPDATE oauth_requests SET user_id = ? WHERE id = ? AND (user_id IS NULL OR user_id = ?)').bind(auth.userId, requestId, auth.userId).run();
-  return consentPage(requestId, client, params.redirect_uri, auth, env);
+  return consentPage(requestId, client, params.redirect_uri, auth, env, requestLang(request));
 }
 
 export async function authorizePost(request, env, url) {
@@ -406,24 +407,26 @@ export function deleteUserStatements(db, userId) {
 /* ---------- pages ---------- */
 function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
 
-function consentPage(requestId, client, redirectUri, auth, env) {
+// written in the user's language here (tr), since its sentences wrap the app's name and the email in tags
+function consentPage(requestId, client, redirectUri, auth, env, lang = 'en') {
+  const T = (en, vars) => tr(lang, en, vars);
   const app = redirectApp(redirectUri, env);
-  const appName = app.name || (app.loopback ? 'An app on your computer' : app.host);
-  const calls = client.name && client.name !== app.name ? ` <span class="small">(it calls itself “${esc(client.name)}”)</span>` : '';
+  const appName = app.name || (app.loopback ? T('An app on your computer') : app.host);
+  const calls = client.name && client.name !== app.name ? ` <span class="small">${esc(T('(it calls itself “{name}”)', { name: client.name }))}</span>` : '';
   const body = `
-    <p><strong>${esc(appName)}</strong>${calls} wants to read your Euno Shadowing practice data.</p>
+    <p>${T('{app}{calls} wants to read your Euno Shadowing practice data.', { app: `<strong>${esc(appName)}</strong>`, calls })}</p>
     <ul>
-      <li>Your clips, sessions, notes, issues, check-ins and settings</li>
-      <li>Read only: it can’t change or delete anything</li>
-      <li>Not your recordings, AI keys or Discord webhook</li>
+      <li>${esc(T('Your clips, sessions, notes, issues, check-ins and settings'))}</li>
+      <li>${esc(T('Read only: it can’t change or delete anything'))}</li>
+      <li>${esc(T('Not your recordings, AI keys or Discord webhook'))}</li>
     </ul>
-    <p class="small">Signed in as <!--email_off-->${esc(auth.email)}<!--/email_off-->. After you choose, you’ll go back to <strong>${esc(app.host)}</strong>.${app.loopback ? ' Only allow this if you just started connecting an app on this computer.' : ''} You can disconnect it any time in Settings → Connected apps.</p>
+    <p class="small">${T('Signed in as {email}. After you choose, you’ll go back to {host}.', { email: `<!--email_off-->${esc(auth.email)}<!--/email_off-->`, host: `<strong>${esc(app.host)}</strong>` })}${app.loopback ? ` ${esc(T('Only allow this if you just started connecting an app on this computer.'))}` : ''} ${esc(T('You can disconnect it any time in Settings → Connected apps.'))}</p>
     <form method="post" action="/oauth/authorize" class="row">
       <input type="hidden" name="request" value="${esc(requestId)}">
-      <button class="btn" type="submit" name="decision" value="allow">Allow</button>
-      <button class="btn ghost" type="submit" name="decision" value="deny">Don’t allow</button>
+      <button class="btn" type="submit" name="decision" value="allow">${esc(T('Allow'))}</button>
+      <button class="btn ghost" type="submit" name="decision" value="deny">${esc(T('Don’t allow'))}</button>
     </form>`;
-  return page(`Connect ${appName}?`, body);
+  return page(T('Connect {app}?', { app: appName }), body);
 }
 
 function page(title, body, status = 200) {

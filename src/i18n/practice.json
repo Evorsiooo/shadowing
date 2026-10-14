@@ -1,0 +1,1002 @@
+{
+  "New clip": {
+    "fr": "Nouvel extrait",
+    "es": "Nuevo fragmento"
+  },
+  "Done": {
+    "fr": "Terminé",
+    "es": "Listo"
+  },
+  "Leave clip mode (Esc)": {
+    "fr": "Quitter le mode découpe (Échap)",
+    "es": "Salir del modo de corte (Esc)"
+  },
+  "Select a part of the video on the scrub bar by dragging along it.": {
+    "fr": "Sélectionne un passage de la vidéo en faisant glisser le long de la barre de lecture.",
+    "es": "Selecciona una parte del video arrastrando a lo largo de la barra de reproducción."
+  },
+  "Or play the video and press Start (I) under the video where the sentence begins, then End (O) where it finishes.": {
+    "fr": "Ou lance la vidéo et appuie sur Début (I) sous la vidéo là où la phrase commence, puis sur Fin (O) là où elle se termine.",
+    "es": "O reproduce el video y pulsa Inicio (I) debajo del video donde empieza la frase, y luego Fin (O) donde termina."
+  },
+  "Analysis panel": {
+    "fr": "Panneau d’analyse",
+    "es": "Panel de análisis"
+  },
+  "Select a clip to see the speaker’s pitch line, or press Cut clips under the video to make a new one.": {
+    "fr": "Sélectionne un extrait pour voir la courbe de mélodie du locuteur, ou appuie sur Découper des extraits sous la vidéo pour en créer un.",
+    "es": "Selecciona un fragmento para ver la línea de entonación del hablante, o pulsa Cortar fragmentos debajo del video para crear uno nuevo."
+  },
+  "Pitch or loudness of the speaker and you on one chart": {
+    "fr": "Mélodie ou volume du locuteur et de toi sur un seul graphique",
+    "es": "Entonación o volumen del hablante y tuyo en un solo gráfico"
+  },
+  "Pitch or loudness lanes: speaker on top, you below": {
+    "fr": "Pistes de mélodie ou de volume : le locuteur en haut, toi en bas",
+    "es": "Pistas de entonación o volumen: el hablante arriba, tú abajo"
+  },
+  "View": {
+    "fr": "Affichage",
+    "es": "Vista"
+  },
+  "Pitch": {
+    "fr": "Mélodie",
+    "es": "Entonación"
+  },
+  "Waveform": {
+    "fr": "Forme d’onde",
+    "es": "Forma de onda"
+  },
+  "Layout": {
+    "fr": "Disposition",
+    "es": "Disposición"
+  },
+  "Speaker on top, you below": {
+    "fr": "Le locuteur en haut, toi en bas",
+    "es": "El hablante arriba, tú abajo"
+  },
+  "Separate": {
+    "fr": "Séparé",
+    "es": "Separado"
+  },
+  "Both lines on one chart": {
+    "fr": "Les deux courbes sur un seul graphique",
+    "es": "Las dos líneas en un solo gráfico"
+  },
+  "Overlaid": {
+    "fr": "Superposé",
+    "es": "Superpuesto"
+  },
+  "Edit clip": {
+    "fr": "Modifier l’extrait",
+    "es": "Editar fragmento"
+  },
+  "Change the clip’s start, end, length or label": {
+    "fr": "Modifier le début, la fin, la durée ou le libellé de l’extrait",
+    "es": "Cambiar el inicio, el final, la duración o la etiqueta del fragmento"
+  },
+  "Flagged noisy": {
+    "fr": "Signalé bruyant",
+    "es": "Marcado como ruidoso"
+  },
+  "Too noisy?": {
+    "fr": "Trop de bruit ?",
+    "es": "¿Demasiado ruido?"
+  },
+  "Clip flagged as too noisy. Its pitch line is shown faded.": {
+    "fr": "Extrait signalé comme trop bruyant. Sa courbe de mélodie est affichée en pâle.",
+    "es": "Fragmento marcado como demasiado ruidoso. Su línea de entonación se muestra atenuada."
+  },
+  "Noisy flag removed.": {
+    "fr": "Signalement de bruit retiré.",
+    "es": "Marca de ruido quitada."
+  },
+  "Flag this clip as too noisy for a reliable pitch line": {
+    "fr": "Signaler cet extrait comme trop bruyant pour une courbe de mélodie fiable",
+    "es": "Marcar este fragmento como demasiado ruidoso para una línea de entonación fiable"
+  },
+  "Reading the video’s sound… {pct}": {
+    "fr": "Lecture du son de la vidéo… {pct}",
+    "es": "Leyendo el sonido del video… {pct}"
+  },
+  "Load the video file from this device": {
+    "fr": "Charger le fichier vidéo depuis cet appareil",
+    "es": "Cargar el archivo de video desde este dispositivo"
+  },
+  "The model line for this clip hasn’t been worked out yet.": {
+    "fr": "La courbe modèle de cet extrait n’a pas encore été calculée.",
+    "es": "La línea modelo de este fragmento aún no se ha calculado."
+  },
+  "Work it out now": {
+    "fr": "La calculer maintenant",
+    "es": "Calcularla ahora"
+  },
+  "Last pass: {lag} (manual offset)": {
+    "fr": "Dernier passage : {lag} (décalage manuel)",
+    "es": "Última pasada: {lag} (desfase manual)"
+  },
+  "Last pass: {lag}": {
+    "fr": "Dernier passage : {lag}",
+    "es": "Última pasada: {lag}"
+  },
+  "Pitch line unreliable in places": {
+    "fr": "Courbe de mélodie peu fiable par endroits",
+    "es": "Línea de entonación poco fiable en algunos tramos"
+  },
+  "▲ higher": {
+    "fr": "▲ plus aigu",
+    "es": "▲ más agudo"
+  },
+  "▼ lower": {
+    "fr": "▼ plus grave",
+    "es": "▼ más grave"
+  },
+  "Speaker": {
+    "fr": "Locuteur",
+    "es": "Hablante"
+  },
+  "You": {
+    "fr": "Toi",
+    "es": "Tú"
+  },
+  "each voice’s own average": {
+    "fr": "moyenne propre à chaque voix",
+    "es": "promedio propio de cada voz"
+  },
+  "speaker’s average": {
+    "fr": "moyenne du locuteur",
+    "es": "promedio del hablante"
+  },
+  "your average": {
+    "fr": "ta moyenne",
+    "es": "tu promedio"
+  },
+  "Microphone unavailable": {
+    "fr": "Micro indisponible",
+    "es": "Micrófono no disponible"
+  },
+  "Your line appears here when you record a pass": {
+    "fr": "Ta courbe apparaît ici quand tu enregistres un passage",
+    "es": "Tu línea aparece aquí cuando grabas una pasada"
+  },
+  "Zoomed waveform of the selection; drag the yellow edges onto quiet gaps": {
+    "fr": "Forme d’onde agrandie de la sélection ; fais glisser les bords jaunes sur les silences",
+    "es": "Forma de onda ampliada de la selección; arrastra los bordes amarillos hasta los silencios"
+  },
+  "Type a time like 3:35.2 or a number of seconds.": {
+    "fr": "Saisis un temps comme 3:35.2 ou un nombre de secondes.",
+    "es": "Escribe un tiempo como 3:35.2 o un número de segundos."
+  },
+  "Start": {
+    "fr": "Début",
+    "es": "Inicio"
+  },
+  "End": {
+    "fr": "Fin",
+    "es": "Fin"
+  },
+  "Length (s)": {
+    "fr": "Durée (s)",
+    "es": "Duración (s)"
+  },
+  "A few words of what’s said (optional)": {
+    "fr": "Quelques mots de ce qui est dit (facultatif)",
+    "es": "Unas palabras de lo que se dice (opcional)"
+  },
+  "Reading the video’s sound for the zoomed waveform…": {
+    "fr": "Lecture du son de la vidéo pour la forme d’onde agrandie…",
+    "es": "Leyendo el sonido del video para la forma de onda ampliada…"
+  },
+  "{error} You can still cut the clip with the nudge buttons and by ear.": {
+    "fr": "{error} Tu peux quand même découper l’extrait avec les boutons d’ajustement et à l’oreille.",
+    "es": "{error} Aun así puedes cortar el fragmento con los botones de ajuste y de oído."
+  },
+  "Load the file": {
+    "fr": "Charger le fichier",
+    "es": "Cargar el archivo"
+  },
+  "aim for {min}–{max} s": {
+    "fr": "vise {min}–{max} s",
+    "es": "apunta a {min}–{max} s"
+  },
+  "Play selection": {
+    "fr": "Lire la sélection",
+    "es": "Reproducir selección"
+  },
+  "Cancel": {
+    "fr": "Annuler",
+    "es": "Cancelar"
+  },
+  "Discard the selection and leave clip mode (Esc)": {
+    "fr": "Abandonner la sélection et quitter le mode découpe (Échap)",
+    "es": "Descartar la selección y salir del modo de corte (Esc)"
+  },
+  "Save and shadow": {
+    "fr": "Enregistrer et faire du shadowing",
+    "es": "Guardar y hacer shadowing"
+  },
+  "Save the clip and start a session with it": {
+    "fr": "Enregistrer l’extrait et commencer une séance avec",
+    "es": "Guardar el fragmento y empezar una sesión con él"
+  },
+  "Save changes": {
+    "fr": "Enregistrer les modifications",
+    "es": "Guardar cambios"
+  },
+  "Save clip": {
+    "fr": "Enregistrer l’extrait",
+    "es": "Guardar fragmento"
+  },
+  "Start 0.1 s earlier": {
+    "fr": "Commencer 0,1 s plus tôt",
+    "es": "Empezar 0,1 s antes"
+  },
+  "Start 0.1 s later": {
+    "fr": "Commencer 0,1 s plus tard",
+    "es": "Empezar 0,1 s después"
+  },
+  "Snap": {
+    "fr": "Caler",
+    "es": "Ajustar"
+  },
+  "Move the start into the nearest pause": {
+    "fr": "Placer le début dans la pause la plus proche",
+    "es": "Mover el inicio a la pausa más cercana"
+  },
+  "End 0.1 s earlier": {
+    "fr": "Finir 0,1 s plus tôt",
+    "es": "Terminar 0,1 s antes"
+  },
+  "End 0.1 s later": {
+    "fr": "Finir 0,1 s plus tard",
+    "es": "Terminar 0,1 s después"
+  },
+  "Move the end into the nearest pause": {
+    "fr": "Placer la fin dans la pause la plus proche",
+    "es": "Mover el final a la pausa más cercana"
+  },
+  "Label": {
+    "fr": "Libellé",
+    "es": "Etiqueta"
+  },
+  "Stop": {
+    "fr": "Arrêter",
+    "es": "Detener"
+  },
+  "The waveform isn’t available, so there are no gaps to snap to. Nudge by ear instead.": {
+    "fr": "La forme d’onde n’est pas disponible, donc pas de silence où caler le bord. Ajuste plutôt à l’oreille.",
+    "es": "La forma de onda no está disponible, así que no hay silencios donde ajustar. Ajusta de oído."
+  },
+  "No pause found within 2 seconds of that edge.": {
+    "fr": "Aucune pause trouvée à moins de 2 secondes de ce bord.",
+    "es": "No se encontró ninguna pausa a menos de 2 segundos de ese borde."
+  },
+  "Snapping there would make the clip too short.": {
+    "fr": "Caler le bord là rendrait l’extrait trop court.",
+    "es": "Ajustar ahí dejaría el fragmento demasiado corto."
+  },
+  "The start lands mid-word. Move it into a gap.": {
+    "fr": "Le début tombe au milieu d’un mot. Place-le dans un silence.",
+    "es": "El inicio cae a mitad de una palabra. Muévelo a un silencio."
+  },
+  "The end lands mid-word. Move it into a gap so the sentence isn’t cut in half.": {
+    "fr": "La fin tombe au milieu d’un mot. Place-la dans un silence pour ne pas couper la phrase en deux.",
+    "es": "El final cae a mitad de una palabra. Muévelo a un silencio para no cortar la frase por la mitad."
+  },
+  "Waveform unavailable": {
+    "fr": "Forme d’onde indisponible",
+    "es": "Forma de onda no disponible"
+  },
+  "Clip updated.": {
+    "fr": "Extrait mis à jour.",
+    "es": "Fragmento actualizado."
+  },
+  "Clip saved. Cut another, or shadow it now.": {
+    "fr": "Extrait enregistré. Découpes-en un autre, ou fais du shadowing dessus maintenant.",
+    "es": "Fragmento guardado. Corta otro o haz shadowing con él ahora."
+  },
+  "Videos": {
+    "fr": "Vidéos",
+    "es": "Videos"
+  },
+  "Close": {
+    "fr": "Fermer",
+    "es": "Cerrar"
+  },
+  "Add video": {
+    "fr": "Ajouter une vidéo",
+    "es": "Añadir video"
+  },
+  "Close library": {
+    "fr": "Fermer la bibliothèque",
+    "es": "Cerrar la biblioteca"
+  },
+  "No videos yet. Add a video file or a direct link to an .mp4 file to get started.": {
+    "fr": "Pas encore de vidéo. Ajoute un fichier vidéo ou un lien direct vers un fichier .mp4 pour commencer.",
+    "es": "Aún no hay videos. Añade un archivo de video o un enlace directo a un archivo .mp4 para empezar."
+  },
+  "Archived ({n})": {
+    "fr": "Archivées ({n})",
+    "es": "Archivados ({n})"
+  },
+  "Where the video comes from": {
+    "fr": "Provenance de la vidéo",
+    "es": "De dónde viene el video"
+  },
+  "A file on this device": {
+    "fr": "Un fichier sur cet appareil",
+    "es": "Un archivo en este dispositivo"
+  },
+  "From a link": {
+    "fr": "Depuis un lien",
+    "es": "Desde un enlace"
+  },
+  "It goes into your Google Drive, so it’s on all your devices.": {
+    "fr": "Elle va dans ton Google Drive, donc elle est sur tous tes appareils.",
+    "es": "Se guarda en tu Google Drive, así que está en todos tus dispositivos."
+  },
+  "It’s kept in this browser only.": {
+    "fr": "Elle est conservée dans ce navigateur uniquement.",
+    "es": "Se guarda solo en este navegador."
+  },
+  "It stays in this browser only until you connect Google Drive.": {
+    "fr": "Elle reste uniquement dans ce navigateur tant que tu n’as pas connecté Google Drive.",
+    "es": "Se queda solo en este navegador hasta que conectes Google Drive."
+  },
+  "Connect Google Drive": {
+    "fr": "Connecter Google Drive",
+    "es": "Conectar Google Drive"
+  },
+  "Video file (any length)": {
+    "fr": "Fichier vidéo (toute durée)",
+    "es": "Archivo de video (cualquier duración)"
+  },
+  "Direct link to the .mp4 file": {
+    "fr": "Lien direct vers le fichier .mp4",
+    "es": "Enlace directo al archivo .mp4"
+  },
+  "Keep a copy, so it still plays if the link stops working (recommended)": {
+    "fr": "Garder une copie, pour qu’elle reste lisible si le lien ne marche plus (recommandé)",
+    "es": "Guardar una copia, para que siga reproduciéndose si el enlace deja de funcionar (recomendado)"
+  },
+  "Title": {
+    "fr": "Titre",
+    "es": "Título"
+  },
+  "e.g. Interview, part 1": {
+    "fr": "ex. Interview, partie 1",
+    "es": "p. ej., Entrevista, parte 1"
+  },
+  "Speaker (optional)": {
+    "fr": "Locuteur (facultatif)",
+    "es": "Hablante (opcional)"
+  },
+  "Who’s speaking": {
+    "fr": "Qui parle",
+    "es": "Quién habla"
+  },
+  "Copy and add": {
+    "fr": "Copier et ajouter",
+    "es": "Copiar y añadir"
+  },
+  "Check and add": {
+    "fr": "Vérifier et ajouter",
+    "es": "Comprobar y añadir"
+  },
+  "Untitled video": {
+    "fr": "Vidéo sans titre",
+    "es": "Video sin título"
+  },
+  "Video added. Press Cut clips, then drag along the timeline to make your first clip.": {
+    "fr": "Vidéo ajoutée. Appuie sur Découper des extraits, puis fais glisser le long de la frise pour créer ton premier extrait.",
+    "es": "Video añadido. Pulsa Cortar fragmentos y luego arrastra a lo largo de la línea de tiempo para crear tu primer fragmento."
+  },
+  "Choose a video file first.": {
+    "fr": "Choisis d’abord un fichier vidéo.",
+    "es": "Elige primero un archivo de video."
+  },
+  "Saving {mb} MB on this device…": {
+    "fr": "Enregistrement de {mb} Mo sur cet appareil…",
+    "es": "Guardando {mb} MB en este dispositivo…"
+  },
+  "Saving on this device… {pct}%": {
+    "fr": "Enregistrement sur cet appareil… {pct} %",
+    "es": "Guardando en este dispositivo… {pct} %"
+  },
+  "There isn’t enough free space on this device for that file.": {
+    "fr": "Il n’y a pas assez d’espace libre sur cet appareil pour ce fichier.",
+    "es": "No hay suficiente espacio libre en este dispositivo para ese archivo."
+  },
+  "The file couldn’t be saved ({error}).": {
+    "fr": "Le fichier n’a pas pu être enregistré ({error}).",
+    "es": "No se pudo guardar el archivo ({error})."
+  },
+  "Paste a full link starting with https://": {
+    "fr": "Colle un lien complet commençant par https://",
+    "es": "Pega un enlace completo que empiece por https://"
+  },
+  "That’s a share page, not a video file. Links from Google Drive, MEGA, YouTube or Dropbox share pages won’t play. Download the file, then add it with “A file on this device”.": {
+    "fr": "C’est une page de partage, pas un fichier vidéo. Les liens de pages de partage Google Drive, MEGA, YouTube ou Dropbox ne se lisent pas. Télécharge le fichier, puis ajoute-le avec « Un fichier sur cet appareil ».",
+    "es": "Es una página para compartir, no un archivo de video. Los enlaces de páginas para compartir de Google Drive, MEGA, YouTube o Dropbox no se reproducen. Descarga el archivo y luego añádelo con «Un archivo en este dispositivo»."
+  },
+  "Downloading a copy…": {
+    "fr": "Téléchargement d’une copie…",
+    "es": "Descargando una copia…"
+  },
+  "That site doesn’t let the app download its videos.": {
+    "fr": "Ce site ne permet pas à l’appli de télécharger ses vidéos.",
+    "es": "Ese sitio no permite que la app descargue sus videos."
+  },
+  "The link answered with an error (HTTP {status}).": {
+    "fr": "Le lien a répondu par une erreur (HTTP {status}).",
+    "es": "El enlace respondió con un error (HTTP {status})."
+  },
+  "That link is a web page, not a video file. Use a direct link to an .mp4 file.": {
+    "fr": "Ce lien mène à une page web, pas à un fichier vidéo. Utilise un lien direct vers un fichier .mp4.",
+    "es": "Ese enlace es una página web, no un archivo de video. Usa un enlace directo a un archivo .mp4."
+  },
+  "Downloading a copy… {pct}%": {
+    "fr": "Téléchargement d’une copie… {pct} %",
+    "es": "Descargando una copia… {pct} %"
+  },
+  "{error} You can download the file yourself and add it with “A file on this device”, or add the link without a copy.": {
+    "fr": "{error} Tu peux télécharger le fichier toi-même et l’ajouter avec « Un fichier sur cet appareil », ou ajouter le lien sans copie.",
+    "es": "{error} Puedes descargar el archivo tú mismo y añadirlo con «Un archivo en este dispositivo», o añadir el enlace sin copia."
+  },
+  "Add the link without a copy": {
+    "fr": "Ajouter le lien sans copie",
+    "es": "Añadir el enlace sin copia"
+  },
+  "Checking the link plays…": {
+    "fr": "Vérification de la lecture du lien…",
+    "es": "Comprobando que el enlace se reproduce…"
+  },
+  "Add it anyway": {
+    "fr": "L’ajouter quand même",
+    "es": "Añadirlo de todos modos"
+  },
+  "The link loaded but has no playable video.": {
+    "fr": "Le lien s’est chargé mais ne contient pas de vidéo lisible.",
+    "es": "El enlace se cargó, pero no tiene video reproducible."
+  },
+  "The link didn’t load. Inside a Claude artifact, videos from other websites are blocked, so this check always fails here. Add it anyway and play it from a file on this device, or use the standalone version of the app.": {
+    "fr": "Le lien ne s’est pas chargé. Dans un artifact Claude, les vidéos d’autres sites sont bloquées, donc cette vérification échoue toujours ici. Ajoute-la quand même et lis-la depuis un fichier sur cet appareil, ou utilise la version autonome de l’appli.",
+    "es": "El enlace no se cargó. Dentro de un artifact de Claude, los videos de otros sitios están bloqueados, así que esta comprobación siempre falla aquí. Añádelo de todos modos y reprodúcelo desde un archivo en este dispositivo, o usa la versión independiente de la app."
+  },
+  "That link isn’t a playable video file. Check it opens directly as an .mp4 in a new tab.": {
+    "fr": "Ce lien n’est pas un fichier vidéo lisible. Vérifie qu’il s’ouvre directement comme un .mp4 dans un nouvel onglet.",
+    "es": "Ese enlace no es un archivo de video reproducible. Comprueba que se abre directamente como .mp4 en una pestaña nueva."
+  },
+  "The link didn’t load. Check the address and that the file is still online.": {
+    "fr": "Le lien ne s’est pas chargé. Vérifie l’adresse et que le fichier est toujours en ligne.",
+    "es": "El enlace no se cargó. Comprueba la dirección y que el archivo siga en línea."
+  },
+  "The link took too long to answer (15 s). Check it opens in a new tab.": {
+    "fr": "Le lien a mis trop de temps à répondre (15 s). Vérifie qu’il s’ouvre dans un nouvel onglet.",
+    "es": "El enlace tardó demasiado en responder (15 s). Comprueba que se abre en una pestaña nueva."
+  },
+  "{done}/{total} clips done": {
+    "fr": "{done}/{total} extraits terminés",
+    "es": "{done}/{total} fragmentos terminados"
+  },
+  "last practised {day}": {
+    "fr": "dernière pratique {day}",
+    "es": "última práctica {day}"
+  },
+  "not practised yet": {
+    "fr": "pas encore pratiquée",
+    "es": "aún sin practicar"
+  },
+  "saved": {
+    "fr": "enregistrée",
+    "es": "guardado"
+  },
+  "Open": {
+    "fr": "Ouvrir",
+    "es": "Abrir"
+  },
+  "Open the original link": {
+    "fr": "Ouvrir le lien d’origine",
+    "es": "Abrir el enlace original"
+  },
+  "Link": {
+    "fr": "Lien",
+    "es": "Enlace"
+  },
+  "Edit title or link": {
+    "fr": "Modifier le titre ou le lien",
+    "es": "Editar título o enlace"
+  },
+  "Restore": {
+    "fr": "Restaurer",
+    "es": "Restaurar"
+  },
+  "Video restored.": {
+    "fr": "Vidéo restaurée.",
+    "es": "Video restaurado."
+  },
+  "Video archived. Its clips and history are kept.": {
+    "fr": "Vidéo archivée. Ses extraits et son historique sont conservés.",
+    "es": "Video archivado. Se conservan sus fragmentos y su historial."
+  },
+  "Archive (clips and history are kept)": {
+    "fr": "Archiver (extraits et historique conservés)",
+    "es": "Archivar (se conservan los fragmentos y el historial)"
+  },
+  "Video updated.": {
+    "fr": "Vidéo mise à jour.",
+    "es": "Video actualizado."
+  },
+  "Save": {
+    "fr": "Enregistrer",
+    "es": "Guardar"
+  },
+  "Queue {clip}": {
+    "fr": "Mettre {clip} dans la file",
+    "es": "Poner {clip} en la cola"
+  },
+  "Add to the session queue": {
+    "fr": "Ajouter à la file de la séance",
+    "es": "Añadir a la cola de la sesión"
+  },
+  "noisy": {
+    "fr": "bruyant",
+    "es": "ruidoso"
+  },
+  "#{n} in queue": {
+    "fr": "n° {n} dans la file",
+    "es": "n.º {n} en la cola"
+  },
+  "Done {day}": {
+    "fr": "Terminé {day}",
+    "es": "Terminado {day}"
+  },
+  "Not done yet": {
+    "fr": "Pas encore terminé",
+    "es": "Aún sin terminar"
+  },
+  "Edit clip (start, end, length, label)": {
+    "fr": "Modifier l’extrait (début, fin, durée, libellé)",
+    "es": "Editar fragmento (inicio, final, duración, etiqueta)"
+  },
+  "Clip options": {
+    "fr": "Options de l’extrait",
+    "es": "Opciones del fragmento"
+  },
+  "No clips yet. Press Cut clips under the video, then drag along the timeline.": {
+    "fr": "Pas encore d’extrait. Appuie sur Découper des extraits sous la vidéo, puis fais glisser le long de la frise.",
+    "es": "Aún no hay fragmentos. Pulsa Cortar fragmentos debajo del video y luego arrastra a lo largo de la línea de tiempo."
+  },
+  "Show fewer": {
+    "fr": "Afficher moins",
+    "es": "Mostrar menos"
+  },
+  "Show all {n} clips": {
+    "fr": "Afficher les {n} extraits",
+    "es": "Mostrar los {n} fragmentos"
+  },
+  "{n} queued|{n} queued": {
+    "fr": "{n} en file|{n} en file",
+    "es": "{n} en cola|{n} en cola"
+  },
+  "Clear queue": {
+    "fr": "Vider la file",
+    "es": "Vaciar la cola"
+  },
+  "Archived clips ({n})": {
+    "fr": "Extraits archivés ({n})",
+    "es": "Fragmentos archivados ({n})"
+  },
+  "Shadow this clip": {
+    "fr": "Faire du shadowing sur cet extrait",
+    "es": "Hacer shadowing con este fragmento"
+  },
+  "Edit edges or label": {
+    "fr": "Modifier les bords ou le libellé",
+    "es": "Editar bordes o etiqueta"
+  },
+  "History and recordings": {
+    "fr": "Historique et enregistrements",
+    "es": "Historial y grabaciones"
+  },
+  "Remove the tick": {
+    "fr": "Retirer la coche",
+    "es": "Quitar la marca"
+  },
+  "Mark as done": {
+    "fr": "Marquer comme terminé",
+    "es": "Marcar como terminado"
+  },
+  "Unflag noisy": {
+    "fr": "Retirer le signalement de bruit",
+    "es": "Quitar la marca de ruido"
+  },
+  "Flag as too noisy": {
+    "fr": "Signaler comme trop bruyant",
+    "es": "Marcar como demasiado ruidoso"
+  },
+  "Restore clip": {
+    "fr": "Restaurer l’extrait",
+    "es": "Restaurar fragmento"
+  },
+  "Archive clip": {
+    "fr": "Archiver l’extrait",
+    "es": "Archivar fragmento"
+  },
+  "Clip archived. Its history is kept.": {
+    "fr": "Extrait archivé. Son historique est conservé.",
+    "es": "Fragmento archivado. Se conserva su historial."
+  },
+  "Listen": {
+    "fr": "Écoute",
+    "es": "Escucha"
+  },
+  "Shadow": {
+    "fr": "Shadowing",
+    "es": "Shadowing"
+  },
+  "Record & compare": {
+    "fr": "Enregistrer et comparer",
+    "es": "Grabar y comparar"
+  },
+  "Shadow again": {
+    "fr": "Encore du shadowing",
+    "es": "Shadowing otra vez"
+  },
+  "Just listen. Don’t speak yet; take in the rhythm and melody.": {
+    "fr": "Écoute simplement. Ne parle pas encore ; imprègne-toi du rythme et de la mélodie.",
+    "es": "Solo escucha. No hables todavía; absorbe el ritmo y la melodía."
+  },
+  "Speak along at the same time as the speaker. Copy everything: rhythm, melody and sounds.": {
+    "fr": "Parle en même temps que le locuteur. Copie tout : rythme, mélodie et sons.",
+    "es": "Habla a la vez que el hablante. Cópialo todo: ritmo, melodía y sonidos."
+  },
+  "Headphones on. Shadow one pass while it records, then compare it with the original.": {
+    "fr": "Mets ton casque. Fais un passage de shadowing pendant l’enregistrement, puis compare-le avec l’original.",
+    "es": "Ponte los auriculares. Haz una pasada de shadowing mientras se graba y luego compárala con el original."
+  },
+  "Shadow again, copying as closely as you can. The last pass records so you can compare it with step 3.": {
+    "fr": "Refais du shadowing en copiant le plus fidèlement possible. Le dernier passage est enregistré pour que tu puisses le comparer avec l’étape 3.",
+    "es": "Vuelve a hacer shadowing, copiando lo más fielmente que puedas. La última pasada se graba para que puedas compararla con el paso 3."
+  },
+  "Start listening": {
+    "fr": "Commencer l’écoute",
+    "es": "Empezar a escuchar"
+  },
+  "Start shadowing": {
+    "fr": "Commencer le shadowing",
+    "es": "Empezar el shadowing"
+  },
+  "Start recording": {
+    "fr": "Commencer l’enregistrement",
+    "es": "Empezar a grabar"
+  },
+  "Start shadowing again": {
+    "fr": "Reprendre le shadowing",
+    "es": "Volver a hacer shadowing"
+  },
+  "A session is already running.": {
+    "fr": "Une séance est déjà en cours.",
+    "es": "Ya hay una sesión en curso."
+  },
+  "Pick a clip first.": {
+    "fr": "Choisis d’abord un extrait.",
+    "es": "Elige primero un fragmento."
+  },
+  "{time} left": {
+    "fr": "{time} restantes",
+    "es": "quedan {time}"
+  },
+  "{time} over · that’s fine": {
+    "fr": "{time} de plus · pas de souci",
+    "es": "{time} de más · no pasa nada"
+  },
+  "The recording couldn’t be saved ({error}). You can still listen to it now.": {
+    "fr": "L’enregistrement n’a pas pu être sauvegardé ({error}). Tu peux quand même l’écouter maintenant.",
+    "es": "No se pudo guardar la grabación ({error}). Aun así puedes escucharla ahora."
+  },
+  "You’re past the shadowing step already. Finish or end the session instead.": {
+    "fr": "Tu as déjà passé l’étape de shadowing. Termine ou arrête plutôt la séance.",
+    "es": "Ya pasaste el paso de shadowing. Mejor termina o finaliza la sesión."
+  },
+  "Switched to the 5-minute version. Every bit counts.": {
+    "fr": "Passage à la version 5 minutes. Chaque minute compte.",
+    "es": "Cambiado a la versión de 5 minutos. Todo suma."
+  },
+  "Can’t keep up?": {
+    "fr": "Tu n’arrives pas à suivre ?",
+    "es": "¿No puedes seguir el ritmo?"
+  },
+  "This clip is {len} long. Shadowing gets much easier with a shorter clip: try cutting it to one sentence of about {sec} seconds. Slowing to 0.75x also helps for a few passes.": {
+    "fr": "Cet extrait dure {len}. Le shadowing devient bien plus facile avec un extrait plus court : essaie de le réduire à une phrase d’environ {sec} secondes. Ralentir à 0,75x aide aussi pendant quelques passages.",
+    "es": "Este fragmento dura {len}. El shadowing es mucho más fácil con un fragmento más corto: prueba a recortarlo a una frase de unos {sec} segundos. Bajar a 0,75x también ayuda durante algunas pasadas."
+  },
+  "This clip is {len} long. Shadowing gets much easier with a shorter clip: try cutting it to one sentence. Slowing to 0.75x also helps for a few passes.": {
+    "fr": "Cet extrait dure {len}. Le shadowing devient bien plus facile avec un extrait plus court : essaie de le réduire à une seule phrase. Ralentir à 0,75x aide aussi pendant quelques passages.",
+    "es": "Este fragmento dura {len}. El shadowing es mucho más fácil con un fragmento más corto: prueba a recortarlo a una sola frase. Bajar a 0,75x también ayuda durante algunas pasadas."
+  },
+  "Slow to 0.75x": {
+    "fr": "Ralentir à 0,75x",
+    "es": "Bajar a 0,75x"
+  },
+  "End and shorten the clip": {
+    "fr": "Arrêter et raccourcir l’extrait",
+    "es": "Terminar y acortar el fragmento"
+  },
+  "Keep going": {
+    "fr": "Continuer",
+    "es": "Seguir"
+  },
+  "{step}: {n}": {
+    "fr": "{step} : {n}",
+    "es": "{step}: {n}"
+  },
+  "Step {n}: {step}": {
+    "fr": "Étape {n} : {step}",
+    "es": "Paso {n}: {step}"
+  },
+  "{n} pass, about {min} min.|{n} passes, about {min} min.": {
+    "fr": "{n} passage, environ {min} min.|{n} passages, environ {min} min.",
+    "es": "{n} pasada, unos {min} min.|{n} pasadas, unos {min} min."
+  },
+  "Final recorded pass": {
+    "fr": "Dernier passage enregistré",
+    "es": "Última pasada grabada"
+  },
+  "Recorded pass": {
+    "fr": "Passage enregistré",
+    "es": "Pasada grabada"
+  },
+  "Headphones on (wired is best), or the microphone will pick up the clip.": {
+    "fr": "Mets ton casque (filaire de préférence), sinon le micro captera l’extrait.",
+    "es": "Ponte los auriculares (mejor con cable), o el micrófono captará el fragmento."
+  },
+  "Upload a recording": {
+    "fr": "Importer un enregistrement",
+    "es": "Subir una grabación"
+  },
+  "Skip recording": {
+    "fr": "Passer l’enregistrement",
+    "es": "Omitir la grabación"
+  },
+  "Record this pass": {
+    "fr": "Enregistrer ce passage",
+    "es": "Grabar esta pasada"
+  },
+  "Paused. Press play (or Space) to restart this pass.": {
+    "fr": "En pause. Appuie sur lecture (ou Espace) pour reprendre ce passage.",
+    "es": "En pausa. Pulsa reproducir (o Espacio) para reiniciar esta pasada."
+  },
+  "Recording… shadow along now.": {
+    "fr": "Enregistrement… fais du shadowing maintenant.",
+    "es": "Grabando… haz shadowing ahora."
+  },
+  "Next pass in a moment · {n} to go": {
+    "fr": "Prochain passage dans un instant · encore {n}",
+    "es": "Siguiente pasada en un momento · faltan {n}"
+  },
+  "Speak along with the speaker.": {
+    "fr": "Parle en même temps que le locuteur.",
+    "es": "Habla a la vez que el hablante."
+  },
+  "Listen only.": {
+    "fr": "Écoute seulement.",
+    "es": "Solo escucha."
+  },
+  "Your pitch line is drawing in the panel below.": {
+    "fr": "Ta courbe de mélodie se dessine dans le panneau ci-dessous.",
+    "es": "Tu línea de entonación se dibuja en el panel de abajo."
+  },
+  "Resume (Space)": {
+    "fr": "Reprendre (Espace)",
+    "es": "Reanudar (Espacio)"
+  },
+  "Pause (Space)": {
+    "fr": "Pause (Espace)",
+    "es": "Pausa (Espacio)"
+  },
+  "Repeat this pass without counting it (R)": {
+    "fr": "Refaire ce passage sans le compter (R)",
+    "es": "Repetir esta pasada sin contarla (R)"
+  },
+  "Bad-day session": {
+    "fr": "Séance jour sans",
+    "es": "Sesión de día malo"
+  },
+  "Review run": {
+    "fr": "Révision",
+    "es": "Repaso"
+  },
+  "Today’s session": {
+    "fr": "Séance du jour",
+    "es": "Sesión de hoy"
+  },
+  "{n} more queued|{n} more queued": {
+    "fr": "encore {n} en file|encore {n} en file",
+    "es": "{n} más en cola|{n} más en cola"
+  },
+  "I can’t keep up": {
+    "fr": "Je n’arrive pas à suivre",
+    "es": "No puedo seguir el ritmo"
+  },
+  "Bad day? Switch to 5 min": {
+    "fr": "Jour sans ? Passe à 5 min",
+    "es": "¿Día malo? Cambia a 5 min"
+  },
+  "Skip step": {
+    "fr": "Passer l’étape",
+    "es": "Saltar paso"
+  },
+  "End session": {
+    "fr": "Terminer la séance",
+    "es": "Terminar sesión"
+  },
+  "End now; progress so far is saved": {
+    "fr": "Terminer maintenant ; la progression est enregistrée",
+    "es": "Terminar ahora; el progreso hasta aquí se guarda"
+  },
+  "That file couldn’t be read as audio ({error}).": {
+    "fr": "Ce fichier n’a pas pu être lu comme de l’audio ({error}).",
+    "es": "No se pudo leer ese archivo como audio ({error})."
+  },
+  "The recording couldn’t play.": {
+    "fr": "L’enregistrement n’a pas pu être lu.",
+    "es": "No se pudo reproducir la grabación."
+  },
+  "Final pass recorded": {
+    "fr": "Dernier passage enregistré",
+    "es": "Última pasada grabada"
+  },
+  "Pass recorded": {
+    "fr": "Passage enregistré",
+    "es": "Pasada grabada"
+  },
+  "(manual offset)": {
+    "fr": "(décalage manuel)",
+    "es": "(desfase manual)"
+  },
+  "(auto-alignment unsure; manual offset used)": {
+    "fr": "(alignement auto incertain ; décalage manuel utilisé)",
+    "es": "(alineación automática dudosa; se usó el desfase manual)"
+  },
+  "Original": {
+    "fr": "Original",
+    "es": "Original"
+  },
+  "Mine": {
+    "fr": "Le mien",
+    "es": "El mío"
+  },
+  "Original then mine": {
+    "fr": "L’original puis le mien",
+    "es": "El original y luego el mío"
+  },
+  "Both together": {
+    "fr": "Les deux ensemble",
+    "es": "Los dos a la vez"
+  },
+  "Stop playback": {
+    "fr": "Arrêter la lecture",
+    "es": "Detener la reproducción"
+  },
+  "Compare with your step 3 recording from this session:": {
+    "fr": "Compare avec ton enregistrement de l’étape 3 de cette séance :",
+    "es": "Compara con tu grabación del paso 3 de esta sesión:"
+  },
+  "Compare overlaid": {
+    "fr": "Comparer en superposé",
+    "es": "Comparar superpuestas"
+  },
+  "Redo this pass": {
+    "fr": "Refaire ce passage",
+    "es": "Repetir esta pasada"
+  },
+  "Continue": {
+    "fr": "Continuer",
+    "es": "Continuar"
+  },
+  "Select it": {
+    "fr": "Le sélectionner",
+    "es": "Seleccionarlo"
+  },
+  "Start queue ({n} clips)": {
+    "fr": "Lancer la file ({n} extraits)",
+    "es": "Empezar la cola ({n} fragmentos)"
+  },
+  "Start 15-minute session": {
+    "fr": "Commencer une séance de 15 minutes",
+    "es": "Empezar sesión de 15 minutos"
+  },
+  "Bad-day session ({n} min)": {
+    "fr": "Séance jour sans ({n} min)",
+    "es": "Sesión de día malo ({n} min)"
+  },
+  "Review run ({n} due)": {
+    "fr": "Révision ({n} à revoir)",
+    "es": "Repaso ({n} pendientes)"
+  },
+  "“{clip}” is done. Practise it again any time.": {
+    "fr": "« {clip} » est terminé. Tu peux le retravailler quand tu veux.",
+    "es": "«{clip}» está terminado. Practícalo de nuevo cuando quieras."
+  },
+  "Clip: {clip} · {len}": {
+    "fr": "Extrait : {clip} · {len}",
+    "es": "Fragmento: {clip} · {len}"
+  },
+  "Select a clip on the timeline or in the library.": {
+    "fr": "Sélectionne un extrait sur la frise ou dans la bibliothèque.",
+    "es": "Selecciona un fragmento en la línea de tiempo o en la biblioteca."
+  },
+  "Rest day": {
+    "fr": "Jour de repos",
+    "es": "Día de descanso"
+  },
+  "Sunday is the suggested rest day. A short session still counts if you feel like it.": {
+    "fr": "Le dimanche est le jour de repos conseillé. Une petite séance compte quand même si tu en as envie.",
+    "es": "El domingo es el día de descanso sugerido. Una sesión corta también cuenta si te apetece."
+  },
+  "Repeat day": {
+    "fr": "Jour de répétition",
+    "es": "Día de repetición"
+  },
+  "Suggested: repeat yesterday’s clip, “{clip}”.": {
+    "fr": "Suggestion : refais l’extrait d’hier, « {clip} ».",
+    "es": "Sugerencia: repite el fragmento de ayer, «{clip}»."
+  },
+  "New clip day": {
+    "fr": "Jour nouvel extrait",
+    "es": "Día de fragmento nuevo"
+  },
+  "Suggested: start a new clip today (Mon, Wed and Fri are new-clip days).": {
+    "fr": "Suggestion : commence un nouvel extrait aujourd’hui (lundi, mercredi et vendredi sont les jours de nouvel extrait).",
+    "es": "Sugerencia: empieza un fragmento nuevo hoy (lunes, miércoles y viernes son días de fragmento nuevo)."
+  },
+  "Practice day": {
+    "fr": "Jour de pratique",
+    "es": "Día de práctica"
+  },
+  "Pick any clip. The rotation is only a suggestion.": {
+    "fr": "Choisis n’importe quel extrait. Le roulement n’est qu’une suggestion.",
+    "es": "Elige cualquier fragmento. La rotación es solo una sugerencia."
+  },
+  "Session complete!": {
+    "fr": "Séance terminée !",
+    "es": "¡Sesión completada!"
+  },
+  "Session saved": {
+    "fr": "Séance enregistrée",
+    "es": "Sesión guardada"
+  },
+  "day streak · it grew!|day streak · it grew!": {
+    "fr": "jour de série · elle s’allonge !|jours de série · elle s’allonge !",
+    "es": "día de racha · ¡ha crecido!|días de racha · ¡ha crecido!"
+  },
+  "day streak|day streak": {
+    "fr": "jour de série|jours de série",
+    "es": "día de racha|días de racha"
+  },
+  "{n} pass · {min} min · {week}/{target} sessions this week|{n} passes · {min} min · {week}/{target} sessions this week": {
+    "fr": "{n} passage · {min} min · {week}/{target} séances cette semaine|{n} passages · {min} min · {week}/{target} séances cette semaine",
+    "es": "{n} pasada · {min} min · {week}/{target} sesiones esta semana|{n} pasadas · {min} min · {week}/{target} sesiones esta semana"
+  },
+  "“{clip}” gets its tick.": {
+    "fr": "« {clip} » obtient sa coche.",
+    "es": "«{clip}» recibe su marca."
+  },
+  "Progress so far is saved. The clip gets its tick after one complete session.": {
+    "fr": "Ta progression est enregistrée. L’extrait obtient sa coche après une séance complète.",
+    "es": "Tu progreso se ha guardado. El fragmento recibe su marca tras una sesión completa."
+  },
+  "Compare step 3 with your final pass": {
+    "fr": "Comparer l’étape 3 avec ton dernier passage",
+    "es": "Comparar el paso 3 con tu última pasada"
+  },
+  "Next clip in the queue": {
+    "fr": "Extrait suivant dans la file",
+    "es": "Siguiente fragmento de la cola"
+  },
+  "Clip history": {
+    "fr": "Historique de l’extrait",
+    "es": "Historial del fragmento"
+  }
+}

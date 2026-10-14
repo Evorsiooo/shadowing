@@ -1,9 +1,165 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://shadowing.euno.cc/</loc><lastmod>2026-10-14</lastmod><priority>1.0</priority></url>
-  <url><loc>https://shadowing.euno.cc/what-is-shadowing/</loc><lastmod>2026-10-14</lastmod><priority>0.8</priority></url>
-  <url><loc>https://shadowing.euno.cc/accent-shadowing/</loc><lastmod>2026-10-14</lastmod><priority>0.8</priority></url>
-  <url><loc>https://shadowing.euno.cc/privacy/</loc><lastmod>2026-10-14</lastmod><priority>0.3</priority></url>
-  <url><loc>https://shadowing.euno.cc/terms/</loc><lastmod>2026-10-14</lastmod><priority>0.3</priority></url>
-  <url><loc>https://shadowing.euno.cc/contact/</loc><lastmod>2026-10-14</lastmod><priority>0.4</priority></url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://shadowing.euno.cc/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/what-is-shadowing/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/what-is-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/what-is-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/what-is-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/what-is-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/accent-shadowing/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/accent-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/privacy/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/privacy/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/terms/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/terms/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/terms/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/terms/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/terms/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/contact/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/contact/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/contact/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/contact/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/contact/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/fr/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/fr/what-is-shadowing/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/what-is-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/what-is-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/what-is-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/what-is-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/fr/accent-shadowing/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/accent-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/fr/privacy/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/privacy/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/fr/terms/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/terms/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/terms/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/terms/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/terms/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/fr/contact/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/contact/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/contact/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/contact/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/contact/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/what-is-shadowing/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/what-is-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/what-is-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/what-is-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/what-is-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/accent-shadowing/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/accent-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/privacy/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/privacy/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/terms/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/terms/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/terms/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/terms/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/terms/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/contact/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/contact/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/contact/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/contact/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/contact/"/>
+  </url>
 </urlset>

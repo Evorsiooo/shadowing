@@ -1,0 +1,554 @@
+{
+  "in sync": {
+    "fr": "synchro",
+    "es": "sincronizado"
+  },
+  "{a} s behind": {
+    "fr": "{a} s de retard",
+    "es": "{a} s de retraso"
+  },
+  "{a} s ahead": {
+    "fr": "{a} s d’avance",
+    "es": "{a} s de adelanto"
+  },
+  "Close": {
+    "fr": "Fermer",
+    "es": "Cerrar"
+  },
+  "The server couldn’t be reached. Check your connection.": {
+    "fr": "Impossible de joindre le serveur. Vérifie ta connexion.",
+    "es": "No se pudo conectar con el servidor. Revisa tu conexión."
+  },
+  "You’re signed out. Sign in again to keep saving.": {
+    "fr": "Tu es déconnecté. Reconnecte-toi pour continuer à enregistrer.",
+    "es": "Se cerró tu sesión. Vuelve a iniciar sesión para seguir guardando."
+  },
+  "Server error {status}": {
+    "fr": "Erreur du serveur {status}",
+    "es": "Error del servidor {status}"
+  },
+  "Couldn’t save to the server. Retrying…": {
+    "fr": "Impossible d’enregistrer sur le serveur. Nouvel essai…",
+    "es": "No se pudo guardar en el servidor. Reintentando…"
+  },
+  "Storage is full. Archive or remove old recordings in Settings → Data.": {
+    "fr": "Le stockage est plein. Archive ou supprime d’anciens enregistrements dans Réglages → Données.",
+    "es": "El almacenamiento está lleno. Archiva o elimina grabaciones antiguas en Ajustes → Datos."
+  },
+  "Couldn’t save a change ({code}). It is kept on screen; try again shortly.": {
+    "fr": "Impossible d’enregistrer une modification ({code}). Elle reste à l’écran ; réessaie dans un instant.",
+    "es": "No se pudo guardar un cambio ({code}). Sigue en pantalla; vuelve a intentarlo en un momento."
+  },
+  "This device’s storage is full.": {
+    "fr": "Le stockage de cet appareil est plein.",
+    "es": "El almacenamiento de este dispositivo está lleno."
+  },
+  "This file is not a Euno Shadowing backup.": {
+    "fr": "Ce fichier n’est pas une sauvegarde Euno Shadowing.",
+    "es": "Este archivo no es una copia de seguridad de Euno Shadowing."
+  },
+  "Google Drive couldn’t be reached. Check your connection.": {
+    "fr": "Impossible de joindre Google Drive. Vérifie ta connexion.",
+    "es": "No se pudo conectar con Google Drive. Revisa tu conexión."
+  },
+  "Google Drive: {msg}": {
+    "fr": "Google Drive : {msg}",
+    "es": "Google Drive: {msg}"
+  },
+  "error {status}": {
+    "fr": "erreur {status}",
+    "es": "error {status}"
+  },
+  "Google Drive didn’t start the upload.": {
+    "fr": "Google Drive n’a pas lancé l’envoi.",
+    "es": "Google Drive no inició la subida."
+  },
+  "Google Drive: upload failed ({status}).": {
+    "fr": "Google Drive : l’envoi a échoué ({status}).",
+    "es": "Google Drive: la subida falló ({status})."
+  },
+  "The upload to Google Drive kept failing. It will try again later.": {
+    "fr": "L’envoi vers Google Drive échoue sans cesse. Il sera relancé plus tard.",
+    "es": "La subida a Google Drive sigue fallando. Se volverá a intentar más tarde."
+  },
+  "Sign in first to connect Google Drive.": {
+    "fr": "Connecte-toi d’abord pour relier Google Drive.",
+    "es": "Inicia sesión primero para conectar Google Drive."
+  },
+  "Google Drive sync isn’t switched on for this site yet.": {
+    "fr": "La synchronisation Google Drive n’est pas encore activée sur ce site.",
+    "es": "La sincronización con Google Drive aún no está activada en este sitio."
+  },
+  "Google Drive connected ({email}). Your files will sync to it.": {
+    "fr": "Google Drive connecté ({email}). Tes fichiers vont s’y synchroniser.",
+    "es": "Google Drive conectado ({email}). Tus archivos se sincronizarán ahí."
+  },
+  "Google Drive connected. Your files will sync to it.": {
+    "fr": "Google Drive connecté. Tes fichiers vont s’y synchroniser.",
+    "es": "Google Drive conectado. Tus archivos se sincronizarán ahí."
+  },
+  "Google Drive sync paused: {msg}": {
+    "fr": "Synchronisation Google Drive en pause : {msg}",
+    "es": "Sincronización con Google Drive en pausa: {msg}"
+  },
+  "Getting your video ready": {
+    "fr": "Préparation de ta vidéo",
+    "es": "Preparando tu video"
+  },
+  "Downloading “{title}” from your Google Drive to this device. It only happens once on each device.": {
+    "fr": "Téléchargement de « {title} » depuis ton Google Drive vers cet appareil. Ça n’arrive qu’une fois par appareil.",
+    "es": "Descargando “{title}” de tu Google Drive a este dispositivo. Solo pasa una vez en cada dispositivo."
+  },
+  "{pct}% · {done} of {total} MB": {
+    "fr": "{pct} % · {done} sur {total} Mo",
+    "es": "{pct} % · {done} de {total} MB"
+  },
+  "This video didn’t download": {
+    "fr": "Cette vidéo ne s’est pas téléchargée",
+    "es": "Este video no se descargó"
+  },
+  "Try again": {
+    "fr": "Réessayer",
+    "es": "Reintentar"
+  },
+  "This video isn’t on this device": {
+    "fr": "Cette vidéo n’est pas sur cet appareil",
+    "es": "Este video no está en este dispositivo"
+  },
+  "“{name}” is in your Google Drive, but Drive isn’t connected here. Connect it to download the video, or pick the same file from this device.": {
+    "fr": "« {name} » est dans ton Google Drive, mais Drive n’est pas connecté ici. Connecte-le pour télécharger la vidéo, ou choisis le même fichier sur cet appareil.",
+    "es": "“{name}” está en tu Google Drive, pero Drive no está conectado aquí. Conéctalo para descargar el video o elige el mismo archivo en este dispositivo."
+  },
+  "“{name}” was added on another device and isn’t synced. Pick the same file from this device to keep practising here, and turn on Google Drive sync in Settings → Storage so your devices share files.": {
+    "fr": "« {name} » a été ajouté sur un autre appareil et n’est pas synchronisé. Choisis le même fichier sur cet appareil pour t’entraîner ici, et active la synchronisation Google Drive dans Réglages → Stockage pour que tes appareils partagent leurs fichiers.",
+    "es": "“{name}” se agregó en otro dispositivo y no está sincronizado. Elige el mismo archivo en este dispositivo para seguir practicando aquí y activa la sincronización con Google Drive en Ajustes → Almacenamiento para que tus dispositivos compartan archivos."
+  },
+  "“{name}” was added on another device and isn’t synced. Pick the same file from this device to keep practising here.": {
+    "fr": "« {name} » a été ajouté sur un autre appareil et n’est pas synchronisé. Choisis le même fichier sur cet appareil pour t’entraîner ici.",
+    "es": "“{name}” se agregó en otro dispositivo y no está sincronizado. Elige el mismo archivo en este dispositivo para seguir practicando aquí."
+  },
+  "Connect Google Drive": {
+    "fr": "Connecter Google Drive",
+    "es": "Conectar Google Drive"
+  },
+  "Re-add the file": {
+    "fr": "Rajouter le fichier",
+    "es": "Volver a añadir el archivo"
+  },
+  "Saving the file on this device…": {
+    "fr": "Enregistrement du fichier sur cet appareil…",
+    "es": "Guardando el archivo en este dispositivo…"
+  },
+  "The file couldn’t be saved ({msg}).": {
+    "fr": "Impossible d’enregistrer le fichier ({msg}).",
+    "es": "No se pudo guardar el archivo ({msg})."
+  },
+  "in Drive": {
+    "fr": "dans Drive",
+    "es": "en Drive"
+  },
+  "uploading {pct}%": {
+    "fr": "envoi {pct} %",
+    "es": "subiendo {pct} %"
+  },
+  "waiting to upload": {
+    "fr": "en attente d’envoi",
+    "es": "esperando para subir"
+  },
+  "this browser only": {
+    "fr": "ce navigateur uniquement",
+    "es": "solo en este navegador"
+  },
+  "Sign in to keep your files in Google Drive.": {
+    "fr": "Connecte-toi pour garder tes fichiers dans Google Drive.",
+    "es": "Inicia sesión para guardar tus archivos en Google Drive."
+  },
+  "Not connected.": {
+    "fr": "Non connecté.",
+    "es": "No conectado."
+  },
+  "Connected as {email}.": {
+    "fr": "Connecté en tant que {email}.",
+    "es": "Conectado como {email}."
+  },
+  "Connected.": {
+    "fr": "Connecté.",
+    "es": "Conectado."
+  },
+  "Videos: {n} of {total} in Drive.": {
+    "fr": "Vidéos : {n} sur {total} dans Drive.",
+    "es": "Videos: {n} de {total} en Drive."
+  },
+  "Recordings: {n} of {total} in Drive.": {
+    "fr": "Enregistrements : {n} sur {total} dans Drive.",
+    "es": "Grabaciones: {n} de {total} en Drive."
+  },
+  "Uploading “{name}” ({pct}%).": {
+    "fr": "Envoi de « {name} » ({pct} %).",
+    "es": "Subiendo “{name}” ({pct} %)."
+  },
+  "Paused: {msg}": {
+    "fr": "En pause : {msg}",
+    "es": "En pausa: {msg}"
+  },
+  "Google Drive (recommended)": {
+    "fr": "Google Drive (recommandé)",
+    "es": "Google Drive (recomendado)"
+  },
+  "Your videos and recordings go into a “Euno Shadowing” folder in your own Drive, so they’re safe and on every device you sign in on. The app can only see files it puts there, and our server never stores them.": {
+    "fr": "Tes vidéos et enregistrements vont dans un dossier « Euno Shadowing » de ton propre Drive : ils sont en sécurité et sur tous les appareils où tu te connectes. L’appli ne voit que les fichiers qu’elle y dépose, et notre serveur ne les stocke jamais.",
+    "es": "Tus videos y grabaciones van a una carpeta “Euno Shadowing” en tu propio Drive, así que están seguros y en todos los dispositivos donde inicies sesión. La app solo ve los archivos que pone ahí y nuestro servidor nunca los guarda."
+  },
+  "You can disconnect it any time in Settings → Storage.": {
+    "fr": "Tu peux le déconnecter quand tu veux dans Réglages → Stockage.",
+    "es": "Puedes desconectarlo cuando quieras en Ajustes → Almacenamiento."
+  },
+  "Not now? Press Continue. You can connect Google Drive later in Settings → Storage. Until then, files stay in this browser only.": {
+    "fr": "Pas maintenant ? Appuie sur Continuer. Tu pourras connecter Google Drive plus tard dans Réglages → Stockage. D’ici là, les fichiers restent uniquement dans ce navigateur.",
+    "es": "¿Ahora no? Pulsa Continuar. Puedes conectar Google Drive más tarde en Ajustes → Almacenamiento. Mientras tanto, los archivos se quedan solo en este navegador."
+  },
+  "Your videos and recordings live in a “Euno Shadowing” folder in your own Drive, so they’re on every device you sign in on. The app can only see files it puts there, and our server never stores them. Dropbox and OneDrive are coming later.": {
+    "fr": "Tes vidéos et enregistrements sont rangés dans un dossier « Euno Shadowing » de ton propre Drive, donc sur tous les appareils où tu te connectes. L’appli ne voit que les fichiers qu’elle y dépose, et notre serveur ne les stocke jamais. Dropbox et OneDrive arriveront plus tard.",
+    "es": "Tus videos y grabaciones están en una carpeta “Euno Shadowing” en tu propio Drive, así que los tienes en todos los dispositivos donde inicies sesión. La app solo ve los archivos que pone ahí y nuestro servidor nunca los guarda. Dropbox y OneDrive llegarán más adelante."
+  },
+  "{n} file not in Drive yet|{n} files not in Drive yet": {
+    "fr": "{n} fichier pas encore dans Drive|{n} fichiers pas encore dans Drive",
+    "es": "{n} archivo aún no está en Drive|{n} archivos aún no están en Drive"
+  },
+  "A file added on another device uploads from that device.": {
+    "fr": "Un fichier ajouté sur un autre appareil est envoyé depuis cet appareil-là.",
+    "es": "Un archivo añadido en otro dispositivo se sube desde ese dispositivo."
+  },
+  "Upload now": {
+    "fr": "Envoyer maintenant",
+    "es": "Subir ahora"
+  },
+  "Disconnect": {
+    "fr": "Déconnecter",
+    "es": "Desconectar"
+  },
+  "Disconnect Google Drive? Files already in your Drive stay there. New files will only be kept in this browser.": {
+    "fr": "Déconnecter Google Drive ? Les fichiers déjà dans ton Drive y restent. Les nouveaux fichiers seront gardés uniquement dans ce navigateur.",
+    "es": "¿Desconectar Google Drive? Los archivos que ya están en tu Drive se quedan ahí. Los archivos nuevos solo se guardarán en este navegador."
+  },
+  "Google Drive disconnected.": {
+    "fr": "Google Drive déconnecté.",
+    "es": "Google Drive desconectado."
+  },
+  "This browser": {
+    "fr": "Ce navigateur",
+    "es": "Este navegador"
+  },
+  "Files you open are kept in this browser so they play instantly and work offline: {n} of {total} right now. If the browser clears them, they download again from Drive.": {
+    "fr": "Les fichiers que tu ouvres sont gardés dans ce navigateur pour se lancer tout de suite et marcher hors ligne : {n} sur {total} en ce moment. Si le navigateur les efface, ils se retéléchargent depuis Drive.",
+    "es": "Los archivos que abres se guardan en este navegador para que se reproduzcan al instante y funcionen sin conexión: {n} de {total} ahora mismo. Si el navegador los borra, se vuelven a descargar de Drive."
+  },
+  "Files you open are kept in this browser so they play instantly and work offline: {n} of {total} right now.": {
+    "fr": "Les fichiers que tu ouvres sont gardés dans ce navigateur pour se lancer tout de suite et marcher hors ligne : {n} sur {total} en ce moment.",
+    "es": "Los archivos que abres se guardan en este navegador para que se reproduzcan al instante y funcionen sin conexión: {n} de {total} ahora mismo."
+  },
+  "Free up space": {
+    "fr": "Libérer de l’espace",
+    "es": "Liberar espacio"
+  },
+  "Removed {n} file ({size}) from this browser. It’s still in your Drive.|Removed {n} files ({size}) from this browser. They’re still in your Drive.": {
+    "fr": "{n} fichier ({size}) retiré de ce navigateur. Il est toujours dans ton Drive.|{n} fichiers ({size}) retirés de ce navigateur. Ils sont toujours dans ton Drive.",
+    "es": "Se quitó {n} archivo ({size}) de este navegador. Sigue en tu Drive.|Se quitaron {n} archivos ({size}) de este navegador. Siguen en tu Drive."
+  },
+  "Keep files only in this browser, without Google Drive": {
+    "fr": "Garder les fichiers uniquement dans ce navigateur, sans Google Drive",
+    "es": "Guardar los archivos solo en este navegador, sin Google Drive"
+  },
+  "Files are only on this device, and the browser can clear them if the device runs very low on space. Export a backup from Settings → Data now and then, and keep your original video files.": {
+    "fr": "Les fichiers sont uniquement sur cet appareil, et le navigateur peut les effacer si l’appareil manque vraiment de place. Exporte une sauvegarde depuis Réglages → Données de temps en temps, et garde tes fichiers vidéo d’origine.",
+    "es": "Los archivos solo están en este dispositivo y el navegador puede borrarlos si se queda casi sin espacio. Exporta una copia de seguridad desde Ajustes → Datos de vez en cuando y conserva tus archivos de video originales."
+  },
+  "Google Drive wasn’t connected. You can connect it any time in Settings → Storage.": {
+    "fr": "Google Drive n’a pas été connecté. Tu peux le connecter quand tu veux dans Réglages → Stockage.",
+    "es": "Google Drive no se conectó. Puedes conectarlo cuando quieras en Ajustes → Almacenamiento."
+  },
+  "Google Drive couldn’t be connected.": {
+    "fr": "Impossible de connecter Google Drive.",
+    "es": "No se pudo conectar Google Drive."
+  },
+  "Couldn’t read the video’s sound ({msg}). Try again in a moment.": {
+    "fr": "Impossible de lire le son de la vidéo ({msg}). Réessaie dans un instant.",
+    "es": "No se pudo leer el sonido del video ({msg}). Vuelve a intentarlo en un momento."
+  },
+  "network error": {
+    "fr": "erreur réseau",
+    "es": "error de red"
+  },
+  "This video’s sound can’t be read in pieces in this browser ({reason}), and the file is too big ({mb} MB) to read whole. Chrome or Edge can read it.": {
+    "fr": "Ce navigateur ne peut pas lire le son de cette vidéo par morceaux ({reason}), et le fichier est trop gros ({mb} Mo) pour être lu en entier. Chrome ou Edge savent le lire.",
+    "es": "Este navegador no puede leer el sonido de este video por partes ({reason}) y el archivo es demasiado grande ({mb} MB) para leerlo entero. Chrome o Edge pueden leerlo."
+  },
+  "This video’s host doesn’t let the app read its sound (no CORS permission, or the page’s security rules block it). Playback still works if the video plays. For the waveform and pitch line, load a copy of the video file from this device.": {
+    "fr": "Le site qui héberge cette vidéo ne laisse pas l’appli lire son son (pas d’autorisation CORS, ou les règles de sécurité de la page le bloquent). La lecture marche quand même si la vidéo se lance. Pour la forme d’onde et la courbe de mélodie, charge une copie du fichier vidéo depuis cet appareil.",
+    "es": "El sitio que aloja este video no deja que la app lea su sonido (no hay permiso CORS o las reglas de seguridad de la página lo bloquean). La reproducción sigue funcionando si el video se reproduce. Para la forma de onda y la línea de entonación, carga una copia del archivo de video desde este dispositivo."
+  },
+  "The video link answered with an error ({msg}).": {
+    "fr": "Le lien de la vidéo a renvoyé une erreur ({msg}).",
+    "es": "El enlace del video respondió con un error ({msg})."
+  },
+  "The sound couldn’t be decoded ({msg}).": {
+    "fr": "Impossible de décoder le son ({msg}).",
+    "es": "No se pudo decodificar el sonido ({msg})."
+  },
+  "unknown error": {
+    "fr": "erreur inconnue",
+    "es": "error desconocido"
+  },
+  "This browser view has no microphone access.": {
+    "fr": "Cette vue du navigateur n’a pas accès au micro.",
+    "es": "Esta vista del navegador no tiene acceso al micrófono."
+  },
+  "Your chosen microphone isn’t connected, so the default one is being used.": {
+    "fr": "Le micro choisi n’est pas branché, donc celui par défaut est utilisé.",
+    "es": "El micrófono que elegiste no está conectado, así que se usa el predeterminado."
+  },
+  "Microphone access was refused. Inside a Claude artifact the microphone is blocked; use the website version to record, or upload recordings from your phone.": {
+    "fr": "L’accès au micro a été refusé. Dans un artifact Claude, le micro est bloqué : utilise la version site web pour enregistrer, ou importe des enregistrements depuis ton téléphone.",
+    "es": "Se denegó el acceso al micrófono. Dentro de un artifact de Claude el micrófono está bloqueado; usa la versión web para grabar o sube grabaciones desde tu teléfono."
+  },
+  "Microphone access was refused. Allow the microphone for this site in your browser’s address bar, then try again.": {
+    "fr": "L’accès au micro a été refusé. Autorise le micro pour ce site dans la barre d’adresse du navigateur, puis réessaie.",
+    "es": "Se denegó el acceso al micrófono. Permite el micrófono para este sitio en la barra de direcciones del navegador y vuelve a intentarlo."
+  },
+  "No microphone was found.": {
+    "fr": "Aucun micro trouvé.",
+    "es": "No se encontró ningún micrófono."
+  },
+  "The microphone couldn’t start ({name}).": {
+    "fr": "Le micro n’a pas pu démarrer ({name}).",
+    "es": "El micrófono no pudo iniciarse ({name})."
+  },
+  "Microphone level": {
+    "fr": "Niveau du micro",
+    "es": "Nivel del micrófono"
+  },
+  "Microphone boost": {
+    "fr": "Amplification du micro",
+    "es": "Amplificación del micrófono"
+  },
+  "auto": {
+    "fr": "auto",
+    "es": "auto"
+  },
+  "Re-open the microphone (next pass) for the browser part of automatic volume to change.": {
+    "fr": "Rouvre le micro (au prochain passage) pour que la partie navigateur du volume automatique change.",
+    "es": "Vuelve a abrir el micrófono (en la próxima pasada) para que cambie la parte del navegador del volumen automático."
+  },
+  "Automatic volume": {
+    "fr": "Volume automatique",
+    "es": "Volumen automático"
+  },
+  "Microphone": {
+    "fr": "Micro",
+    "es": "Micrófono"
+  },
+  "The new microphone is used from the next pass.": {
+    "fr": "Le nouveau micro sera utilisé dès le prochain passage.",
+    "es": "El nuevo micrófono se usará desde la próxima pasada."
+  },
+  "Default microphone": {
+    "fr": "Micro par défaut",
+    "es": "Micrófono predeterminado"
+  },
+  "Microphone {n}": {
+    "fr": "Micro {n}",
+    "es": "Micrófono {n}"
+  },
+  "That recording couldn’t be found.": {
+    "fr": "Impossible de trouver cet enregistrement.",
+    "es": "No se encontró esa grabación."
+  },
+  "The recording couldn’t play in this browser.": {
+    "fr": "Cet enregistrement ne peut pas être lu dans ce navigateur.",
+    "es": "La grabación no se pudo reproducir en este navegador."
+  },
+  "Finish or end the current session before opening another video.": {
+    "fr": "Termine ou arrête la séance en cours avant d’ouvrir une autre vidéo.",
+    "es": "Termina o detén la sesión actual antes de abrir otro video."
+  },
+  "This looks like a share page, not a direct video file. Share pages from Google Drive, MEGA, YouTube and similar sites don’t play here. Use a direct link that ends in .mp4.": {
+    "fr": "On dirait une page de partage, pas un fichier vidéo direct. Les pages de partage de Google Drive, MEGA, YouTube et sites similaires ne se lisent pas ici. Utilise un lien direct qui finit par .mp4.",
+    "es": "Parece una página para compartir, no un archivo de video directo. Las páginas para compartir de Google Drive, MEGA, YouTube y sitios parecidos no se reproducen aquí. Usa un enlace directo que termine en .mp4."
+  },
+  "The saved file didn’t play. This browser may not play its format; an .mp4 file works everywhere.": {
+    "fr": "Le fichier enregistré ne s’est pas lancé. Ce navigateur ne lit peut-être pas son format ; un fichier .mp4 marche partout.",
+    "es": "El archivo guardado no se reprodujo. Puede que este navegador no lea su formato; un archivo .mp4 funciona en todas partes."
+  },
+  "Inside a Claude artifact, videos from other websites are blocked by the page’s security rules. Pick the same video file from this device, or store a short copy here (20 MB maximum).": {
+    "fr": "Dans un artifact Claude, les vidéos d’autres sites sont bloquées par les règles de sécurité de la page. Choisis le même fichier vidéo sur cet appareil, ou stocke ici une copie courte (20 Mo maximum).",
+    "es": "Dentro de un artifact de Claude, los videos de otros sitios están bloqueados por las reglas de seguridad de la página. Elige el mismo archivo de video en este dispositivo o guarda aquí una copia corta (20 MB como máximo)."
+  },
+  "The link didn’t load as a video. Check it opens directly as an .mp4 file in a new tab.": {
+    "fr": "Le lien ne s’est pas chargé comme une vidéo. Vérifie qu’il s’ouvre directement comme un fichier .mp4 dans un nouvel onglet.",
+    "es": "El enlace no se cargó como video. Comprueba que se abra directamente como un archivo .mp4 en una pestaña nueva."
+  },
+  "This video won’t play": {
+    "fr": "Cette vidéo ne se lance pas",
+    "es": "Este video no se reproduce"
+  },
+  "Use a file from this device": {
+    "fr": "Utiliser un fichier de cet appareil",
+    "es": "Usar un archivo de este dispositivo"
+  },
+  "Store a copy (under 20 MB)": {
+    "fr": "Stocker une copie (moins de 20 Mo)",
+    "es": "Guardar una copia (menos de 20 MB)"
+  },
+  "Open original link": {
+    "fr": "Ouvrir le lien d’origine",
+    "es": "Abrir el enlace original"
+  },
+  "Playing “{name}” from this device. Pick it again next visit.": {
+    "fr": "Lecture de « {name} » depuis cet appareil. Choisis-le à nouveau la prochaine fois.",
+    "es": "Reproduciendo “{name}” desde este dispositivo. Vuelve a elegirlo en tu próxima visita."
+  },
+  "Saved. It’s uploading to your Google Drive for your other devices.": {
+    "fr": "Enregistré. Il s’envoie vers ton Google Drive pour tes autres appareils.",
+    "es": "Guardado. Se está subiendo a tu Google Drive para tus otros dispositivos."
+  },
+  "Saved on this device.": {
+    "fr": "Enregistré sur cet appareil.",
+    "es": "Guardado en este dispositivo."
+  },
+  "That file is {mb} MB. Stored copies must be under 20 MB; cut a shorter section first, or use “Use a file from this device”.": {
+    "fr": "Ce fichier fait {mb} Mo. Les copies stockées doivent faire moins de 20 Mo : coupe d’abord un passage plus court, ou utilise « Utiliser un fichier de cet appareil ».",
+    "es": "Ese archivo pesa {mb} MB. Las copias guardadas deben pesar menos de 20 MB; recorta primero una parte más corta o usa “Usar un archivo de este dispositivo”."
+  },
+  "Uploading a copy…": {
+    "fr": "Envoi d’une copie…",
+    "es": "Subiendo una copia…"
+  },
+  "Copy stored. It will play on every device.": {
+    "fr": "Copie stockée. Elle se lira sur tous tes appareils.",
+    "es": "Copia guardada. Se reproducirá en todos tus dispositivos."
+  },
+  "Upload failed ({code}). Storage is full.": {
+    "fr": "L’envoi a échoué ({code}). Le stockage est plein.",
+    "es": "La subida falló ({code}). El almacenamiento está lleno."
+  },
+  "Upload failed ({code}).": {
+    "fr": "L’envoi a échoué ({code}).",
+    "es": "La subida falló ({code})."
+  },
+  "Pause (Space)": {
+    "fr": "Pause (Espace)",
+    "es": "Pausa (Espacio)"
+  },
+  "Play (Space)": {
+    "fr": "Lecture (Espace)",
+    "es": "Reproducir (Espacio)"
+  },
+  "Replay the loop (R)": {
+    "fr": "Rejouer la boucle (R)",
+    "es": "Repetir el bucle (R)"
+  },
+  "Speed": {
+    "fr": "Vitesse",
+    "es": "Velocidad"
+  },
+  "Speed (, and .)": {
+    "fr": "Vitesse (, et .)",
+    "es": "Velocidad (, y .)"
+  },
+  "Loop": {
+    "fr": "Boucle",
+    "es": "Bucle"
+  },
+  "Loop the clip (L)": {
+    "fr": "Lire l’extrait en boucle (L)",
+    "es": "Repetir el fragmento en bucle (L)"
+  },
+  "Mute": {
+    "fr": "Couper le son",
+    "es": "Silenciar"
+  },
+  "Volume": {
+    "fr": "Volume",
+    "es": "Volumen"
+  },
+  "Cut clips": {
+    "fr": "Découper",
+    "es": "Cortar fragmentos"
+  },
+  "Clip mode: drag on the timeline to select a new clip (C)": {
+    "fr": "Mode découpe : fais glisser sur la frise pour sélectionner un nouvel extrait (C)",
+    "es": "Modo de corte: arrastra en la línea de tiempo para seleccionar un fragmento nuevo (C)"
+  },
+  "Mark clip start at the playhead (I or [)": {
+    "fr": "Marquer le début de l’extrait à la tête de lecture (I ou [)",
+    "es": "Marcar el inicio del fragmento en el cabezal (I o [)"
+  },
+  "End": {
+    "fr": "Fin",
+    "es": "Fin"
+  },
+  "Mark clip end at the playhead (O or ])": {
+    "fr": "Marquer la fin de l’extrait à la tête de lecture (O ou ])",
+    "es": "Marcar el final del fragmento en el cabezal (O o ])"
+  },
+  "Keyboard shortcuts (?)": {
+    "fr": "Raccourcis clavier (?)",
+    "es": "Atajos de teclado (?)"
+  },
+  "Clip mode: drag on the timeline to select a clip, or press I and O while it plays.": {
+    "fr": "Mode découpe : fais glisser sur la frise pour sélectionner un extrait, ou appuie sur I et O pendant la lecture.",
+    "es": "Modo de corte: arrastra en la línea de tiempo para seleccionar un fragmento, o pulsa I y O mientras se reproduce."
+  },
+  "Clip start marked at {time}": {
+    "fr": "Début de l’extrait marqué à {time}",
+    "es": "Inicio del fragmento marcado en {time}"
+  },
+  "Clip end marked at {time}": {
+    "fr": "Fin de l’extrait marquée à {time}",
+    "es": "Final del fragmento marcado en {time}"
+  },
+  "done": {
+    "fr": "fait",
+    "es": "hecho"
+  },
+  "Select {clip}": {
+    "fr": "Sélectionner {clip}",
+    "es": "Seleccionar {clip}"
+  },
+  "Pick a video from your library": {
+    "fr": "Choisis une vidéo dans ta bibliothèque",
+    "es": "Elige un video de tu biblioteca"
+  },
+  "Add your first video": {
+    "fr": "Ajoute ta première vidéo",
+    "es": "Añade tu primer video"
+  },
+  "Open a video on the right, then choose a clip, or press Cut clips to make a new one.": {
+    "fr": "Ouvre une vidéo à droite, puis choisis un extrait, ou appuie sur Découper pour en créer un nouveau.",
+    "es": "Abre un video a la derecha y elige un fragmento, o pulsa Cortar fragmentos para crear uno nuevo."
+  },
+  "Pick a video of someone with the accent you want: an interview or a talk where one person speaks clearly works best.": {
+    "fr": "Choisis une vidéo de quelqu’un qui a l’accent que tu veux : une interview ou une conférence où une seule personne parle clairement, c’est l’idéal.",
+    "es": "Elige un video de alguien con el acento que quieres: lo mejor es una entrevista o una charla donde una persona hable con claridad."
+  },
+  "Open the library": {
+    "fr": "Ouvrir la bibliothèque",
+    "es": "Abrir la biblioteca"
+  },
+  "Add a video": {
+    "fr": "Ajouter une vidéo",
+    "es": "Añadir un video"
+  },
+  "Clip {n} ({time})": {
+    "fr": "Extrait {n} ({time})",
+    "es": "Fragmento {n} ({time})"
+  },
+  "Finish or end the current session first.": {
+    "fr": "Termine ou arrête d’abord la séance en cours.",
+    "es": "Primero termina o detén la sesión actual."
+  },
+  "Start@@clip edge": {
+    "fr": "Début",
+    "es": "Inicio"
+  }
+}

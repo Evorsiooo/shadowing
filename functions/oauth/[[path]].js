@@ -1,7 +1,11 @@
 // /oauth/* — the sign-in that lets AI apps use the MCP server on a user's behalf (server/oauth.js).
 import { register, authorizeGet, authorizePost, token, revoke, CORS } from '../../server/oauth.js';
+import { requestLang, localise } from '../../server/i18n.js';
 
-export async function onRequest(ctx) {
+// messages and pages go out in the user's language (server/i18n.js)
+export async function onRequest(ctx) { return localise(await handle(ctx), requestLang(ctx.request)); }
+
+async function handle(ctx) {
   const { request, env, params } = ctx;
   const path = (Array.isArray(params.path) ? params.path : []).join('/');
   const url = new URL(request.url);

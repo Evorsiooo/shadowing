@@ -29,10 +29,10 @@ const Push = {
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') {
       throw new Error(perm === 'denied'
-        ? 'Notifications are blocked for this site. Allow them in your browser’s site settings (or the system notification settings), then try again.'
-        : 'Notifications weren’t allowed.');
+        ? t('Notifications are blocked for this site. Allow them in your browser’s site settings (or the system notification settings), then try again.')
+        : t('Notifications weren’t allowed.'));
     }
-    if (!(await this.registration())) throw new Error('This browser couldn’t start the notification service.');
+    if (!(await this.registration())) throw new Error(t('This browser couldn’t start the notification service.'));
     const reg = await navigator.serviceWorker.ready;
     let sub = await reg.pushManager.getSubscription();
     // a subscription made for a different server key can't receive our messages
@@ -44,8 +44,8 @@ const Push = {
         // "Registration failed - push service error": the browser couldn't reach its own push service
         if (e && (e.name === 'AbortError' || /push service/i.test(e.message || ''))) {
           throw new Error(/Brave/.test(navigator.userAgent) || navigator.brave
-            ? 'Brave has push turned off. Turn on “Use Google services for push messaging” in brave://settings/privacy, restart Brave, and try again.'
-            : 'This browser couldn’t reach its notification service. A VPN, firewall or ad blocker may be blocking it, or this browser may not support push. Try again without them, or in Chrome, Edge, Firefox or Safari.');
+            ? t('Brave has push turned off. Turn on “Use Google services for push messaging” in brave://settings/privacy, restart Brave, and try again.')
+            : t('This browser couldn’t reach its notification service. A VPN, firewall or ad blocker may be blocking it, or this browser may not support push. Try again without them, or in Chrome, Edge, Firefox or Safari.'));
         }
         throw e;
       }
@@ -81,39 +81,39 @@ function deviceLabel() {
 
 /* The "Notifications" card in Settings → Reminders. `status.push` comes from GET /api/reminders. */
 function pushCard(status, { onChange }) {
-  const card = h('div', { class: 'card stack' }, h('h3', null, 'Notifications on this device'));
+  const card = h('div', { class: 'card stack' }, h('h3', null, t('Notifications on this device')));
   card.add = (...nodes) => card.append(...nodes.filter(Boolean));
   const push = status && status.push;
   const others = push ? push.devices - (push.thisDevice ? 1 : 0) : 0;
-  const more = others > 0 ? h('p', { class: 'small muted' }, `Also on ${others} other device${others === 1 ? '' : 's'}.`) : null;
-  if (!status) { card.add(h('p', { class: 'small muted' }, 'Checking…')); return card; }
-  if (!push || !push.available) { card.add(h('p', { class: 'muted' }, 'Notifications aren’t available yet. Discord reminders work in the meantime.')); return card; }
+  const more = others > 0 ? h('p', { class: 'small muted' }, tp(others, 'Also on {n} other device.', 'Also on {n} other devices.')) : null;
+  if (!status) { card.add(h('p', { class: 'small muted' }, t('Checking…'))); return card; }
+  if (!push || !push.available) { card.add(h('p', { class: 'muted' }, t('Notifications aren’t available yet. Discord reminders work in the meantime.'))); return card; }
   if (!Push.supported()) {
     card.add(Push.ios() && !Push.installed()
-      ? h('p', { class: 'muted' }, 'On iPhone and iPad, notifications need the app on your Home Screen: tap the Share button, choose “Add to Home Screen”, open Euno from there, and come back here.')
-      : h('p', { class: 'muted' }, 'This browser can’t show notifications from websites. Try Chrome, Edge, Firefox or Safari.'), more);
+      ? h('p', { class: 'muted' }, t('On iPhone and iPad, notifications need the app on your Home Screen: tap the Share button, choose “Add to Home Screen”, open Euno from there, and come back here.'))
+      : h('p', { class: 'muted' }, t('This browser can’t show notifications from websites. Try Chrome, Edge, Firefox or Safari.')), more);
     return card;
   }
   if (push.thisDevice && Push.permission() === 'granted') {
     card.add(
       h('div', { class: 'row' },
-        h('span', { class: 'chip' }, icon('check'), 'On for this device'),
-        btn('Turn off here', async () => {
-          await Push.disable(); toast('Notifications are off on this device.'); onChange();
+        h('span', { class: 'chip' }, icon('check'), t('On for this device')),
+        btn(t('Turn off here'), async () => {
+          await Push.disable(); toast(t('Notifications are off on this device.')); onChange();
         }, { size: 'sm', kind: 'ghost' })),
       more);
     return card;
   }
   const blocked = Push.permission() === 'denied';
   card.add(
-    h('p', { class: 'muted' }, 'Get reminders as a notification on this phone or computer. Turn them on on each device you want them on.'),
-    blocked ? h('p', { class: 'small muted' }, 'Notifications are blocked for this site. Allow them in your browser’s site settings, then turn them on here.') : null,
+    h('p', { class: 'muted' }, t('Get reminders as a notification on this phone or computer. Turn them on on each device you want them on.')),
+    blocked ? h('p', { class: 'small muted' }, t('Notifications are blocked for this site. Allow them in your browser’s site settings, then turn them on here.')) : null,
     h('div', { class: 'row' },
-      btn('Turn on notifications', async () => {
+      btn(t('Turn on notifications'), async () => {
         try {
           await Push.enable(push.publicKey);
           if (!reminderSettings().enabled) saveReminders({ enabled: true });
-          toast('Notifications are on for this device.', 'good');
+          toast(t('Notifications are on for this device.'), 'good');
           onChange();
         } catch (e) { toast(e.message, 'bad', 8000); }
       }, { kind: 'primary', size: 'sm', icon: 'bell' })),
