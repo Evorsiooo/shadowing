@@ -54,12 +54,12 @@ function noteForm(ctx) {
   const askBtn = btn(askLabel, () => ask(askBtn), { kind: 'blue', size: 'sm', icon: 'sparkle' });
   const body = h('div', { class: 'stack' },
     h('label', { class: 'field', for: `off-${key}` }, 'What sounded off?',
-      h('textarea', { id: `off-${key}`, rows: 2, placeholder: 'e.g. the vowel in “go” sounds too pure, it doesn’t glide', value: D.off, oninput: (e) => { D.off = e.target.value; } })),
+      h('textarea', { id: `off-${key}`, rows: 2, placeholder: langContent().examples.off, value: D.off, oninput: (e) => { D.off = e.target.value; } })),
     h('div', { class: 'cards', style: { gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' } },
       h('label', { class: 'field', for: `sent-${key}` }, 'Sentence (optional)',
         h('input', { type: 'text', id: `sent-${key}`, value: D.sentence, placeholder: 'What the speaker says', oninput: (e) => { D.sentence = e.target.value; } })),
       h('label', { class: 'field', for: `aim-${key}` }, 'Aiming for (optional)',
-        h('input', { type: 'text', id: `aim-${key}`, value: D.aim, placeholder: 'e.g. the vowel in “bird”', oninput: (e) => { D.aim = e.target.value; } })),
+        h('input', { type: 'text', id: `aim-${key}`, value: D.aim, placeholder: langContent().examples.aim, oninput: (e) => { D.aim = e.target.value; } })),
       h('label', { class: 'field', for: `issue-${key}` }, 'Recurring issue (optional)',
         h('input', { type: 'text', id: `issue-${key}`, value: D.issue, list: `issues-${key}`, placeholder: 'Pick or name one', oninput: (e) => { D.issue = e.target.value; } }),
         h('datalist', { id: `issues-${key}` }, issueNames.map((n) => h('option', { value: n }))))),
@@ -105,7 +105,7 @@ function claudePrompt(D, issueNames) {
   const P = profileForAI();
   return `You are helping a learner with shadowing practice: they repeat a model speaker's clip to pick up the accent, rhythm and melody. ${learnerLine(P)}
 
-${spellingLine(P)}, with no linguistics jargon: if you need to name a sound, describe it with everyday example words. If their description is too ambiguous to work out, do not guess: set "unsure" to true and ask what they meant.
+${spellingLine(P)}, with no linguistics jargon: if you need to name a sound, describe it with everyday ${P.targetLanguage} example words. If their description is too ambiguous to work out, do not guess: set "unsure" to true and ask what they meant.
 
 Sentence being practised: ${D.sentence.trim() || '(not given)'}
 What sounded off: ${D.off.trim()}

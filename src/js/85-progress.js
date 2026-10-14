@@ -198,13 +198,22 @@ const TASKS = [
   { key: 'answer', name: 'Unseen question (about 60 s)', secs: 60, help: 'Reveal a question you haven’t seen and answer it for about 60 seconds. No preparing.' },
 ];
 
-function programmeStart() {
+/* each target language is its own programme: its own check-ins and start date. English keeps
+   the original `programmeStart` setting; other languages live in `programmeStarts[lang]`. */
+function savedProgrammeStart(lang = targetLang()) {
   const s = settings();
-  if (s.programmeStart) return s.programmeStart;
+  return lang === 'en' ? s.programmeStart : (s.programmeStarts || {})[lang] || null;
+}
+function programmeStartPatch(date, lang = targetLang()) {
+  return lang === 'en' ? { programmeStart: date } : { programmeStarts: { ...(settings().programmeStarts || {}), [lang]: date } };
+}
+function programmeStart() {
+  const saved = savedProgrammeStart();
+  if (saved) return saved;
   const base = checkinFor(0);
   return (base && base.date) || dayKey();
 }
-function checkinFor(week) { return Store.all('checkins').find((c) => c.week === week); }
+function checkinFor(week) { const lang = targetLang(); return Store.all('checkins').find((c) => c.week === week && checkinLang(c) === lang); }
 function checkinHasAll(c) { return !!(c && TASKS.every((t) => c.recs && c.recs[t.key] && c.recs[t.key].length)); }
 function dueCheckin() {
   const start = programmeStart();
@@ -244,7 +253,7 @@ function openCheckins(focusWeek) {
 
 function ensureCheckin(week) {
   let c = checkinFor(week);
-  if (!c) c = Store.put('checkins', { week, date: dayKey(), recs: { read: [], retell: [], answer: [] }, questions: [], measures: {}, lang: profile().targetLanguage, readSet: readSentences().id });
+  if (!c) c = Store.put('checkins', { week, date: dayKey(), recs: { read: [], retell: [], answer: [] }, questions: [], measures: {}, lang: targetLang(), readSet: readSentences().id });
   return c;
 }
 
@@ -391,7 +400,7 @@ async function saveCheckinTake(week, key, blob, samples) {
   if (measures) allMeasures[key] = measures;
   allMeasures.lag = lagWin;
   Store.patch('checkins', c.id, { recs, measures: allMeasures, date: c.date || dayKey() });
-  if (week === 0 && !settings().programmeStart) saveSettings({ programmeStart: c.date || dayKey() });
+  if (week === 0 && !savedProgrammeStart()) saveSettings(programmeStartPatch(c.date || dayKey()));
   if (checkinHasAll(checkinFor(week))) { celebrate(1); toast(`Week ${week} check-in complete!`, 'good'); }
 }
 function sessionsLagBefore(date) {
@@ -425,11 +434,13 @@ const MEASURE_DEFS = [
   { key: 'range', name: 'Pitch range', unit: ' st', dec: 1, from: 'read' },
   { key: 'lag', name: 'Average lag behind the speaker', unit: ' s', dec: 2, from: null },
 ];
+/* the stressed/unstressed ratio only means something in stress-timed languages like English */
+function measureDefs() { return MEASURE_DEFS.filter((d) => d.key !== 'stressRatio' || langContent().timing === 'stress'); }
 function measuresTable(cis) {
   const ref = modelReference();
   return h('div', { class: 'table-wrap' }, h('table', null,
     h('thead', null, h('tr', null, h('th', null, 'Measure'), cis.map((c) => h('th', null, c.week === 0 ? 'Baseline' : `Week ${c.week}`)), h('th', null, ref.n ? `Speaker (${ref.n} clips)` : 'Speaker'))),
-    h('tbody', null, MEASURE_DEFS.map((d) => h('tr', null, h('td', null, d.name),
+    h('tbody', null, measureDefs().map((d) => h('tr', null, h('td', null, d.name),
       cis.map((c) => { const v = d.from ? c.measures && c.measures[d.from] && c.measures[d.from][d.key] : c.measures && c.measures.lag; return h('td', { class: 'num' }, v != null && isFinite(v) ? v.toFixed(d.dec) + d.unit : '—'); }),
       h('td', { class: 'num' }, d.key !== 'lag' && ref[d.key] != null && isFinite(ref[d.key]) ? ref[d.key].toFixed(d.dec) + d.unit : '—'))))));
 }
@@ -441,7 +452,7 @@ function measuresView() {
   return h('div', { class: 'stack' },
     h('div', { class: 'banner info' }, h('p', null, 'These are rough measures worked out from your read-aloud recordings, compared with the speaker’s clips. They are not an accent score; use them to spot trends over the weeks.')),
     cis.length ? measuresTable(cis) : h('p', { class: 'muted' }, 'Measures appear after your first check-in.'),
-    cis.length > 1 ? h('div', { class: 'cards' }, MEASURE_DEFS.map((d) => h('div', { class: 'card' }, h('h4', null, d.name),
+    cis.length > 1 ? h('div', { class: 'cards' }, measureDefs().map((d) => h('div', { class: 'card' }, h('h4', null, d.name),
       trendChart(cis.map((c) => ({ x: c.week === 0 ? 'Base' : `Wk ${c.week}`, y: d.from ? c.measures[d.from] && c.measures[d.from][d.key] : c.measures.lag })), { unit: d.unit.trim() === '×' ? '' : '', dec: d.dec, ref: d.key !== 'lag' && isFinite(ref[d.key]) ? ref[d.key] : null })))) : null,
     ratings.length ? h('div', { class: 'card' }, h('h3', null, 'Blind listener ratings'), h('p', { class: 'small muted' }, '1 = no foreign accent, 9 = very strong accent.'),
       h('div', { class: 'table-wrap' }, h('table', null, h('thead', null, h('tr', null, h('th', null, 'Sample'), h('th', null, 'Average'), h('th', null, 'Ratings'))),
@@ -484,7 +495,7 @@ async function exportListenerPack() {
   files.push({ name: 'rating-sheet.csv', data: enc.encode(sheet) });
   files.push({ name: 'instructions.txt', data: enc.encode(`Thanks for helping!\n\nListen to each sample once or twice, in any order. For each one, rate how strong a foreign (non-${targetAccent().short}) accent you hear:\n1 = no foreign accent at all, 9 = very strong foreign accent.\nThen write a few words on what gave it away (a sound, the rhythm, the melody...).\nFill in rating-sheet.csv and send it back.\n`) });
   const zip = makeZip(files);
-  const pack = Store.put('meta', { id: `pack-${uid()}`, kind: 'listenerPack', created: new Date().toISOString(), items: mixed.map((it, i) => ({ label: letters[i], kind: it.kind, week: it.week, clipId: it.clipId })), ratings: [] });
+  const pack = Store.put('meta', { id: `pack-${uid()}`, kind: 'listenerPack', lang: targetLang(), created: new Date().toISOString(), items: mixed.map((it, i) => ({ label: letters[i], kind: it.kind, week: it.week, clipId: it.clipId })), ratings: [] });
   const name = `listener-pack-${dayKey()}.zip`;
   if (Caps.downloads) {
     try { await Caps.downloads.save({ filename: name, data: zip }); toast('Pack saved.', 'good'); } catch (e) { if (e.code !== 'declined') toast(`Couldn’t save the file (${e.code}).`, 'bad'); }
@@ -500,7 +511,7 @@ function excerpt(x, secs) {
   const on = DSP.onset(a.db) * HOP;
   return x.subarray(on, Math.min(x.length, on + secs * SR));
 }
-function listenerPacks() { return Store.all('meta').filter((m) => m.kind === 'listenerPack').sort((a, b) => (a.created < b.created ? 1 : -1)); }
+function listenerPacks() { const lang = targetLang(); return Store.all('meta').filter((m) => m.kind === 'listenerPack' && checkinLang(m) === lang).sort((a, b) => (a.created < b.created ? 1 : -1)); }
 
 function openRatings() {
   const packs = listenerPacks();
