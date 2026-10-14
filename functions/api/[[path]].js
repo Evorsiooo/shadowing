@@ -3,7 +3,7 @@
 import { requireUser, sameOrigin, deleteUser, sha256Hex } from '../../server/auth.js';
 import { json, error, validCol, validId, validKey, uuid } from '../../server/util.js';
 import { allDocs, putDoc, deleteDoc, serveFile, ownsFile, forgetFile } from '../../server/store.js';
-import { driveStatus, driveAccessToken, disconnectDrive } from '../../server/drive.js';
+import { driveStatus, driveAccessToken, disconnectDrive, copyR2ToDrive } from '../../server/drive.js';
 import { noteFeedback, aiAvailable, aiStatus, saveKey, setModel, removeKey, userModels, PROVIDERS } from '../../server/ai.js';
 import { adminRoute } from '../../server/admin.js';
 import { validWebhook, getPrivate, setPrivate, getSettings, buildReminder, sendReminder, sessionsAndCheckins, localNow, REMINDER_DEFAULTS } from '../../server/reminders.js';
@@ -32,7 +32,7 @@ export async function onRequest(ctx) {
     if (head === 'account' && !rest.length && method === 'DELETE') return await deleteAccountRoute(env, user, request);
     if (head === 'docs') return await docsRoute(env, user, method, rest, request);
     if (head === 'files') return await filesRoute(env, user, method, rest, request);
-    if (head === 'drive') return await driveRoute(env, user, method, rest);
+    if (head === 'drive') return await driveRoute(env, user, method, rest, request);
     if (head === 'ai') return await aiRoute(env, user, method, rest, request);
     if (head === 'claude' && method === 'POST') return await feedbackRoute(env, user, request); // old name for /api/ai/feedback
     if (head === 'reminders') return await remindersRoute(env, user, method, rest, request);
@@ -75,13 +75,23 @@ async function filesRoute(env, user, method, rest, request) {
 
 /* Google Drive sync: status, a short-lived access token for the browser, disconnect.
    Connecting happens at /auth/drive (a Google consent screen). */
-async function driveRoute(env, user, method, rest) {
+async function driveRoute(env, user, method, rest, request) {
   const [action] = rest;
   if (!action && method === 'GET') return json(await driveStatus(env, user.id));
   if (action === 'token' && method === 'POST') {
     try { return json(await driveAccessToken(env, user.id)); } catch (e) { return error(e.status || 502, e.message, { reconnect: !!e.reconnect }); }
   }
   if (!action && method === 'DELETE') { await disconnectDrive(env, user.id); return json({ ok: true, connected: false }); }
+  // copy one file from the old R2 storage into the user's Drive (the R2 copy stays until deleted)
+  if (action === 'copy-old' && method === 'POST') {
+    const body = await request.json().catch(() => ({}));
+    if (!validKey(body.key) || !env.FILES || !(await ownsFile(env.DB, user.id, body.key))) return error(404, 'Not found.');
+    if (typeof body.folderId !== 'string' || !/^[A-Za-z0-9_-]{10,200}$/.test(body.folderId)) return error(400, 'Bad Drive folder.');
+    const name = String(body.name || body.key.split('/').pop()).slice(0, 200);
+    try {
+      return json(await copyR2ToDrive(env, user.id, { key: body.key, name, folderId: body.folderId, mediaId: String(body.mediaId || '').slice(0, 64), kind: String(body.kind || '').slice(0, 20) }));
+    } catch (e) { return error(e.status || 502, e.message, { reconnect: !!e.reconnect }); }
+  }
   return error(405, 'Method not allowed.');
 }
 

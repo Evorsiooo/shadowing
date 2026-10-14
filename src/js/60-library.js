@@ -37,7 +37,9 @@ function addVideoForm() {
   const source = device ? h('div', { class: 'seg', role: 'group', 'aria-label': 'Where the video comes from' },
     h('button', { type: 'button', class: F.source === 'file' ? 'on' : '', onclick: () => { F.source = 'file'; renderSidebar(); } }, 'A file on this device'),
     h('button', { type: 'button', class: F.source === 'link' ? 'on' : '', onclick: () => { F.source = 'link'; renderSidebar(); } }, 'From a link')) : null;
-  const where = Drive.connected() ? 'It’s kept on this device and synced to your Google Drive.' : 'It’s kept on this device.';
+  const where = Drive.connected() ? 'It goes into your Google Drive, so it’s on all your devices.'
+    : deviceOnly() || Store.mode !== 'cloud' ? 'It’s kept in this browser only.'
+      : h('span', null, 'It stays in this browser only until you connect Google Drive. ', h('a', { href: '#', onclick: (e) => { e.preventDefault(); Drive.connect(); } }, 'Connect Google Drive'));
   const form = h('form', { class: 'addform', onsubmit: (e) => { e.preventDefault(); submitAdd(status); } },
     source,
     F.source === 'file' && device
@@ -158,7 +160,7 @@ function videoItem(v) {
   return h('div', { class: `vitem ${open ? 'open' : ''}` },
     editing ? editVideoForm(v) : [
       h('div', { class: 'vitem-title', role: 'button', tabindex: 0, onclick: () => { Player.load(v.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter') { Player.load(v.id); closeDrawer(); } } }, v.title || 'Untitled video'),
-      h('div', { class: 'meta' }, `${p.done}/${p.total} clips done · ${p.last ? `last practised ${fmtDay(p.last)}` : 'not practised yet'}${v.speaker ? ` · ${v.speaker}` : ''}${v.fileRef || v.r2Key ? ' · saved' : ''}`),
+      h('div', { class: 'meta' }, `${p.done}/${p.total} clips done · ${p.last ? `last practised ${fmtDay(p.last)}` : 'not practised yet'}${v.speaker ? ` · ${v.speaker}` : ''}${v.fileRef ? ` · ${mediaStatus(v.fileRef) || 'saved'}` : v.r2Key ? ' · old storage' : ''}`),
       h('div', { class: 'bar vprog' }, h('i', { style: { width: (p.total ? (p.done / p.total) * 100 : 0) + '%' } })),
       h('div', { class: 'row' },
         !open ? btn('Open', () => { Player.load(v.id); closeDrawer(); }, { size: 'sm', kind: 'primary' }) : null,
