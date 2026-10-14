@@ -329,7 +329,7 @@ function renderScrubber() {
     const left = pct(c.start), width = Math.max(pct(c.end) - pct(c.start), 0);
     const sel = c.id === UI.clipId;
     return [
-      h('button', { type: 'button', class: 'bracket-hit', style: { left: `calc(${left}% - 4px)`, width: `calc(${width}% + 8px)` }, title: `${clipName(c, i)} · ${fmtTime(c.start)}–${fmtTime(c.end)}${c.done ? ' · done' : ''}`, 'aria-label': `Select ${clipName(c, i)}`, onclick: () => selectClip(c.id) }),
+      h('button', { type: 'button', class: 'bracket-hit', style: { left: `calc(${left}% - 4px)`, width: `calc(max(${width}%, 12px) + 8px)` }, title: `${clipName(c, i)} · ${fmtTime(c.start)}–${fmtTime(c.end)}${c.done ? ' · done' : ''}`, 'aria-label': `Select ${clipName(c, i)}`, onclick: () => selectClip(c.id) }),
       h('div', { class: `bracket ${sel ? 'sel' : ''}`, style: { left: left + '%', width: `max(${width}%, 12px)` } }),
       c.done ? h('div', { class: 'bracket-tick', style: { left: (left + width / 2) + '%' } }, icon('check', 'stroke-width="3.4"')) : null,
     ];

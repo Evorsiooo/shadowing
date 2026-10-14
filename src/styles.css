@@ -243,11 +243,11 @@ button.chip { font-family: inherit; cursor: pointer; }
 .scrub-sel { position: absolute; top: 10px; height: 24px; background: rgba(76, 178, 242, 0.35); border: 2px solid var(--sky); border-radius: 6px; pointer-events: none; }
 .bracket {
   position: absolute; top: 9px; height: 26px; min-width: 12px; border: 3px solid var(--wattle); border-top-width: 3px;
-  border-radius: 3px; background: transparent; cursor: pointer; padding: 0;
+  border-radius: 3px; background: transparent; padding: 0; pointer-events: none;
   -webkit-mask: linear-gradient(#000 0 0) left / 5px 100% no-repeat, linear-gradient(#000 0 0) right / 5px 100% no-repeat;
           mask: linear-gradient(#000 0 0) left / 5px 100% no-repeat, linear-gradient(#000 0 0) right / 5px 100% no-repeat;
 }
-.bracket-hit { position: absolute; top: 4px; height: 30px; min-width: 14px; cursor: pointer; background: transparent; border: 0; padding: 0; }
+.bracket-hit { position: absolute; top: 4px; height: 30px; cursor: pointer; background: transparent; border: 0; padding: 0; }
 .bracket-hit:hover + .bracket, .bracket.sel { border-color: #fff; }
 .bracket.sel { border-width: 4px; }
 .bracket-tick { position: absolute; top: -10px; width: 20px; height: 18px; margin-left: -10px; color: var(--green); pointer-events: none; filter: drop-shadow(0 1px 0 rgba(0,0,0,.5)); }
