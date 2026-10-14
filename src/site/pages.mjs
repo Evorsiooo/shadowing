@@ -5,7 +5,7 @@ export const SITE = {
   url: 'https://shadowing.euno.cc',
   description: 'Euno Shadowing is a free daily coach for accent shadowing. Speak along with real clips, see your pitch and timing next to the speaker’s, and track your accent over 12 weeks.',
   // Starts Google sign-in (owned by the accounts work) and comes back to the app.
-  signInUrl: '/auth/google?next=%2Fapp%2F',
+  signInUrl: '/auth/google',
   updated: '2026-10-14',
 };
 
@@ -428,7 +428,7 @@ const contact = {
   <div class="wrap">
     <h1>Contact and support</h1>
     <p class="lede">A question, a bug, an idea, or a request about your data? Send a message and we’ll reply by email.</p>
-    <form class="contact" action="/api/contact" method="post" novalidate>
+    <form class="contact" action="/api/support" method="post" novalidate>
       <label>Your email<input type="email" name="email" autocomplete="email" required maxlength="200"></label>
       <label>Name <span class="opt">(optional)</span><input type="text" name="name" autocomplete="name" maxlength="100"></label>
       <label>Topic

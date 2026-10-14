@@ -31,11 +31,12 @@
     if (!data.email || !data.message) { say('Please add your email and a message.', 'bad'); return; }
     button.disabled = true;
     say('Sending…');
-    fetch('/api/contact', {
+    fetch('/api/support', {
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ name: data.name || '', email: data.email, topic: data.topic || 'question', message: data.message, page: document.referrer || '' }),
+      // the inbox stores {email, message}; topic and name ride along in the message so nothing is lost
+      body: JSON.stringify({ email: data.email, message: '[' + (data.topic || 'question') + ']' + (data.name ? ' from ' + data.name : '') + '\n\n' + data.message, name: data.name || '', topic: data.topic || 'question' }),
     })
       .then(function (r) {
         if (r.ok) { say('Thanks! Your message has been sent. You’ll get a reply by email.', 'ok'); form.reset(); return; }
