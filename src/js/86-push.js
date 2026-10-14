@@ -37,7 +37,19 @@ const Push = {
     let sub = await reg.pushManager.getSubscription();
     // a subscription made for a different server key can't receive our messages
     if (sub && sub.options && sub.options.applicationServerKey && b64url(sub.options.applicationServerKey) !== publicKey) { await sub.unsubscribe(); sub = null; }
-    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: fromB64url(publicKey) });
+    if (!sub) {
+      try {
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: fromB64url(publicKey) });
+      } catch (e) {
+        // "Registration failed - push service error": the browser couldn't reach its own push service
+        if (e && (e.name === 'AbortError' || /push service/i.test(e.message || ''))) {
+          throw new Error(/Brave/.test(navigator.userAgent) || navigator.brave
+            ? 'Brave has push turned off. Turn on “Use Google services for push messaging” in brave://settings/privacy, restart Brave, and try again.'
+            : 'This browser couldn’t reach its notification service. A VPN, firewall or ad blocker may be blocking it, or this browser may not support push. Try again without them, or in Chrome, Edge, Firefox or Safari.');
+        }
+        throw e;
+      }
+    }
     await Api.req('POST', '/api/reminders/push', { subscription: sub.toJSON(), label: deviceLabel() });
     return sub;
   },
