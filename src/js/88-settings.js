@@ -22,7 +22,6 @@ const SETTING_GROUPS = [
     ['keepAllPassRecordings', N_('Keep every pass recording (uses more storage)'), 'bool'],
     ['micAuto', N_('Automatic microphone volume (recommended)'), 'bool'],
     ['micGain', N_('Microphone boost when automatic volume is off (×)'), 0.5, 12, 0.5],
-    ['echoCancellation', N_('Echo cancellation (only if you can’t use headphones)'), 'bool'],
     ['noiseSuppression', N_('Noise suppression'), 'bool'],
     ['pitchSmoothing', N_('Pitch line smoothing (frames)'), 1, 15, 2],
   ] },

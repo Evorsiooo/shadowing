@@ -190,7 +190,9 @@ const Mic = {
       return false;
     }
     try {
-      const audio = { echoCancellation: !!s.echoCancellation, noiseSuppression: !!s.noiseSuppression, autoGainControl: !!s.micAuto, channelCount: 1 };
+      // echo cancellation stays off: shadowing means talking over the clip the whole time, and the
+      // browser's canceller then turns your voice down too, so headphones are the only good option
+      const audio = { echoCancellation: false, noiseSuppression: !!s.noiseSuppression, autoGainControl: !!s.micAuto, channelCount: 1 };
       try {
         this.stream = await navigator.mediaDevices.getUserMedia({ audio: s.micDeviceId ? { ...audio, deviceId: { exact: s.micDeviceId } } : audio });
       } catch (e) {
