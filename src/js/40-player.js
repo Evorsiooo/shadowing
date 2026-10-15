@@ -189,7 +189,7 @@ const Player = {
     // normal mode: press and drag to scrub through the video
     // clip mode: press and drag to select a new clip (a plain click still seeks)
     sc.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('.bracket-hit') || !this.duration() || Session.active) return;
+      if (e.target.closest('.bracket-hit, .scrub-out') || !this.duration() || Session.active) return;
       down = { x: e.clientX, t: tAt(e.clientX), drag: false, cut: UI.cutMode };
       sc.setPointerCapture(e.pointerId);
       if (!down.cut) this.seek(down.t);
@@ -234,6 +234,13 @@ function scrubView() {
   return { v0: Math.max(0, c.start - m), v1: Math.min(d, c.end + m), zoomed: true };
 }
 function zoomOn() { return UI.zoom && !UI.unzoomed; }
+/* back to the whole video for now; picking a clip (or the Zoom button) zooms in again */
+function zoomOut() {
+  if (!scrubView().zoomed) return false;
+  UI.unzoomed = true;
+  renderControls(); renderScrubber();
+  return true;
+}
 function setZoom(on) {
   UI.zoom = on;
   UI.unzoomed = false;
@@ -362,7 +369,7 @@ function renderScrubber() {
   // clips that are only partly in a zoomed view are cut at its edges
   const clips = videoClips(UI.videoId).filter((c) => !c.archived && c.end > v0 && c.start < v1);
   const pct = (t) => (d && v1 > v0 ? clamp((t - v0) / (v1 - v0), 0, 1) * 100 : 0);
-  mount(box, d ? clips.map((c) => {
+  mount(box, view.zoomed ? h('button', { type: 'button', class: 'scrub-out', onclick: () => zoomOut(), title: t('Back to the whole video (Esc)') }, icon('back'), t('Whole video')) : null, d ? clips.map((c) => {
     const left = pct(c.start), width = Math.max(pct(c.end) - pct(c.start), 0);
     const sel = c.id === UI.clipId;
     return [

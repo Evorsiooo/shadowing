@@ -562,5 +562,13 @@
   "Zoom the timeline in on the clip": {
     "fr": "Zoomer la barre de lecture sur l’extrait",
     "es": "Acercar la línea de tiempo al fragmento"
+  },
+  "Whole video": {
+    "fr": "Toute la vidéo",
+    "es": "Todo el vídeo"
+  },
+  "Back to the whole video (Esc)": {
+    "fr": "Revenir à toute la vidéo (Échap)",
+    "es": "Volver a todo el vídeo (Esc)"
   }
 }
