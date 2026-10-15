@@ -1606,5 +1606,9 @@
   "No": {
     "fr": "Non",
     "es": "No"
+  },
+  "Fit the number of passes to the clip length, so each step lasts about its minutes (the pass counts below are then ignored)": {
+    "fr": "Adapter le nombre de passages à la longueur de l’extrait, pour que chaque étape dure à peu près ses minutes (les nombres de passages ci-dessous sont alors ignorés)",
+    "es": "Ajustar el número de pasadas a la duración del fragmento, para que cada paso dure más o menos sus minutos (los números de pasadas de abajo se ignoran)"
   }
 }

@@ -131,7 +131,7 @@ function habitView() {
           return h('span', { class: `d ${k || ''} ${d === today ? 'today' : ''} ${d > today ? 'future' : ''}`, title: fmtDayLong(d) + (k ? ' · ' + (k === 'bad' ? t('bad-day session') : t('full session')) : '') }, k === 'full' ? '✓' : k === 'bad' ? '·' : '');
         })])),
       h('div', { class: 'legend' }, h('span', null, h('i', { style: { background: 'var(--green)' } }), t('Full session')), h('span', null, h('i', { style: { background: 'var(--wattle)' } }), t('Bad-day session')), h('span', null, h('i', { style: { background: 'var(--surface-2)' } }), t('Not practised')))),
-    lags.length > 1 ? h('div', { class: 'card trend' }, h('h3', null, t('Average lag behind the speaker, by week')), h('p', { class: 'small muted' }, t('Shrinking lag over the weeks counts as progress. Rough measure.')), trendChart(lags.map((l) => ({ x: fmtDay(l.week), y: l.lag })), { unit: ' s', dec: 2 })) : null);
+    lags.length > 1 ? h('div', { class: 'card trend' }, h('h3', null, t('Average lag behind the speaker, by week')), h('p', { class: 'small muted' }, t('How far behind the speaker your voice is, on average, across your passes. Beginners echo the speaker; with practice you start to anticipate, so the lag shrinks towards zero. Clips and speeds differ, so read the trend over several weeks, not the single values.')), trendChart(lags.map((l) => ({ x: fmtDay(l.week), y: l.lag })), { unit: ' s', dec: 2 })) : null);
 }
 
 function weeklyLag() {
