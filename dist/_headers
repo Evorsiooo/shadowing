@@ -4,7 +4,7 @@
   Referrer-Policy: same-origin
   X-Frame-Options: DENY
   Permissions-Policy: microphone=(self), camera=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-yeRfiK33F2xbpPPylPwSNeu/9jgLF7XsqKSpcg8HnG0='; style-src 'self' 'sha256-HlphOML+kTYzJ/cuHqtnqplAwNiEKzJkksrTUixqfH0='; font-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-yeRfiK33F2xbpPPylPwSNeu/9jgLF7XsqKSpcg8HnG0='; style-src 'self' 'sha256-L7K8YggRiU2KWHb0Imr3WeU/gE3ScBk5zREWD7EvQds='; font-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'
 
 /app/*
   ! Content-Security-Policy

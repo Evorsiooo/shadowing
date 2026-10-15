@@ -5,7 +5,7 @@
 //   dist/index.html, dist/<page>/index.html, dist/404.html — the public site (src/site/), pre-rendered,
 //                    in English at the root and in French and Spanish under dist/fr/ and dist/es/
 //   dist/assets/         — site script, icons and the social image
-//   dist/robots.txt, dist/sitemap.xml, dist/site.webmanifest
+//   dist/robots.txt, dist/sitemap.xml, dist/llms.txt, dist/site.webmanifest
 //   dist/sw.js           — the service worker (reminder notifications; makes the site installable)
 //   dist/_headers        — security headers, caching and noindex rules
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, copyFileSync } from 'node:fs';
@@ -160,7 +160,8 @@ function render(page) {
   const meta = [
     `<title>${esc(page.title)}</title>`,
     `<meta name="description" content="${esc(page.description)}">`,
-    page.noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${url}">`,
+    // Indexable pages allow full-length snippets and large image previews in search and AI answers.
+    page.noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${url}">\n<meta name="robots" content="max-snippet:-1, max-image-preview:large">`,
     ...alternates,
     '<meta name="theme-color" content="#45b52a">',
     `<meta property="og:site_name" content="${SITE.name}">`,
@@ -215,7 +216,51 @@ for (const f of readdirSync(join(src, 'site', 'assets'))) copyFileSync(join(src,
 copyFileSync(join(src, 'site', 'site.js'), join(dist, 'assets', 'site.js'));
 copyFileSync(join(src, 'site', 'sw.js'), join(dist, 'sw.js'));
 
-out('robots.txt', `User-agent: *\nDisallow: /api/\nDisallow: /auth/\n\nSitemap: ${SITE.url}/sitemap.xml\n`);
+// Every crawler is welcome on the public pages. The AI search and answer crawlers are also named,
+// so it's explicit that the site wants to be found and cited in AI answers (a named bot reads only its own group).
+const AI_SEARCH_BOTS = ['OAI-SearchBot', 'ChatGPT-User', 'Claude-SearchBot', 'Claude-User', 'PerplexityBot', 'Perplexity-User'];
+const rules = 'Allow: /\nDisallow: /api/\nDisallow: /auth/\n';
+out('robots.txt', `User-agent: *\n${rules}\n${AI_SEARCH_BOTS.map((b) => `User-agent: ${b}`).join('\n')}\n${rules}\nSitemap: ${SITE.url}/sitemap.xml\n`);
+
+// llms.txt (llmstxt.org): a plain-text summary of the site and its key pages for AI assistants and agents.
+// Built from the English content, so it stays in step with the pages.
+const plain = (html) => html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+const en = LANGS.find((l) => l.code === DEFAULT_LANG);
+const pageUrl = (key, code = DEFAULT_LANG) => SITE.url + pages.find((p) => p.key === key && p.lang === code).path;
+const linkTo = (key) => { const p = pages.find((x) => x.key === key && x.lang === DEFAULT_LANG); return `- [${p.title.replace(/ \| Euno Shadowing$/, '')}](${pageUrl(key)}): ${p.description}`; };
+out(
+  'llms.txt',
+  `# ${SITE.name}
+
+> ${SITE.description}
+
+${plain(en.home.lede)} ${plain(en.home.fine)}
+
+## Guides
+
+${linkTo('what-is-shadowing')}
+${linkTo('accent-shadowing')}
+
+## Product
+
+- [Home page](${pageUrl('home')}): ${en.home.description}
+- [Open the app](${SITE.url}/app/): the practice app itself (sign-in with Google required).
+- [Contact and support](${pageUrl('contact')}): questions, bug reports and data requests.
+
+## Facts
+
+${en.faq.map(([q, a]) => `- ${plain(q)} ${plain(a).replace(/ Read the full guide\.$/, '')}`).join('\n')}
+
+## Policies
+
+${linkTo('privacy')}
+${linkTo('terms')}
+
+## Other languages
+
+${LANGS.filter((l) => l.code !== DEFAULT_LANG).map((l) => `- [${l.label}](${pageUrl('home', l.code)}): ${l.home.title}`).join('\n')}
+`,
+);
 // Every indexable page in every language, each listing its translations (xhtml:link alternates).
 out(
   'sitemap.xml',
