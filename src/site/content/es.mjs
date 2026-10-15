@@ -137,7 +137,6 @@ const make = ({ SITE, L, host }) => ({
       <li><strong>No escucharte nunca.</strong> No te oyes bien mientras hablas. Graba una pasada y compárala con el original.</li>
       <li><strong>Cambiar de hablante cada día.</strong> Quédate con una voz durante un tiempo para que los patrones se asienten.</li>
     </ul>`,
-    related: `<a href="${L('/accent-shadowing/')}">Cómo mejorar tu acento en inglés con shadowing: una rutina diaria de 15 minutos</a>`,
   },
   howTo: {
     title: 'Cómo mejorar tu acento en inglés con shadowing: una rutina diaria | Euno Shadowing',
@@ -183,7 +182,6 @@ const make = ({ SITE, L, host }) => ({
       <li>Mueve la boca y el cuerpo como el hablante; exagerar ayuda al principio.</li>
       <li>Practica a la misma hora cada día y mantén tu racha.</li>
     </ul>`,
-    related: `<a href="${L('/what-is-shadowing/')}">¿Qué es el shadowing? Cómo funciona la técnica para la pronunciación</a>`,
   },
   privacy: {
     title: 'Política de privacidad | Euno Shadowing',

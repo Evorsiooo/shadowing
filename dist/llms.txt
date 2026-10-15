@@ -7,11 +7,20 @@ Euno Shadowing is a daily coach for shadowing: pick a short clip, speak along wi
 ## Guides
 
 - [What is shadowing? How the technique works for pronunciation](https://shadowing.euno.cc/what-is-shadowing/): Shadowing is speaking along with a recording at the same time as the speaker. Learn how it works, why it improves rhythm and intonation, and how to start.
+- [How long does shadowing take to improve your accent?](https://shadowing.euno.cc/how-long-does-shadowing-take/): What to expect from daily shadowing practice: what changes first, what takes longer, and how to tell whether your accent is really moving.
+- [How to choose speakers and clips for shadowing](https://shadowing.euno.cc/choosing-shadowing-clips/): What makes a good shadowing clip: the right speaker, natural speech, clear audio, the right length and where to cut. With a checklist.
+- [Shadowing vs listen and repeat, minimal pairs and reading aloud](https://shadowing.euno.cc/shadowing-vs-other-methods/): How shadowing compares with listen-and-repeat, minimal pairs, reading aloud and learning phonetics, what each is good for, and how to combine them.
 - [How to improve your English accent with shadowing: a daily routine](https://shadowing.euno.cc/accent-shadowing/): A practical 15-minute daily shadowing routine for your English accent: choosing clips, the four steps, recording yourself and measuring progress over 12 weeks.
+- [Which English accent to shadow: American, British or Australian?](https://shadowing.euno.cc/english-accents/): General American, Southern British and General Australian compared for shadowing: the features to listen for, and how to choose one to practise.
+- [How to improve your French accent with shadowing: a daily routine](https://shadowing.euno.cc/french-accent-shadowing/): A 15-minute daily shadowing routine for your French accent: French rhythm, liaison and linking, vowels, nasal vowels and the French “r”, and how to track progress.
+- [Parisian or Québécois French: which accent to shadow?](https://shadowing.euno.cc/french-accents/): Metropolitan (Parisian) and Québécois French compared for shadowing: the main differences in vowels, consonants and melody, and how to choose.
+- [How to improve your Spanish accent with shadowing: a daily routine](https://shadowing.euno.cc/spanish-accent-shadowing/): A 15-minute daily shadowing routine for your Spanish accent: Spanish rhythm, the five vowels, “r” and “rr”, soft b, d and g, linking, and tracking progress.
+- [Mexican, Spain or Argentine Spanish: which accent to shadow?](https://shadowing.euno.cc/spanish-accents/): Mexican, Peninsular (Spain) and Rioplatense Spanish compared for shadowing: the sounds that set each apart, and how to choose one to practise.
 
 ## Product
 
 - [Home page](https://shadowing.euno.cc/): Euno Shadowing is a free daily coach for accent shadowing. Speak along with real clips, see your pitch and timing next to the speaker’s, and track your accent over 12 weeks.
+- [All guides](https://shadowing.euno.cc/guides/): Free guides to shadowing for pronunciation: how it works, how long it takes, choosing clips, and routines and accent guides for English, French and Spanish.
 - [Open the app](https://shadowing.euno.cc/app/): the practice app itself (sign-in with Google required).
 - [Contact and support](https://shadowing.euno.cc/contact/): questions, bug reports and data requests.
 

@@ -138,7 +138,6 @@ const make = ({ SITE, L, host }) => ({
       <li><strong>Never listening back.</strong> You can’t hear yourself well while speaking. Record a pass and compare it with the original.</li>
       <li><strong>Switching speakers every day.</strong> Stick with one voice for a while so the patterns can settle in.</li>
     </ul>`,
-    related: `<a href="${L('/accent-shadowing/')}">How to improve your English accent with shadowing: a 15-minute daily routine</a>`,
   },
   howTo: {
     title: 'How to improve your English accent with shadowing: a daily routine | Euno Shadowing',
@@ -184,7 +183,6 @@ const make = ({ SITE, L, host }) => ({
       <li>Move your mouth and body the way the speaker does; exaggerating helps at first.</li>
       <li>Practise at the same time every day, and keep a streak.</li>
     </ul>`,
-    related: `<a href="${L('/what-is-shadowing/')}">What is shadowing? How the technique works for pronunciation</a>`,
   },
   privacy: {
     title: 'Privacy policy | Euno Shadowing',
