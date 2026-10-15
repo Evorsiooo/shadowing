@@ -1606,5 +1606,25 @@
   "No": {
     "fr": "Non",
     "es": "No"
+  },
+  "Speed of the first shadow passes": {
+    "fr": "Vitesse des premiers passages de shadowing",
+    "es": "Velocidad de las primeras pasadas de shadowing"
+  },
+  "Slower (0.75x)": {
+    "fr": "Plus lent (0.75x)",
+    "es": "Más lento (0.75x)"
+  },
+  "Much slower (0.5x)": {
+    "fr": "Beaucoup plus lent (0.5x)",
+    "es": "Mucho más lento (0.5x)"
+  },
+  "Normal speed (1x)": {
+    "fr": "Vitesse normale (1x)",
+    "es": "Velocidad normal (1x)"
+  },
+  "Slow shadow passes at the start": {
+    "fr": "Passages lents au début",
+    "es": "Pasadas lentas al principio"
   }
 }

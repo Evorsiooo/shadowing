@@ -57,6 +57,9 @@ const Session = {
   review: null, // {recId, analysis, kind}
   preview: null, // {stopAt, then}
   cantKeepUp: 0,
+  slowed: false, // the session slowed the video for the first shadow passes
+  slowOff: false, // you asked for normal speed for the rest of the session
+  previewRec: null, // your recording playing in step with the video after a pass
 
   needsTick() { return this.active && (this.phase === 'playing' || this.phase === 'recording' || !!this.preview); },
   clip() { return Store.get('clips', this.clipId); },
@@ -84,6 +87,7 @@ const Session = {
     this.mode = mode;
     this.plan = buildPlan(mode);
     this.stepIdx = 0; this.pass = 0; this.elapsed = 0; this.cantKeepUp = 0;
+    this.slowed = false; this.slowOff = false;
     this.review = null;
     this.doc = Store.put('sessions', {
       date: dayKey(), startedAt: new Date().toISOString(), clipId: clip.id, videoId: clip.videoId, mode,
@@ -143,11 +147,33 @@ const Session = {
       Panel.live = { clipId: clip.id, points: [], frames: 0, ref: (Store.get('meta', 'voice') || {}).refHz || null, f0s: [], userOnset: null, shift: 0 };
       this.liveOff = Mic.on(() => this.liveAnalyse());
     }
+    this.applyPassRate();
     this.phase = this.recordingThisPass ? 'recording' : 'playing';
     document.body.classList.toggle('calm', st.speak);
     renderSession();
     const ok = await Player.play();
     if (!ok) { this.phase = 'paused'; this.pausedFrom = 'playing'; renderSession(); }
+  },
+  /* the first few shadow passes play slower (Settings → Practice), then back to 1x */
+  slowRate() { const r = +settings().slowStartRate; return r > 0 && r < 1 ? r : 1; },
+  slowPass() {
+    const st = this.step();
+    return !!st && st.key === 'shadow' && this.mode !== 'review' && !this.slowOff && this.slowRate() < 1 && this.pass < settings().slowStartPasses;
+  },
+  applyPassRate() {
+    if (this.slowPass()) {
+      if (UI.rate !== this.slowRate()) Player.setRate(this.slowRate());
+      this.slowed = true;
+    } else if (this.slowed) {
+      this.slowed = false;
+      Player.setRate(1);
+      toast(t('Back to normal speed (1x).'));
+    }
+  },
+  fullSpeed() {
+    this.slowOff = true;
+    if (this.slowed) { this.slowed = false; Player.setRate(1); }
+    renderSession();
   },
   onTick: (t) => {
     const S = Session;
@@ -309,14 +335,23 @@ const Session = {
     clearTimeout(this.gapTimer);
     Player.v.pause();
     await this.cancelPassCapture();
-    if (this.phase === 'review') { this.phase = 'armed'; this.pass = Math.max(0, this.pass - 1); this.doc.passes.pop(); renderSession(); return; }
+    if (this.phase === 'review') {
+      // redo the recorded pass straight away (the mic is already set up from the pass just done)
+      stopReviewPlayback();
+      this.review = null;
+      this.pass = Math.max(0, this.pass - 1);
+      this.doc.passes.pop();
+      this.phase = 'armed-go';
+      this.beginPass();
+      return;
+    }
     if (this.recordingThisPass) { this.phase = 'armed-go'; }
     this.beginPass();
   },
   async skipStep() {
     if (!this.active) return;
     clearTimeout(this.gapTimer);
-    Player.v.pause();
+    stopReviewPlayback();
     await this.cancelPassCapture();
     const st = this.step();
     if (st && !this.doc.stepsSkipped.includes(st.key)) this.doc.stepsSkipped.push(st.key);
@@ -331,7 +366,7 @@ const Session = {
   continueAfterReview() {
     const st = this.step();
     this.review = null;
-    Player2.stop();
+    stopReviewPlayback();
     if (this.pass >= st.passes) { this.completeStep(); return; }
     this.phase = 'gap';
     this.beginPass();
@@ -376,9 +411,10 @@ const Session = {
   async finish(early) {
     clearTimeout(this.gapTimer);
     clearInterval(this.timer);
-    Player.v.pause();
+    stopReviewPlayback();
     await this.cancelPassCapture();
     Mic.close();
+    if (this.slowed) { this.slowed = false; Player.setRate(1); }
     Player.tickHooks.delete(this.onTick);
     document.body.classList.remove('calm');
     const clip = this.clip();
@@ -469,7 +505,7 @@ function renderSession() {
   let main;
   if (S.phase === 'intro') {
     main = [
-      h('div', { class: 'grow' }, h('h3', null, t('Step {n}: {step}', { n: S.stepIdx + 1, step: t(st.name) })), h('p', { class: 'session-hint' }, `${t(STEP_HELP[st.key])} ${tp(st.passes, '{n} pass, about {min} min.', '{n} passes, about {min} min.', { min: st.minutes })}`)),
+      h('div', { class: 'grow' }, h('h3', null, t('Step {n}: {step}', { n: S.stepIdx + 1, step: t(st.name) })), h('p', { class: 'session-hint' }, `${t(STEP_HELP[st.key])} ${tp(st.passes, '{n} pass, about {min} min.', '{n} passes, about {min} min.', { min: st.minutes })}${slowHint(S)}`)),
       btn(t(STEP_START[st.key]), () => S.go(), { kind: 'primary', size: 'big', icon: 'play' }),
     ];
   } else if (S.phase === 'armed') {
@@ -496,6 +532,7 @@ function renderSession() {
         S.liveThisPass || S.phase === 'recording' ? [h('p', { class: 'small muted' }, t('Your pitch line is drawing in the panel below.')), micControl()] : null),
       btn('', () => S.togglePause(), { icon: paused ? 'play' : 'pause', title: paused ? t('Resume (Space)') : t('Pause (Space)'), kind: paused ? 'primary' : '' }),
       btn('', () => S.repeatPass(), { icon: 'replay', title: t('Repeat this pass without counting it (R)') }),
+      S.slowed ? btn(t('Go to 1x'), () => S.fullSpeed(), { size: 'sm', title: t('Play the rest of this session at normal speed') }) : null,
     ];
   }
   const showCant = st && st.key === 'shadow' && S.pass >= settings().shortenHintAfter && S.phase !== 'review';
@@ -513,6 +550,14 @@ function renderSession() {
       h('span', { class: 'spacer' }),
       btn(t('Skip step'), () => S.skipStep(), { size: 'sm', icon: 'skip' }),
       btn(t('End session'), () => S.finish(true), { size: 'sm', kind: 'danger', icon: 'stop', title: t('End now; progress so far is saved') })));
+}
+
+/* intro of the shadow step: say that the first passes are slowed */
+function slowHint(S) {
+  const st = S.step();
+  if (!st || st.key !== 'shadow' || S.mode === 'review' || S.slowOff || S.slowRate() >= 1) return '';
+  const n = Math.min(settings().slowStartPasses, st.passes);
+  return n > 0 ? ' ' + tp(n, 'The first pass plays at {rate}x, then normal speed.', 'The first {n} passes play at {rate}x, then normal speed.', { rate: S.slowRate() }) : '';
 }
 
 Session.skipRecording = function () {
@@ -545,37 +590,81 @@ async function uploadPassRecording(file) {
   }
 }
 
-/* playback options after a recorded pass */
-function playOriginal(clip, then) {
+/* playback options after a recorded pass.
+   Switching between the original and your recording carries on from where the playhead is,
+   unless it has reached the end of the clip; clicking the chart moves it. */
+function reviewFrom(clip) {
+  const at = Player.time();
+  return at > clip.start + 0.05 && at < clip.end - 0.15 ? at : clip.start;
+}
+function stopReviewPlayback() {
   Player2.stop();
+  Player2.gainFn = null;
+  Session.previewRec = null;
+  Session.preview = null;
+  Player.v.pause();
+  Player.v.muted = UI.volume === 0;
+}
+function playOriginal(clip, then, from = reviewFrom(clip)) {
+  Player2.stop();
+  Session.previewRec = null;
   Player.v.muted = UI.volume === 0;
   Session.preview = { stopAt: clip.end, then };
-  Player.seek(clip.start);
+  Player.seek(from);
   Player.play();
+}
+/* seconds into your recording that line up with clip time `at` (negative: before you started) */
+function recTimeAt(clip, analysis, at, rate) {
+  return ((at - clip.start) - (analysis ? analysis.offset : 0)) / rate;
 }
 /* play your recording lined up with the clip: the video runs alongside (muted for "Mine",
    audible for "Both together"), so the scrub bar and the chart's playhead follow along */
-function playSynced(clip, url, analysis, { withOriginal = false, then } = {}) {
+function playSynced(clip, url, analysis, { withOriginal = false, then, from = reviewFrom(clip) } = {}) {
   Player2.stop();
   const a = new window.Audio(url);
   Player2.el = a;
+  Player2.gainFn = () => MineLevel.gain(analysis, clip);
+  MineLevel.attach(a, Player2.gainFn());
   const rate = Player.v.playbackRate || 1;
-  const startAt = analysis ? -analysis.offset / rate : 0; // seconds into the recording that line up with the clip start
   const restoreMute = () => { Player.v.muted = UI.volume === 0; };
   const go = async () => {
     Player.v.muted = !withOriginal || UI.volume === 0;
-    Session.preview = { stopAt: clip.end, then: () => { a.pause(); restoreMute(); then && then(); } };
-    await Player.seekAndWait(clip.start);
+    Session.preview = { stopAt: clip.end, then: () => { a.pause(); restoreMute(); Session.previewRec = null; then && then(); } };
+    Session.previewRec = { a, clip, analysis, rate };
+    await Player.seekAndWait(from);
     Player.play();
-    if (startAt >= 0) { a.currentTime = startAt; a.play().catch(() => {}); } else setTimeout(() => a.play().catch(() => {}), -startAt * 1000);
+    syncRecTo(from);
   };
   a.addEventListener('error', () => { restoreMute(); toast(t('The recording couldn’t play.'), 'bad'); }, { once: true });
   if (a.readyState >= 1) go(); else a.addEventListener('loadedmetadata', go, { once: true });
   a.load();
   return a;
 }
-function playMine(clip, url, analysis, then) { return playSynced(clip, url, analysis, { then }); }
+/* move the playing recording to match clip time `at` (after a seek on the chart) */
+function syncRecTo(at) {
+  const P = Session.previewRec;
+  if (!P) return;
+  const { a } = P;
+  clearTimeout(P.wait);
+  const r = recTimeAt(P.clip, P.analysis, at, P.rate);
+  if (r >= 0) { a.currentTime = r; a.play().catch(() => {}); } else { a.pause(); a.currentTime = 0; P.wait = setTimeout(() => a.play().catch(() => {}), -r * 1000); }
+}
+function playMine(clip, url, analysis, then, from) { return playSynced(clip, url, analysis, { then, from }); }
 function playBoth(clip, url, analysis) { return playSynced(clip, url, analysis, { withOriginal: true }); }
+
+/* volume of your own recording: matched to the original by default, plus a slider */
+function mineVolumeControl() {
+  const val = h('span', { class: 'small muted num' }, `${Math.round(MineLevel.volume * 100)}%`);
+  return h('div', { class: 'row mine-volume' },
+    icon('volume'),
+    h('label', { class: 'small', for: 'mineVol' }, t('Your volume')),
+    h('input', { type: 'range', id: 'mineVol', min: 0, max: 2, step: 0.05, value: MineLevel.volume,
+      oninput: (e) => { MineLevel.set({ volume: +e.target.value }); val.textContent = `${Math.round(+e.target.value * 100)}%`; Player2.relevel(); } }),
+    val,
+    h('label', { class: 'check small', for: 'mineAuto', title: t('Plays your recording about as loud as the speaker in the clip') },
+      h('input', { type: 'checkbox', id: 'mineAuto', checked: MineLevel.auto, onchange: (e) => { MineLevel.set({ auto: e.target.checked }); Player2.relevel(); } }),
+      t('Match the original’s loudness')));
+}
 
 function passReviewCard() {
   const S = Session;
@@ -591,14 +680,15 @@ function passReviewCard() {
     h('div', { class: 'row' },
       btn(t('Original'), () => playOriginal(clip), { size: 'sm', icon: 'play' }),
       btn(t('Mine'), () => playMine(clip, R.url, an), { size: 'sm', icon: 'mic' }),
-      btn(t('Original then mine'), () => playOriginal(clip, () => setTimeout(() => playMine(clip, R.url, an), 300)), { size: 'sm' }),
+      btn(t('Original then mine'), () => playOriginal(clip, () => setTimeout(() => playMine(clip, R.url, an, null, clip.start), 300), clip.start), { size: 'sm' }),
       btn(t('Both together'), () => playBoth(clip, R.url, an), { size: 'sm' }),
-      btn('', () => { Player2.stop(); Player.v.pause(); Player.v.muted = UI.volume === 0; Session.preview = null; }, { size: 'sm', icon: 'stop', title: t('Stop playback') })),
+      btn('', () => stopReviewPlayback(), { size: 'sm', icon: 'stop', title: t('Stop playback') })),
+    mineVolumeControl(),
     step3 ? h('div', { class: 'row' }, h('span', { class: 'small muted grow' }, t('Compare with your step 3 recording from this session:')),
       btn(t('Compare overlaid'), () => openCompare(step3.id, R.recId, R.url), { size: 'sm', kind: 'blue' })) : null,
     noteForm({ clipId: clip.id, sessionId: S.doc.id, recId: R.recId, pass: S.pass, step: S.step().key }),
     h('div', { class: 'row' },
-      btn(t('Redo this pass'), () => S.repeatPass(), { kind: 'ghost', icon: 'replay' }),
+      btn(t('Redo this pass'), () => S.repeatPass(), { kind: 'ghost', icon: 'replay', title: t('Record this pass again, starting now') }),
       h('span', { class: 'spacer' }),
       btn(t('Continue'), () => S.continueAfterReview(), { kind: 'primary', size: 'big', icon: 'play' })));
 }

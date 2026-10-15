@@ -6,6 +6,8 @@ const SETTING_GROUPS = [
     ['recordMinutes', N_('Record & compare: minutes'), 1, 10, 1],
     ['againPasses', N_('Shadow again: passes (before the final recorded pass)'), 0, 30, 1], ['againMinutes', N_('Shadow again: minutes'), 1, 15, 1],
     ['loopGap', N_('Gap between loops (seconds)'), 0, 5, 0.1], ['shortenHintAfter', N_('Offer the “can’t keep up” button after this many shadow passes'), 1, 20, 1],
+    ['slowStartRate', N_('Speed of the first shadow passes'), 'select', [['0.75', N_('Slower (0.75x)')], ['0.5', N_('Much slower (0.5x)')], ['1', N_('Normal speed (1x)')]]],
+    ['slowStartPasses', N_('Slow shadow passes at the start'), 0, 15, 1],
     ['weeklyTarget', N_('Sessions per week target'), 1, 7, 1],
   ] },
   { title: N_('Bad-day mode'), fields: [['badListenPasses', N_('Listen: passes'), 1, 10, 1], ['badShadowPasses', N_('Shadow: passes'), 1, 20, 1], ['badMinutes', N_('Minutes'), 2, 15, 1]] },
@@ -42,7 +44,7 @@ function settingsForm() {
     h('div', { class: 'cards', style: { gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))' } }, g.fields.map(([key, label, a, b, step]) => {
       const id = `set-${key}`;
       if (a === 'bool') return h('label', { class: 'check', for: id }, h('input', { type: 'checkbox', id, checked: !!draft[key], onchange: (e) => { draft[key] = e.target.checked; } }), t(label));
-      if (a === 'select') return h('label', { class: 'field', for: id }, t(label), h('select', { id, onchange: (e) => { draft[key] = e.target.value; } }, b.map(([v, l]) => h('option', { value: v, selected: draft[key] === v }, t(l)))));
+      if (a === 'select') return h('label', { class: 'field', for: id }, t(label), h('select', { id, onchange: (e) => { draft[key] = e.target.value; } }, b.map(([v, l]) => h('option', { value: v, selected: String(draft[key]) === v }, t(l)))));
       return h('label', { class: 'field', for: id }, t(label), h('input', { type: 'number', id, min: a, max: b, step, value: draft[key], oninput: (e) => { const v = parseFloat(e.target.value); if (isFinite(v)) draft[key] = clamp(v, a, b); } }));
     }))));
   let startDraft = savedProgrammeStart();

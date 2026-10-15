@@ -324,6 +324,7 @@ const DEFAULT_SETTINGS = {
   loopGap: 1.0,
   weeklyTarget: 6,
   shortenHintAfter: 5,
+  slowStartRate: 0.75, slowStartPasses: 3, // the first shadow passes of a session play slower
   alignMode: 'auto', // 'auto' | 'manual'
   manualOffsetMs: 250,
   latencyMs: 0,

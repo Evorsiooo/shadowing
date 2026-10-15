@@ -367,9 +367,44 @@ class Recording {
   }
 }
 
+/* your recordings play back at the original clip's loudness (when "Match the original's loudness" is on),
+   times your own volume slider, so a boosted microphone doesn't blast in your ears */
+const MineLevel = {
+  get auto() { return lsGet('mineAuto', true); },
+  get volume() { return lsGet('mineVolume', 1); },
+  set(fields) {
+    if ('auto' in fields) lsSet('mineAuto', !!fields.auto);
+    if ('volume' in fields) lsSet('mineVolume', fields.volume);
+  },
+  /* gain that brings a recording's speech up or down to the speaker's level in the clip */
+  levelGain(analysis, clip) {
+    const loud = (db) => { const v = (db || []).filter((x) => x != null && isFinite(x) && x > -90); return v.length > 20 ? percentile(v, 0.9) : null; };
+    const mine = analysis && loud(analysis.db);
+    const theirs = clip && clip.model && loud(clip.model.db);
+    if (mine == null || theirs == null) return 1;
+    // the video is heard at the player's volume, so match that too (unless it's muted)
+    const player = UI.volume > 0 ? UI.volume : 1;
+    return clamp(10 ** ((theirs - mine) / 20) * player, 0.05, 6);
+  },
+  gain(analysis, clip) { return (this.auto ? this.levelGain(analysis, clip) : 1) * this.volume; },
+  /* route an <audio> element through a gain node (it can then go louder than its own volume allows) */
+  attach(a, gain) {
+    try {
+      const ctx = AudioEng.getCtx();
+      const g = ctx.createGain();
+      g.gain.value = gain;
+      ctx.createMediaElementSource(a).connect(g).connect(ctx.destination);
+      a._gain = g;
+    } catch { a.volume = clamp(gain, 0, 1); }
+    return a;
+  },
+  setGain(a, gain) { if (!a) return; if (a._gain) a._gain.gain.value = gain; else a.volume = clamp(gain, 0, 1); },
+};
+
 /* play a recording / blob URL, returns the element */
 const Player2 = {
   el: null,
+  gainFn: null, // works out this recording's playback gain from the current volume settings
   async play(ref, { onend } = {}) {
     this.stop();
     const url = typeof ref === 'string' && !ref.includes(':') ? ref : await Store.blobUrl(ref);
@@ -381,6 +416,8 @@ const Player2 = {
     return a;
   },
   stop() { if (this.el) { this.el.pause(); this.el = null; } },
+  /* volume settings changed: apply them to what's playing now */
+  relevel() { if (this.el && this.gainFn) MineLevel.setGain(this.el, this.gainFn()); },
 };
 
 /* tiny event bus */

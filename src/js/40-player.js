@@ -17,6 +17,7 @@ const UI = {
   cutMode: false,
   showAllClips: {},
   overlay: lsGet('overlay', false),
+  zoom: lsGet('scrubZoom', true), // the scrub bar shows just the selected clip (with a little either side)
 };
 
 /* ---------- video player with custom controls ---------- */
@@ -105,7 +106,13 @@ const Player = {
     if (Session.active) { Session.repeatPass(); return; }
     this.seek(r.start); this.play();
   },
-  setRate(r) { UI.rate = r; this.v.playbackRate = r; this.v.preservesPitch = true; renderControls(); },
+  setRate(r) {
+    // picking another speed yourself during the slowed first passes ends the slowdown
+    const endSlow = Session.active && Session.slowed && r !== Session.slowRate();
+    if (endSlow) { Session.slowed = false; Session.slowOff = true; }
+    UI.rate = r; this.v.playbackRate = r; this.v.preservesPitch = true; renderControls();
+    if (endSlow) renderSession();
+  },
   stepRate(dir) { const rates = [0.5, 0.75, 1]; const i = rates.indexOf(UI.rate); this.setRate(rates[clamp((i < 0 ? 2 : i) + dir, 0, 2)]); },
   setVolume(x) { UI.volume = x; this.v.volume = x; this.v.muted = x === 0; lsSet('volume', x); },
 
@@ -139,7 +146,8 @@ const Player = {
   paintHead() {
     const d = this.duration();
     const t = this.time();
-    const pct = d ? (t / d) * 100 : 0;
+    const { v0, v1 } = scrubView();
+    const pct = d && v1 > v0 ? clamp((t - v0) / (v1 - v0), 0, 1) * 100 : 0;
     $('#scrubProgress').style.width = pct + '%';
     $('#scrubHead').style.left = pct + '%';
     const tl = $('#timeLabel');
@@ -176,7 +184,7 @@ const Player = {
   bindScrubber() {
     const sc = $('#scrubber');
     let down = null;
-    const tAt = (x) => { const r = sc.getBoundingClientRect(); return clamp((x - r.left) / r.width, 0, 1) * this.duration(); };
+    const tAt = (x) => { const r = sc.getBoundingClientRect(); const { v0, v1 } = scrubView(); return v0 + clamp((x - r.left) / r.width, 0, 1) * (v1 - v0); };
     // normal mode: press and drag to scrub through the video
     // clip mode: press and drag to select a new clip (a plain click still seeks)
     sc.addEventListener('pointerdown', (e) => {
@@ -215,6 +223,20 @@ const Player = {
     sc.addEventListener('pointercancel', end);
   },
 };
+
+/* the stretch of video the scrub bar shows: the whole video, or zoomed in on the selected clip */
+function scrubView() {
+  const d = Player.duration();
+  const c = UI.zoom && !UI.sel && !UI.cutMode ? Store.get('clips', UI.clipId) : null;
+  if (!c || !d || c.videoId !== UI.videoId) return { v0: 0, v1: d, zoomed: false };
+  const m = Math.max(1, (c.end - c.start) * 0.15);
+  return { v0: Math.max(0, c.start - m), v1: Math.min(d, c.end + m), zoomed: true };
+}
+function setZoom(on) {
+  UI.zoom = on;
+  lsSet('scrubZoom', on);
+  renderControls(); renderScrubber();
+}
 
 function activeRange() {
   if (UI.sel) return { start: UI.sel.start, end: UI.sel.end };
@@ -280,6 +302,7 @@ function renderControls() {
     h('div', { class: 'seg', role: 'group', 'aria-label': t('Speed') },
       [0.5, 0.75, 1].map((r) => h('button', { type: 'button', class: UI.rate === r ? 'on' : '', onclick: () => Player.setRate(r), title: t('Speed (, and .)') }, `${r}x`))),
     btn(t('Loop'), () => { UI.loop = !UI.loop; renderControls(); }, { icon: 'loop', on: UI.loop, pressed: UI.loop, title: t('Loop the clip (L)'), aria: t('Loop'), id: 'loopBtn' }),
+    UI.clipId && !UI.sel && !UI.cutMode ? btn(t('Zoom'), () => setZoom(!UI.zoom), { icon: 'zoom', on: UI.zoom, pressed: UI.zoom, title: UI.zoom ? t('Show the whole video on the timeline') : t('Zoom the timeline in on the clip'), aria: t('Zoom the timeline in on the clip') }) : null,
     btn('', () => Player.setVolume(UI.volume === 0 ? 1 : 0), { icon: volIcon, title: t('Mute') }),
     h('input', { type: 'range', class: 'vol', min: 0, max: 1, step: 0.05, value: UI.volume, 'aria-label': t('Volume'), oninput: (e) => Player.setVolume(+e.target.value) }),
     h('span', { class: 'spacer' }),
@@ -330,13 +353,18 @@ function markEdge(which) {
 function renderScrubber() {
   const d = Player.duration();
   const box = $('#scrubClips');
-  const clips = videoClips(UI.videoId).filter((c) => !c.archived);
-  const pct = (t) => (d ? (t / d) * 100 : 0);
-  mount(box, d ? clips.map((c, i) => {
+  const view = scrubView();
+  const { v0, v1 } = view;
+  $('#scrubber').classList.toggle('zoomed', view.zoomed);
+  // clips that are only partly in a zoomed view are cut at its edges
+  const clips = videoClips(UI.videoId).filter((c) => !c.archived && c.end > v0 && c.start < v1);
+  const pct = (t) => (d && v1 > v0 ? clamp((t - v0) / (v1 - v0), 0, 1) * 100 : 0);
+  mount(box, d ? clips.map((c) => {
     const left = pct(c.start), width = Math.max(pct(c.end) - pct(c.start), 0);
     const sel = c.id === UI.clipId;
     return [
-      h('button', { type: 'button', class: 'bracket-hit', style: { left: `calc(${left}% - 4px)`, width: `calc(max(${width}%, 12px) + 8px)` }, title: `${clipName(c, i)} · ${fmtTime(c.start)}–${fmtTime(c.end)}${c.done ? ` · ${t('done')}` : ''}`, 'aria-label': t('Select {clip}', { clip: clipName(c, i) }), onclick: () => selectClip(c.id) }),
+      // zoomed in, the selected clip fills most of the bar: leave it free for scrubbing
+      sel && view.zoomed ? null : h('button', { type: 'button', class: 'bracket-hit', style: { left: `calc(${left}% - 4px)`, width: `calc(max(${width}%, 12px) + 8px)` }, title: `${clipName(c)} · ${fmtTime(c.start)}–${fmtTime(c.end)}${c.done ? ` · ${t('done')}` : ''}`, 'aria-label': t('Select {clip}', { clip: clipName(c) }), onclick: () => selectClip(c.id) }),
       h('div', { class: `bracket ${sel ? 'sel' : ''}`, style: { left: left + '%', width: `max(${width}%, 12px)` } }),
       c.done ? h('div', { class: 'bracket-tick', style: { left: (left + width / 2) + '%' } }, icon('check', 'stroke-width="3.4"')) : null,
     ];

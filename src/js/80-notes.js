@@ -286,7 +286,12 @@ function overlayChart(clip, layers, view = 'pitch') {
 
 async function recAudio(rec, fallbackUrl) {
   const url = fallbackUrl || (rec && (await Store.blobUrl(rec.ref)));
-  return url ? h('audio', { controls: true, preload: 'metadata', src: url }) : h('p', { class: 'small muted' }, t('Recording not available.'));
+  if (!url) return h('p', { class: 'small muted' }, t('Recording not available.'));
+  const el = h('audio', { controls: true, preload: 'metadata', src: url });
+  // played back at the clip's loudness and your volume setting, like after a pass
+  const clip = rec && Store.get('clips', rec.clipId);
+  if (rec && rec.kind === 'pass') el.addEventListener('play', () => { if (!el._gain) MineLevel.attach(el, MineLevel.gain(rec.analysis, clip)); });
+  return el;
 }
 
 async function openCompare(idA, idB, urlB) {
