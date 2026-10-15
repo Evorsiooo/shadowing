@@ -126,7 +126,7 @@ async function saveText(name, text) {
 }
 
 function lookView() {
-  const cur = lsGet('theme', 'system');
+  const cur = lsGet('theme', Caps.inArtifact ? 'system' : 'light');
   const set = (theme) => { lsSet('theme', theme); applyTheme(); openSettings('look'); };
   return h('div', { class: 'stack' },
     h('div', { class: 'card' }, h('h3', null, t('Interface language')),
@@ -137,10 +137,10 @@ function lookView() {
       h('p', { class: 'small muted' }, t('Inside Claude, the viewer’s own theme setting can also switch this.'))));
 }
 function applyTheme() {
-  const t = lsGet('theme', 'system');
-  if (t === 'system') {
-    if (!Caps.inArtifact) document.documentElement.removeAttribute('data-theme');
-  } else document.documentElement.setAttribute('data-theme', t);
+  // Light unless the user picks otherwise; inside Claude, an unset theme follows the viewer's own theme.
+  const t = lsGet('theme', Caps.inArtifact ? 'system' : 'light');
+  if (t === 'system' && Caps.inArtifact && document.documentElement.hasAttribute('data-theme')) return; // the host already set one
+  document.documentElement.setAttribute('data-theme', t);
 }
 
 /* ---------- device checks: the spec's "test first" list, runnable on any device ---------- */

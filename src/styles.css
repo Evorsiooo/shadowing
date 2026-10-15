@@ -29,8 +29,9 @@
   --r-md: 16px;
   --r-sm: 11px;
 }
+/* Light is the default; dark follows the device only when "Match device" is picked. */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root[data-theme="system"] {
     --bg: #111710;
     --surface: #192118;
     --surface-2: #212c1f;

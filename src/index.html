@@ -1,6 +1,6 @@
 <script>
-/* Set the saved theme before first paint, so a light-mode choice doesn't flash dark (applyTheme in 88-settings.js keeps it in sync later). */
-try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch { /* storage blocked */ }
+/* Set the saved theme before first paint, so a dark or match-device choice doesn't flash light; with no choice saved the app is light (applyTheme in 88-settings.js keeps it in sync later). */
+try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === 'dark' || t === 'system') document.documentElement.setAttribute('data-theme', t); } catch { /* storage blocked */ }
 </script>
 <script>
 /* Ask for the account and the practice data while the app script downloads; Api (10-store.js) picks these up. */
