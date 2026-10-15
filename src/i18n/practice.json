@@ -1030,5 +1030,9 @@
   "Add to the queue, to shadow it right after the others": {
     "fr": "Ajouter à la file, pour le travailler juste après les autres",
     "es": "Añadir a la cola, para practicarlo justo después de los demás"
+  },
+  "Practise with headphones (wired is best). Without them, the microphone picks up the video and your recordings and scores are off.": {
+    "fr": "Entraîne-toi avec un casque (filaire de préférence). Sans casque, le micro capte la vidéo et tes enregistrements et tes scores sont faussés.",
+    "es": "Practica con auriculares (mejor con cable). Sin ellos, el micrófono capta el vídeo y tus grabaciones y puntuaciones salen mal."
   }
 }
