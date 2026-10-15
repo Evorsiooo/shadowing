@@ -332,7 +332,7 @@ const DEFAULT_SETTINGS = {
   livePitchAllPasses: false,
   review: false, reviewAfterDays: 2, reviewShadowPasses: 5,
   keepAllPassRecordings: false,
-  echoCancellation: false, noiseSuppression: false,
+  noiseSuppression: false,
   micAuto: true, micGain: 2, micDeviceId: null,
   pitchSmoothing: 5,
   programmeStart: null, // English; other languages keep theirs in programmeStarts
