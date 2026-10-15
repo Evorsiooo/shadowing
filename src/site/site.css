@@ -217,4 +217,60 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
   .lang-menu summary svg, .site-nav .btn-sm .g { display: none; }
   .site-foot .copy { margin-left: 0; }
 }
-@media (prefers-reduced-motion: reduce) { .btn, .faq summary i, .faq summary i::before, .faq summary i::after { transition: none; } }
+/* ---------- motion: quick and subtle, and only for visitors who haven't asked for less ----------
+   Everything below starts from the finished look, so a browser without one of these features
+   (or with reduced motion) just shows the page as it is. */
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes drop { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes grow { from { transform: scaleY(0.15); opacity: 0; } }
+@keyframes pop-in { from { opacity: 0; transform: scale(0.85); } }
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.18s; }
+  html { scroll-behavior: smooth; }
+
+  /* landing hero: the text rises in line by line, then the demo draws the two pitch lines */
+  .hero .wrap > div > * { animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .hero .wrap > div > :nth-child(2) { animation-delay: 0.06s; }
+  .hero .wrap > div > :nth-child(3) { animation-delay: 0.12s; }
+  .hero .wrap > div > :nth-child(4) { animation-delay: 0.18s; }
+  .hero .wrap > div > :nth-child(5) { animation-delay: 0.24s; }
+  .hero .demo { animation: rise 0.6s 0.12s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .demo .wave { transform-box: fill-box; transform-origin: 50% 100%; animation: grow 0.6s 0.3s ease-out both; }
+  .demo .speaker, .demo .you { stroke-dasharray: 1; animation: draw 1.3s 0.45s ease-in-out both; }
+  .demo .you { animation-delay: 0.7s; }
+  .demo .chip, .demo .chip-t { transform-box: fill-box; transform-origin: center; animation: pop-in 0.35s 1.7s cubic-bezier(0.3, 1.5, 0.5, 1) both; }
+
+  /* articles, legal and contact pages: a short rise on arrival */
+  .page .wrap { animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+  /* blocks further down rise in as they scroll into view (browsers with scroll-driven animations) */
+  @supports (animation-timeline: view()) {
+    section.block h2, section.block .intro, .steps li, .cards .card, .split .panel, .faq-intro, .faq details, .final .panel {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 45%;
+    }
+  }
+
+  /* hover and press feedback */
+  .btn { transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.15s, border-color 0.15s, color 0.15s; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 0 var(--green-dark); }
+  .btn-primary:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--green-dark); }
+  .btn-ghost:hover { border-color: var(--green); color: var(--green-ink); }
+  .card .ic, .steps li::before { transition: transform 0.2s cubic-bezier(0.3, 1.5, 0.5, 1); }
+  .card:hover .ic { transform: scale(1.08) rotate(-4deg); }
+  .steps li:hover::before { transform: scale(1.1); }
+  .site-nav a, .site-foot a, .brand svg { transition: color 0.15s, transform 0.2s ease; }
+  .brand:hover svg { transform: rotate(-6deg) scale(1.05); }
+
+  /* things that open */
+  .faq details[open] .a { animation: drop 0.22s ease-out; }
+  .lang-menu[open] .lang-list { transform-origin: top right; animation: drop 0.15s ease-out; }
+  .form-status.ok, .form-status.bad { animation: fade 0.25s ease-out; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
