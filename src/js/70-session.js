@@ -751,11 +751,27 @@ function reviewDueClips() {
   return Store.all('clips').filter((c) => c.done && !c.archived && c.doneAt && (!c.reviewedAt || c.reviewedAt < c.doneAt) && daysBetween(c.doneAt, today) >= Math.max(1, s.reviewAfterDays - 1) && daysBetween(c.doneAt, today) <= s.reviewAfterDays + 3);
 }
 
-function showSessionSummary(sum, streakBefore, nextClipId) {
+function showSessionSummary(sum, streakBefore, nextClipId, redraw = false) {
   const info = streakInfo();
   const grew = info.streak > streakBefore;
   const clip = Store.get('clips', sum.clipId);
-  if (sum.tickNew || grew) celebrate(sum.tickNew ? 1.2 : 0.8);
+  if (!redraw && (sum.tickNew || grew)) celebrate(sum.tickNew ? 1.2 : 0.8);
+  const sess = Store.get('sessions', sum.sessionId);
+  const moveDay = async (date, from) => {
+    moveSessionDay(sum.sessionId, date, from);
+    await Store.flushAll().catch(() => {});
+    renderAll();
+    showSessionSummary(sum, streakBefore, nextClipId, true);
+  };
+  const lateCard = sess && sess.movedFrom
+    ? h('div', { class: 'card row' },
+      h('p', { class: 'grow' }, t('Counted for yesterday ({date}).', { date: fmtDay(sess.date) })),
+      btn(t('Undo'), () => moveDay(sess.movedFrom, null), { size: 'sm', kind: 'ghost' }))
+    : canCountForYesterday(sum.sessionId)
+      ? h('div', { class: 'card row' },
+        h('p', { class: 'grow' }, t('You didn’t practise yesterday. A session started before 10am can count for yesterday instead of today.')),
+        btn(t('Count this for yesterday'), () => moveDay(addDays(sess.date, -1), sess.date), { size: 'sm', icon: 'history' }))
+      : null;
   const recs = [sum.recs.step3, sum.recs.final].filter(Boolean);
   openModal([
     modalHead(sum.complete ? t('Session complete!') : t('Session saved')),
@@ -765,6 +781,7 @@ function showSessionSummary(sum, streakBefore, nextClipId) {
       h('p', { class: 'muted' }, tp(sum.passes, '{n} pass · {min} min · {week}/{target} sessions this week', '{n} passes · {min} min · {week}/{target} sessions this week', { min: sum.minutes, week: info.weekCount, target: settings().weeklyTarget })),
       sum.tickNew ? h('p', { class: 'formok' }, t('“{clip}” gets its tick.', { clip: clipName(clip) })) : null,
       !sum.complete && sum.mode === 'full' ? h('p', { class: 'small muted' }, t('Progress so far is saved. The clip gets its tick after one complete session.')) : null),
+    lateCard,
     recs.length === 2 ? btn(t('Compare step 3 with your final pass'), () => openCompare(sum.recs.step3, sum.recs.final), { kind: 'blue' }) : null,
     h('div', { class: 'row' },
       nextClipId ? btn(t('Next clip in the queue'), () => { closeModal(); Session.begin(nextClipId, sum.mode === 'review' ? 'review' : 'full'); }, { kind: 'primary', size: 'big', icon: 'play' }) : btn(t('Done'), () => closeModal(), { kind: 'primary', size: 'big' }),

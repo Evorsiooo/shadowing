@@ -29,6 +29,20 @@ function streakInfo(excludeId) {
   return { streak, weekCount, minutes: minutes < 10 ? round(minutes, 1) : Math.round(minutes), days, practisedToday: days.has(today), missedYesterday: days.size > 0 && !days.has(yesterday) && !days.has(today) };
 }
 
+/* a session started between midnight and 10am can count for yesterday when yesterday has none */
+const LATE_SESSION_HOUR = 10;
+function canCountForYesterday(sessionId) {
+  const s = Store.get('sessions', sessionId);
+  if (!s || s.empty || s.movedFrom || s.date !== dayKey() || !s.passes || !s.passes.length) return false;
+  if (new Date(s.startedAt).getHours() >= LATE_SESSION_HOUR) return false;
+  return !practisedDays(sessionId).has(addDays(s.date, -1));
+}
+/* move a session (and the notes taken in it) to another day; movedFrom remembers the original day for undo */
+function moveSessionDay(sessionId, date, movedFrom = null) {
+  Store.patch('sessions', sessionId, { date, movedFrom });
+  for (const n of Store.all('notes')) if (n.sessionId === sessionId) Store.patch('notes', n.id, { date });
+}
+
 /* ---------- top bar ---------- */
 function renderChips() {
   const s = streakInfo();
@@ -74,7 +88,8 @@ function renderBanners() {
   }
   if (info.missedYesterday && !info.practisedToday) {
     out.push(h('div', { class: 'banner' },
-      h('p', null, t('You missed yesterday. Don’t skip two days in a row: even a 5-minute bad-day session keeps the streak alive.')),
+      h('p', null, t('You missed yesterday. Don’t skip two days in a row: even a 5-minute bad-day session keeps the streak alive.'),
+        new Date().getHours() < LATE_SESSION_HOUR ? [' ', h('strong', null, t('It’s not 10am yet, so a session you do now can still count for yesterday: you’ll get the option when you finish.'))] : null),
       btn(t('Bad-day session'), () => Session.start(UI.queue.length ? UI.queue : [UI.clipId || lastClipId()].filter(Boolean), 'badday'), { kind: 'wattle', size: 'sm', icon: 'bad' })));
   }
   const due = dueCheckin();
