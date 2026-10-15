@@ -90,6 +90,7 @@ const Session = {
     if (!clip) return;
     UI.sel = null;
     UI.cutMode = false;
+    UI.unzoomed = false;
     $('#player').classList.remove('cutting');
     if (clip.videoId !== UI.videoId) Player.load(clip.videoId, { keepClip: true });
     UI.clipId = clip.id;
@@ -438,6 +439,7 @@ const Session = {
     const summary = { minutes: this.doc.minutes, passes: this.doc.passes.length, mode: this.mode, complete: this.doc.complete, tickNew, recs: { ...this.doc.recs }, clipId: this.clipId, sessionId: this.doc.id };
     this.active = false;
     this.phase = 'idle';
+    UI.unzoomed = true; // back to the whole video once the session is over
     this.review = null;
     const next = this.queue.shift();
     await Store.flushAll().catch(() => {});
