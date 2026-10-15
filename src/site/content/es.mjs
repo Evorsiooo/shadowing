@@ -40,7 +40,7 @@ const make = ({ SITE, L, host }) => ({
     ['¿Qué es el shadowing?', `Hacer shadowing es hablar a la vez que una grabación, copiando el ritmo, la entonación y los sonidos del hablante lo más fielmente posible. Entrena tu forma de hablar, no solo tu comprensión. <a href="${L('/what-is-shadowing/')}">Lee la guía completa</a>.`],
     ['¿Cuesta algo?', 'No. Euno Shadowing es gratis. Los comentarios de la IA son opcionales y usan tu propia clave de API: el proveedor que elijas te cobra directamente el uso de la IA, y tú eliges el modelo.'],
     ['¿Qué idiomas y acentos admite?', 'Puedes practicar inglés (australiano, estadounidense o británico del sur), francés (parisino o quebequense) o español (mexicano, de España o rioplatense), o indicar otro acento de esos idiomas. La aplicación está disponible en español, francés e inglés. Hay más idiomas previstos, como japonés y alemán.'],
-    ['¿Dónde se guardan mis videos y grabaciones?', 'En tu dispositivo, en el almacenamiento de tu navegador. Si los quieres en más de un dispositivo, puedes activar la sincronización con Google Drive y los archivos se guardan en una carpeta «Euno Shadowing» de tu propio Drive. Nuestro servidor solo guarda tus notas de práctica y tu progreso, nunca el audio ni el video.'],
+    ['¿Dónde se guardan mis videos y grabaciones?', 'En tu propio Google Drive. Cuando lo conectas, la app guarda tus archivos en una carpeta «Euno Shadowing», así los tienes en todos los dispositivos donde inicies sesión, y solo puede ver los archivos que ella crea. Tu navegador también guarda una copia de los archivos que abres para que se reproduzcan al instante. Nuestro servidor solo guarda tus notas de práctica y tu progreso, nunca el audio ni el video.'],
     ['¿Qué videos puedo usar?', 'Cualquier archivo de video o audio que tengas derecho a usar para tu propia práctica: sube un archivo desde tu dispositivo o pega un enlace directo a un .mp4. Lo que mejor funciona son entrevistas, pódcasts y charlas con un solo hablante que se oiga bien.'],
     ['¿Necesito una clave de IA?', 'No. Todo funciona sin ella. Con una clave de Anthropic, OpenAI u OpenRouter puedes pedir comentarios sobre lo que no sonó bien en tu grabación. Sin clave, Euno te escribe el prompt para que lo pegues en cualquier chatbot.'],
     ['¿Necesito un micrófono?', 'Sí, para grabar pasadas y evaluaciones. Unos auriculares ayudan, para que la voz del hablante no se cuele en tu grabación.'],
@@ -56,7 +56,7 @@ const make = ({ SITE, L, host }) => ({
     lede: 'Euno Shadowing es un coach diario de shadowing: elige un fragmento corto, habla a la vez que él y mira tu entonación y tu ritmo junto a los del hablante. Quince minutos al día, y tu acento avanza.',
     cta: 'Empieza a practicar con Google',
     how: 'Cómo funciona',
-    fine: 'Gratis. Funciona en tu navegador. Tus videos y grabaciones se quedan en tu dispositivo.',
+    fine: 'Gratis. Funciona en tu navegador. Tus videos y grabaciones van a tu propio Google Drive, no a nuestro servidor.',
     caption: 'Después de cada pasada, Euno alinea tu voz con la del hablante y te muestra cuánto retraso llevabas y dónde tu entonación se quedó plana.',
     howH2: 'Una sesión de 15 minutos, lista para ti',
     howIntro: 'Cada sesión trabaja un fragmento de una o dos frases. Euno lo repite en bucle, cuenta tus pasadas y controla el tiempo, así que tú solo escuchas y hablas.',
@@ -78,9 +78,9 @@ const make = ({ SITE, L, host }) => ({
     ],
     privH2: 'Tu voz sigue siendo tuya',
     panels: [
-      ['Archivos en tu dispositivo, o en tu propio Drive', [
-        'Los videos y las grabaciones de tu voz se guardan en tu navegador, en tu dispositivo.',
-        '¿Los quieres también en otro dispositivo? Activa la sincronización con Google Drive y se guardan en una carpeta de tu propio Drive.',
+      ['Tus archivos, en tu propio Drive', [
+        'Los videos y las grabaciones de tu voz se guardan en una carpeta «Euno Shadowing» de tu propio Google Drive, así los tienes en todos tus dispositivos.',
+        'La app solo puede ver los archivos que guarda ahí, y nuestro servidor nunca los almacena.',
         'Nuestro servidor solo guarda tus notas de práctica, tus ajustes y tu progreso, y puedes exportarlos o eliminarlos cuando quieras.',
       ]],
       ['Comentarios de la IA con tu propia clave, si quieres', [
@@ -190,7 +190,7 @@ const make = ({ SITE, L, host }) => ({
     title: 'Política de privacidad | Euno Shadowing',
     description: 'Qué guarda Euno Shadowing, dónde están tus grabaciones, cómo se tratan las claves de IA y los datos de Google, y cómo exportar o eliminar tu cuenta.',
     h1: 'Política de privacidad',
-    lede: 'En resumen: tus videos y las grabaciones de tu voz se quedan en tu dispositivo o en tu propio Google Drive. Nuestro servidor guarda tu cuenta, tus notas de práctica y tu progreso. No vendemos datos, no mostramos anuncios ni usamos rastreo.',
+    lede: 'En resumen: tus videos y las grabaciones de tu voz se guardan en tu propio Google Drive, no en nuestro servidor. Nuestro servidor guarda tu cuenta, tus notas de práctica y tu progreso. No vendemos datos, no mostramos anuncios ni usamos rastreo.',
     body: `
     <h2>Quiénes somos</h2>
     <p>Euno Shadowing («nosotros») es el servicio de práctica de shadowing disponible en ${host}. Puedes contactarnos a través del <a href="${L('/contact/')}">formulario de contacto</a>.</p>
@@ -201,7 +201,7 @@ const make = ({ SITE, L, host }) => ({
       <tbody>
         <tr><td>La dirección de correo, el nombre y el identificador de tu cuenta de Google</td><td>Nuestra base de datos</td><td>Para iniciar tu sesión e identificar tu cuenta</td></tr>
         <tr><td>Datos de práctica: tu lista de videos, fragmentos, sesiones, notas, puntos débiles, resultados de evaluaciones, mediciones y ajustes</td><td>Nuestra base de datos</td><td>Para que la app funcione y mostrar tu progreso en cualquier dispositivo</td></tr>
-        <tr><td>Videos y grabaciones de tu voz</td><td>El almacenamiento de tu navegador en tu dispositivo, y tu Google Drive si activas la sincronización</td><td>Para reproducir los fragmentos y comparar tus grabaciones. No guardamos copias en nuestro servidor.</td></tr>
+        <tr><td>Videos y grabaciones de tu voz</td><td>Una carpeta «Euno Shadowing» en tu propio Google Drive, más una copia en tu navegador de los archivos que abres para que se reproduzcan al instante. Si eliges guardar los archivos solo en este navegador (Ajustes → Almacenamiento), se quedan en tu dispositivo.</td><td>Para reproducir los fragmentos y comparar tus grabaciones. No guardamos copias en nuestro servidor.</td></tr>
         <tr><td>Clave de un proveedor de IA (opcional)</td><td>Nuestra base de datos, cifrada</td><td>Para pedir comentarios de la IA al proveedor que elegiste, cuando lo pides</td></tr>
         <tr><td>Webhook e identificador de usuario de Discord (opcionales)</td><td>Nuestra base de datos</td><td>Para enviar los recordatorios de práctica que configuraste</td></tr>
         <tr><td>Mensajes del formulario de contacto</td><td>Nuestra base de datos</td><td>Para responderte</td></tr>
@@ -211,7 +211,7 @@ const make = ({ SITE, L, host }) => ({
     <p>Nuestro proveedor de alojamiento, Cloudflare, trata datos técnicos de las solicitudes, como las direcciones IP, para servir y proteger el sitio.</p>
 
     <h2>Datos de Google</h2>
-    <p>Cuando inicias sesión con Google, recibimos tu dirección de correo, tu nombre y el identificador de tu cuenta, y nada más. Si activas la sincronización con Google Drive, pedimos permiso para acceder solo a los archivos que Euno Shadowing crea en tu Drive (el permiso <code>drive.file</code>). No podemos ver ninguno de tus otros archivos.</p>
+    <p>Cuando inicias sesión con Google, recibimos tu dirección de correo, tu nombre y el identificador de tu cuenta, y nada más. Cuando conectas Google Drive, pedimos permiso para acceder solo a los archivos que Euno Shadowing crea en tu Drive (el permiso <code>drive.file</code>). No podemos ver ninguno de tus otros archivos.</p>
     <p>El uso y la transferencia por parte de Euno Shadowing de la información recibida de las API de Google cumplen la <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener">Política de datos de usuario de los servicios de API de Google</a> (Google API Services User Data Policy), incluidos los requisitos de uso limitado (Limited Use). No usamos los datos de Google para publicidad, no los vendemos y no dejamos que nadie los lea, salvo cuando tú nos lo pides (por ejemplo, en una solicitud de ayuda), por motivos de seguridad o cuando lo exige la ley.</p>
 
     <h2>Comentarios de la IA</h2>
@@ -221,7 +221,7 @@ const make = ({ SITE, L, host }) => ({
     <ul>
       <li>Nada de publicidad, nada de rastreadores de analítica, nada de vender ni alquilar datos.</li>
       <li>No escuchamos tus grabaciones; no están en nuestro servidor.</li>
-      <li>El administrador puede ver los datos de la cuenta (correo, fecha de alta, última visita, si la sincronización con Drive y una clave de IA están configuradas) para gestionar el servicio, pero no el contenido de tu práctica.</li>
+      <li>El administrador puede ver los datos de la cuenta (correo, fecha de alta, última visita, si Google Drive está conectado y si hay una clave de IA) para gestionar el servicio, pero no el contenido de tu práctica.</li>
     </ul>
 
     <h2>Cuánto tiempo guardamos los datos</h2>
@@ -230,7 +230,7 @@ const make = ({ SITE, L, host }) => ({
     <h2>Tus derechos y opciones</h2>
     <ul>
       <li><strong>Exportar:</strong> descarga una copia de seguridad completa de tus datos de práctica desde los ajustes de la app.</li>
-      <li><strong>Eliminar:</strong> elimina tu cuenta desde los ajustes de la app, o pídenoslo a través del formulario de contacto. Así se borran de nuestra base de datos tu cuenta, tus datos de práctica, tu clave de IA y tus ajustes de recordatorios. Los archivos de tu navegador se quedan en tu dispositivo hasta que los borres, y los de tu Drive siguen siendo tuyos.</li>
+      <li><strong>Eliminar:</strong> elimina tu cuenta desde los ajustes de la app, o pídenoslo a través del formulario de contacto. Así se borran de nuestra base de datos tu cuenta, tus datos de práctica, tu clave de IA y tus ajustes de recordatorios. Los archivos de tu Google Drive siguen siendo tuyos, y las copias en tu navegador se quedan hasta que las borres.</li>
       <li><strong>Retirar el acceso de Google</strong> en cualquier momento en los <a href="https://myaccount.google.com/permissions" rel="noopener">ajustes de tu cuenta de Google</a>.</li>
       <li>Según dónde vivas (por ejemplo, con el RGPD en la Unión Europea y el Reino Unido), también puedes tener derecho a acceder a tus datos, rectificarlos o limitar su uso, y a presentar una reclamación ante tu autoridad de protección de datos.</li>
     </ul>
@@ -257,7 +257,7 @@ const make = ({ SITE, L, host }) => ({
     <ul>
       <li>Tus grabaciones, notas y datos de práctica son tuyos. Solo nos das el permiso necesario para guardarlos y procesarlos con el fin de prestarte el servicio.</li>
       <li>Añade solo videos y audios que tengas derecho a usar para tu práctica personal. No uses Euno Shadowing para compartir ni redistribuir contenido de otras personas.</li>
-      <li>Hacer copias de seguridad de los archivos de tu dispositivo o de tu Google Drive es responsabilidad tuya.</li>
+      <li>Hacer copias de seguridad de los archivos de tu Google Drive o de tu dispositivo es responsabilidad tuya.</li>
     </ul>
 
     <h2>Proveedores de IA</h2>
