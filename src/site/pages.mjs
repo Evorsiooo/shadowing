@@ -60,8 +60,8 @@ export function demoSvg(d = LANGS[0].demo) {
   <desc id="demoD">${d.desc}</desc>
   <rect class="lane" x="0" y="0" width="560" height="320" rx="14"/>
   <g class="grid"><line x1="20" y1="70" x2="540" y2="70"/><line x1="20" y1="130" x2="540" y2="130"/><line x1="20" y1="190" x2="540" y2="190"/></g>
-  <path class="speaker" d="M20 160 C60 120 90 95 120 125 S170 190 200 160 S260 70 300 92 S360 170 390 150 S450 105 480 130 S520 180 540 170"/>
-  <path class="you" d="M34 160 C74 132 104 112 134 132 S184 180 214 157 S274 92 314 106 S374 162 404 147 S464 118 494 134 S530 168 546 164"/>
+  <path class="speaker" pathLength="1" d="M20 160 C60 120 90 95 120 125 S170 190 200 160 S260 70 300 92 S360 170 390 150 S450 105 480 130 S520 180 540 170"/>
+  <path class="you" pathLength="1" d="M34 160 C74 132 104 112 134 132 S184 180 214 157 S274 92 314 106 S374 162 404 147 S464 118 494 134 S530 168 546 164"/>
   <g class="wave">${bars}</g>
   <circle class="key-s" cx="28" cy="28" r="6"/><text class="lbl" x="40" y="33">${d.speaker}</text>
   <circle class="key-y" cx="${youX - 12}" cy="28" r="6"/><text class="lbl" x="${youX}" y="33">${d.you}</text>

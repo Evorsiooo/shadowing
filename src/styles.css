@@ -485,6 +485,31 @@ audio { max-width: 100%; height: 36px; }
 body.calm .bar > i { transition: none; }
 body.calm .toast { animation: none; }
 
+/* ---------- motion: quick and subtle; none at all for reduced motion (below) ---------- */
+@keyframes fade { from { opacity: 0; } }
+@keyframes modal-in { from { opacity: 0; transform: translateY(14px) scale(0.98); } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(6px) scale(0.97); } }
+@keyframes bump { from { transform: scale(0.6); opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .modal-back { animation: fade 0.18s ease-out; }
+  .modal { animation: modal-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  /* switching a tab inside a modal only fades the new content in */
+  .modal-back.swap, .modal-back.swap .modal { animation: none; }
+  .modal-back.swap .modal > :not(.modal-head, .tabs, .wiz) { animation: fade 0.16s ease-out; }
+  .drawer-back:not([hidden]) { animation: fade 0.2s ease-out; }
+  .toast.out { animation: toast-out 0.2s ease-in forwards; }
+  .celebrate .big-num { animation: bump 0.5s 0.12s cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+  .btn, .seg button, button.chip, .tag button { transition: transform 0.06s, filter 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s; }
+  .btn:hover:not([disabled]) { transform: translateY(-1px); }
+  .btn:active:not([disabled]) { transform: translateY(2px); }
+  .seg button:hover:not(.on) { background: var(--surface-2); }
+  .ctrl-row .seg button:hover:not(.on) { background: rgba(255, 255, 255, 0.2); }
+  .vitem, .citem { transition: border-color 0.15s, background-color 0.15s; }
+  .citem:hover:not(.sel) { border-color: color-mix(in srgb, var(--line), var(--wattle) 45%); }
+}
+/* calm mode while speaking: buttons don't move under the cursor */
+body.calm .btn:hover { transform: none; }
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }

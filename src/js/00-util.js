@@ -155,15 +155,18 @@ const lsSet = (k, v) => { try { localStorage.setItem('shadowing:' + k, JSON.stri
 function toast(msg, kind = '', ms = 3800) {
   const el = h('div', { class: `toast ${kind}`, role: kind === 'bad' ? 'alert' : 'status' }, msg);
   $('#toasts').appendChild(el);
-  setTimeout(() => el.remove(), ms);
+  // fade out first (styles.css .toast.out), then remove
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 200); }, ms);
 }
 
 /* ---------- modal ---------- */
 let modalCloseHook = null;
 function openModal(content, { narrow = false, onClose = null } = {}) {
+  // a modal replacing an open one (a tab or wizard step) only fades its content in, without the pop
+  const swap = isModalOpen();
   closeModal(true);
   modalCloseHook = onClose;
-  const back = h('div', { class: 'modal-back', onmousedown: (e) => { if (e.target === back) closeModal(); } },
+  const back = h('div', { class: `modal-back${swap ? ' swap' : ''}`, onmousedown: (e) => { if (e.target === back) closeModal(); } },
     h('div', { class: `modal ${narrow ? 'narrow' : ''}`, role: 'dialog', 'aria-modal': 'true' }, content));
   mount($('#modalRoot'), back);
   const f = back.querySelector('[autofocus]') || back.querySelector('button, input, textarea, select');
