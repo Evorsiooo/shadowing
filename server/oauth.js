@@ -212,7 +212,7 @@ export async function authorizeGet(request, env, url) {
     if (params.response_type !== 'code') return await fail('unsupported_response_type', 'Only response_type=code is supported.');
     if (!params.code_challenge || params.code_challenge_method !== 'S256' || !/^[A-Za-z0-9_-]{43,128}$/.test(params.code_challenge)) return await fail('invalid_request', 'PKCE with S256 is required.');
     if (!resourceOk(params.resource, origin)) return await fail('invalid_target', `The resource must be ${mcpUrl(origin)}.`);
-    if (params.state && params.state.length > 1000) return await fail('invalid_request', 'state is too long.');
+    if (params.state && params.state.length > 8192) return await fail('invalid_request', 'state is too long.');
     requestId = randomToken(24);
     const keep = { redirect_uri: params.redirect_uri, state: params.state || null, code_challenge: params.code_challenge, scope: params.scope || null, resource: params.resource || null };
     await db.prepare('INSERT INTO oauth_requests (id, client_id, user_id, params, expires) VALUES (?, ?, NULL, ?, ?)')
