@@ -18,6 +18,7 @@ const UI = {
   showAllClips: {},
   overlay: lsGet('overlay', false),
   zoom: lsGet('scrubZoom', true), // the scrub bar shows just the selected clip (with a little either side)
+  unzoomed: false, // zoomed back out after a session ends, until a clip is picked again
 };
 
 /* ---------- video player with custom controls ---------- */
@@ -227,13 +228,15 @@ const Player = {
 /* the stretch of video the scrub bar shows: the whole video, or zoomed in on the selected clip */
 function scrubView() {
   const d = Player.duration();
-  const c = UI.zoom && !UI.sel && !UI.cutMode ? Store.get('clips', UI.clipId) : null;
+  const c = zoomOn() && !UI.sel && !UI.cutMode ? Store.get('clips', UI.clipId) : null;
   if (!c || !d || c.videoId !== UI.videoId) return { v0: 0, v1: d, zoomed: false };
   const m = Math.max(1, (c.end - c.start) * 0.15);
   return { v0: Math.max(0, c.start - m), v1: Math.min(d, c.end + m), zoomed: true };
 }
+function zoomOn() { return UI.zoom && !UI.unzoomed; }
 function setZoom(on) {
   UI.zoom = on;
+  UI.unzoomed = false;
   lsSet('scrubZoom', on);
   renderControls(); renderScrubber();
 }
@@ -302,7 +305,7 @@ function renderControls() {
     h('div', { class: 'seg', role: 'group', 'aria-label': t('Speed') },
       [0.5, 0.75, 1].map((r) => h('button', { type: 'button', class: UI.rate === r ? 'on' : '', onclick: () => Player.setRate(r), title: t('Speed (, and .)') }, `${r}x`))),
     btn(t('Loop'), () => { UI.loop = !UI.loop; renderControls(); }, { icon: 'loop', on: UI.loop, pressed: UI.loop, title: t('Loop the clip (L)'), aria: t('Loop'), id: 'loopBtn' }),
-    UI.clipId && !UI.sel && !UI.cutMode ? btn(t('Zoom'), () => setZoom(!UI.zoom), { icon: 'zoom', on: UI.zoom, pressed: UI.zoom, title: UI.zoom ? t('Show the whole video on the timeline') : t('Zoom the timeline in on the clip'), aria: t('Zoom the timeline in on the clip') }) : null,
+    UI.clipId && !UI.sel && !UI.cutMode ? btn(t('Zoom'), () => setZoom(!zoomOn()), { icon: 'zoom', on: zoomOn(), pressed: zoomOn(), title: zoomOn() ? t('Show the whole video on the timeline') : t('Zoom the timeline in on the clip'), aria: t('Zoom the timeline in on the clip') }) : null,
     btn('', () => Player.setVolume(UI.volume === 0 ? 1 : 0), { icon: volIcon, title: t('Mute') }),
     h('input', { type: 'range', class: 'vol', min: 0, max: 1, step: 0.05, value: UI.volume, 'aria-label': t('Volume'), oninput: (e) => Player.setVolume(+e.target.value) }),
     h('span', { class: 'spacer' }),
@@ -400,6 +403,7 @@ function selectClip(id, { seek = true, play = false } = {}) {
   if (c.videoId !== UI.videoId) Player.load(c.videoId, { keepClip: true });
   UI.clipId = id;
   UI.sel = null;
+  UI.unzoomed = false;
   if (seek) Player.seek(c.start);
   if (play) Player.play();
   renderAll();
