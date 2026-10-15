@@ -40,7 +40,7 @@ const make = ({ SITE, L, host }) => ({
     ['C’est quoi le shadowing ?', `Faire du shadowing, c’est parler en même temps qu’un enregistrement, en copiant le rythme, la mélodie et les sons du locuteur d’aussi près que possible. Ça entraîne ta façon de parler, pas seulement ta compréhension. <a href="${L('/what-is-shadowing/')}">Lire le guide complet</a>.`],
     ['C’est payant ?', 'Non. Euno Shadowing est gratuit. Les retours de l’IA sont optionnels et utilisent ta propre clé API : l’usage de l’IA t’est facturé directement par le fournisseur que tu choisis, et c’est toi qui choisis le modèle.'],
     ['Quelles langues et quels accents ?', 'Tu peux pratiquer l’anglais (australien, américain ou britannique du Sud), le français (parisien ou québécois) ou l’espagnol (mexicain, d’Espagne ou rioplatense), ou indiquer un autre accent de ces langues. L’application est disponible en français, en anglais et en espagnol. D’autres langues, comme le japonais et l’allemand, sont prévues.'],
-    ['Où sont stockés mes vidéos et mes enregistrements ?', 'Sur ton appareil, dans le stockage de ton navigateur. Si tu les veux sur plusieurs appareils, tu peux activer la synchronisation Google Drive : les fichiers vont dans un dossier « Euno Shadowing » de ton propre Drive. Notre serveur ne garde que tes notes d’entraînement et tes progrès, jamais l’audio ni la vidéo.'],
+    ['Où sont stockés mes vidéos et mes enregistrements ?', 'Dans ton propre Google Drive. Quand tu le connectes, l’app range tes fichiers dans un dossier « Euno Shadowing », pour que tu les retrouves sur tous les appareils où tu te connectes, et elle ne voit que les fichiers qu’elle crée. Ton navigateur garde aussi une copie des fichiers que tu ouvres pour qu’ils se lancent tout de suite. Notre serveur ne garde que tes notes d’entraînement et tes progrès, jamais l’audio ni la vidéo.'],
     ['Quelles vidéos puis-je utiliser ?', 'N’importe quel fichier vidéo ou audio que tu as le droit d’utiliser pour t’entraîner : importe un fichier depuis ton appareil ou colle un lien direct vers un .mp4. Les interviews, podcasts et conférences avec un seul locuteur bien audible marchent le mieux.'],
     ['Faut-il une clé d’IA ?', 'Non. Tout fonctionne sans. Avec une clé Anthropic, OpenAI ou OpenRouter, tu peux demander un retour sur ce qui sonnait faux dans ton enregistrement. Sans clé, Euno rédige le prompt pour que tu le colles dans n’importe quel chatbot.'],
     ['Faut-il un micro ?', 'Oui, pour enregistrer tes passages et tes bilans. Un casque ou des écouteurs aident, pour que la voix du locuteur ne passe pas dans ton enregistrement.'],
@@ -56,7 +56,7 @@ const make = ({ SITE, L, host }) => ({
     lede: 'Euno Shadowing est un coach quotidien pour le shadowing : choisis un court extrait, parle en même temps que lui, et vois ta mélodie et ton rythme à côté de ceux du locuteur. Quinze minutes par jour, et ton accent évolue.',
     cta: 'Commencer avec Google',
     how: 'Comment ça marche',
-    fine: 'Gratuit. Dans ton navigateur. Tes vidéos et tes enregistrements restent sur ton appareil.',
+    fine: 'Gratuit. Dans ton navigateur. Tes vidéos et tes enregistrements vont dans ton propre Google Drive, pas sur notre serveur.',
     caption: 'Après chaque passage, Euno aligne ta voix sur celle du locuteur et te montre ton décalage et les endroits où ta mélodie était trop plate.',
     howH2: 'Une séance de 15 minutes, toute prête',
     howIntro: 'Chaque séance porte sur un extrait d’une ou deux phrases. Euno le passe en boucle, compte tes passages et gère le temps : tu n’as plus qu’à écouter et parler.',
@@ -78,9 +78,9 @@ const make = ({ SITE, L, host }) => ({
     ],
     privH2: 'Ta voix reste à toi',
     panels: [
-      ['Tes fichiers sur ton appareil, ou dans ton propre Drive', [
-        'Les vidéos et les enregistrements de ta voix sont stockés dans ton navigateur, sur ton appareil.',
-        'Tu les veux aussi sur un autre appareil ? Active la synchronisation Google Drive : ils vont dans un dossier de ton propre Drive.',
+      ['Tes fichiers, dans ton propre Drive', [
+        'Les vidéos et les enregistrements de ta voix vont dans un dossier « Euno Shadowing » de ton propre Google Drive, pour que tu les retrouves sur tous tes appareils.',
+        'L’app ne voit que les fichiers qu’elle y range, et notre serveur ne les stocke jamais.',
         'Notre serveur ne garde que tes notes d’entraînement, tes réglages et tes progrès, que tu peux exporter ou supprimer quand tu veux.',
       ]],
       ['Des retours de l’IA avec ta propre clé, si tu veux', [
@@ -190,7 +190,7 @@ const make = ({ SITE, L, host }) => ({
     title: 'Politique de confidentialité | Euno Shadowing',
     description: 'Ce qu’Euno Shadowing stocke, où se trouvent tes enregistrements, comment sont traitées les clés d’IA et les données Google, et comment exporter ou supprimer ton compte.',
     h1: 'Politique de confidentialité',
-    lede: 'En bref : tes vidéos et les enregistrements de ta voix restent sur ton appareil ou dans ton propre Google Drive. Notre serveur stocke ton compte, tes notes d’entraînement et tes progrès. Nous ne vendons pas de données, n’affichons pas de publicité et n’utilisons aucun pistage.',
+    lede: 'En bref : tes vidéos et les enregistrements de ta voix sont gardés dans ton propre Google Drive, pas sur notre serveur. Notre serveur stocke ton compte, tes notes d’entraînement et tes progrès. Nous ne vendons pas de données, n’affichons pas de publicité et n’utilisons aucun pistage.',
     body: `
     <h2>Qui sommes-nous</h2>
     <p>Euno Shadowing (« nous ») est le service d’entraînement au shadowing disponible sur ${host}. Tu peux nous joindre via le <a href="${L('/contact/')}">formulaire de contact</a>.</p>
@@ -201,7 +201,7 @@ const make = ({ SITE, L, host }) => ({
       <tbody>
         <tr><td>L’adresse e-mail, le nom et l’identifiant de ton compte Google</td><td>Notre base de données</td><td>Pour te connecter et identifier ton compte</td></tr>
         <tr><td>Données d’entraînement : ta liste de vidéos, tes extraits, séances, notes, points faibles, résultats de bilans, mesures et réglages</td><td>Notre base de données</td><td>Pour faire fonctionner l’app et afficher tes progrès sur tous tes appareils</td></tr>
-        <tr><td>Vidéos et enregistrements de ta voix</td><td>Le stockage de ton navigateur sur ton appareil, et ton Google Drive si tu actives la synchronisation</td><td>Pour lire les extraits et comparer tes enregistrements. Nous n’en gardons aucune copie sur notre serveur.</td></tr>
+        <tr><td>Vidéos et enregistrements de ta voix</td><td>Un dossier « Euno Shadowing » dans ton propre Google Drive, plus une copie dans ton navigateur des fichiers que tu ouvres pour qu’ils se lancent tout de suite. Si tu choisis de garder tes fichiers uniquement dans ce navigateur (Réglages → Stockage), ils restent sur ton appareil.</td><td>Pour lire les extraits et comparer tes enregistrements. Nous n’en gardons aucune copie sur notre serveur.</td></tr>
         <tr><td>Clé d’un fournisseur d’IA (optionnelle)</td><td>Notre base de données, chiffrée</td><td>Pour demander un retour de l’IA au fournisseur que tu as choisi, quand tu le demandes</td></tr>
         <tr><td>Webhook et identifiant Discord (optionnels)</td><td>Notre base de données</td><td>Pour envoyer les rappels d’entraînement que tu as configurés</td></tr>
         <tr><td>Messages du formulaire de contact</td><td>Notre base de données</td><td>Pour te répondre</td></tr>
@@ -211,7 +211,7 @@ const make = ({ SITE, L, host }) => ({
     <p>Notre hébergeur, Cloudflare, traite des données techniques liées aux requêtes, comme les adresses IP, pour délivrer et protéger le site.</p>
 
     <h2>Données Google</h2>
-    <p>Quand tu te connectes avec Google, nous recevons ton adresse e-mail, ton nom et l’identifiant de ton compte, et rien d’autre. Si tu actives la synchronisation Google Drive, nous demandons l’autorisation d’accéder uniquement aux fichiers qu’Euno Shadowing crée dans ton Drive (l’autorisation <code>drive.file</code>). Nous ne pouvons voir aucun de tes autres fichiers.</p>
+    <p>Quand tu te connectes avec Google, nous recevons ton adresse e-mail, ton nom et l’identifiant de ton compte, et rien d’autre. Quand tu connectes Google Drive, nous demandons l’autorisation d’accéder uniquement aux fichiers qu’Euno Shadowing crée dans ton Drive (l’autorisation <code>drive.file</code>). Nous ne pouvons voir aucun de tes autres fichiers.</p>
     <p>L’utilisation et le transfert par Euno Shadowing des informations reçues des API Google respectent le <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener">règlement sur les données utilisateur des services d’API Google</a> (Google API Services User Data Policy), y compris les exigences d’utilisation limitée (Limited Use). Nous n’utilisons pas les données Google pour la publicité, ne les vendons pas, et ne laissons personne les lire, sauf si tu nous le demandes (par exemple dans une demande d’assistance), pour des raisons de sécurité, ou si la loi l’exige.</p>
 
     <h2>Retours de l’IA</h2>
@@ -221,7 +221,7 @@ const make = ({ SITE, L, host }) => ({
     <ul>
       <li>Pas de publicité, pas de traceurs d’analyse, pas de vente ni de location de données.</li>
       <li>Nous n’écoutons pas tes enregistrements ; ils ne sont pas sur notre serveur.</li>
-      <li>L’administrateur peut voir les informations du compte (e-mail, date d’inscription, dernière visite, activation de la synchronisation Drive et présence d’une clé d’IA) pour faire fonctionner le service, mais pas le contenu de ton entraînement.</li>
+      <li>L’administrateur peut voir les informations du compte (e-mail, date d’inscription, dernière visite, connexion de Google Drive et présence d’une clé d’IA) pour faire fonctionner le service, mais pas le contenu de ton entraînement.</li>
     </ul>
 
     <h2>Durée de conservation</h2>
@@ -230,7 +230,7 @@ const make = ({ SITE, L, host }) => ({
     <h2>Tes droits et tes choix</h2>
     <ul>
       <li><strong>Exporter :</strong> télécharge une sauvegarde complète de tes données d’entraînement depuis les réglages de l’app.</li>
-      <li><strong>Supprimer :</strong> supprime ton compte depuis les réglages de l’app, ou demande-le-nous via le formulaire de contact. Cela efface de notre base de données ton compte, tes données d’entraînement, ta clé d’IA et tes réglages de rappels. Les fichiers de ton navigateur restent sur ton appareil jusqu’à ce que tu les effaces, et ceux de ton Drive restent à toi.</li>
+      <li><strong>Supprimer :</strong> supprime ton compte depuis les réglages de l’app, ou demande-le-nous via le formulaire de contact. Cela efface de notre base de données ton compte, tes données d’entraînement, ta clé d’IA et tes réglages de rappels. Les fichiers de ton Google Drive restent à toi, et les copies dans ton navigateur restent jusqu’à ce que tu les effaces.</li>
       <li><strong>Retirer l’accès de Google</strong> à tout moment dans les <a href="https://myaccount.google.com/permissions" rel="noopener">paramètres de ton compte Google</a>.</li>
       <li>Selon l’endroit où tu vis (par exemple avec le RGPD dans l’Union européenne et au Royaume-Uni), tu peux aussi avoir le droit d’accéder à tes données, de les rectifier ou d’en limiter l’utilisation, et de porter plainte auprès de ton autorité de protection des données.</li>
     </ul>
@@ -257,7 +257,7 @@ const make = ({ SITE, L, host }) => ({
     <ul>
       <li>Tes enregistrements, tes notes et tes données d’entraînement t’appartiennent. Tu nous donnes seulement l’autorisation nécessaire pour les stocker et les traiter afin de faire fonctionner le service pour toi.</li>
       <li>N’ajoute que des vidéos et des fichiers audio que tu as le droit d’utiliser pour ton entraînement personnel. N’utilise pas Euno Shadowing pour partager ou redistribuer le contenu d’autres personnes.</li>
-      <li>C’est à toi de sauvegarder les fichiers qui sont sur ton appareil ou dans ton Google Drive.</li>
+      <li>C’est à toi de sauvegarder les fichiers qui sont dans ton Google Drive ou sur ton appareil.</li>
     </ul>
 
     <h2>Fournisseurs d’IA</h2>

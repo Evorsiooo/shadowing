@@ -41,7 +41,7 @@ const make = ({ SITE, L, host }) => ({
     ['What is shadowing?', `Shadowing means speaking along with a recording at the same time as the speaker, copying their rhythm, melody and sounds as closely as you can. It trains the way you speak, not just the way you understand. <a href="${L('/what-is-shadowing/')}">Read the full guide</a>.`],
     ['Does it cost anything?', 'No. Euno Shadowing is free. AI feedback is optional and uses your own API key, so any AI usage is billed to you directly by the provider you pick, and you choose the model.'],
     ['Which languages and accents does it support?', 'You can practise English (General Australian, General American or Southern British), French (Parisian or Québécois) or Spanish (Mexican, Spain or Rioplatense), or name another accent of those languages. The app itself is available in English, French and Spanish. More languages, such as Japanese and German, are planned.'],
-    ['Where are my videos and recordings stored?', 'On your device, in your browser’s storage. If you want them on more than one device, you can turn on Google Drive sync, and the files go into a “Euno Shadowing” folder in your own Drive. Our server only keeps your practice notes and progress, never the audio or video.'],
+    ['Where are my videos and recordings stored?', 'In your own Google Drive. When you connect it, the app puts your files in a “Euno Shadowing” folder there, so they’re on every device you sign in on, and it can only see the files it creates. Your browser also keeps a copy of the files you open so they play instantly. Our server only keeps your practice notes and progress, never the audio or video.'],
     ['Which videos can I use?', 'Any video or audio file you have the right to use for your own practice: upload a file from your device or paste a direct link to an .mp4. Interviews, podcasts and talks with one clear speaker work best.'],
     ['Do I need an AI key?', 'No. Everything works without one. With a key from Anthropic, OpenAI or OpenRouter, you can ask for feedback on what sounded off in your recording. Without a key, Euno writes the prompt for you to paste into any chatbot.'],
     ['Do I need a microphone?', 'Yes, for recording passes and check-ins. A headset or earphones help, so the speaker’s voice doesn’t leak into your recording.'],
@@ -57,7 +57,7 @@ const make = ({ SITE, L, host }) => ({
     lede: 'Euno Shadowing is a daily coach for shadowing: pick a short clip, speak along with it, and see your melody and timing next to the speaker’s. Fifteen minutes a day, and your accent moves.',
     cta: 'Start practising with Google',
     how: 'How it works',
-    fine: 'Free. Works in your browser. Your videos and recordings stay on your device.',
+    fine: 'Free. Works in your browser. Your videos and recordings go to your own Google Drive, not our server.',
     caption: 'After each pass, Euno lines your voice up with the speaker’s and shows how far behind you were and where your melody went flat.',
     howH2: 'A 15-minute session, done for you',
     howIntro: 'Each session works on one clip of one or two sentences. Euno loops it, counts your passes and keeps the time, so all you do is listen and speak.',
@@ -79,9 +79,9 @@ const make = ({ SITE, L, host }) => ({
     ],
     privH2: 'Your voice stays yours',
     panels: [
-      ['Files on your device, or your own Drive', [
-        'Videos and voice recordings are stored in your browser, on your device.',
-        'Want them on another device too? Turn on Google Drive sync, and they go into a folder in your own Drive.',
+      ['Your files, in your own Drive', [
+        'Videos and voice recordings go into a “Euno Shadowing” folder in your own Google Drive, so they’re on every device you sign in on.',
+        'The app can only see the files it puts there, and our server never stores them.',
         'Our server only keeps your practice notes, settings and progress, and you can export or delete them any time.',
       ]],
       ['AI feedback with your own key, if you want it', [
@@ -191,7 +191,7 @@ const make = ({ SITE, L, host }) => ({
     title: 'Privacy policy | Euno Shadowing',
     description: 'What Euno Shadowing stores, where your recordings live, how AI keys and Google data are handled, and how to export or delete your account.',
     h1: 'Privacy policy',
-    lede: 'Short version: your videos and voice recordings stay on your device or in your own Google Drive. Our server stores your account and your practice notes and progress. We don’t sell data, show ads or use tracking.',
+    lede: 'Short version: your videos and voice recordings are kept in your own Google Drive, not on our server. Our server stores your account and your practice notes and progress. We don’t sell data, show ads or use tracking.',
     body: `
     <h2>Who we are</h2>
     <p>Euno Shadowing (“we”, “us”) is the shadowing practice service at ${host}. You can reach us through the <a href="${L('/contact/')}">contact form</a>.</p>
@@ -202,7 +202,7 @@ const make = ({ SITE, L, host }) => ({
       <tbody>
         <tr><td>Your Google account’s email address, name and account id</td><td>Our database</td><td>To sign you in and identify your account</td></tr>
         <tr><td>Practice data: your video list, clips, sessions, notes, issues, check-in results, measurements and settings</td><td>Our database</td><td>To run the app and show your progress on any device</td></tr>
-        <tr><td>Videos and voice recordings</td><td>Your browser’s storage on your device, and your Google Drive if you turn on sync</td><td>To play clips and compare your recordings. We don’t keep copies on our server.</td></tr>
+        <tr><td>Videos and voice recordings</td><td>A “Euno Shadowing” folder in your own Google Drive, plus a copy in your browser of the files you open so they play instantly. If you choose to keep files only in this browser (Settings → Storage), they stay on your device.</td><td>To play clips and compare your recordings. We don’t keep copies on our server.</td></tr>
         <tr><td>AI provider key (optional)</td><td>Our database, encrypted</td><td>To request AI feedback from the provider you chose, when you ask for it</td></tr>
         <tr><td>Discord webhook and user id (optional)</td><td>Our database</td><td>To send the practice reminders you set up</td></tr>
         <tr><td>Contact form messages</td><td>Our database</td><td>To answer you</td></tr>
@@ -212,7 +212,7 @@ const make = ({ SITE, L, host }) => ({
     <p>Our hosting provider, Cloudflare, processes technical request data such as IP addresses to deliver and protect the site.</p>
 
     <h2>Google data</h2>
-    <p>When you sign in with Google we receive your email address, name and account id, and nothing else. If you turn on Google Drive sync, we ask for permission to access only the files Euno Shadowing creates in your Drive (the <code>drive.file</code> permission). We can’t see any of your other files.</p>
+    <p>When you sign in with Google we receive your email address, name and account id, and nothing else. When you connect Google Drive, we ask for permission to access only the files Euno Shadowing creates in your Drive (the <code>drive.file</code> permission). We can’t see any of your other files.</p>
     <p>Euno Shadowing’s use and transfer of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener">Google API Services User Data Policy</a>, including the Limited Use requirements. We don’t use Google data for advertising, don’t sell it, and don’t let people read it except where you ask us to (for example in a support request), for security, or where the law requires it.</p>
 
     <h2>AI feedback</h2>
@@ -222,7 +222,7 @@ const make = ({ SITE, L, host }) => ({
     <ul>
       <li>No advertising, no analytics trackers, no selling or renting data.</li>
       <li>We don’t listen to your recordings; they aren’t on our server.</li>
-      <li>The administrator can see account details (email, join date, last visit, whether Drive sync and an AI key are set) to run the service, but not your practice content.</li>
+      <li>The administrator can see account details (email, join date, last visit, whether Google Drive is connected and an AI key is set) to run the service, but not your practice content.</li>
     </ul>
 
     <h2>How long we keep data</h2>
@@ -231,7 +231,7 @@ const make = ({ SITE, L, host }) => ({
     <h2>Your rights and choices</h2>
     <ul>
       <li><strong>Export:</strong> download a full backup of your practice data from the app’s settings.</li>
-      <li><strong>Delete:</strong> delete your account from the app’s settings, or ask us through the contact form. This removes your account, practice data, AI key and reminder settings from our database. Files in your browser stay on your device until you clear them, and files in your Drive stay yours.</li>
+      <li><strong>Delete:</strong> delete your account from the app’s settings, or ask us through the contact form. This removes your account, practice data, AI key and reminder settings from our database. Files in your Google Drive stay yours, and copies in your browser stay until you clear them.</li>
       <li><strong>Revoke Google access</strong> at any time in your <a href="https://myaccount.google.com/permissions" rel="noopener">Google account settings</a>.</li>
       <li>Depending on where you live (for example under the GDPR in the EU and UK), you may also have the right to access, correct or restrict the use of your data, and to complain to your data protection authority.</li>
     </ul>
@@ -258,7 +258,7 @@ const make = ({ SITE, L, host }) => ({
     <ul>
       <li>Your recordings, notes and practice data belong to you. You give us only the permission needed to store and process them to run the service for you.</li>
       <li>Only add videos and audio you have the right to use for your own private practice. Don’t use Euno Shadowing to share or redistribute other people’s content.</li>
-      <li>Files on your device or in your Google Drive are your responsibility to back up.</li>
+      <li>Files in your Google Drive or on your device are your responsibility to back up.</li>
     </ul>
 
     <h2>AI providers</h2>

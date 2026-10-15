@@ -408,7 +408,6 @@ canvas.analysis { cursor: pointer; touch-action: pan-y; }
 .citem.sel { border-color: var(--wattle); }
 .citem .clabel { font-weight: 800; font-size: 0.86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .citem .cmeta { font-size: 0.75rem; color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
-.qbtn b { font-size: 0.8rem; font-variant-numeric: tabular-nums; }
 .tick { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--surface-2); color: var(--muted); }
 .tick.done { background: var(--green); color: var(--on-green); }
 .tick svg { width: 14px; height: 14px; }
