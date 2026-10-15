@@ -312,7 +312,10 @@ function renderControls() {
     h('div', { class: 'seg', role: 'group', 'aria-label': t('Speed') },
       [0.5, 0.75, 1].map((r) => h('button', { type: 'button', class: UI.rate === r ? 'on' : '', onclick: () => Player.setRate(r), title: t('Speed (, and .)') }, `${r}x`))),
     btn(t('Loop'), () => { UI.loop = !UI.loop; renderControls(); }, { icon: 'loop', on: UI.loop, pressed: UI.loop, title: t('Loop the clip (L)'), aria: t('Loop'), id: 'loopBtn' }),
-    UI.clipId && !UI.sel && !UI.cutMode ? btn(t('Zoom'), () => setZoom(!zoomOn()), { icon: 'zoom', on: zoomOn(), pressed: zoomOn(), title: zoomOn() ? t('Show the whole video on the timeline') : t('Zoom the timeline in on the clip'), aria: t('Zoom the timeline in on the clip') }) : null,
+    // says what pressing it does: zoomed in it offers the whole video, zoomed out it offers the clip
+    UI.clipId && !UI.sel && !UI.cutMode ? (scrubView().zoomed
+      ? btn(t('Whole video'), () => zoomOut(), { icon: 'zoomout', title: t('Show the whole video on the timeline'), id: 'zoomBtn' })
+      : btn(t('Zoom to clip'), () => setZoom(true), { icon: 'zoom', title: t('Zoom the timeline in on the clip'), id: 'zoomBtn' })) : null,
     btn('', () => Player.setVolume(UI.volume === 0 ? 1 : 0), { icon: volIcon, title: t('Mute') }),
     h('input', { type: 'range', class: 'vol', min: 0, max: 1, step: 0.05, value: UI.volume, 'aria-label': t('Volume'), oninput: (e) => Player.setVolume(+e.target.value) }),
     h('span', { class: 'spacer' }),
@@ -369,7 +372,7 @@ function renderScrubber() {
   // clips that are only partly in a zoomed view are cut at its edges
   const clips = videoClips(UI.videoId).filter((c) => !c.archived && c.end > v0 && c.start < v1);
   const pct = (t) => (d && v1 > v0 ? clamp((t - v0) / (v1 - v0), 0, 1) * 100 : 0);
-  mount(box, view.zoomed ? h('button', { type: 'button', class: 'scrub-out', onclick: () => zoomOut(), title: t('Back to the whole video (Esc)') }, icon('back'), t('Whole video')) : null, d ? clips.map((c) => {
+  mount(box, view.zoomed ? h('button', { type: 'button', class: 'scrub-out', onclick: () => zoomOut(), title: t('Back to the whole video (Esc)') }, t('Zoomed on the clip'), icon('close')) : null, d ? clips.map((c) => {
     const left = pct(c.start), width = Math.max(pct(c.end) - pct(c.start), 0);
     const sel = c.id === UI.clipId;
     return [

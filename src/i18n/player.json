@@ -551,10 +551,6 @@
     "fr": "Début",
     "es": "Inicio"
   },
-  "Zoom": {
-    "fr": "Zoom",
-    "es": "Zoom"
-  },
   "Show the whole video on the timeline": {
     "fr": "Afficher toute la vidéo sur la barre de lecture",
     "es": "Mostrar todo el vídeo en la línea de tiempo"
@@ -570,5 +566,13 @@
   "Back to the whole video (Esc)": {
     "fr": "Revenir à toute la vidéo (Échap)",
     "es": "Volver a todo el vídeo (Esc)"
+  },
+  "Zoom to clip": {
+    "fr": "Zoomer sur l’extrait",
+    "es": "Acercar al fragmento"
+  },
+  "Zoomed on the clip": {
+    "fr": "Zoom sur l’extrait",
+    "es": "Zoom en el fragmento"
   }
 }
