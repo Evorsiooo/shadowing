@@ -1,10 +1,20 @@
 /* ---------- guided shadowing session ---------- */
-function buildPlan(mode) {
+/* how many passes fit in a step's minutes, for a clip of this length (pass = the clip plus the gap after it) */
+function fitPasses(minutes, perPass, lo, hi, extraSec = 0) {
+  return clamp(Math.round((minutes * 60 - extraSec) / perPass), lo, hi);
+}
+function buildPlan(mode, clip) {
   const s = settings();
+  const len = clip ? clip.end - clip.start : 0;
+  // when fitted, pass counts follow the clip length so the session lasts about as long as its minutes say
+  const perPass = s.fitPassesToClip && len > 0 ? len / ((Player.v && Player.v.playbackRate) || 1) + s.loopGap : 0;
+  const fit = (passes, minutes, lo, hi, extraSec) => (perPass ? fitPasses(minutes, perPass, lo, hi, extraSec) : passes);
   if (mode === 'badday') {
+    const listenMin = Math.max(1, Math.round(s.badMinutes * 0.3));
+    const shadowMin = Math.max(1, Math.round(s.badMinutes * 0.7));
     return [
-      { key: 'listen', name: N_('Listen'), passes: s.badListenPasses, minutes: Math.max(1, Math.round(s.badMinutes * 0.3)), speak: false },
-      { key: 'shadow', name: N_('Shadow'), passes: s.badShadowPasses, minutes: Math.max(1, Math.round(s.badMinutes * 0.7)), speak: true },
+      { key: 'listen', name: N_('Listen'), passes: fit(s.badListenPasses, listenMin, 1, 10), minutes: listenMin, speak: false },
+      { key: 'shadow', name: N_('Shadow'), passes: fit(s.badShadowPasses, shadowMin, 3, 20), minutes: shadowMin, speak: true },
     ];
   }
   if (mode === 'review') {
@@ -15,10 +25,11 @@ function buildPlan(mode) {
     ];
   }
   return [
-    { key: 'listen', name: N_('Listen'), passes: s.listenPasses, minutes: s.listenMinutes, speak: false },
-    { key: 'shadow', name: N_('Shadow'), passes: s.shadowPasses, minutes: s.shadowMinutes, speak: true },
+    { key: 'listen', name: N_('Listen'), passes: fit(s.listenPasses, s.listenMinutes, 2, 10), minutes: s.listenMinutes, speak: false },
+    { key: 'shadow', name: N_('Shadow'), passes: fit(s.shadowPasses, s.shadowMinutes, 5, 40), minutes: s.shadowMinutes, speak: true },
     { key: 'record', name: N_('Record & compare'), passes: 1, minutes: s.recordMinutes, speak: true, recordLast: 'step3' },
-    { key: 'again', name: N_('Shadow again'), passes: s.againPasses + 1, minutes: s.againMinutes, speak: true, recordLast: 'final' },
+    // the last pass records and is followed by a comparison, so leave it some time
+    { key: 'again', name: N_('Shadow again'), passes: fit(s.againPasses + 1, s.againMinutes, 2, 31, 45), minutes: s.againMinutes, speak: true, recordLast: 'final' },
   ];
 }
 const STEP_HELP = {
@@ -85,7 +96,7 @@ const Session = {
     this.active = true;
     this.clipId = clip.id;
     this.mode = mode;
-    this.plan = buildPlan(mode);
+    this.plan = buildPlan(mode, clip);
     this.stepIdx = 0; this.pass = 0; this.elapsed = 0; this.cantKeepUp = 0;
     this.slowed = false; this.slowOff = false;
     this.review = null;
@@ -251,18 +262,14 @@ const Session = {
     const L = Panel.live;
     if (!L || !this.rec || this.zero == null || this.rec.startCtx == null) return; // samples wait in the buffer until timing is known
     const clip = this.clip();
-    const x = this.rec.liveSamples();
-    const diff = new Float32Array(Math.floor(SR / F0_MIN) + 2);
+    // feed only the chunks recorded since last time; the tracker keeps its own filter and noise floor
+    if (!L.tracker) { L.tracker = DSP.liveTracker(); L.chunks = 0; }
+    while (L.chunks < this.rec.pcm.length) L.tracker.push(this.rec.pcm[L.chunks++]);
     const rate = Player.v.playbackRate || 1;
-    const maxFrame = Math.floor((x.length - WIN - Math.floor(SR / F0_MIN)) / HOP);
-    for (let i = L.frames; i < maxFrame; i++) {
-      const db = DSP.rmsDb(x, i * HOP, WIN);
-      // noise floor follows quiet stretches, so speech is judged against your room, not a fixed level
-      L.floor = L.floor == null ? db : db < L.floor ? L.floor * 0.8 + db * 0.2 : L.floor * 0.999 + db * 0.001;
-      const voiceGate = Math.max(L.floor + 8, -75);
-      const [f, c] = DSP.yin(x, i * HOP, diff);
+    for (const { db, f, floor } of L.tracker.drain()) {
+      const i = L.frames++;
       let st = null;
-      if (c > 0.75 && f >= F0_MIN && f <= F0_MAX && db > voiceGate) {
+      if (isFinite(f)) {
         L.f0s.push(f);
         if (!L.ref && L.f0s.length > 40) L.ref = median(L.f0s);
         const ref = L.ref || median(L.f0s);
@@ -277,7 +284,7 @@ const Session = {
       } else L.recent = [];
       // raw clip time; the live sync shift is applied when drawing, so it moves the whole line at once
       const ct = (this.rec.startCtx + i * HOP_S - this.zero) * rate;
-      if (L.userOnset == null && db > Math.max(L.floor + 15, -65)) {
+      if (L.userOnset == null && db > Math.max(floor + 15, -65)) {
         L.loudRun = (L.loudRun || 0) + 1;
         if (L.loudRun >= 5) {
           L.userOnset = ct - 4 * HOP_S;
@@ -287,7 +294,6 @@ const Session = {
       } else if (L.userOnset == null) L.loudRun = 0;
       L.points.push({ t: ct, st, db });
     }
-    L.frames = Math.max(L.frames, maxFrame);
   },
   completeStep() {
     const st = this.step();
@@ -377,7 +383,7 @@ const Session = {
     const done = this.pass;
     const key = this.step().key;
     this.mode = 'badday';
-    this.plan = buildPlan('badday');
+    this.plan = buildPlan('badday', this.clip());
     this.doc.mode = 'badday';
     this.stepIdx = this.plan.findIndex((p) => p.key === key);
     this.pass = Math.min(done, this.step().passes - 1);

@@ -535,10 +535,6 @@
     "fr": "Mettre {clip} dans la file",
     "es": "Poner {clip} en la cola"
   },
-  "Add to the session queue": {
-    "fr": "Ajouter à la file de la séance",
-    "es": "Añadir a la cola de la sesión"
-  },
   "noisy": {
     "fr": "bruyant",
     "es": "ruidoso"
@@ -550,10 +546,6 @@
   "Done {day}": {
     "fr": "Terminé {day}",
     "es": "Terminado {day}"
-  },
-  "Not done yet": {
-    "fr": "Pas encore terminé",
-    "es": "Aún sin terminar"
   },
   "Edit clip (start, end, length, label)": {
     "fr": "Modifier l’extrait (début, fin, durée, libellé)",
@@ -998,6 +990,18 @@
   "Clip history": {
     "fr": "Historique de l’extrait",
     "es": "Historial del fragmento"
+  },
+  "Remove {clip} from the queue": {
+    "fr": "Retirer {clip} de la file",
+    "es": "Quitar {clip} de la cola"
+  },
+  "In the session queue. Click to take it out.": {
+    "fr": "Dans la file de la séance. Clique pour le retirer.",
+    "es": "En la cola de la sesión. Haz clic para quitarlo."
+  },
+  "Add to the session queue, to shadow several clips back to back": {
+    "fr": "Ajouter à la file de la séance, pour enchaîner plusieurs extraits",
+    "es": "Añadir a la cola de la sesión, para practicar varios fragmentos seguidos"
   },
   "Your volume": {
     "fr": "Ton volume",

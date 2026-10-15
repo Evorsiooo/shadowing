@@ -358,13 +358,6 @@ class Recording {
       else { this.rec.onstop = finish; this.rec.stop(); }
     });
   }
-  /* live: samples captured since an index */
-  liveSamples() {
-    const all = new Float32Array(this.len);
-    let o = 0;
-    for (const p of this.pcm) { all.set(p, o); o += p.length; }
-    return all;
-  }
 }
 
 /* your recordings play back at the original clip's loudness (when "Match the original's loudness" is on),

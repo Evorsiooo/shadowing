@@ -205,15 +205,20 @@ function clipList(v) {
   const item = (c, i) => {
     const queued = UI.queue.includes(c.id);
     return h('div', { class: `citem ${c.id === UI.clipId ? 'sel' : ''}` },
-      c.archived ? h('span', { class: 'tick' }, icon('archive')) : h('input', { type: 'checkbox', checked: queued, 'aria-label': t('Queue {clip}', { clip: clipName(c, i) }), title: t('Add to the session queue'), onchange: (e) => {
-        UI.queue = e.target.checked ? [...UI.queue, c.id] : UI.queue.filter((x) => x !== c.id);
-        renderSession();
-      } }),
+      c.archived ? h('span', { class: 'tick' }, icon('archive')) : h('button', {
+        type: 'button', class: `btn sm icon qbtn ${queued ? 'on' : ''}`, 'aria-pressed': String(queued),
+        'aria-label': queued ? t('Remove {clip} from the queue', { clip: clipName(c, i) }) : t('Queue {clip}', { clip: clipName(c, i) }),
+        title: queued ? t('In the session queue. Click to take it out.') : t('Add to the session queue, to shadow several clips back to back'),
+        onclick: () => {
+          UI.queue = queued ? UI.queue.filter((x) => x !== c.id) : [...UI.queue, c.id];
+          renderSidebar(); renderSession();
+        },
+      }, queued ? h('b', null, String(UI.queue.indexOf(c.id) + 1)) : icon('plus')),
       h('div', { style: { minWidth: 0 } },
         h('div', { class: 'clabel', role: 'button', tabindex: 0, onclick: () => { selectClip(c.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter') selectClip(c.id); } }, clipName(c, i)),
         h('div', { class: 'cmeta' }, `${fmtTime(c.start)}–${fmtTime(c.end)} · ${fmtSec(c.end - c.start)}${c.noisy ? ` · ${t('noisy')}` : ''}${queued ? ` · ${t('#{n} in queue', { n: UI.queue.indexOf(c.id) + 1 })}` : ''}`)),
       h('div', { class: 'row', style: { gap: '2px', flexWrap: 'nowrap' } },
-        h('span', { class: `tick ${c.done ? 'done' : ''}`, title: c.done ? t('Done {day}', { day: fmtDay(c.doneAt) }) : t('Not done yet') }, c.done ? icon('check', 'stroke-width="3.4"') : null),
+        c.done ? h('span', { class: 'tick done', title: t('Done {day}', { day: fmtDay(c.doneAt) }), 'aria-label': t('Done {day}', { day: fmtDay(c.doneAt) }) }, icon('check', 'stroke-width="3.4"')) : null,
         !c.archived ? btn('', () => { editClip(c.id); closeDrawer(); }, { size: 'sm', kind: 'ghost', icon: 'edit', title: t('Edit clip (start, end, length, label)'), disabled: Session.active }) : null,
         btn('', () => openClipMenu(c), { size: 'sm', kind: 'ghost', icon: 'menu', title: t('Clip options') })));
   };

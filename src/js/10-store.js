@@ -321,6 +321,7 @@ const DEFAULT_SETTINGS = {
   recordMinutes: 2,
   againPasses: 8, againMinutes: 4,
   badListenPasses: 3, badShadowPasses: 5, badMinutes: 5,
+  fitPassesToClip: true,
   loopGap: 1.0,
   weeklyTarget: 6,
   shortenHintAfter: 5,

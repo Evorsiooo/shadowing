@@ -539,10 +539,6 @@
     "fr": "Décalage moyen sur le locuteur, par semaine",
     "es": "Retraso medio respecto al hablante, por semana"
   },
-  "Shrinking lag over the weeks counts as progress. Rough measure.": {
-    "fr": "Un décalage qui diminue au fil des semaines, c’est un progrès. Mesure approximative.",
-    "es": "Un retraso que baja con las semanas cuenta como progreso. Medida aproximada."
-  },
   "Clip": {
     "fr": "Extrait",
     "es": "Fragmento"
@@ -1006,5 +1002,9 @@
   "Done@@column": {
     "fr": "Terminé",
     "es": "Hecho"
+  },
+  "How far behind the speaker your voice is, on average, across your passes. Beginners echo the speaker; with practice you start to anticipate, so the lag shrinks towards zero. Clips and speeds differ, so read the trend over several weeks, not the single values.": {
+    "fr": "Le retard moyen de ta voix sur celle de l’orateur, sur l’ensemble de tes passages. Au début on répète en écho ; avec la pratique on anticipe, et le retard se rapproche de zéro. Les extraits et les vitesses varient, alors regarde la tendance sur plusieurs semaines plutôt que chaque valeur.",
+    "es": "Cuánto va tu voz por detrás de la del hablante, de media, en tus pasadas. Al principio repites como un eco; con la práctica empiezas a anticiparte y el retraso se acerca a cero. Los fragmentos y las velocidades varían, así que fíjate en la tendencia de varias semanas, no en cada valor."
   }
 }
