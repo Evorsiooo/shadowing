@@ -1034,5 +1034,21 @@
   "Practise with headphones (wired is best). Without them, the microphone picks up the video and your recordings and scores are off.": {
     "fr": "Entraîne-toi avec un casque (filaire de préférence). Sans casque, le micro capte la vidéo et tes enregistrements et tes scores sont faussés.",
     "es": "Practica con auriculares (mejor con cable). Sin ellos, el micrófono capta el vídeo y tus grabaciones y puntuaciones salen mal."
+  },
+  "Counted for yesterday ({date}).": {
+    "fr": "Comptée pour hier ({date}).",
+    "es": "Contada para ayer ({date})."
+  },
+  "You didn’t practise yesterday. A session started before 10am can count for yesterday instead of today.": {
+    "fr": "Pas de séance hier. Une séance commencée avant 10 h peut compter pour hier plutôt qu’aujourd’hui.",
+    "es": "Ayer no practicaste. Una sesión empezada antes de las 10 puede contar para ayer en lugar de hoy."
+  },
+  "Count this for yesterday": {
+    "fr": "La compter pour hier",
+    "es": "Contarla para ayer"
+  },
+  "Undo": {
+    "fr": "Annuler",
+    "es": "Deshacer"
   }
 }
