@@ -95,7 +95,7 @@ function onKey(e) {
   else if (k === 'ArrowRight') { e.preventDefault(); Player.seek(Player.time() + 2); }
   else if (k === 'Enter' && Session.active && (Session.phase === 'intro' || Session.phase === 'armed')) Session.go();
   else if (k === 'c' || k === 'C') { if (Player.current() && !Session.active) setCutMode(!UI.cutMode); }
-  else if (k === 'Escape') { if (UI.drawer) closeDrawer(); else if ((UI.sel || UI.cutMode) && !Session.active) cancelCut(); }
+  else if (k === 'Escape') { if (UI.drawer) closeDrawer(); else if ((UI.sel || UI.cutMode) && !Session.active) cancelCut(); else zoomOut(); }
   else if (k === '?') openShortcuts();
 }
 

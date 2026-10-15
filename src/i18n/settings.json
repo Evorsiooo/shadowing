@@ -819,10 +819,6 @@
     "fr": "Lancer l’étape ou l’enregistrement quand une séance attend",
     "es": "Empezar el paso o la grabación cuando una sesión está esperando"
   },
-  "Close a window, or cancel a new clip": {
-    "fr": "Fermer une fenêtre, ou annuler un nouvel extrait",
-    "es": "Cerrar una ventana, o cancelar un fragmento nuevo"
-  },
   "Show this help": {
     "fr": "Afficher cette aide",
     "es": "Mostrar esta ayuda"
@@ -1630,5 +1626,9 @@
   "Slow shadow passes at the start": {
     "fr": "Passages lents au début",
     "es": "Pasadas lentas al principio"
+  },
+  "Close a window, cancel a new clip, or show the whole video on the timeline": {
+    "fr": "Fermer une fenêtre, annuler un nouvel extrait, ou afficher toute la vidéo sur la barre de lecture",
+    "es": "Cerrar una ventana, cancelar un fragmento nuevo o mostrar todo el vídeo en la línea de tiempo"
   }
 }
