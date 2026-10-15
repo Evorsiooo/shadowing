@@ -101,7 +101,6 @@ img, svg { max-width: 100%; height: auto; }
 .hero .lede { font-size: 1.2rem; color: var(--muted); max-width: 34em; }
 .hero .cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 24px 0 12px; }
 .hero .fine { font-size: 0.9rem; color: var(--muted); }
-.eyebrow { display: inline-block; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--green-ink); background: var(--green-soft); padding: 4px 12px; border-radius: 999px; margin-bottom: 16px; }
 .demo { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 18px; }
 .demo figcaption { font-size: 0.88rem; color: var(--muted); margin-top: 10px; }
 .demo svg { display: block; width: 100%; }
@@ -237,7 +236,6 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
   .hero .wrap > div > :nth-child(2) { animation-delay: 0.06s; }
   .hero .wrap > div > :nth-child(3) { animation-delay: 0.12s; }
   .hero .wrap > div > :nth-child(4) { animation-delay: 0.18s; }
-  .hero .wrap > div > :nth-child(5) { animation-delay: 0.24s; }
   .hero .demo { animation: rise 0.6s 0.12s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
   .demo .wave { transform-box: fill-box; transform-origin: 50% 100%; animation: grow 0.6s 0.3s ease-out both; }
   .demo .speaker, .demo .you { stroke-dasharray: 1; animation: draw 1.3s 0.45s ease-in-out both; }

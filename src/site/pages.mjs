@@ -69,6 +69,16 @@ export function demoSvg(d = LANGS[0].demo) {
 </svg>`;
 }
 
+// The publisher, shared by every page's structured data (other nodes point at it by @id).
+const ORG_ID = SITE.url + '/#organization';
+const ORG = {
+  '@type': 'Organization',
+  '@id': ORG_ID,
+  name: SITE.name,
+  url: SITE.url + '/',
+  logo: { '@type': 'ImageObject', url: SITE.url + '/assets/icon-512.png', width: 512, height: 512 },
+};
+
 export function faqJsonLd(c = LANGS[0]) {
   return {
     '@type': 'FAQPage',
@@ -88,6 +98,7 @@ function home(c) {
     description: h.description,
     priority: '1.0',
     jsonld: () => [
+      ORG,
       {
         '@type': 'WebApplication',
         name: SITE.name,
@@ -98,17 +109,18 @@ function home(c) {
         browserRequirements: h.browserRequirements,
         inLanguage: c.code,
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        isAccessibleForFree: true,
         featureList: h.featureList,
         image: SITE.url + '/assets/og.png',
+        publisher: { '@id': ORG_ID },
       },
-      { '@type': 'WebSite', name: SITE.name, url: SITE.url + L('/'), inLanguage: c.code },
+      { '@type': 'WebSite', name: SITE.name, url: SITE.url + L('/'), inLanguage: c.code, publisher: { '@id': ORG_ID } },
       faqJsonLd(c),
     ],
     body: () => `
 <section class="hero">
   <div class="wrap">
     <div>
-      <span class="eyebrow">${h.eyebrow}</span>
       <h1>${h.h1}</h1>
       <p class="lede">${h.lede}</p>
       <div class="cta">${signInButton(h.cta)}<a class="btn btn-ghost btn-big" href="#how">${h.how}</a></div>
@@ -188,6 +200,7 @@ function article(c, key, { slug, title, h1, description, crumb, lede, body, rela
     description,
     priority: '0.8',
     jsonld: () => [
+      ORG,
       {
         '@type': 'Article',
         headline: h1,
@@ -197,8 +210,8 @@ function article(c, key, { slug, title, h1, description, crumb, lede, body, rela
         dateModified: SITE.updated,
         mainEntityOfPage: SITE.url + path,
         image: SITE.url + '/assets/og.png',
-        author: { '@type': 'Organization', name: SITE.name, url: SITE.url + '/' },
-        publisher: { '@type': 'Organization', name: SITE.name, url: SITE.url + '/', logo: { '@type': 'ImageObject', url: SITE.url + '/assets/icon-512.png' } },
+        author: { '@id': ORG_ID },
+        publisher: { '@id': ORG_ID },
       },
       {
         '@type': 'BreadcrumbList',
@@ -213,6 +226,7 @@ function article(c, key, { slug, title, h1, description, crumb, lede, body, rela
   <div class="wrap">
     <nav class="crumbs" aria-label="${c.ui.crumbs}"><a href="${langPath(c.code, '/')}">${SITE.name}</a> › ${crumb}</nav>
     <h1>${h1}</h1>
+    <p class="updated">${c.ui.updated(`<time datetime="${SITE.updated}">${c.date(SITE.updated)}</time>`)}</p>
     <p class="lede">${lede}</p>
     ${body.trim()}
     <aside class="callout"><p>${c.ui.tryHtml}</p><p>${signInButton(c.ui.startFree, 'btn btn-primary')}</p></aside>

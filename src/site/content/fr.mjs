@@ -46,12 +46,11 @@ const make = ({ SITE, L, host }) => ({
     ['Faut-il un micro ?', 'Oui, pour enregistrer tes passages et tes bilans. Un casque ou des écouteurs aident, pour que la voix du locuteur ne passe pas dans ton enregistrement.'],
   ],
   home: {
-    title: 'Euno Shadowing : le shadowing au quotidien pour ton accent en anglais',
+    title: 'Euno Shadowing : le shadowing au quotidien pour ton accent en anglais ou en espagnol',
     description: 'Euno Shadowing est un coach gratuit pour travailler ton accent par le shadowing. Parle en même temps que de vrais extraits, compare ta mélodie et ton rythme à ceux du locuteur, et suis ton accent sur 12 semaines.',
     operatingSystem: 'Tous (navigateur web)',
     browserRequirements: 'Nécessite un navigateur récent avec accès au micro.',
     featureList: ['Séances de shadowing guidées en quatre étapes', 'Comparaison de la mélodie et du rythme avec le locuteur', 'Enregistrement et écoute côte à côte', 'Notes avec retours de l’IA en option (avec ta propre clé)', 'Bilans sur 12 semaines par rapport à un point de départ', 'Rappels d’entraînement sur Discord'],
-    eyebrow: 'Entraînement d’accent gratuit',
     h1: 'Parle davantage comme les gens que tu écoutes.',
     lede: 'Euno Shadowing est un coach quotidien pour le shadowing : choisis un court extrait, parle en même temps que lui, et vois ta mélodie et ton rythme à côté de ceux du locuteur. Quinze minutes par jour, et ton accent évolue.',
     cta: 'Commencer avec Google',

@@ -47,12 +47,11 @@ const make = ({ SITE, L, host }) => ({
     ['Do I need a microphone?', 'Yes, for recording passes and check-ins. A headset or earphones help, so the speaker’s voice doesn’t leak into your recording.'],
   ],
   home: {
-    title: 'Euno Shadowing: daily shadowing practice for your English accent',
+    title: 'Euno Shadowing: daily shadowing practice for your accent in English, French or Spanish',
     description: SITE.description,
     operatingSystem: 'Any (web browser)',
     browserRequirements: 'Requires a modern browser with microphone access.',
     featureList: ['Guided four-step shadowing sessions', 'Pitch and timing comparison with the speaker', 'Recording and side-by-side playback', 'Notes with optional AI feedback (bring your own key)', '12-week check-ins against a baseline', 'Discord practice reminders'],
-    eyebrow: 'Free accent practice',
     h1: 'Sound more like the speakers you listen to.',
     lede: 'Euno Shadowing is a daily coach for shadowing: pick a short clip, speak along with it, and see your melody and timing next to the speaker’s. Fifteen minutes a day, and your accent moves.',
     cta: 'Start practising with Google',
