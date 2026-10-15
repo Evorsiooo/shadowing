@@ -396,7 +396,7 @@ canvas.analysis { cursor: pointer; touch-action: pan-y; }
 .layout.fit .side > .sidebar { flex: 1 1 auto; min-height: 0; max-height: none; }
 .layout.fit #sideSlot { height: 100%; }
 .layout.fit #sideSlot > .session { height: 100%; }
-.side .session { overflow: auto; }
+.side .session { overflow: auto; overflow-x: hidden; } /* the step slide-in mustn't flash a sideways scrollbar */
 .side .session .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .side .session .counter { font-size: 1.6rem; }
 .vlist { display: flex; flex-direction: column; gap: 8px; }
@@ -517,7 +517,7 @@ body.calm .toast { animation: none; }
   /* entrance classes added for a moment by enterOnChange() (00-util.js) when something new shows up */
   #session.enter { animation: rise 0.38s cubic-bezier(0.2, 0.8, 0.2, 1); }
   #session.step-in .session-main { animation: slide-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
-  #session.tick .counter { animation: nudge 0.3s ease-out; }
+  #session.counted .counter { animation: nudge 0.3s ease-out; }
   #session.active { transition: border-color 0.3s; }
   #panel.enter { animation: fade 0.25s ease-out; }
   .sidebar.open-in .vitem.open .clist, .sidebar.add-in .addform { animation: drop 0.22s ease-out; }
@@ -530,7 +530,7 @@ body.calm .toast { animation: none; }
   .modal .stat, .modal .cal { animation: rise 0.3s 0.05s ease-out backwards; }
 }
 /* calm mode while speaking: nothing moves in the session card */
-body.calm #session.tick .counter, body.calm #session.step-in .session-main { animation: none; }
+body.calm #session.counted .counter, body.calm #session.step-in .session-main { animation: none; }
 /* calm mode while speaking: buttons don't move under the cursor */
 body.calm .btn:hover { transform: none; }
 
