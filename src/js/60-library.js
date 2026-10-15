@@ -205,20 +205,13 @@ function clipList(v) {
   const item = (c, i) => {
     const queued = UI.queue.includes(c.id);
     return h('div', { class: `citem ${c.id === UI.clipId ? 'sel' : ''}` },
-      c.archived ? h('span', { class: 'tick' }, icon('archive')) : h('button', {
-        type: 'button', class: `btn sm icon qbtn ${queued ? 'on' : ''}`, 'aria-pressed': String(queued),
-        'aria-label': queued ? t('Remove {clip} from the queue', { clip: clipName(c, i) }) : t('Queue {clip}', { clip: clipName(c, i) }),
-        title: queued ? t('In the session queue. Click to take it out.') : t('Add to the session queue, to shadow several clips back to back'),
-        onclick: () => {
-          UI.queue = queued ? UI.queue.filter((x) => x !== c.id) : [...UI.queue, c.id];
-          renderSidebar(); renderSession();
-        },
-      }, queued ? h('b', null, String(UI.queue.indexOf(c.id) + 1)) : icon('plus')),
+      c.archived ? h('span', { class: 'tick' }, icon('archive'))
+        : c.done ? h('span', { class: 'tick done', title: t('Done {day}', { day: fmtDay(c.doneAt) }), 'aria-label': t('Done {day}', { day: fmtDay(c.doneAt) }) }, icon('check', 'stroke-width="3.4"'))
+        : h('span', { class: 'tick', title: t('Not done yet'), 'aria-label': t('Not done yet') }),
       h('div', { style: { minWidth: 0 } },
         h('div', { class: 'clabel', role: 'button', tabindex: 0, onclick: () => { selectClip(c.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter') selectClip(c.id); } }, clipName(c, i)),
         h('div', { class: 'cmeta' }, `${fmtTime(c.start)}–${fmtTime(c.end)} · ${fmtSec(c.end - c.start)}${c.noisy ? ` · ${t('noisy')}` : ''}${queued ? ` · ${t('#{n} in queue', { n: UI.queue.indexOf(c.id) + 1 })}` : ''}`)),
       h('div', { class: 'row', style: { gap: '2px', flexWrap: 'nowrap' } },
-        c.done ? h('span', { class: 'tick done', title: t('Done {day}', { day: fmtDay(c.doneAt) }), 'aria-label': t('Done {day}', { day: fmtDay(c.doneAt) }) }, icon('check', 'stroke-width="3.4"')) : null,
         !c.archived ? btn('', () => { editClip(c.id); closeDrawer(); }, { size: 'sm', kind: 'ghost', icon: 'edit', title: t('Edit clip (start, end, length, label)'), disabled: Session.active }) : null,
         btn('', () => openClipMenu(c), { size: 'sm', kind: 'ghost', icon: 'menu', title: t('Clip options') })));
   };
@@ -235,6 +228,10 @@ function openClipMenu(c) {
     h('div', { class: 'stack' },
       btn(t('Shadow this clip'), () => { closeModal(); closeDrawer(); Session.start([c.id]); }, { kind: 'primary', icon: 'mic', disabled: Session.active }),
       btn(t('Edit edges or label'), () => { closeModal(); closeDrawer(); editClip(c.id); }, { icon: 'scissors', disabled: Session.active }),
+      !c.archived ? btn(UI.queue.includes(c.id) ? t('Remove from the queue') : t('Add to the queue, to shadow it right after the others'), () => {
+        UI.queue = UI.queue.includes(c.id) ? UI.queue.filter((x) => x !== c.id) : [...UI.queue, c.id];
+        closeModal(); renderSidebar(); renderSession();
+      }, { icon: 'plus', disabled: Session.active }) : null,
       btn(t('History and recordings'), () => openHistory(c.id), { icon: 'history' }),
       btn(c.done ? t('Remove the tick') : t('Mark as done'), () => { Store.patch('clips', c.id, { done: !c.done, doneAt: c.done ? null : dayKey() }); closeModal(); renderAll(); }, { icon: 'check' }),
       btn(c.noisy ? t('Unflag noisy') : t('Flag as too noisy'), () => { Store.patch('clips', c.id, { noisy: !c.noisy }); closeModal(); renderAll(); }, { icon: 'flag' }),

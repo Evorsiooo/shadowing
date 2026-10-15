@@ -531,10 +531,6 @@
     "fr": "Enregistrer",
     "es": "Guardar"
   },
-  "Queue {clip}": {
-    "fr": "Mettre {clip} dans la file",
-    "es": "Poner {clip} en la cola"
-  },
   "noisy": {
     "fr": "bruyant",
     "es": "ruidoso"
@@ -991,18 +987,6 @@
     "fr": "Historique de l’extrait",
     "es": "Historial del fragmento"
   },
-  "Remove {clip} from the queue": {
-    "fr": "Retirer {clip} de la file",
-    "es": "Quitar {clip} de la cola"
-  },
-  "In the session queue. Click to take it out.": {
-    "fr": "Dans la file de la séance. Clique pour le retirer.",
-    "es": "En la cola de la sesión. Haz clic para quitarlo."
-  },
-  "Add to the session queue, to shadow several clips back to back": {
-    "fr": "Ajouter à la file de la séance, pour enchaîner plusieurs extraits",
-    "es": "Añadir a la cola de la sesión, para practicar varios fragmentos seguidos"
-  },
   "Your volume": {
     "fr": "Ton volume",
     "es": "Tu volumen"
@@ -1034,5 +1018,17 @@
   "The first pass plays at {rate}x, then normal speed.|The first {n} passes play at {rate}x, then normal speed.": {
     "fr": "Le premier passage est joué à {rate}x, puis à vitesse normale.|Les {n} premiers passages sont joués à {rate}x, puis à vitesse normale.",
     "es": "La primera pasada se reproduce a {rate}x y luego a velocidad normal.|Las {n} primeras pasadas se reproducen a {rate}x y luego a velocidad normal."
+  },
+  "Not done yet": {
+    "fr": "Pas encore terminé",
+    "es": "Aún no terminado"
+  },
+  "Remove from the queue": {
+    "fr": "Retirer de la file",
+    "es": "Quitar de la cola"
+  },
+  "Add to the queue, to shadow it right after the others": {
+    "fr": "Ajouter à la file, pour le travailler juste après les autres",
+    "es": "Añadir a la cola, para practicarlo justo después de los demás"
   }
 }
