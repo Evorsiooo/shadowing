@@ -317,6 +317,7 @@ button.chip { font-family: inherit; cursor: pointer; }
 .bracket-hit { position: absolute; top: 4px; height: 30px; cursor: pointer; background: transparent; border: 0; padding: 0; }
 .bracket-hit:hover + .bracket, .bracket.sel { border-color: #fff; }
 .bracket.sel { border-width: 4px; }
+.scrubber.zoomed .scrub-track { background: rgba(255, 255, 255, 0.4); }
 .bracket-tick { position: absolute; top: -10px; width: 20px; height: 18px; margin-left: -10px; color: var(--green); pointer-events: none; filter: drop-shadow(0 1px 0 rgba(0,0,0,.5)); }
 .ctrl-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
 .ctrl-row .btn { --b-bg: rgba(255, 255, 255, 0.12); --b-fg: #fff; --b-edge: rgba(255, 255, 255, 0.18); }
@@ -364,6 +365,7 @@ button.chip { font-family: inherit; cursor: pointer; }
 .layout.fit.cutting .below, .layout.fit.in-session .below { height: var(--below-h, auto); }
 .layout.fit.cutting .below > .panel, .layout.fit.in-session .below > .panel { flex: 1 1 auto; display: flex; flex-direction: column; }
 .layout.fit.cutting .below > .panel > *, .layout.fit.in-session .below > .panel > * { flex-shrink: 0; }
+canvas.analysis { cursor: pointer; touch-action: pan-y; }
 .layout.fit .below > .panel > canvas.analysis { flex: 1 1 0; height: 0; min-height: 150px; }
 .layout.fit .below > .panel > canvas.editor { flex: 1 1 0; height: 0; min-height: 80px; }
 .panel-msg { padding: 22px 12px; text-align: center; color: var(--muted); font-weight: 700; display: flex; flex-direction: column; gap: 10px; align-items: center; }
@@ -512,6 +514,9 @@ body.calm .toast { animation: none; }
 }
 
 /* ---------- mic control ---------- */
+.mine-volume { gap: 10px; font-size: 0.85rem; }
+.mine-volume > svg { width: 18px; height: 18px; color: var(--muted); }
+.mine-volume input[type="range"] { width: 130px; }
 .mic-control { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.85rem; }
 .mic-control > svg { width: 18px; height: 18px; color: var(--muted); }
 .mic-meter { width: 120px; height: 10px; }

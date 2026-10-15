@@ -1002,5 +1002,37 @@
   "Add to the session queue, to shadow several clips back to back": {
     "fr": "Ajouter à la file de la séance, pour enchaîner plusieurs extraits",
     "es": "Añadir a la cola de la sesión, para practicar varios fragmentos seguidos"
+  },
+  "Your volume": {
+    "fr": "Ton volume",
+    "es": "Tu volumen"
+  },
+  "Plays your recording about as loud as the speaker in the clip": {
+    "fr": "Joue ton enregistrement à peu près aussi fort que la personne dans l’extrait",
+    "es": "Reproduce tu grabación más o menos igual de alta que la persona del fragmento"
+  },
+  "Match the original’s loudness": {
+    "fr": "Même volume que l’original",
+    "es": "Mismo volumen que el original"
+  },
+  "Record this pass again, starting now": {
+    "fr": "Réenregistrer ce passage, tout de suite",
+    "es": "Volver a grabar esta pasada, ahora mismo"
+  },
+  "Back to normal speed (1x).": {
+    "fr": "Retour à la vitesse normale (1x).",
+    "es": "De vuelta a la velocidad normal (1x)."
+  },
+  "Go to 1x": {
+    "fr": "Passer à 1x",
+    "es": "Pasar a 1x"
+  },
+  "Play the rest of this session at normal speed": {
+    "fr": "Jouer le reste de la séance à vitesse normale",
+    "es": "Reproducir el resto de la sesión a velocidad normal"
+  },
+  "The first pass plays at {rate}x, then normal speed.|The first {n} passes play at {rate}x, then normal speed.": {
+    "fr": "Le premier passage est joué à {rate}x, puis à vitesse normale.|Les {n} premiers passages sont joués à {rate}x, puis à vitesse normale.",
+    "es": "La primera pasada se reproduce a {rate}x y luego a velocidad normal.|Las {n} primeras pasadas se reproducen a {rate}x y luego a velocidad normal."
   }
 }

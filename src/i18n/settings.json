@@ -1610,5 +1610,25 @@
   "Fit the number of passes to the clip length, so each step lasts about its minutes (the pass counts below are then ignored)": {
     "fr": "Adapter le nombre de passages à la longueur de l’extrait, pour que chaque étape dure à peu près ses minutes (les nombres de passages ci-dessous sont alors ignorés)",
     "es": "Ajustar el número de pasadas a la duración del fragmento, para que cada paso dure más o menos sus minutos (los números de pasadas de abajo se ignoran)"
+  },
+  "Speed of the first shadow passes": {
+    "fr": "Vitesse des premiers passages de shadowing",
+    "es": "Velocidad de las primeras pasadas de shadowing"
+  },
+  "Slower (0.75x)": {
+    "fr": "Plus lent (0.75x)",
+    "es": "Más lento (0.75x)"
+  },
+  "Much slower (0.5x)": {
+    "fr": "Beaucoup plus lent (0.5x)",
+    "es": "Mucho más lento (0.5x)"
+  },
+  "Normal speed (1x)": {
+    "fr": "Vitesse normale (1x)",
+    "es": "Velocidad normal (1x)"
+  },
+  "Slow shadow passes at the start": {
+    "fr": "Passages lents au début",
+    "es": "Pasadas lentas al principio"
   }
 }

@@ -86,13 +86,27 @@ function setOverlay(on) {
   renderPanel();
 }
 
+/* click or drag on the chart to move through the clip (not while a pass is running: that would spoil its timing) */
 function bindAnalysisCanvas(canvas, clip) {
-  canvas.addEventListener('pointerdown', (e) => {
-    if (Session.active) return;
+  let down = false;
+  const canScrub = () => !Session.active || !['playing', 'recording', 'gap', 'armed-go'].includes(Session.phase);
+  const seekTo = (e) => {
     const r = canvas.getBoundingClientRect();
-    const t = clip.start + ((e.clientX - r.left) / r.width) * (clip.end - clip.start);
-    Player.seek(t);
+    const t = clip.start + clamp((e.clientX - r.left) / r.width, 0, 1) * (clip.end - clip.start);
+    Player.seek(Math.min(t, clip.end - 0.05));
+    // your recording playing alongside follows the video
+    if (Session.previewRec && Session.previewRec.clip.id === clip.id) syncRecTo(Player.time());
+  };
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!canScrub()) return;
+    down = true;
+    canvas.setPointerCapture(e.pointerId);
+    seekTo(e);
   });
+  canvas.addEventListener('pointermove', (e) => { if (down) seekTo(e); });
+  const end = () => { down = false; };
+  canvas.addEventListener('pointerup', end);
+  canvas.addEventListener('pointercancel', end);
 }
 
 function updateAnalysisHead(clip) {
