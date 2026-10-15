@@ -496,18 +496,29 @@ function renderSession() {
   applyLayout();
   const el = $('#session');
   el.classList.toggle('active', Session.active);
-  if (!Session.active) { mount(el, idleSession()); return; }
+  enterOnChange(el, Session.active); // the card swaps between "start a session" and the session itself
+  if (!Session.active) { renderSession.bars = null; mount(el, idleSession()); return; }
   const S = Session;
   const clip = S.clip();
   const st = S.step();
+  // a new step, a recorded pass or its review slides in; the pass counter bumps when it moves on
+  enterOnChange(el, `${S.stepIdx}:${['intro', 'armed', 'review'].includes(S.phase) ? S.phase : 'run'}`, 'step-in');
+  enterOnChange(el, `${S.stepIdx}:${S.pass}`, 'tick');
+  // the progress bars start from where they were last drawn, so their fill slides along (styles.css .bar > i)
+  const before = renderSession.bars || [];
+  const pcts = S.plan.map((p, i) => (i < S.stepIdx ? 100 : i === S.stepIdx ? (S.pass / p.passes) * 100 : 0));
+  renderSession.bars = pcts;
+  const fills = [];
   const steps = h('div', { class: 'steps', style: { '--n': S.plan.length } }, S.plan.map((p, i) => {
     const done = i < S.stepIdx;
     const cur = i === S.stepIdx;
-    const pct = done ? 100 : cur ? (S.pass / p.passes) * 100 : 0;
+    const fill = h('i', { style: { width: (before[i] ?? pcts[i]) + '%' } });
+    fills.push(fill);
     return h('div', { class: `step ${done ? 'done' : ''} ${cur ? 'cur' : ''}` },
       h('span', { class: 'step-name' }, `${i + 1}. ${t(p.name)}`),
-      h('div', { class: 'bar' }, h('i', { style: { width: pct + '%' } })));
+      h('div', { class: 'bar' }, fill));
   }));
+  if (before.length) requestAnimationFrame(() => fills.forEach((f, i) => { f.style.width = pcts[i] + '%'; }));
   const counter = st ? h('div', { class: 'counter' }, t('{step}: {n}', { step: t(st.name), n: Math.min(S.pass + (S.phase === 'playing' || S.phase === 'recording' ? 1 : 0), st.passes) }), h('small', null, ` / ${st.passes}`)) : null;
   const left = st ? Math.max(0, st.passes - S.pass) : 0;
   let main;

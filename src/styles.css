@@ -491,6 +491,11 @@ body.calm .toast { animation: none; }
 @keyframes modal-in { from { opacity: 0; transform: translateY(14px) scale(0.98); } }
 @keyframes toast-out { to { opacity: 0; transform: translateY(6px) scale(0.97); } }
 @keyframes bump { from { transform: scale(0.6); opacity: 0; } }
+@keyframes rise { from { opacity: 0; transform: translateY(14px) scale(0.99); } }
+@keyframes slide-in { from { opacity: 0; transform: translateX(14px); } }
+@keyframes drop { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes nudge { 40% { transform: scale(1.12); } }
+@keyframes bar-fill { from { width: 0; } }
 @media (prefers-reduced-motion: no-preference) {
   .modal-back { animation: fade 0.18s ease-out; }
   .modal { animation: modal-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1); }
@@ -507,7 +512,24 @@ body.calm .toast { animation: none; }
   .ctrl-row .seg button:hover:not(.on) { background: rgba(255, 255, 255, 0.2); }
   .vitem, .citem { transition: border-color 0.15s, background-color 0.15s; }
   .citem:hover:not(.sel) { border-color: color-mix(in srgb, var(--line), var(--wattle) 45%); }
+
+  /* entrance classes added for a moment by enterOnChange() (00-util.js) when something new shows up */
+  #session.enter { animation: rise 0.38s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  #session.step-in .session-main { animation: slide-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  #session.tick .counter { animation: nudge 0.3s ease-out; }
+  #session.active { transition: border-color 0.3s; }
+  #panel.enter { animation: fade 0.25s ease-out; }
+  .sidebar.open-in .vitem.open .clist, .sidebar.add-in .addform { animation: drop 0.22s ease-out; }
+  #chips.bump .chip:not(.mode) svg { animation: nudge 0.4s ease-out; }
+  .banner.enter { animation: drop 0.25s ease-out; }
+  .player-error:not([hidden]), .player-empty:not([hidden]) > * { animation: fade 0.25s ease-out; }
+  .reply { animation: rise 0.3s ease-out; }
+  /* progress modal: bars fill from empty and the numbers rise in */
+  .modal .bar > i { animation: bar-fill 0.6s 0.1s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+  .modal .stat, .modal .cal { animation: rise 0.3s 0.05s ease-out backwards; }
 }
+/* calm mode while speaking: nothing moves in the session card */
+body.calm #session.tick .counter, body.calm #session.step-in .session-main { animation: none; }
 /* calm mode while speaking: buttons don't move under the cursor */
 body.calm .btn:hover { transform: none; }
 

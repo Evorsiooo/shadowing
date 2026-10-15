@@ -33,6 +33,7 @@ function streakInfo(excludeId) {
 function renderChips() {
   const s = streakInfo();
   const target = settings().weeklyTarget;
+  enterOnChange($('#chips'), `${s.streak}:${s.weekCount}`, 'bump'); // the streak and week count bump when they go up
   mount($('#chips'),
     h('span', { class: `chip streak ${s.practisedToday ? '' : 'cold'}`, title: t('Day streak (one rest day in a row is allowed)') }, icon('flame'), tp(s.streak, '{n} day', '{n} days')),
     h('span', { class: 'chip', title: t('Days practised this week') }, icon('calendar'), t('{done}/{target} this week', { done: s.weekCount, target })),
@@ -89,6 +90,10 @@ function renderBanners() {
       btn(t('Got it'), dismiss('localNote'), { kind: 'ghost', size: 'sm' })));
   }
   if (Store.mode === 'memory') out.push(h('div', { class: 'banner' }, h('p', null, t('Storage is blocked in this view, so nothing will be kept. Open the app in a normal browser window.'))));
+  // a banner that wasn't there on the last draw slides in
+  const seen = renderBanners.seen;
+  renderBanners.seen = new Set(out.map((b) => b.textContent));
+  if (seen) out.forEach((b) => { if (!seen.has(b.textContent)) b.classList.add('enter'); });
   mount($('#banners'), out);
   $('#banners').hidden = !out.length;
 }
