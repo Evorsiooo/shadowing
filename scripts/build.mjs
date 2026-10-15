@@ -98,8 +98,8 @@ out(
 
 /* ---------- the public site ---------- */
 const siteCss = minify(fontCss + '\n' + readFileSync(join(src, 'site', 'site.css'), 'utf8'), 'css');
-// Same as the app's first-paint theme script (src/index.html), so the saved light/dark choice applies here too.
-const themeJs = `try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch { /* storage blocked */ }`;
+// Same as the app's first-paint theme script (src/index.html), so the saved theme choice applies here too (light when none is saved).
+const themeJs = `try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === 'dark' || t === 'system') document.documentElement.setAttribute('data-theme', t); } catch { /* storage blocked */ }`;
 const year = SITE.updated.slice(0, 4);
 
 const LANG_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>';
