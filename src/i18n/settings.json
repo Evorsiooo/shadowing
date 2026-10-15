@@ -359,10 +359,6 @@
     "fr": "Amplification du micro quand le volume auto est désactivé (×)",
     "es": "Amplificación del micrófono con el volumen automático desactivado (×)"
   },
-  "Echo cancellation (only if you can’t use headphones)": {
-    "fr": "Annulation d’écho (seulement si tu ne peux pas utiliser de casque)",
-    "es": "Cancelación de eco (solo si no puedes usar auriculares)"
-  },
   "Noise suppression": {
     "fr": "Réduction du bruit",
     "es": "Supresión de ruido"

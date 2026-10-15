@@ -67,6 +67,11 @@ function renderBanners() {
       btn(t('Record baseline'), () => openCheckins(0), { kind: 'primary', size: 'sm', icon: 'mic' }),
       btn(t('Later'), dismiss('baseline'), { kind: 'ghost', size: 'sm' })));
   }
+  if (!dismissed.headphones) {
+    out.push(h('div', { class: 'banner info' },
+      h('p', { class: 'row' }, icon('headphones'), t('Practise with headphones (wired is best). Without them, the microphone picks up the video and your recordings and scores are off.')),
+      btn(t('Got it'), dismiss('headphones'), { kind: 'ghost', size: 'sm' })));
+  }
   if (info.missedYesterday && !info.practisedToday) {
     out.push(h('div', { class: 'banner' },
       h('p', null, t('You missed yesterday. Don’t skip two days in a row: even a 5-minute bad-day session keeps the streak alive.')),
