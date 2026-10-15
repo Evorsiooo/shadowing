@@ -26,8 +26,8 @@ function renderPanel() {
   else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
   else key = UI.cutMode ? 'empty-cut' : 'empty';
 
-  // fade the panel in when it shows something else (not when only the audio status changes)
-  enterOnChange(el, key.startsWith('clip') ? `clip:${clip.id}:${Session.active}:${UI.view}:${UI.overlay}` : key.startsWith('editor') ? `editor:${UI.sel.clipId || 'new'}` : key);
+  // fade the panel in when it shows another clip or mode (not for a view toggle or an audio status change)
+  enterOnChange(el, key.startsWith('clip') ? `clip:${clip.id}:${Session.active}` : key.startsWith('editor') ? `editor:${UI.sel.clipId || 'new'}` : key);
   if (key !== Panel.key) {
     Panel.key = key;
     Panel.canvas = null;
