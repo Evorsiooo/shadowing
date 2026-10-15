@@ -1,6 +1,7 @@
 /* ---------- settings, data and device checks ---------- */
 const SETTING_GROUPS = [
   { title: N_('Daily session'), fields: [
+    ['fitPassesToClip', N_('Fit the number of passes to the clip length, so each step lasts about its minutes (the pass counts below are then ignored)'), 'bool'],
     ['listenPasses', N_('Listen: passes'), 1, 10, 1], ['listenMinutes', N_('Listen: minutes'), 1, 10, 1],
     ['shadowPasses', N_('Shadow: passes'), 1, 40, 1], ['shadowMinutes', N_('Shadow: minutes'), 1, 20, 1],
     ['recordMinutes', N_('Record & compare: minutes'), 1, 10, 1],
@@ -26,11 +27,11 @@ const SETTING_GROUPS = [
 ];
 
 function openSettings(tab = 'practice') {
-  const tabs = [['practice', t('Practice')], ['profile', t('Profile')], ['storage', t('Storage')], ['ai', t('AI')], ['reminders', t('Reminders')], ['apps', t('Connected apps')], ['data', t('Data')], ['checks', t('Device checks')], ['look', t('Language and theme')]];
+  const tabs = [['practice', t('Practice'), 'mic'], ['profile', t('Profile'), 'user'], ['storage', t('Storage'), 'folder'], ['ai', t('AI'), 'sparkle'], ['reminders', t('Reminders'), 'bell'], ['apps', t('Connected apps'), 'link'], ['data', t('Data'), 'database'], ['checks', t('Device checks'), 'headphones'], ['look', t('Language and theme'), 'palette']];
   const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'storage' ? storageView() : tab === 'ai' ? aiPanel() : tab === 'reminders' ? remindersView() : tab === 'apps' ? connectedAppsView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
   openModal([
     modalHead(t('Settings')),
-    h('div', { class: 'tabs' }, tabs.map(([k, l]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab }))),
+    h('div', { class: 'tabs' }, tabs.map(([k, l, ic]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab, icon: ic }))),
     body,
   ], { onClose: () => renderAll() });
 }

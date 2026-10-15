@@ -1,10 +1,20 @@
 /* ---------- guided shadowing session ---------- */
-function buildPlan(mode) {
+/* how many passes fit in a step's minutes, for a clip of this length (pass = the clip plus the gap after it) */
+function fitPasses(minutes, perPass, lo, hi, extraSec = 0) {
+  return clamp(Math.round((minutes * 60 - extraSec) / perPass), lo, hi);
+}
+function buildPlan(mode, clip) {
   const s = settings();
+  const len = clip ? clip.end - clip.start : 0;
+  // when fitted, pass counts follow the clip length so the session lasts about as long as its minutes say
+  const perPass = s.fitPassesToClip && len > 0 ? len / ((Player.v && Player.v.playbackRate) || 1) + s.loopGap : 0;
+  const fit = (passes, minutes, lo, hi, extraSec) => (perPass ? fitPasses(minutes, perPass, lo, hi, extraSec) : passes);
   if (mode === 'badday') {
+    const listenMin = Math.max(1, Math.round(s.badMinutes * 0.3));
+    const shadowMin = Math.max(1, Math.round(s.badMinutes * 0.7));
     return [
-      { key: 'listen', name: N_('Listen'), passes: s.badListenPasses, minutes: Math.max(1, Math.round(s.badMinutes * 0.3)), speak: false },
-      { key: 'shadow', name: N_('Shadow'), passes: s.badShadowPasses, minutes: Math.max(1, Math.round(s.badMinutes * 0.7)), speak: true },
+      { key: 'listen', name: N_('Listen'), passes: fit(s.badListenPasses, listenMin, 1, 10), minutes: listenMin, speak: false },
+      { key: 'shadow', name: N_('Shadow'), passes: fit(s.badShadowPasses, shadowMin, 3, 20), minutes: shadowMin, speak: true },
     ];
   }
   if (mode === 'review') {
@@ -15,10 +25,11 @@ function buildPlan(mode) {
     ];
   }
   return [
-    { key: 'listen', name: N_('Listen'), passes: s.listenPasses, minutes: s.listenMinutes, speak: false },
-    { key: 'shadow', name: N_('Shadow'), passes: s.shadowPasses, minutes: s.shadowMinutes, speak: true },
+    { key: 'listen', name: N_('Listen'), passes: fit(s.listenPasses, s.listenMinutes, 2, 10), minutes: s.listenMinutes, speak: false },
+    { key: 'shadow', name: N_('Shadow'), passes: fit(s.shadowPasses, s.shadowMinutes, 5, 40), minutes: s.shadowMinutes, speak: true },
     { key: 'record', name: N_('Record & compare'), passes: 1, minutes: s.recordMinutes, speak: true, recordLast: 'step3' },
-    { key: 'again', name: N_('Shadow again'), passes: s.againPasses + 1, minutes: s.againMinutes, speak: true, recordLast: 'final' },
+    // the last pass records and is followed by a comparison, so leave it some time
+    { key: 'again', name: N_('Shadow again'), passes: fit(s.againPasses + 1, s.againMinutes, 2, 31, 45), minutes: s.againMinutes, speak: true, recordLast: 'final' },
   ];
 }
 const STEP_HELP = {
@@ -82,7 +93,7 @@ const Session = {
     this.active = true;
     this.clipId = clip.id;
     this.mode = mode;
-    this.plan = buildPlan(mode);
+    this.plan = buildPlan(mode, clip);
     this.stepIdx = 0; this.pass = 0; this.elapsed = 0; this.cantKeepUp = 0;
     this.review = null;
     this.doc = Store.put('sessions', {
@@ -342,7 +353,7 @@ const Session = {
     const done = this.pass;
     const key = this.step().key;
     this.mode = 'badday';
-    this.plan = buildPlan('badday');
+    this.plan = buildPlan('badday', this.clip());
     this.doc.mode = 'badday';
     this.stepIdx = this.plan.findIndex((p) => p.key === key);
     this.pass = Math.min(done, this.step().passes - 1);
