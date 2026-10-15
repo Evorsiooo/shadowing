@@ -14,6 +14,8 @@ function renderSidebar() {
   const vids = Store.all('videos').sort((a, b) => (a.added < b.added ? 1 : -1));
   const active = vids.filter((v) => !v.archived);
   const archived = vids.filter((v) => v.archived);
+  enterOnChange(sb, UI.videoId, 'open-in'); // the opened video's clip list drops in
+  enterOnChange(sb, !!UI.addOpen, 'add-in'); // and so does the add-video form
   mount(sb,
     h('div', { class: 'row' },
       h('h3', { class: 'grow' }, t('Videos')),

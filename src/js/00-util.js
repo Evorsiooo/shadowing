@@ -151,6 +151,26 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const lsGet = (k, d) => { try { const v = localStorage.getItem('shadowing:' + k); return v == null ? d : JSON.parse(v); } catch { return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem('shadowing:' + k, JSON.stringify(v)); } catch { /* storage blocked */ } };
 
+/* ---------- entrance animations ----------
+   Most of the app is redrawn from scratch, so a CSS animation on a redrawn element would replay on every
+   redraw. Instead a persistent container gets a short-lived class when `key` changes (a session starting,
+   a new step, another clip in the panel), and styles.css animates its children only while it's there. */
+const ENTER_KEYS = new Map();
+function enterOnChange(el, key, cls = 'enter') {
+  if (!el) return;
+  if (!ENTER_KEYS.has(cls)) ENTER_KEYS.set(cls, new WeakMap());
+  const seen = ENTER_KEYS.get(cls);
+  const had = seen.has(el);
+  const prev = seen.get(el);
+  seen.set(el, key);
+  if (!had || prev === key) return; // the first draw and plain redraws don't animate
+  el.classList.remove(cls);
+  void el.offsetWidth; // restart the animation if it is still running
+  el.classList.add(cls);
+  clearTimeout(el['_t_' + cls]);
+  el['_t_' + cls] = setTimeout(() => el.classList.remove(cls), 450);
+}
+
 /* ---------- toasts ---------- */
 function toast(msg, kind = '', ms = 3800) {
   const el = h('div', { class: `toast ${kind}`, role: kind === 'bad' ? 'alert' : 'status' }, msg);
