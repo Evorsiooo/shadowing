@@ -236,18 +236,14 @@ const Session = {
     const L = Panel.live;
     if (!L || !this.rec || this.zero == null || this.rec.startCtx == null) return; // samples wait in the buffer until timing is known
     const clip = this.clip();
-    const x = this.rec.liveSamples();
-    const diff = new Float32Array(Math.floor(SR / F0_MIN) + 2);
+    // feed only the chunks recorded since last time; the tracker keeps its own filter and noise floor
+    if (!L.tracker) { L.tracker = DSP.liveTracker(); L.chunks = 0; }
+    while (L.chunks < this.rec.pcm.length) L.tracker.push(this.rec.pcm[L.chunks++]);
     const rate = Player.v.playbackRate || 1;
-    const maxFrame = Math.floor((x.length - WIN - Math.floor(SR / F0_MIN)) / HOP);
-    for (let i = L.frames; i < maxFrame; i++) {
-      const db = DSP.rmsDb(x, i * HOP, WIN);
-      // noise floor follows quiet stretches, so speech is judged against your room, not a fixed level
-      L.floor = L.floor == null ? db : db < L.floor ? L.floor * 0.8 + db * 0.2 : L.floor * 0.999 + db * 0.001;
-      const voiceGate = Math.max(L.floor + 8, -75);
-      const [f, c] = DSP.yin(x, i * HOP, diff);
+    for (const { db, f, floor } of L.tracker.drain()) {
+      const i = L.frames++;
       let st = null;
-      if (c > 0.75 && f >= F0_MIN && f <= F0_MAX && db > voiceGate) {
+      if (isFinite(f)) {
         L.f0s.push(f);
         if (!L.ref && L.f0s.length > 40) L.ref = median(L.f0s);
         const ref = L.ref || median(L.f0s);
@@ -262,7 +258,7 @@ const Session = {
       } else L.recent = [];
       // raw clip time; the live sync shift is applied when drawing, so it moves the whole line at once
       const ct = (this.rec.startCtx + i * HOP_S - this.zero) * rate;
-      if (L.userOnset == null && db > Math.max(L.floor + 15, -65)) {
+      if (L.userOnset == null && db > Math.max(floor + 15, -65)) {
         L.loudRun = (L.loudRun || 0) + 1;
         if (L.loudRun >= 5) {
           L.userOnset = ct - 4 * HOP_S;
@@ -272,7 +268,6 @@ const Session = {
       } else if (L.userOnset == null) L.loudRun = 0;
       L.points.push({ t: ct, st, db });
     }
-    L.frames = Math.max(L.frames, maxFrame);
   },
   completeStep() {
     const st = this.step();

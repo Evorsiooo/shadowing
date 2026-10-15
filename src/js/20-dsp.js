@@ -5,6 +5,11 @@ const HOP_S = HOP / SR;
 const WIN = 400; // 25 ms analysis window
 const F0_MIN = 65;
 const F0_MAX = 450;
+const PRE_HP = 80; // Hz, high-pass before pitch tracking
+const CONF_SURE = 0.75; // a frame this clear starts a voiced stretch
+const CONF_WEAK = 0.5; // a frame this clear continues one
+const FLOOR_MARGIN = 3; // dB above the noise floor before a frame counts as sound
+const LIVE_MARGIN = 6; // the same while recording, against a floor that hugs the quietest moments
 
 const DSP = {
   /* simple anti-aliased decimation (box filter + linear interpolation) */
@@ -75,27 +80,93 @@ const DSP = {
     return 20 * Math.log10(r + 1e-6);
   },
 
+  /* 2nd-order Butterworth high-pass (biquad), stateful so a stream can be filtered chunk by chunk */
+  highpass(fc = PRE_HP) {
+    const w = (2 * Math.PI * fc) / SR, cw = Math.cos(w), al = Math.sin(w) / (2 * Math.SQRT1_2), a0 = 1 + al;
+    const b0 = (1 + cw) / 2 / a0, b1 = -(1 + cw) / a0, b2 = b0, a1 = (-2 * cw) / a0, a2 = (1 - al) / a0;
+    let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    return (inp, out = new Float32Array(inp.length)) => {
+      for (let i = 0; i < inp.length; i++) {
+        const x = inp[i], y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+        x2 = x1; x1 = x; y2 = y1; y1 = y; out[i] = y;
+      }
+      return out;
+    };
+  },
+  /* the signal pitch is measured on: rumble, hum and handling noise below the voice removed (4th order) */
+  prefilter(x) {
+    const a = this.highpass(), b = this.highpass();
+    return b(a(x));
+  },
+
   /* analyse a mono 16 kHz signal: per 10 ms frame, f0 (Hz, 0 = none), confidence, loudness (dB) */
   analyse(x) {
     const n = Math.max(0, Math.floor((x.length - WIN) / HOP));
     const f0 = new Float32Array(n), conf = new Float32Array(n), db = new Float32Array(n);
     const diff = new Float32Array(Math.floor(SR / F0_MIN) + 2);
+    // loudness stays on the raw signal (alignment and pauses use it); pitch is measured on the filtered one
     for (let i = 0; i < n; i++) db[i] = this.rmsDb(x, i * HOP, WIN);
-    const loud = percentile(Array.from(db), 0.95);
-    const gate = loud - 30;
+    const xf = this.prefilter(x);
+    const loud = percentile(Array.from(db), 0.95), floor = percentile(Array.from(db), 0.1);
+    // a frame must stand out from the room's own noise: steady hum is periodic too, but it isn't you
+    const gate = Math.max(loud - 30, floor + FLOOR_MARGIN);
     for (let i = 0; i < n; i++) {
       if (db[i] < gate) continue;
-      const [f, c] = this.yin(x, i * HOP, diff);
+      const [f, c] = this.yin(xf, i * HOP, diff);
       f0[i] = f; conf[i] = c;
     }
     return { f0, conf, db, hop: HOP_S };
+  },
+
+  /* live pitch while recording, fed chunk by chunk: the same filtering and voicing rules as
+     analyse + cleanPitch, but only looking backwards. drain() returns {db, f, floor} per 10 ms frame (f NaN = no pitch) */
+  liveTracker() {
+    const hpA = this.highpass(), hpB = this.highpass();
+    const span = WIN + Math.floor(SR / F0_MIN);
+    const diff = new Float32Array(Math.floor(SR / F0_MIN) + 2);
+    let raw = new Float32Array(0), filt = new Float32Array(0);
+    let floor = null, prev = NaN;
+    const out = [];
+    const append = (a, b) => { const c = new Float32Array(a.length + b.length); c.set(a); c.set(b, a.length); return c; };
+    return {
+      push: (chunk) => {
+        raw = append(raw, chunk);
+        filt = append(filt, hpB(hpA(chunk)));
+        let o = 0;
+        for (; o + span <= raw.length; o += HOP) {
+          const db = this.rmsDb(raw, o, WIN);
+          // noise floor follows quiet stretches, so speech is judged against your room, not a fixed level
+          floor = floor == null ? db : db < floor ? floor * 0.8 + db * 0.2 : floor * 0.999 + db * 0.001;
+          let f = NaN;
+          if (db > Math.max(floor + LIVE_MARGIN, -75)) {
+            const [hz, c] = this.yin(filt, o, diff);
+            const steady = isFinite(prev) && Math.abs(12 * Math.log2(hz / prev)) <= 2;
+            if (hz >= F0_MIN && hz <= F0_MAX && (c > CONF_SURE || (c > CONF_WEAK && steady))) f = hz;
+          }
+          prev = f;
+          out.push({ db, f, floor });
+        }
+        raw = raw.slice(o); filt = filt.slice(o);
+      },
+      drain: () => out.splice(0),
+    };
   },
 
   /* smooth, remove unreliable stretches and octave jumps; returns Float32 Hz with NaN for gaps */
   cleanPitch(f0, conf, smoothing = 5) {
     const n = f0.length;
     const out = new Float32Array(n).fill(NaN);
-    for (let i = 0; i < n; i++) if (f0[i] > 0 && conf[i] > 0.75) out[i] = f0[i];
+    // clear frames first, then grow each voiced stretch into weaker frames (noise blurs the pitch dip)
+    // as long as the pitch carries on smoothly from its neighbour: noise alone never starts a stretch
+    for (let i = 0; i < n; i++) if (f0[i] > 0 && conf[i] > CONF_SURE) out[i] = f0[i];
+    const grow = (i, from) => {
+      if (isFinite(out[i]) || !(f0[i] > 0) || conf[i] <= CONF_WEAK) return false;
+      if (Math.abs(12 * Math.log2(f0[i] / out[from])) > 2) return false;
+      out[i] = f0[i];
+      return true;
+    };
+    for (let i = 1; i < n; i++) if (isFinite(out[i - 1])) grow(i, i - 1);
+    for (let i = n - 2; i >= 0; i--) if (isFinite(out[i + 1])) grow(i, i + 1);
     // octave-jump fix against a running median
     const med = median(Array.from(out));
     if (isFinite(med)) {
