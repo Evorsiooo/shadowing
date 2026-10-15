@@ -503,7 +503,7 @@ function renderSession() {
   const st = S.step();
   // a new step, a recorded pass or its review slides in; the pass counter bumps when it moves on
   enterOnChange(el, `${S.stepIdx}:${['intro', 'armed', 'review'].includes(S.phase) ? S.phase : 'run'}`, 'step-in');
-  enterOnChange(el, `${S.stepIdx}:${S.pass}`, 'tick');
+  enterOnChange(el, `${S.stepIdx}:${S.pass}`, 'counted'); // not 'tick': that class styles the clip list's done marks
   // the progress bars start from where they were last drawn, so their fill slides along (styles.css .bar > i)
   const before = renderSession.bars || [];
   const pcts = S.plan.map((p, i) => (i < S.stepIdx ? 100 : i === S.stepIdx ? (S.pass / p.passes) * 100 : 0));
