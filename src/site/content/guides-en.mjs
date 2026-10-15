@@ -1,0 +1,361 @@
+// English words of the guides (the reference version). The list, order and links are in ../pages.mjs (GUIDES).
+// Keep the same keys in guides-fr.mjs and guides-es.mjs. Accent descriptions are general tendencies, not rules.
+const make = ({ L }) => ({
+  page: {
+    title: 'Shadowing guides: technique, routines and accents | Euno Shadowing',
+    description: 'Free guides to shadowing for pronunciation: how it works, how long it takes, choosing clips, and routines and accent guides for English, French and Spanish.',
+    crumb: 'Guides',
+    h1: 'Shadowing guides',
+    lede: 'Everything you need to practise shadowing on your own: how the technique works, how to pick what to shadow, and what to listen for in English, French and Spanish.',
+    groups: { start: 'Start here', english: 'English', french: 'French', spanish: 'Spanish' },
+    homeH2: 'Learn the technique',
+    homeIntro: 'Short, practical guides to shadowing, whichever app you use.',
+    all: 'All guides, including English, French and Spanish accents →',
+  },
+
+  'how-long-shadowing-takes': {
+    title: 'How long does shadowing take to improve your accent? | Euno Shadowing',
+    h1: 'How long does shadowing take to work?',
+    crumb: 'How long it takes',
+    description: 'What to expect from daily shadowing practice: what changes first, what takes longer, and how to tell whether your accent is really moving.',
+    lede: 'There is no fixed number of days. What you can count on is the order things change in: the clips you practise first, then reading aloud, and spontaneous speech last.',
+    body: `
+    <h2>The short answer</h2>
+    <p>Most people hear a difference in the clips they practise within the first session or two, because repetition makes those few sentences smoother almost immediately. A change in how you sound when you speak freely is slower, and is best judged over weeks and months, not days. How fast it comes depends on how often you practise, how different your target accent is from the way you speak now, and how closely you listen when you compare recordings.</p>
+
+    <h2>What changes first</h2>
+    <ol>
+      <li><strong>The practised clip.</strong> After 15 or 20 passes, your timing and melody on that clip get much closer to the speaker’s. This is real, but it is mostly memory of that one clip.</li>
+      <li><strong>Rhythm and intonation in general.</strong> After a few weeks of daily clips, the stress patterns and melody start to carry over into other sentences, especially when you read aloud.</li>
+      <li><strong>Individual sounds.</strong> Vowels and consonants that don’t exist in your first language often take longer, because you first have to hear the difference reliably.</li>
+      <li><strong>Spontaneous speech.</strong> When you’re thinking about what to say, old habits come back. This is the last thing to change, and the most important test.</li>
+    </ol>
+
+    <h2>Why daily beats long sessions</h2>
+    <p>Accent is a motor habit, like a tennis stroke. Short, frequent practice gives your memory more chances to consolidate than one long session a week. Fifteen minutes a day is a good default; on busy days, five minutes keeps the habit alive.</p>
+
+    <h2>How to tell whether it’s working</h2>
+    <p>Day-to-day comparisons are misleading: you have good and bad days, and you get used to your own voice. Instead:</p>
+    <ul>
+      <li><strong>Record a baseline</strong> before you start: a few sentences read aloud, a minute retelling something you watched, and a minute answering a question you haven’t prepared.</li>
+      <li><strong>Repeat the same tasks</strong> every four weeks or so, and listen to the baseline and the new recording back to back.</li>
+      <li><strong>Ask other listeners</strong> to say which recording sounds closer to the target accent, without telling them which one is newer.</li>
+    </ul>
+    <p>Euno Shadowing builds this in: a baseline, then check-ins at weeks 4, 8 and 12 with the same tasks. Twelve weeks is a checkpoint for comparing, not a promise that you’ll be finished.</p>
+
+    <h2>Why progress stalls, and what to do</h2>
+    <ul>
+      <li><strong>Clips that are too long or too fast.</strong> If you can’t keep up after five passes, cut a shorter clip.</li>
+      <li><strong>Copying words, not melody.</strong> Exaggerate the rises, falls and long syllables until it feels slightly theatrical.</li>
+      <li><strong>Never comparing.</strong> Record a pass and look at it next to the original. Pitch lines and lag show what your ears miss.</li>
+      <li><strong>Changing speakers too often.</strong> Stay with one voice for a few weeks so the patterns can settle.</li>
+      <li><strong>Only shadowing.</strong> Use the accent in your own sentences too: retell what you shadowed in your own words.</li>
+    </ul>`,
+  },
+
+  'choosing-clips': {
+    title: 'How to choose speakers and clips for shadowing | Euno Shadowing',
+    h1: 'How to choose speakers and clips for shadowing',
+    crumb: 'Choosing clips',
+    description: 'What makes a good shadowing clip: the right speaker, natural speech, clear audio, the right length and where to cut. With a checklist.',
+    lede: 'The clip you shadow decides what you learn. A good one is short, natural, clear and spoken by someone whose accent you actually want.',
+    body: `
+    <h2>Choose the speaker first</h2>
+    <p>Pick one person whose accent is the one you want, and who speaks in a way you would like to sound: similar age, a similar register, ideally a similar voice range. Copying one consistent model is easier than averaging many, so stay with that speaker for a few weeks before adding others.</p>
+    <p>If you’re not sure which accent to aim for, read the accent guides for <a href="${L('/english-accents/')}">English</a>, <a href="${L('/french-accents/')}">French</a> or <a href="${L('/spanish-accents/')}">Spanish</a>.</p>
+
+    <h2>Prefer natural speech</h2>
+    <ul>
+      <li><strong>Good:</strong> interviews, podcasts, talks, people speaking to camera, conversation.</li>
+      <li><strong>Less good:</strong> audiobooks, news reading and scripted ads. Reading aloud has a different rhythm from talking.</li>
+      <li><strong>Avoid:</strong> music under the voice, several people talking at once, heavy editing with cuts mid-sentence, and very fast or mumbled speech.</li>
+    </ul>
+
+    <h2>Get the length right</h2>
+    <p>One or two sentences, usually 10 to 20 seconds. Shorter is better at first. If you can’t keep up with the speaker after five or six passes, the clip is too long or too fast; cut it in half.</p>
+
+    <h2>Cut at the pauses</h2>
+    <p>Start and end the clip in a silence between phrases, not in the middle of a word. A waveform makes this easy: the pauses are the flat parts. A clean start lets you breathe and come in with the speaker.</p>
+
+    <h2>Pick sentences you would say</h2>
+    <p>Everyday phrases, opinions and stories carry over into your own speech sooner than technical vocabulary. A clip with a clear melody, such as a question, a contrast (“not this, but that”) or a list, gives you more to copy than a flat statement.</p>
+
+    <h2>Use files you’re allowed to use</h2>
+    <p>Use recordings you have the right to use for your own private practice, and don’t redistribute them. In Euno Shadowing, you upload a video or audio file from your device or paste a direct link to an .mp4 file, then cut clips on the timeline.</p>
+
+    <h2>Checklist</h2>
+    <ul>
+      <li>One speaker, with the accent you want.</li>
+      <li>Natural, unscripted speech.</li>
+      <li>Clear audio, no music, no overlapping voices.</li>
+      <li>One or two sentences, 10 to 20 seconds.</li>
+      <li>Starts and ends in a pause.</li>
+      <li>Words you would actually use.</li>
+    </ul>`,
+  },
+
+  'shadowing-vs-other-methods': {
+    title: 'Shadowing vs listen and repeat, minimal pairs and reading aloud | Euno Shadowing',
+    h1: 'Shadowing vs other pronunciation methods',
+    crumb: 'Shadowing vs other methods',
+    description: 'How shadowing compares with listen-and-repeat, minimal pairs, reading aloud and learning phonetics, what each is good for, and how to combine them.',
+    lede: 'Shadowing is strongest for rhythm and melody. Other methods are better for single sounds or for understanding what you hear. Most learners do best with a mix.',
+    body: `
+    <h2>At a glance</h2>
+    <table class="simple">
+      <thead><tr><th>Method</th><th>Best for</th><th>Limits</th></tr></thead>
+      <tbody>
+        <tr><td>Shadowing</td><td>Rhythm, stress, intonation, connected speech, fluency</td><td>Hard to fix a single sound you can’t yet hear</td></tr>
+        <tr><td>Listen and repeat</td><td>Beginners, careful work on a phrase</td><td>Leaves time to fall back on how you think it sounds</td></tr>
+        <tr><td>Minimal pairs</td><td>Hearing and producing one contrast, like “ship” and “sheep”</td><td>Isolated words, little rhythm or melody</td></tr>
+        <tr><td>Reading aloud</td><td>Linking sound to spelling, practising without a recording</td><td>Spelling pulls you towards your old habits; a reading rhythm</td></tr>
+        <tr><td>Phonetics and IPA</td><td>Understanding what changes and why</td><td>Knowing isn’t doing; needs practice to stick</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Shadowing</h2>
+    <p>You speak at the same time as the speaker, a fraction of a second behind. Because there’s no time to think, you copy the whole shape of the speech. It’s demanding, which is why it works well for prosody, the part of an accent that rules struggle to teach. <a href="${L('/what-is-shadowing/')}">More on how shadowing works</a>.</p>
+
+    <h2>Listen and repeat</h2>
+    <p>You hear a phrase, then say it in the pause. It’s gentler, and useful when a clip is still too fast to shadow. The downside is the delay: you repeat your memory of the sound, which is already filtered through your own accent.</p>
+
+    <h2>Minimal pairs</h2>
+    <p>You practise word pairs that differ in one sound, first by ear, then out loud. It’s the most direct fix for a specific sound that your first language doesn’t separate. Once you can hear the difference, shadowing helps you keep it at full speed.</p>
+
+    <h2>Reading aloud</h2>
+    <p>Useful for practising without audio and for connecting sounds to spelling. Its risk is that spelling triggers your old pronunciation, and read speech has a flatter rhythm than conversation.</p>
+
+    <h2>Learning phonetics</h2>
+    <p>Knowing where your tongue goes, or that a vowel is a diphthong, helps you notice differences. It doesn’t change your speech on its own; it makes your practice more precise.</p>
+
+    <h2>How to combine them</h2>
+    <ol>
+      <li>Make shadowing your daily core: one clip, about 15 minutes.</li>
+      <li>When you compare recordings, note what still sounds different.</li>
+      <li>If the same single sound keeps coming up, spend a few minutes on minimal pairs for it.</li>
+      <li>Then go back to shadowing to use that sound at full speed, in real sentences.</li>
+    </ol>`,
+  },
+
+  'english-accents': {
+    title: 'Which English accent to shadow: American, British or Australian? | Euno Shadowing',
+    h1: 'Which English accent should you shadow?',
+    crumb: 'English accents',
+    description: 'General American, Southern British and General Australian compared for shadowing: the features to listen for, and how to choose one to practise.',
+    lede: 'Pick the accent you hear most, or the one you’ll use most, and stick with it. Here’s what sets the three most common models apart, so you know what to listen for.',
+    body: `
+    <h2>How to choose</h2>
+    <ul>
+      <li><strong>Where you live or will live,</strong> and who you talk to most.</li>
+      <li><strong>What you listen to.</strong> Hours of input in one accent make shadowing it much easier.</li>
+      <li><strong>What you like.</strong> You’ll practise more with a voice you enjoy.</li>
+    </ul>
+    <p>None is more “correct” than the others. What matters is choosing one model, so that your practice adds up instead of mixing features from several accents.</p>
+
+    <h2>General American</h2>
+    <p>The accent of most US film, TV and news.</p>
+    <ul>
+      <li><strong>The “r” is pronounced</strong> after vowels: “car”, “hard”, “water”.</li>
+      <li><strong>A flapped “t”</strong> between vowels sounds close to a quick “d”: “water”, “better”, “a lot of”.</li>
+      <li><strong>“Bath”, “dance” and “can’t”</strong> have the same vowel as “cat”.</li>
+      <li><strong>“Lot” and “hot”</strong> have an open, unrounded vowel, close to the one in “father”.</li>
+    </ul>
+
+    <h2>Southern British</h2>
+    <p>The modern standard accent of England, often called RP or “BBC English”.</p>
+    <ul>
+      <li><strong>No “r” after vowels</strong> unless a vowel follows: “car” and “hard” end without it, but “car alarm” links with one.</li>
+      <li><strong>“Bath”, “dance” and “can’t”</strong> use the long vowel of “father”.</li>
+      <li><strong>“Lot” and “hot”</strong> have a short, rounded vowel.</li>
+      <li><strong>“Go” and “no”</strong> start from a central vowel, roughly “uh-oo”.</li>
+      <li><strong>The “t”</strong> is often clearly released, though a glottal stop is common in everyday speech, as in “football”.</li>
+    </ul>
+
+    <h2>General Australian</h2>
+    <p>The everyday accent of most Australians.</p>
+    <ul>
+      <li><strong>No “r” after vowels,</strong> as in Southern British.</li>
+      <li><strong>Wider diphthongs:</strong> the vowels in “day”, “my” and “no” start further from where they end than in the other two accents.</li>
+      <li><strong>A flapped “t”</strong> between vowels is common, as in American: “water”, “better”.</li>
+      <li><strong>“Bath” and “can’t”</strong> usually have the long vowel, but “dance” and “plant” often have the vowel of “cat”.</li>
+      <li><strong>Rising intonation</strong> at the end of some statements is common in casual speech.</li>
+    </ul>
+
+    <h2>What to listen for when you shadow</h2>
+    <p>Whichever accent you choose, the biggest differences from your current speech are usually rhythm and melody, not single sounds. English is stress-timed: stressed syllables are long and clear, and the ones between them are short and reduced, often to a quick “uh”. Copy that contrast first. Then work on the features above that your recordings show you’re missing.</p>
+    <p>Ready to start? Follow <a href="${L('/accent-shadowing/')}">the daily English shadowing routine</a>.</p>`,
+  },
+
+  'french-accent-shadowing': {
+    title: 'How to improve your French accent with shadowing: a daily routine | Euno Shadowing',
+    h1: 'How to improve your French accent with shadowing',
+    crumb: 'French accent routine',
+    description: 'A 15-minute daily shadowing routine for your French accent: French rhythm, liaison and linking, vowels, nasal vowels and the French “r”, and how to track progress.',
+    lede: 'French rhythm works differently from English or Spanish, which is exactly why shadowing helps: you copy the flow of whole phrases instead of word by word.',
+    body: `
+    <h2>What makes a French accent sound French</h2>
+    <ul>
+      <li><strong>Even syllables.</strong> French is syllable-timed: each syllable takes roughly the same time, and vowels aren’t reduced the way they are in English.</li>
+      <li><strong>Stress at the end of the phrase.</strong> The last syllable of each group of words is a little longer, often with a rise in the middle of a sentence and a fall at the end. Individual words don’t carry their own stress.</li>
+      <li><strong>Linking.</strong> Words run together: a final consonant joins the next vowel (<em>enchaînement</em>, as in “elle a”), and some silent final consonants are pronounced before a vowel (<em>liaison</em>, as in “les amis”).</li>
+      <li><strong>Pure vowels.</strong> Vowels stay steady, without the glide of English “day” or “go”. Contrasts like “u” and “ou” (“rue” and “roue”) matter.</li>
+      <li><strong>Nasal vowels</strong> in “vent”, “vin” and “bon”, and the uvular “r”, made at the back of the mouth.</li>
+    </ul>
+
+    <h2>Choose your model</h2>
+    <p>Decide between Metropolitan (Parisian) French and Québécois French, then find one speaker. See <a href="${L('/french-accents/')}">French accents compared</a>. Interviews, podcasts and people speaking to camera work best; read news is more formal than everyday French.</p>
+
+    <h2>The 15-minute session</h2>
+    <table class="simple">
+      <thead><tr><th>Step</th><th>Time</th><th>What you do</th></tr></thead>
+      <tbody>
+        <tr><td>Listen</td><td>2 min</td><td>Play the clip three times without speaking. Notice where each phrase ends and the voice rises or falls.</td></tr>
+        <tr><td>Shadow</td><td>7 min</td><td>About 15 passes along with the speaker, no transcript.</td></tr>
+        <tr><td>Record and compare</td><td>2 min</td><td>Record one pass and compare it with the original.</td></tr>
+        <tr><td>Shadow again</td><td>4 min</td><td>About 8 more passes, then a final recording.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>What to focus on in French</h2>
+    <ul>
+      <li><strong>Don’t stress words.</strong> If your first language stresses words, French will sound bumpy until you flatten them and lengthen only the end of each phrase.</li>
+      <li><strong>Keep syllables even.</strong> Give unstressed vowels their full quality instead of reducing them.</li>
+      <li><strong>Link everything.</strong> Shadow at full speed so the words blend; if a link feels odd, it’s usually right.</li>
+      <li><strong>Watch for dropped “e”.</strong> In everyday French many silent “e” disappear (“je suis” can sound like “j’suis”). Copy what the speaker does, not the spelling.</li>
+      <li><strong>Check the melody.</strong> A pitch line shows whether your voice rises at the end of each phrase within a sentence and falls at the end.</li>
+    </ul>
+
+    <h2>Track progress</h2>
+    <p>Record a baseline before you start, then repeat the same tasks every four weeks: a few sentences read aloud, a minute retelling something in French and a minute answering an unseen question. Euno Shadowing does this with check-ins at weeks 4, 8 and 12. See <a href="${L('/how-long-does-shadowing-take/')}">how long shadowing takes</a>.</p>`,
+  },
+
+  'french-accents': {
+    title: 'Parisian or Québécois French: which accent to shadow? | Euno Shadowing',
+    h1: 'Parisian or Québécois: which French accent should you shadow?',
+    crumb: 'French accents',
+    description: 'Metropolitan (Parisian) and Québécois French compared for shadowing: the main differences in vowels, consonants and melody, and how to choose.',
+    lede: 'Both are full, standard varieties of French with millions of speakers. Choose the one you’ll hear and use most, and listen for the features below.',
+    body: `
+    <h2>How to choose</h2>
+    <ul>
+      <li><strong>Where you’ll use French:</strong> France, Belgium, Switzerland and most of the French-speaking world are closer to the Metropolitan model; Quebec and much of French-speaking Canada use Québécois.</li>
+      <li><strong>What you watch and listen to.</strong> Lots of input in one variety makes shadowing it easier.</li>
+      <li><strong>Pick one and stay with it,</strong> so your practice adds up.</li>
+    </ul>
+
+    <h2>Metropolitan (Parisian) French</h2>
+    <p>The standard accent of France, heard on national TV and radio.</p>
+    <ul>
+      <li><strong>Vowels stay pure,</strong> even long ones.</li>
+      <li><strong>Several old contrasts have merged</strong> for many speakers: “brin” and “brun” sound the same, as often do “patte” and “pâte”.</li>
+      <li><strong>Many silent “e” drop</strong> in everyday speech: “petit” can sound like “p’tit”.</li>
+      <li><strong>The “r”</strong> is uvular, made at the back of the mouth, and often soft.</li>
+    </ul>
+
+    <h2>Québécois French</h2>
+    <p>The everyday French of Quebec, Canada.</p>
+    <ul>
+      <li><strong>“t” and “d” before “i” and “u”</strong> become “ts” and “dz”: “tu” sounds like “tsu”, “dire” like “dzire”.</li>
+      <li><strong>Short “i”, “u” and “ou”</strong> in a syllable ending in a consonant are more relaxed: “petite” has a vowel closer to English “it”.</li>
+      <li><strong>Long vowels can become diphthongs,</strong> especially before “r”: “père” and “fête” can glide.</li>
+      <li><strong>Contrasts kept</strong> that many Parisians have lost: “patte” and “pâte”, and often “brin” and “brun”.</li>
+    </ul>
+
+    <h2>What they share</h2>
+    <p>Rhythm and phrase-final stress, linking between words, nasal vowels and pure vowels are French features in both. Work on those first; they matter more for sounding French than the differences above.</p>
+    <p>Next: follow <a href="${L('/french-accent-shadowing/')}">the daily French shadowing routine</a>.</p>`,
+  },
+
+  'spanish-accent-shadowing': {
+    title: 'How to improve your Spanish accent with shadowing: a daily routine | Euno Shadowing',
+    h1: 'How to improve your Spanish accent with shadowing',
+    crumb: 'Spanish accent routine',
+    description: 'A 15-minute daily shadowing routine for your Spanish accent: Spanish rhythm, the five vowels, “r” and “rr”, soft b, d and g, linking, and tracking progress.',
+    lede: 'Spanish has a clear, even rhythm and only five vowels, which makes it a great language to shadow: once you hear the patterns, you can copy them closely.',
+    body: `
+    <h2>What makes a Spanish accent sound Spanish</h2>
+    <ul>
+      <li><strong>Even syllables.</strong> Spanish is syllable-timed: unstressed vowels keep their full quality instead of shrinking to “uh”.</li>
+      <li><strong>Five pure vowels.</strong> “a, e, i, o, u” stay steady, without the glide of English “day” or “go”.</li>
+      <li><strong>Stress that changes meaning.</strong> “papa” and “papá”, “hablo” and “habló” differ only in stress.</li>
+      <li><strong>Two r’s.</strong> A single tap in “pero”, a trill in “perro” and at the start of words like “rosa”.</li>
+      <li><strong>Soft b, d and g between vowels.</strong> In “nada”, “lobo” and “lago”, the lips or tongue barely touch.</li>
+      <li><strong>Linking.</strong> Words flow together, and vowels at word edges merge: “la_amiga”, “mi_hermano”.</li>
+    </ul>
+
+    <h2>Choose your model</h2>
+    <p>Pick Mexican, Peninsular (Spain) or Rioplatense Spanish, then one speaker. See <a href="${L('/spanish-accents/')}">Spanish accents compared</a>.</p>
+
+    <h2>The 15-minute session</h2>
+    <table class="simple">
+      <thead><tr><th>Step</th><th>Time</th><th>What you do</th></tr></thead>
+      <tbody>
+        <tr><td>Listen</td><td>2 min</td><td>Play the clip three times without speaking. Notice which syllables are stressed.</td></tr>
+        <tr><td>Shadow</td><td>7 min</td><td>About 15 passes along with the speaker, no transcript.</td></tr>
+        <tr><td>Record and compare</td><td>2 min</td><td>Record one pass and compare it with the original.</td></tr>
+        <tr><td>Shadow again</td><td>4 min</td><td>About 8 more passes, then a final recording.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>What to focus on in Spanish</h2>
+    <ul>
+      <li><strong>Keep vowels full and short.</strong> English speakers tend to reduce unstressed vowels and glide stressed ones; Spanish does neither.</li>
+      <li><strong>Keep the beat.</strong> Spanish can be fast. Shorten your clip rather than slowing your syllables unevenly.</li>
+      <li><strong>Soften b, d and g</strong> between vowels, and make “p”, “t” and “k” without the puff of air they have in English.</li>
+      <li><strong>Place the stress</strong> where the speaker does, and check it in your recording.</li>
+      <li><strong>Check the melody.</strong> Statements usually end with a fall, yes/no questions with a rise. A pitch line shows whether you follow the speaker.</li>
+    </ul>
+
+    <h2>Track progress</h2>
+    <p>Record a baseline before you start, then repeat the same tasks every four weeks: sentences read aloud, a minute retelling something in Spanish and a minute answering an unseen question. Euno Shadowing does this with check-ins at weeks 4, 8 and 12. See <a href="${L('/how-long-does-shadowing-take/')}">how long shadowing takes</a>.</p>`,
+  },
+
+  'spanish-accents': {
+    title: 'Mexican, Spain or Argentine Spanish: which accent to shadow? | Euno Shadowing',
+    h1: 'Mexican, Spain or Rioplatense: which Spanish accent should you shadow?',
+    crumb: 'Spanish accents',
+    description: 'Mexican, Peninsular (Spain) and Rioplatense Spanish compared for shadowing: the sounds that set each apart, and how to choose one to practise.',
+    lede: 'All three are widely understood. Choose by where you’ll use Spanish and what you listen to, then listen for the features below.',
+    body: `
+    <h2>How to choose</h2>
+    <ul>
+      <li><strong>Where you’ll use Spanish:</strong> Spain, Mexico and Central America, or Argentina and Uruguay.</li>
+      <li><strong>What you watch and listen to.</strong> Lots of input in one accent makes shadowing it easier.</li>
+      <li><strong>Pick one and stay with it,</strong> so your practice adds up.</li>
+    </ul>
+
+    <h2>Mexican Spanish</h2>
+    <p>The most widely heard Latin American accent, common in film dubbing.</p>
+    <ul>
+      <li><strong>“c” and “z” sound like “s”:</strong> “cielo” and “zapato” start with an “s” sound.</li>
+      <li><strong>The “s” is kept</strong> at the end of syllables: “los otros”, “mismo”.</li>
+      <li><strong>“ll” and “y” sound the same,</strong> like a soft “y”: “calle”, “yo”.</li>
+      <li><strong>Consonants are generally clear,</strong> and unstressed vowels can be quite short in fast speech in central Mexico.</li>
+    </ul>
+
+    <h2>Peninsular Spanish (Spain)</h2>
+    <p>The accent of central and northern Spain.</p>
+    <ul>
+      <li><strong>“c” before “e” and “i”, and “z”,</strong> are pronounced like English “th” in “think”: “cielo”, “zapato”, “gracias”.</li>
+      <li><strong>The “j”</strong> (and “g” before “e” and “i”) is a strong, raspy sound at the back of the mouth: “jamón”, “gente”.</li>
+      <li><strong>The “s”</strong> is made with the tip of the tongue and can sound slightly like “sh” to other speakers.</li>
+      <li><strong>A final “d”</strong> is often very soft or dropped: “Madrid”, “verdad”.</li>
+    </ul>
+
+    <h2>Rioplatense Spanish</h2>
+    <p>The Spanish of Buenos Aires and Montevideo.</p>
+    <ul>
+      <li><strong>“ll” and “y” sound like “sh”</strong> (or “zh”): “yo” sounds like “sho”, “calle” like “cashe”.</li>
+      <li><strong>The “s” at the end of a syllable</strong> often becomes a breathy “h” or disappears: “mismo” sounds like “mihmo”.</li>
+      <li><strong>“c” and “z” sound like “s”,</strong> as in Mexico.</li>
+      <li><strong>A distinctive melody</strong> with long, falling phrase endings, often compared to Italian.</li>
+      <li><strong>“Vos”</strong> replaces “tú”, with its own verb forms (“vos tenés”). That’s grammar, not accent, but you’ll hear it in every clip.</li>
+    </ul>
+
+    <h2>What they share</h2>
+    <p>The five pure vowels, even syllables, the tap and trilled “r”, and the soft b, d and g are Spanish in all three. Those make the biggest difference to how Spanish you sound, whichever accent you choose.</p>
+    <p>Next: follow <a href="${L('/spanish-accent-shadowing/')}">the daily Spanish shadowing routine</a>.</p>`,
+  },
+});
+make.code = 'en';
+export default make;

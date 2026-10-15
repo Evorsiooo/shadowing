@@ -136,6 +136,7 @@ function footer(page) {
   return `<footer class="site-foot"><div class="wrap">
   <a class="brand" href="${L('/')}">Euno <small>Shadowing</small></a>
   <nav aria-label="${esc(u.footerNav)}">
+    <a href="${L('/guides/')}">${c.guides.page.crumb}</a>
     <a href="${L('/what-is-shadowing/')}">${u.navWhat}</a>
     <a href="${L('/accent-shadowing/')}">${u.footRoutine}</a>
     <a href="${L('/contact/')}">${u.contact}</a>
@@ -238,12 +239,12 @@ ${plain(en.home.lede)} ${plain(en.home.fine)}
 
 ## Guides
 
-${linkTo('what-is-shadowing')}
-${linkTo('accent-shadowing')}
+${pages.filter((p) => p.guide && p.lang === DEFAULT_LANG).map((p) => linkTo(p.key)).join('\n')}
 
 ## Product
 
 - [Home page](${pageUrl('home')}): ${en.home.description}
+- [All guides](${pageUrl('guides')}): ${en.guides.page.description}
 - [Open the app](${SITE.url}/app/): the practice app itself (sign-in with Google required).
 - [Contact and support](${pageUrl('contact')}): questions, bug reports and data requests.
 
@@ -266,7 +267,7 @@ out(
   'sitemap.xml',
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${pages
     .filter((p) => !p.noindex)
-    .map((p) => `  <url>\n    <loc>${SITE.url}${p.path}</loc>\n    <lastmod>${SITE.updated}</lastmod>\n    <priority>${p.priority}</priority>\n${[...LANGS.map((l) => [l.code, pageIn(p, l.code)]), ['x-default', pageIn(p, DEFAULT_LANG)]]
+    .map((p) => `  <url>\n    <loc>${SITE.url}${p.path}</loc>\n    <lastmod>${p.updated || SITE.updated}</lastmod>\n    <priority>${p.priority}</priority>\n${[...LANGS.map((l) => [l.code, pageIn(p, l.code)]), ['x-default', pageIn(p, DEFAULT_LANG)]]
       .map(([code, path]) => `    <xhtml:link rel="alternate" hreflang="${code}" href="${SITE.url}${path}"/>`)
       .join('\n')}\n  </url>`)
     .join('\n')}\n</urlset>\n`,

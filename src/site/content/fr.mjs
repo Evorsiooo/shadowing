@@ -137,7 +137,6 @@ const make = ({ SITE, L, host }) => ({
       <li><strong>Ne jamais te réécouter.</strong> On s’entend mal en parlant. Enregistre un passage et compare-le avec l’original.</li>
       <li><strong>Changer de locuteur tous les jours.</strong> Reste un moment avec la même voix pour que les schémas s’installent.</li>
     </ul>`,
-    related: `<a href="${L('/accent-shadowing/')}">Comment améliorer ton accent en anglais avec le shadowing : une routine de 15 minutes par jour</a>`,
   },
   howTo: {
     title: 'Améliorer ton accent en anglais avec le shadowing : une routine quotidienne | Euno Shadowing',
@@ -183,7 +182,6 @@ const make = ({ SITE, L, host }) => ({
       <li>Bouge la bouche et le corps comme le locuteur ; exagérer aide au début.</li>
       <li>Entraîne-toi à la même heure chaque jour, et garde ta série.</li>
     </ul>`,
-    related: `<a href="${L('/what-is-shadowing/')}">C’est quoi le shadowing ? Comment la technique aide la prononciation</a>`,
   },
   privacy: {
     title: 'Politique de confidentialité | Euno Shadowing',
@@ -300,7 +298,7 @@ const make = ({ SITE, L, host }) => ({
 // French typography: a no-break space before ? ! : ; and inside « », so the sign never wraps onto its own line.
 // Only touches a space followed by the sign, so URLs, attributes and tags are left alone.
 const nbsp = (x) => x.replace(/ ([?!:;»])/g, '\u00a0$1').replace(/« /g, '«\u00a0');
-const typo = (v) => (typeof v === 'string' ? nbsp(v)
+export const typo = (v) => (typeof v === 'string' ? nbsp(v)
   : typeof v === 'function' ? (...a) => typo(v(...a))
   : Array.isArray(v) ? v.map(typo)
   : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, typo(x)]))

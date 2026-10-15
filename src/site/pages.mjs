@@ -5,6 +5,9 @@
 import en from './content/en.mjs';
 import fr from './content/fr.mjs';
 import es from './content/es.mjs';
+import guidesEn from './content/guides-en.mjs';
+import guidesFr from './content/guides-fr.mjs';
+import guidesEs from './content/guides-es.mjs';
 
 export const SITE = {
   name: 'Euno Shadowing',
@@ -40,8 +43,35 @@ export function langPath(code, path) {
   return code === 'en' ? path : `/${code}${path}`;
 }
 const helpers = (code) => ({ SITE, L: (path) => langPath(code, path), host: SITE.url.replace('https://', '') });
-export const LANGS = [en, fr, es].map((make) => make(helpers(make.code)));
+const GUIDE_TEXT = { en: guidesEn, fr: guidesFr, es: guidesEs };
+export const LANGS = [en, fr, es].map((make) => ({ ...make(helpers(make.code)), guides: GUIDE_TEXT[make.code](helpers(make.code)) }));
 export const DEFAULT_LANG = 'en';
+
+/* ---------- guides ---------- */
+// Every guide, in the order of the Guides page. Their words are in content/guides-<lang>.mjs under the same key
+// (the first two predate it and live in content/<lang>.mjs). group: the Guides page section; next: the "Read next" links.
+const GUIDES = [
+  { key: 'what-is-shadowing', slug: '/what-is-shadowing/', group: 'start', published: '2026-10-14', text: (c) => c.whatIs, next: ['how-long-shadowing-takes', 'choosing-clips'] },
+  { key: 'how-long-shadowing-takes', slug: '/how-long-does-shadowing-take/', group: 'start', published: '2026-10-15', next: ['accent-shadowing', 'shadowing-vs-other-methods'] },
+  { key: 'choosing-clips', slug: '/choosing-shadowing-clips/', group: 'start', published: '2026-10-15', next: ['what-is-shadowing', 'how-long-shadowing-takes'] },
+  { key: 'shadowing-vs-other-methods', slug: '/shadowing-vs-other-methods/', group: 'start', published: '2026-10-15', next: ['what-is-shadowing', 'choosing-clips'] },
+  { key: 'accent-shadowing', slug: '/accent-shadowing/', group: 'english', published: '2026-10-14', text: (c) => c.howTo, next: ['english-accents', 'choosing-clips'] },
+  { key: 'english-accents', slug: '/english-accents/', group: 'english', published: '2026-10-15', next: ['accent-shadowing', 'choosing-clips'] },
+  { key: 'french-accent-shadowing', slug: '/french-accent-shadowing/', group: 'french', published: '2026-10-15', next: ['french-accents', 'choosing-clips'] },
+  { key: 'french-accents', slug: '/french-accents/', group: 'french', published: '2026-10-15', next: ['french-accent-shadowing', 'choosing-clips'] },
+  { key: 'spanish-accent-shadowing', slug: '/spanish-accent-shadowing/', group: 'spanish', published: '2026-10-15', next: ['spanish-accents', 'choosing-clips'] },
+  { key: 'spanish-accents', slug: '/spanish-accents/', group: 'spanish', published: '2026-10-15', next: ['spanish-accent-shadowing', 'choosing-clips'] },
+];
+const GUIDE_GROUPS = ['start', 'english', 'french', 'spanish'];
+const guideText = (c, g) => (g.text ? g.text(c) : c.guides[g.key]);
+const guideByKey = (key) => GUIDES.find((g) => g.key === key);
+
+// A list of guides as linked cards: the guide's heading and its description.
+function guideCards(c, list) {
+  return `<ul class="guide-grid">
+      ${list.map((g) => { const t = guideText(c, g); return `<li><a href="${langPath(c.code, g.slug)}"><strong>${t.h1}</strong><span>${t.description}</span></a></li>`; }).join('\n      ')}
+    </ul>`;
+}
 
 // Illustration of the app's pitch view: the speaker's melody, yours, the lag, and the loudness under it.
 export function demoSvg(d = LANGS[0].demo) {
@@ -164,6 +194,15 @@ function home(c) {
   </div>
 </section>
 
+<section class="block" id="guides">
+  <div class="wrap">
+    <h2>${c.guides.page.homeH2}</h2>
+    <p class="intro">${c.guides.page.homeIntro}</p>
+    ${guideCards(c, GUIDES.filter((g) => g.group === 'start'))}
+    <p class="more"><a href="${L('/guides/')}">${c.guides.page.all}</a></p>
+  </div>
+</section>
+
 <section class="block" id="faq">
   <div class="wrap">
     <div class="faq-wrap">
@@ -191,14 +230,19 @@ function home(c) {
   };
 }
 
-function article(c, key, { slug, title, h1, description, crumb, lede, body, related }) {
-  const path = langPath(c.code, slug);
+function article(c, g) {
+  const { title, h1, description, crumb, lede, body } = guideText(c, g);
+  const path = langPath(c.code, g.slug);
+  const updated = g.updated || g.published;
+  const guidesPath = langPath(c.code, '/guides/');
   return {
-    key,
+    key: g.key,
     path,
     title,
     description,
     priority: '0.8',
+    updated,
+    guide: true,
     jsonld: () => [
       ORG,
       {
@@ -206,8 +250,8 @@ function article(c, key, { slug, title, h1, description, crumb, lede, body, rela
         headline: h1,
         description,
         inLanguage: c.code,
-        datePublished: SITE.updated,
-        dateModified: SITE.updated,
+        datePublished: g.published,
+        dateModified: updated,
         mainEntityOfPage: SITE.url + path,
         image: SITE.url + '/assets/og.png',
         author: { '@id': ORG_ID },
@@ -217,20 +261,68 @@ function article(c, key, { slug, title, h1, description, crumb, lede, body, rela
         '@type': 'BreadcrumbList',
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: SITE.name, item: SITE.url + langPath(c.code, '/') },
-          { '@type': 'ListItem', position: 2, name: crumb, item: SITE.url + path },
+          { '@type': 'ListItem', position: 2, name: c.guides.page.crumb, item: SITE.url + guidesPath },
+          { '@type': 'ListItem', position: 3, name: crumb, item: SITE.url + path },
         ],
       },
     ],
     body: () => `
 <article class="page">
   <div class="wrap">
-    <nav class="crumbs" aria-label="${c.ui.crumbs}"><a href="${langPath(c.code, '/')}">${SITE.name}</a> › ${crumb}</nav>
+    <nav class="crumbs" aria-label="${c.ui.crumbs}"><a href="${langPath(c.code, '/')}">${SITE.name}</a> › <a href="${guidesPath}">${c.guides.page.crumb}</a> › ${crumb}</nav>
     <h1>${h1}</h1>
-    <p class="updated">${c.ui.updated(`<time datetime="${SITE.updated}">${c.date(SITE.updated)}</time>`)}</p>
+    <p class="updated">${c.ui.updated(`<time datetime="${updated}">${c.date(updated)}</time>`)}</p>
     <p class="lede">${lede}</p>
     ${body.trim()}
     <aside class="callout"><p>${c.ui.tryHtml}</p><p>${signInButton(c.ui.startFree, 'btn btn-primary')}</p></aside>
-    <div class="related"><h2>${c.ui.readNext}</h2><p>${related}</p></div>
+    <div class="related"><h2>${c.ui.readNext}</h2>
+    ${guideCards(c, g.next.map(guideByKey))}
+    <p class="more"><a href="${guidesPath}">${c.guides.page.all}</a></p></div>
+  </div>
+</article>`,
+  };
+}
+
+// The Guides page: every guide, grouped (general first, then one group per practice language).
+function guidesIndex(c) {
+  const k = c.guides.page;
+  const path = langPath(c.code, '/guides/');
+  return {
+    key: 'guides',
+    path,
+    title: k.title,
+    description: k.description,
+    priority: '0.7',
+    jsonld: () => [
+      ORG,
+      {
+        '@type': 'CollectionPage',
+        name: k.h1,
+        description: k.description,
+        url: SITE.url + path,
+        inLanguage: c.code,
+        publisher: { '@id': ORG_ID },
+        mainEntity: {
+          '@type': 'ItemList',
+          itemListElement: GUIDES.map((g, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE.url + langPath(c.code, g.slug), name: guideText(c, g).h1 })),
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: SITE.name, item: SITE.url + langPath(c.code, '/') },
+          { '@type': 'ListItem', position: 2, name: k.crumb, item: SITE.url + path },
+        ],
+      },
+    ],
+    body: () => `
+<article class="page">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="${c.ui.crumbs}"><a href="${langPath(c.code, '/')}">${SITE.name}</a> › ${k.crumb}</nav>
+    <h1>${k.h1}</h1>
+    <p class="lede">${k.lede}</p>
+    ${GUIDE_GROUPS.map((grp) => `<h2>${k.groups[grp]}</h2>
+    ${guideCards(c, GUIDES.filter((g) => g.group === grp))}`).join('\n    ')}
   </div>
 </article>`,
   };
@@ -312,8 +404,8 @@ function notFound(c) {
 export function pagesFor(c) {
   return [
     home(c),
-    article(c, 'what-is-shadowing', { slug: '/what-is-shadowing/', ...c.whatIs }),
-    article(c, 'accent-shadowing', { slug: '/accent-shadowing/', ...c.howTo }),
+    guidesIndex(c),
+    ...GUIDES.map((g) => article(c, g)),
     legal(c, 'privacy', '/privacy/', '0.3', c.privacy),
     legal(c, 'terms', '/terms/', '0.3', c.terms),
     contact(c),

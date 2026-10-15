@@ -10,6 +10,15 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/"/>
   </url>
   <url>
+    <loc>https://shadowing.euno.cc/guides/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/guides/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/guides/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/guides/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/guides/"/>
+  </url>
+  <url>
     <loc>https://shadowing.euno.cc/what-is-shadowing/</loc>
     <lastmod>2026-10-14</lastmod>
     <priority>0.8</priority>
@@ -19,6 +28,33 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/what-is-shadowing/"/>
   </url>
   <url>
+    <loc>https://shadowing.euno.cc/how-long-does-shadowing-take/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/how-long-does-shadowing-take/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/how-long-does-shadowing-take/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/how-long-does-shadowing-take/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/how-long-does-shadowing-take/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/choosing-shadowing-clips/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/choosing-shadowing-clips/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/choosing-shadowing-clips/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/choosing-shadowing-clips/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/choosing-shadowing-clips/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/shadowing-vs-other-methods/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/shadowing-vs-other-methods/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/shadowing-vs-other-methods/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/shadowing-vs-other-methods/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/shadowing-vs-other-methods/"/>
+  </url>
+  <url>
     <loc>https://shadowing.euno.cc/accent-shadowing/</loc>
     <lastmod>2026-10-14</lastmod>
     <priority>0.8</priority>
@@ -26,6 +62,51 @@
     <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/accent-shadowing/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/accent-shadowing/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/accent-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/english-accents/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/english-accents/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/english-accents/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/english-accents/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/english-accents/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/french-accent-shadowing/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/french-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/french-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/french-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/french-accent-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/french-accents/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/french-accents/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/french-accents/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/french-accents/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/french-accents/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/spanish-accent-shadowing/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/spanish-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/spanish-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/spanish-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/spanish-accent-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/spanish-accents/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/spanish-accents/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/spanish-accents/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/spanish-accents/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/spanish-accents/"/>
   </url>
   <url>
     <loc>https://shadowing.euno.cc/privacy/</loc>
@@ -64,6 +145,15 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/"/>
   </url>
   <url>
+    <loc>https://shadowing.euno.cc/fr/guides/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/guides/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/guides/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/guides/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/guides/"/>
+  </url>
+  <url>
     <loc>https://shadowing.euno.cc/fr/what-is-shadowing/</loc>
     <lastmod>2026-10-14</lastmod>
     <priority>0.8</priority>
@@ -73,6 +163,33 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/what-is-shadowing/"/>
   </url>
   <url>
+    <loc>https://shadowing.euno.cc/fr/how-long-does-shadowing-take/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/how-long-does-shadowing-take/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/how-long-does-shadowing-take/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/how-long-does-shadowing-take/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/how-long-does-shadowing-take/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/fr/choosing-shadowing-clips/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/choosing-shadowing-clips/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/choosing-shadowing-clips/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/choosing-shadowing-clips/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/choosing-shadowing-clips/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/fr/shadowing-vs-other-methods/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/shadowing-vs-other-methods/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/shadowing-vs-other-methods/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/shadowing-vs-other-methods/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/shadowing-vs-other-methods/"/>
+  </url>
+  <url>
     <loc>https://shadowing.euno.cc/fr/accent-shadowing/</loc>
     <lastmod>2026-10-14</lastmod>
     <priority>0.8</priority>
@@ -80,6 +197,51 @@
     <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/accent-shadowing/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/accent-shadowing/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/accent-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/fr/english-accents/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/english-accents/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/english-accents/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/english-accents/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/english-accents/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/fr/french-accent-shadowing/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/french-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/french-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/french-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/french-accent-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/fr/french-accents/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/french-accents/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/french-accents/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/french-accents/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/french-accents/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/fr/spanish-accent-shadowing/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/spanish-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/spanish-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/spanish-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/spanish-accent-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/fr/spanish-accents/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/spanish-accents/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/spanish-accents/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/spanish-accents/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/spanish-accents/"/>
   </url>
   <url>
     <loc>https://shadowing.euno.cc/fr/privacy/</loc>
@@ -118,6 +280,15 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/"/>
   </url>
   <url>
+    <loc>https://shadowing.euno.cc/es/guides/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/guides/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/guides/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/guides/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/guides/"/>
+  </url>
+  <url>
     <loc>https://shadowing.euno.cc/es/what-is-shadowing/</loc>
     <lastmod>2026-10-14</lastmod>
     <priority>0.8</priority>
@@ -127,6 +298,33 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/what-is-shadowing/"/>
   </url>
   <url>
+    <loc>https://shadowing.euno.cc/es/how-long-does-shadowing-take/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/how-long-does-shadowing-take/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/how-long-does-shadowing-take/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/how-long-does-shadowing-take/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/how-long-does-shadowing-take/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/choosing-shadowing-clips/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/choosing-shadowing-clips/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/choosing-shadowing-clips/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/choosing-shadowing-clips/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/choosing-shadowing-clips/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/shadowing-vs-other-methods/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/shadowing-vs-other-methods/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/shadowing-vs-other-methods/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/shadowing-vs-other-methods/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/shadowing-vs-other-methods/"/>
+  </url>
+  <url>
     <loc>https://shadowing.euno.cc/es/accent-shadowing/</loc>
     <lastmod>2026-10-14</lastmod>
     <priority>0.8</priority>
@@ -134,6 +332,51 @@
     <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/accent-shadowing/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/accent-shadowing/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/accent-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/english-accents/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/english-accents/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/english-accents/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/english-accents/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/english-accents/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/french-accent-shadowing/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/french-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/french-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/french-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/french-accent-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/french-accents/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/french-accents/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/french-accents/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/french-accents/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/french-accents/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/spanish-accent-shadowing/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/spanish-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/spanish-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/spanish-accent-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/spanish-accent-shadowing/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/spanish-accents/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/spanish-accents/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/spanish-accents/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/spanish-accents/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/spanish-accents/"/>
   </url>
   <url>
     <loc>https://shadowing.euno.cc/es/privacy/</loc>
