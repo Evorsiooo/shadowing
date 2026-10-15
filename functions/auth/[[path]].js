@@ -143,8 +143,7 @@ function page(title, body, status = 200, setCookie = null) {
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>${esc(title)} · Euno Shadowing</title>
 <style>
-:root{color-scheme:light dark;--bg:#fafaf7;--fg:#1d1d1b;--muted:#6b6b66;--accent:#58cc02;--bad:#c0392b;--line:#d9d9d2}
-@media (prefers-color-scheme:dark){:root{--bg:#161615;--fg:#ecece6;--muted:#a0a09a;--line:#3a3a36}}
+:root{color-scheme:light;--bg:#fafaf7;--fg:#1d1d1b;--muted:#6b6b66;--accent:#58cc02;--bad:#c0392b;--line:#d9d9d2}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;place-items:center;min-height:100vh;padding:16px;box-sizing:border-box}
 main{max-width:420px;width:100%}h1{font-size:1.4rem;margin:0 0 .5rem}a{color:inherit}
 .btn{display:inline-block;background:var(--accent);color:#fff;border:0;border-radius:10px;padding:.6rem 1rem;font:inherit;font-weight:600;text-decoration:none;cursor:pointer}
