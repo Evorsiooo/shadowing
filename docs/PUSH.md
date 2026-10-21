@@ -6,7 +6,7 @@ as well as, or instead of, Discord. Each channel is used when it is set up; the 
 ## How it works
 
 - `src/site/sw.js` → `/sw.js`: the service worker. It shows each reminder and opens `/app/` when one is
-  tapped. It caches nothing. The app registers it on load (`src/js/86-push.js`), which also lets
+  tapped. It also keeps the app page and its hashed files so the installed app opens offline (never API, sign-in, OAuth or MCP responses). The app registers it on load (`src/js/86-push.js`), which also lets
   browsers offer to install the site as an app.
 - Turning notifications on asks for permission, subscribes with the server's VAPID public key, and sends
   the subscription to `POST /api/reminders/push`. The server keeps up to 10 devices per user in the

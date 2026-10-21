@@ -140,6 +140,10 @@ function applyTheme() {
   const t = lsGet('theme', Caps.inArtifact ? 'system' : 'light');
   if (t === 'system' && Caps.inArtifact && document.documentElement.hasAttribute('data-theme')) return; // the host already set one
   document.documentElement.setAttribute('data-theme', t);
+  // the browser's address bar / the installed app's title bar follows the theme (light is the default)
+  const dark = t === 'dark' || (t === 'system' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', dark ? '#111710' : '#f4f8f1');
 }
 
 /* ---------- device checks: the spec's "test first" list, runnable on any device ---------- */
