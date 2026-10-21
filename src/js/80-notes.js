@@ -344,7 +344,7 @@ async function openCompare(idA, idB, urlB) {
     h('div', { class: 'row' }, seg, h('span', { class: 'spacer' }), legend),
     holder,
     h('div', { class: 'stack' }, players),
-    layers.slice(1).filter((L) => L.series && L.series.db).map((L) => { const c = prosodyCard(clip, L.series); return c && h('div', { class: 'stack' }, h('strong', { class: 'small' }, L.label), c); }),
+    layers.slice(1).filter((L) => L.series && L.series.db).map((L) => { const c = prosodyCard(clip, L.series, L.rec && L.rec.heard); return c && h('div', { class: 'stack' }, h('strong', { class: 'small' }, L.label), c); }),
     h('p', { class: 'small muted' }, t('Each line is shown against that voice’s own average pitch. A final line that follows the speaker’s shape more closely than step 3, or a smaller lag, is progress.')),
     B && B.sessionId ? noteForms({ clipId: clip.id, sessionId: B.sessionId, recId: B.id, pass: B.pass, step: B.step || 'again' }) : null,
   ]);
