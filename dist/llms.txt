@@ -4,8 +4,28 @@
 
 Euno Shadowing is a daily coach for shadowing: pick a short clip, speak along with it, and see your melody and timing next to the speaker’s. Fifteen minutes a day, and your accent moves. Free. Works in your browser. Your videos and recordings go to your own Google Drive, not our server.
 
+## What it is, and what it is not
+
+- Euno Shadowing is a free web app at shadowing.euno.cc for practising pronunciation and accent by shadowing (speaking along with a recording) in English, French and Spanish. Full explanation: https://shadowing.euno.cc/what-is-euno-shadowing/
+- You bring your own videos or audio (upload a file or paste a link to an .mp4) and cut short clips of one or two sentences. There are no built-in lessons, no content library, no subtitles and no transcripts, and it does not pull content from YouTube.
+- It is not an app for job shadowing (such as Erasmus+ visits for teachers), medical or pre-med shadowing, or the Euno enterprise AI platform, and is not affiliated with them. It is also not the journaling apps named Euno.
+- Feedback: your pitch line next to the speaker's, your lag behind or ahead of the speaker, and measured differences in speed, pitch direction and stress after each recorded pass. It does not score individual sounds. Optional AI feedback on your written notes uses your own API key (Anthropic, OpenAI or OpenRouter); only text is sent, never audio.
+
+## Features
+
+- Guided four-step shadowing sessions
+- Pitch and timing comparison with the speaker
+- Recording and side-by-side playback
+- Notes with optional AI feedback (bring your own key)
+- 12-week check-ins against a baseline
+- Discord practice reminders
+- Clips cut from your own videos, with a zoomed waveform for trimming at the pauses
+- Looping, playback at 0.5x, 0.75x or 1x, and keyboard shortcuts
+- A five-minute bad-day version of the session; durations and pass counts are settings
+
 ## Guides
 
+- [What is Euno Shadowing? What it does and does not do](https://shadowing.euno.cc/what-is-euno-shadowing/): Euno Shadowing is a free web app for practising accent by shadowing your own videos. What it does, what it does not do (no lessons, subtitles or transcripts), and how it differs from similarly named things.
 - [What is shadowing? How the technique works for pronunciation](https://shadowing.euno.cc/what-is-shadowing/): Shadowing is speaking along with a recording at the same time as the speaker. Learn how it works, why it improves rhythm and intonation, and how to start.
 - [How long does shadowing take to improve your accent?](https://shadowing.euno.cc/how-long-does-shadowing-take/): What to expect from daily shadowing practice: what changes first, what takes longer, and how to tell whether your accent is really moving.
 - [How to choose speakers and clips for shadowing](https://shadowing.euno.cc/choosing-shadowing-clips/): What makes a good shadowing clip: the right speaker, natural speech, clear audio, the right length and where to cut. With a checklist.
@@ -28,6 +48,8 @@ Euno Shadowing is a daily coach for shadowing: pick a short clip, speak along wi
 ## Facts
 
 - What is shadowing? Shadowing means speaking along with a recording at the same time as the speaker, copying their rhythm, melody and sounds as closely as you can. It trains the way you speak, not just the way you understand.
+- What is Euno Shadowing, and is it related to job shadowing or Euno AI? Euno Shadowing is a free web app for practising your accent by shadowing: speaking along with short clips of videos you bring, then comparing your pitch and timing with the speaker’s. It is not related to job-shadowing programmes such as Erasmus+, to medical shadowing, or to the Euno enterprise AI platform. What it is, and what it is not.
+- What feedback does it give? After a recorded pass it shows your pitch line next to the speaker’s, your lag, and measured differences in speed, pitch direction and stress. Optional AI feedback on your written notes uses your own API key. It does not score individual sounds, and it has no automatic subtitles or transcripts.
 - Does it cost anything? No. Euno Shadowing is free. AI feedback is optional and uses your own API key, so any AI usage is billed to you directly by the provider you pick, and you choose the model.
 - Which languages and accents does it support? You can practise English (General Australian, General American or Southern British), French (Parisian or Québécois) or Spanish (Mexican, Spain or Rioplatense), or name another accent of those languages. The app itself is available in English, French and Spanish. More languages, such as Japanese and German, are planned.
 - Where are my videos and recordings stored? In your own Google Drive. When you connect it, the app puts your files in a “Euno Shadowing” folder there, so they’re on every device you sign in on, and it can only see the files it creates. Your browser also keeps a copy of the files you open so they play instantly. Our server only keeps your practice notes and progress, never the audio or video.
