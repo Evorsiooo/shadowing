@@ -755,7 +755,10 @@ function showSessionSummary(sum, streakBefore, nextClipId, redraw = false) {
   const info = streakInfo();
   const grew = info.streak > streakBefore;
   const clip = Store.get('clips', sum.clipId);
-  if (!redraw && (sum.tickNew || grew)) celebrate(sum.tickNew ? 1.2 : 0.8);
+  const milestone = grew ? streakMilestone(streakBefore, info.streak) : 0;
+  const target = settings().weeklyTarget;
+  const weekGoal = grew && info.weekCount === target; // this session is the one that reached the week's target
+  if (!redraw && (sum.tickNew || grew)) celebrate(milestone ? 1.6 : sum.tickNew ? 1.2 : 0.8);
   const sess = Store.get('sessions', sum.sessionId);
   const moveDay = async (date, from) => {
     moveSessionDay(sum.sessionId, date, from);
@@ -779,6 +782,8 @@ function showSessionSummary(sum, streakBefore, nextClipId, redraw = false) {
       h('div', { class: 'big-num' }, `${info.streak}`),
       h('p', null, h('strong', null, grew ? tp(info.streak, 'day streak · it grew!', 'day streak · it grew!') : tp(info.streak, 'day streak', 'day streak'))),
       h('p', { class: 'muted' }, tp(sum.passes, '{n} pass · {min} min · {week}/{target} sessions this week', '{n} passes · {min} min · {week}/{target} sessions this week', { min: sum.minutes, week: info.weekCount, target: settings().weeklyTarget })),
+      milestone ? h('p', { class: 'formok' }, t('{n}-day streak. Well done for coming back every day.', { n: milestone })) : null,
+      weekGoal ? h('p', { class: 'formok' }, t('Weekly goal reached: {n} days this week.', { n: target })) : null,
       sum.tickNew ? h('p', { class: 'formok' }, t('“{clip}” gets its tick.', { clip: clipName(clip) })) : null,
       !sum.complete && sum.mode === 'full' ? h('p', { class: 'small muted' }, t('Progress so far is saved. The clip gets its tick after one complete session.')) : null),
     lateCard,
