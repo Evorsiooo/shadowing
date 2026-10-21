@@ -335,6 +335,7 @@ const DEFAULT_SETTINGS = {
   manualOffsetMs: 250,
   latencyMs: 0,
   livePitchAllPasses: false,
+  speechCheck: false,
   review: false, reviewAfterDays: 2, reviewShadowPasses: 5,
   keepAllPassRecordings: false,
   noiseSuppression: false,
