@@ -114,6 +114,10 @@ img, svg { max-width: 100%; height: auto; }
 .demo .chip-t { fill: var(--fg); font: 800 14px var(--font-body); }
 .demo .key-s { fill: var(--green); }
 .demo .key-y { fill: var(--sky); }
+.compare { display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px; align-items: center; margin-top: 28px; }
+.compare .demo { margin: 0; }
+.compare-points { margin: 0; padding-left: 1.2em; color: var(--muted); }
+.compare-points li { margin-bottom: 12px; }
 
 section.block { padding: 56px 0 8px; }
 section.block .intro.after { margin-top: 20px; }
@@ -218,7 +222,7 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
   body { font-size: 16px; }
   .wrap { padding: 0 16px; }
   .hero { padding-top: 40px; }
-  .steps, .cards, .split, .guide-grid { grid-template-columns: 1fr; }
+  .steps, .cards, .split, .guide-grid, .compare { grid-template-columns: 1fr; }
   .site-nav .hide-sm { display: none; }
   .site-head .wrap { gap: 10px; }
   .site-nav { gap: 6px 10px; }
