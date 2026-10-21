@@ -578,5 +578,61 @@
   "Zoomed on the clip": {
     "fr": "Zoom sur l’extrait",
     "es": "Zoom en el fragmento"
+  },
+  "around “{words}” ({when})": {
+    "fr": "autour de « {words} » ({when})",
+    "es": "alrededor de «{words}» ({when})"
+  },
+  "at {when}": {
+    "fr": "à {when}",
+    "es": "en {when}"
+  },
+  "You went faster than the speaker {where}.": {
+    "fr": "Tu es allé plus vite que le locuteur {where}.",
+    "es": "Fuiste más rápido que el hablante {where}."
+  },
+  "You went slower than the speaker {where}.": {
+    "fr": "Tu es allé plus lentement que le locuteur {where}.",
+    "es": "Fuiste más lento que el hablante {where}."
+  },
+  "The speaker’s voice goes up {where}; yours went down.": {
+    "fr": "La voix du locuteur monte {where} ; la tienne est descendue.",
+    "es": "La voz del hablante sube {where}; la tuya bajó."
+  },
+  "The speaker’s voice goes up {where}; yours stayed flat.": {
+    "fr": "La voix du locuteur monte {where} ; la tienne est restée plate.",
+    "es": "La voz del hablante sube {where}; la tuya se quedó plana."
+  },
+  "The speaker’s voice goes down {where}; yours went up.": {
+    "fr": "La voix du locuteur descend {where} ; la tienne est montée.",
+    "es": "La voz del hablante baja {where}; la tuya subió."
+  },
+  "The speaker’s voice goes down {where}; yours stayed flat.": {
+    "fr": "La voix du locuteur descend {where} ; la tienne est restée plate.",
+    "es": "La voz del hablante baja {where}; la tuya se quedó plana."
+  },
+  "The speaker leans on a syllable {where} that you said more softly.": {
+    "fr": "Le locuteur appuie sur une syllabe {where} que tu as dite plus doucement.",
+    "es": "El hablante marca una sílaba {where} que dijiste más suave."
+  },
+  "You leaned on a syllable {where} that the speaker keeps light.": {
+    "fr": "Tu as appuyé sur une syllabe {where} que le locuteur garde légère.",
+    "es": "Marcaste una sílaba {where} que el hablante mantiene ligera."
+  },
+  "Differences from the speaker": {
+    "fr": "Différences avec le locuteur",
+    "es": "Diferencias con el hablante"
+  },
+  "No big differences in timing, pitch direction or stress. Nice.": {
+    "fr": "Pas de grande différence de rythme, de sens de la mélodie ou d’accent. Bravo.",
+    "es": "Sin grandes diferencias de ritmo, dirección del tono ni acento. Bien."
+  },
+  "{n} more not shown.": {
+    "fr": "{n} de plus non affichées.",
+    "es": "{n} más sin mostrar."
+  },
+  "Worked out on your device from pitch and loudness only, so it can’t hear vowels or consonants, and the words are a rough guess from timing.": {
+    "fr": "Calculé sur ton appareil à partir de la hauteur et du volume seulement : il n’entend ni les voyelles ni les consonnes, et les mots sont une estimation approximative d’après le rythme.",
+    "es": "Calculado en tu dispositivo solo con el tono y el volumen: no oye vocales ni consonantes, y las palabras son una estimación aproximada según el ritmo."
   }
 }
