@@ -29,6 +29,19 @@ function streakInfo(excludeId) {
   return { streak, weekCount, minutes: minutes < 10 ? round(minutes, 1) : Math.round(minutes), days, practisedToday: days.has(today), missedYesterday: days.size > 0 && !days.has(yesterday) && !days.has(today) };
 }
 
+/* streak lengths worth a word of congratulation */
+const STREAK_MILESTONES = [3, 7, 14, 30, 50, 100, 200, 365];
+function streakMilestone(streakBefore, streak) {
+  return STREAK_MILESTONES.filter((m) => streakBefore < m && streak >= m).pop() || 0;
+}
+/* the day a new user is on in their first week: 1 on the day of the first session, up to 7; 0 after that */
+function firstWeekDay(info) {
+  const first = [...info.days.keys()].sort()[0];
+  if (!first) return 0;
+  const n = daysBetween(first, dayKey()) + 1;
+  return n <= 7 ? n : 0;
+}
+
 /* a session started between midnight and 10am can count for yesterday when yesterday has none */
 const LATE_SESSION_HOUR = 10;
 function canCountForYesterday(sessionId) {
@@ -90,6 +103,12 @@ function renderBanners() {
     out.push(h('div', { class: 'banner' },
       h('p', null, t('You missed yesterday. Don’t skip two days in a row: even a 5-minute bad-day session keeps the streak alive.'),
         new Date().getHours() < LATE_SESSION_HOUR ? [' ', h('strong', null, t('It’s not 10am yet, so a session you do now can still count for yesterday: you’ll get the option when you finish.'))] : null),
+      btn(t('Bad-day session'), () => Session.start(UI.queue.length ? UI.queue : [UI.clipId || lastClipId()].filter(Boolean), 'badday'), { kind: 'wattle', size: 'sm', icon: 'bad' })));
+  }
+  const fw = firstWeekDay(info);
+  if (fw > 1 && !info.practisedToday && !info.missedYesterday) {
+    out.push(h('div', { class: 'banner info' },
+      h('p', null, t('Day {n} of your first week. Short and regular beats long and rare: even 5 minutes counts today.', { n: fw })),
       btn(t('Bad-day session'), () => Session.start(UI.queue.length ? UI.queue : [UI.clipId || lastClipId()].filter(Boolean), 'badday'), { kind: 'wattle', size: 'sm', icon: 'bad' })));
   }
   const due = dueCheckin();

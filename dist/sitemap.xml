@@ -55,6 +55,15 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/shadowing-vs-other-methods/"/>
   </url>
   <url>
+    <loc>https://shadowing.euno.cc/euno-vs-elsa-and-language-reactor/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/euno-vs-elsa-and-language-reactor/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/euno-vs-elsa-and-language-reactor/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/euno-vs-elsa-and-language-reactor/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/euno-vs-elsa-and-language-reactor/"/>
+  </url>
+  <url>
     <loc>https://shadowing.euno.cc/accent-shadowing/</loc>
     <lastmod>2026-10-14</lastmod>
     <priority>0.8</priority>
@@ -190,6 +199,15 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/shadowing-vs-other-methods/"/>
   </url>
   <url>
+    <loc>https://shadowing.euno.cc/fr/euno-vs-elsa-and-language-reactor/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/euno-vs-elsa-and-language-reactor/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/euno-vs-elsa-and-language-reactor/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/euno-vs-elsa-and-language-reactor/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/euno-vs-elsa-and-language-reactor/"/>
+  </url>
+  <url>
     <loc>https://shadowing.euno.cc/fr/accent-shadowing/</loc>
     <lastmod>2026-10-14</lastmod>
     <priority>0.8</priority>
@@ -323,6 +341,15 @@
     <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/shadowing-vs-other-methods/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/shadowing-vs-other-methods/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/shadowing-vs-other-methods/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/euno-vs-elsa-and-language-reactor/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/euno-vs-elsa-and-language-reactor/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/euno-vs-elsa-and-language-reactor/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/euno-vs-elsa-and-language-reactor/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/euno-vs-elsa-and-language-reactor/"/>
   </url>
   <url>
     <loc>https://shadowing.euno.cc/es/accent-shadowing/</loc>

@@ -139,6 +139,52 @@ const make = ({ L }) => ({
     </ol>`,
   },
 
+  'euno-vs-elsa-language-reactor': {
+    title: 'Euno Shadowing, ELSA Speak et Language Reactor : comparaison | Euno Shadowing',
+    h1: 'Euno Shadowing, ELSA Speak et Language Reactor',
+    crumb: 'Euno, ELSA et Language Reactor',
+    description: 'Une comparaison honnête d’Euno Shadowing, ELSA Speak et Language Reactor : à quoi sert chaque outil, ce qu’il ne fait pas, et comment choisir ou les combiner.',
+    lede: 'On cite souvent ces trois outils ensemble, mais ils font des choses différentes. ELSA te fait suivre des leçons et note tes sons, Language Reactor t’aide à comprendre ce que tu regardes, et Euno t’aide à imiter des extraits de ton choix et à comparer ta voix à celle du locuteur.',
+    body: `
+    <p><em>Nous faisons Euno Shadowing : lis ce comparatif en sachant cela. Nous décrivons les deux autres d’après leurs descriptions publiques, telles que nous les comprenons en octobre 2026 ; les fonctions et les prix changent, vérifie donc leurs sites avant de décider.</em></p>
+
+    <h2>En un coup d’œil</h2>
+    <table class="simple">
+      <thead><tr><th></th><th>Euno Shadowing</th><th>ELSA Speak</th><th>Language Reactor</th></tr></thead>
+      <tbody>
+        <tr><td>Ce que c’est</td><td>Une app d’entraînement au shadowing sur tes propres extraits</td><td>Une app de cours de prononciation, avec leçons et notation</td><td>Une extension de navigateur pour apprendre avec Netflix et YouTube</td></tr>
+        <tr><td>Contenu</td><td>Tes propres vidéos et audios : tu importes un fichier ou colles un lien, puis tu découpes des extraits</td><td>Des leçons créées par l’entreprise</td><td>Les vidéos que tu regardes déjà sur les sites de streaming</td></tr>
+        <tr><td>Principe</td><td>Imiter un vrai locuteur, puis comparer ta hauteur de voix et ton timing aux siens</td><td>Dire une phrase et recevoir un retour sur tes sons</td><td>Sous-titres doubles et dictionnaire en infobulle pour comprendre ce que tu entends</td></tr>
+        <tr><td>Langues</td><td>Accents anglais, français et espagnols</td><td>Anglais</td><td>De nombreuses langues</td></tr>
+        <tr><td>Retour</td><td>Ta courbe de mélodie et ton décalage à côté de ceux du locuteur ; retour IA facultatif avec ta propre clé d’API</td><td>Notation automatique de ta prononciation</td><td>Pas un outil de prononciation</td></tr>
+        <tr><td>Prix</td><td>Gratuit ; l’usage de l’IA, si tu la choisis, est facturé par ton fournisseur</td><td>Offre gratuite et abonnements payants</td><td>Offre gratuite et abonnements payants</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Euno Shadowing</h2>
+    <p>Euno déroule la routine de shadowing à ta place. Tu apportes une vidéo d’un locuteur dont tu veux l’accent, tu découpes un extrait d’une ou deux phrases, et Euno le boucle, compte tes passages, t’enregistre et trace ta mélodie et ton décalage à côté de ceux du locuteur. Il s’appuie sur le vrai locuteur, pas sur un accent modèle, donc il marche avec n’importe quelle voix que tu trouves.</p>
+    <p><strong>Ce qu’il ne fait pas :</strong> pas de leçons ni de bibliothèque à lui, pas de sous-titres ni de transcriptions, pas d’intégration aux sites de streaming, et pas de note par son. Il montre les différences avec la mélodie et le timing du locuteur ; il ne te dit pas quelle voyelle tu as ratée. Le retour IA est facultatif et utilise une clé que tu fournis.</p>
+
+    <h2>ELSA Speak</h2>
+    <p>ELSA est une app de prononciation de l’anglais. Tu suis ses leçons et exercices, tu parles, et l’app note ta prononciation et signale les sons à travailler. C’est un bon choix si tu veux un cours structuré et un retour rapide sur les sons, par rapport à un accent standard.</p>
+    <p><strong>La différence :</strong> le contenu est celui de l’entreprise, tu ne peux pas t’exercer avec ton locuteur préféré, et son retour te juge par rapport à une cible, pas par rapport à la personne que tu imites. Elle est centrée sur l’anglais.</p>
+
+    <h2>Language Reactor</h2>
+    <p>Language Reactor est une extension de navigateur qui ajoute des sous-titres doubles, un dictionnaire en infobulle et des commandes de lecture aux vidéos de sites comme Netflix et YouTube. Elle sert à comprendre et à retenir du vocabulaire à partir de contenus réels, et couvre de nombreuses langues.</p>
+    <p><strong>La différence :</strong> elle porte sur la compréhension, pas sur la mesure de ta façon de parler. Tu peux l’utiliser avec n’importe quelle vidéo, mais elle ne t’enregistre pas et ne compare pas ta voix à celle du locuteur.</p>
+
+    <h2>Comment choisir</h2>
+    <ul>
+      <li><strong>Tu veux ressembler à un locuteur précis</strong>, avec un rythme et une mélodie les plus proches possible : Euno.</li>
+      <li><strong>Tu veux un cours guidé</strong> et un retour sur les sons de l’anglais : ELSA.</li>
+      <li><strong>Tu veux comprendre et apprendre des mots</strong> à partir de ce que tu regardes : Language Reactor.</li>
+    </ul>
+
+    <h2>Les utiliser ensemble</h2>
+    <p>Ils sont moins concurrents qu’il n’y paraît. Une combinaison raisonnable : trouve un extrait qui te plaît et apprends ses mots avec Language Reactor, puis découpe-le et imite-le dans Euno. Si un même son revient quand tu compares tes enregistrements, utilise un cours comme ELSA, ou <a href="${L('/shadowing-vs-other-methods/')}">les paires minimales</a>, pour le travailler, puis retourne au shadowing pour l’utiliser à vitesse réelle.</p>
+    <p>Tu découvres la technique ? Commence par <a href="${L('/what-is-shadowing/')}">ce qu’est le shadowing</a> et <a href="${L('/choosing-shadowing-clips/')}">comment choisir ses extraits</a>.</p>`,
+  },
+
   'english-accents': {
     title: 'Quel accent anglais imiter : américain, britannique ou australien ? | Euno Shadowing',
     h1: 'Quel accent anglais choisir pour le shadowing ?',
