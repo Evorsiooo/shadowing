@@ -208,3 +208,30 @@ function prosodyCard(clip, analysis, heard) {
       : t('The browser’s speech recognition picked up every word. Nice.')) : null,
     h('p', { class: 'small muted' }, t('Timing and pitch are worked out on your device from pitch and loudness only, so they can’t hear vowels or consonants, and the words are a rough guess from timing.')));
 }
+
+/* the measured differences as plain English lines for the AI (never translated: the prompt is English) */
+function measuredLines(clip, analysis, heard) {
+  const out = [];
+  let res = null;
+  try { res = Prosody.compare(clip, analysis); } catch (e) { res = null; }
+  if (res) {
+    const at = (f) => `${f.a}-${f.b} s${f.words ? ` (around "${f.words}")` : ''}`;
+    for (const f of res.findings.slice(0, 6)) {
+      if (f.kind === 'rushed') out.push(`Faster than the speaker at ${at(f)}.`);
+      else if (f.kind === 'dragged') out.push(`Slower than the speaker at ${at(f)}.`);
+      else if (f.kind === 'pitch') out.push(`Speaker's pitch goes ${f.dir} at ${at(f)}; the learner's ${f.ours === 'flat' ? 'stayed flat' : `went ${f.ours}`}.`);
+      else out.push(f.dir === 'softer' ? `Speaker stresses a syllable at ${at(f)} that the learner said more softly.` : `Learner stressed a syllable at ${at(f)} that the speaker keeps light.`);
+    }
+    if (!res.findings.length) out.push('No notable differences in timing, pitch direction or stress.');
+  }
+  const spoken = heard ? Speech.unclear(clip.sentence, heard) : null;
+  if (spoken) out.push(spoken.missing.length ? `Speech recognition did not pick up these words: ${spoken.missing.slice(0, 8).join(', ')} (it also misses clear words).` : 'Speech recognition picked up every word.');
+  return out;
+}
+/* for a note on a saved recording */
+function measuredForNote(ctx) {
+  const rec = ctx.recId && Store.get('recordings', ctx.recId);
+  const clip = Store.get('clips', ctx.clipId);
+  if (!rec || !clip || !rec.analysis) return [];
+  return measuredLines(clip, rec.analysis, rec.heard);
+}

@@ -163,14 +163,17 @@ const NOTE_SCHEMA = {
 };
 
 /* ---------- feedback ---------- */
-export async function noteFeedback(env, userId, { sentence = '', off = '', aim = '', issues = [], profile = {} }) {
+export async function noteFeedback(env, userId, { sentence = '', off = '', aim = '', issues = [], measured = [], profile = {} }) {
   const c = await keyFor(env, userId);
   await rateLimit(env, userId);
   const system = systemPrompt(profile && typeof profile === 'object' ? profile : {});
+  const lines = Array.isArray(measured) ? measured.slice(0, 10).map((l) => String(l).replace(/\s+/g, ' ').slice(0, 200)) : [];
   const user = `Sentence being practised: ${String(sentence).slice(0, 500) || '(not given)'}
 What sounded off: ${String(off).slice(0, 2000)}
 What they were aiming for: ${String(aim).slice(0, 500) || '(not given)'}
-Issue names they already track: ${Array.isArray(issues) && issues.length ? issues.slice(0, 60).map(String).join('; ') : '(none yet)'}`;
+Issue names they already track: ${Array.isArray(issues) && issues.length ? issues.slice(0, 60).map(String).join('; ') : '(none yet)'}${lines.length ? `
+Measured on their recording by software (pitch, loudness and timing only, so it can't hear vowels or consonants; speech recognition can also miss clear words). Treat it as evidence about the recording, not as the learner's opinion, and don't invent problems beyond it and their description:
+${lines.map((l) => `- ${l}`).join('\n')}` : ''}`;
   const ask = c.provider === 'anthropic' ? askAnthropic : askOpenAICompatible;
   let text;
   try {
