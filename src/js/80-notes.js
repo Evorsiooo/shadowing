@@ -419,8 +419,17 @@ async function openHistory(clipId) {
         deleteSessionButton(s.id, () => openHistory(clipId))),
       ns.map(noteCard));
   }));
+  const trend = [...sessions].reverse().map((s) => {
+    const lagOf = (id) => { const r = id && Store.get('recordings', id); return r && r.lag != null ? r.lag : null; };
+    return { date: s.date, first: lagOf(s.recs && s.recs.step3), final: lagOf(s.recs && s.recs.final) };
+  }).filter((x) => x.first != null && x.final != null);
   openModal([
     modalHead(t('History: {clip}', { clip: clipName(clip) }), tp(sessions.length, '{n} session · newest first', '{n} sessions · newest first')),
+    trend.length ? h('div', { class: 'card' }, h('h3', null, t('First and final recording, session by session')),
+      h('p', { class: 'small muted' }, t('Average lag behind the speaker in each recording. Clips and speeds differ, so read it as a rough trend.')),
+      h('div', { class: 'table-wrap' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', null, t('Date')), h('th', null, t('Step 3')), h('th', null, t('Final')))),
+        h('tbody', null, trend.map((x) => h('tr', null, h('td', null, fmtDay(x.date)), h('td', { class: 'num' }, fmtLag(x.first)), h('td', { class: 'num' }, fmtLag(x.final)))))))) : null,
     items.length ? items : h('p', { class: 'muted' }, t('No sessions on this clip yet.')),
   ]);
 }

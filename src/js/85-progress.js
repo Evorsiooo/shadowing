@@ -175,7 +175,24 @@ function habitView() {
           return h('span', { class: `d ${k || ''} ${d === today ? 'today' : ''} ${d > today ? 'future' : ''}`, title: fmtDayLong(d) + (k ? ' · ' + (k === 'bad' ? t('bad-day session') : t('full session')) : '') }, k === 'full' ? '✓' : k === 'bad' ? '·' : '');
         })])),
       h('div', { class: 'legend' }, h('span', null, h('i', { style: { background: 'var(--green)' } }), t('Full session')), h('span', null, h('i', { style: { background: 'var(--wattle)' } }), t('Bad-day session')), h('span', null, h('i', { style: { background: 'var(--surface-2)' } }), t('Not practised')))),
+    weeklyMinutes(weeks).some((m) => m > 0) ? h('div', { class: 'card' }, h('h3', null, t('Minutes per week')), minutesChart(weeks, weeklyMinutes(weeks))) : null,
     lags.length > 1 ? h('div', { class: 'card trend' }, h('h3', null, t('Average lag behind the speaker, by week')), h('p', { class: 'small muted' }, t('How far behind the speaker your voice is, on average, across your passes. Beginners echo the speaker; with practice you start to anticipate, so the lag shrinks towards zero. Clips and speeds differ, so read the trend over several weeks, not the single values.')), trendChart(lags.map((l) => ({ x: fmtDay(l.week), y: l.lag })), { unit: ' s', dec: 2 })) : null);
+}
+
+function weeklyMinutes(weeks) {
+  const by = new Map(weeks.map((w) => [w, 0]));
+  for (const s of Store.all('sessions')) {
+    if (s.empty) continue;
+    const w = weekStart(s.date);
+    if (by.has(w)) by.set(w, by.get(w) + (s.minutes || 0));
+  }
+  return weeks.map((w) => Math.round(by.get(w)));
+}
+/* quiet bars, one per week, newest on the right */
+function minutesChart(weeks, mins) {
+  const top = Math.max(...mins, 1);
+  return h('div', { class: 'mins' }, weeks.map((w, i) => h('div', { class: 'col', title: t('{n} min', { n: mins[i] }) + ' · ' + fmtDay(w) },
+    h('i', { style: { height: Math.max(mins[i] ? 4 : 0, (mins[i] / top) * 100) + '%' } }), h('span', null, i % 2 === 0 ? fmtDay(w) : ''))));
 }
 
 function weeklyLag() {
