@@ -75,6 +75,7 @@ const Api = {
   ai: null, // {provider, providerName, model} when the user has saved an AI key
   signedOut: false,
   problem: null,
+  unreachable: false, // the server didn't answer at all (no connection)
   async req(method, path, body, { raw = false, headers = {} } = {}) {
     let resp;
     try {
@@ -113,7 +114,7 @@ const Api = {
       this.on = true; this.email = d.email; this.name = d.name || null; this.role = d.role || null; this.ai = d.ai || null;
       this.drive = d.drive || { connected: false }; this.driveAvailable = !!d.driveAvailable;
       return true;
-    } catch { return false; } finally { clearTimeout(timer); }
+    } catch { this.unreachable = true; return false; } finally { clearTimeout(timer); }
   },
 };
 
@@ -138,6 +139,8 @@ const Store = {
         return;
       } catch (e) { this.lastError = e; Api.problem = e.message; }
     }
+    // no answer from the server (e.g. the installed app opened without a connection): don't fall back to an empty device-only copy
+    if (Api.unreachable && !Caps.inArtifact) Api.problem = Api.problem || t('The server couldn’t be reached. Check your connection.');
     if (Api.signedOut || Api.problem) { this.mode = 'offline'; this.blobMode = 'memory'; return; }
     if (Caps.db) {
       try {
@@ -332,6 +335,7 @@ const DEFAULT_SETTINGS = {
   manualOffsetMs: 250,
   latencyMs: 0,
   livePitchAllPasses: false,
+  speechCheck: false,
   review: false, reviewAfterDays: 2, reviewShadowPasses: 5,
   keepAllPassRecordings: false,
   noiseSuppression: false,

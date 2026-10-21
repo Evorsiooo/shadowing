@@ -44,6 +44,21 @@ const ONBOARDING_STEPS = [
     },
   },
   {
+    id: 'goal', label: N_('Goal'),
+    title: () => t('How often will you practise?'),
+    sub: () => t('Pick a goal you can keep. A short session counts, and you can change it later in Settings.'),
+    body: (W) => [choiceGroup('obGoal', t('Days per week'), [
+      { value: 3, title: t('3 days a week'), hint: t('Relaxed. Good for a busy week.') },
+      { value: 5, title: t('5 days a week'), hint: t('Steady. Most people improve fastest here.') },
+      { value: 7, title: t('Every day'), hint: t('Ambitious. One rest day in a row never breaks your streak.') },
+    ], W.goal, (v) => { W.goal = v; })],
+    next: (W) => {
+      if (!W.goal) { toast(t('Pick a goal to continue.'), 'bad'); return false; }
+      saveSettings({ weeklyTarget: W.goal });
+      return true;
+    },
+  },
+  {
     id: 'storage', label: N_('Files'),
     title: () => t('Where your files live'),
     sub: () => t('Videos and recordings can be large, so they’re kept with you rather than on our server.'),
@@ -102,7 +117,7 @@ function needsOnboarding() { return !profile().onboarded; }
 function openOnboarding() {
   const draft = { ...profile() };
   if (!draft.name && Api.name) draft.name = String(Api.name).split(/\s+/)[0].slice(0, 40); // first name from Google
-  const W = { i: 0, draft, addVideo: true, baseline: true };
+  const W = { i: 0, draft, addVideo: true, baseline: true, goal: 0 }; // no goal preselected: choosing one is a small commitment
   W.steps = ONBOARDING_STEPS.filter((s) => !s.when || s.when());
   renderOnboarding(W);
 }

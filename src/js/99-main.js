@@ -119,8 +119,8 @@ async function boot() {
     }
     mount($('#panel'), h('div', { class: 'panel-msg' }, t('Not connected.')));
     openModal([
-      modalHead(Api.signedOut ? t('Please sign in') : /disabled/i.test(Api.problem || '') ? t('Account disabled') : t('The server isn’t ready')),
-      h('p', null, Api.signedOut ? t('Sign in with your Google account to open your practice.') : t('The app’s server answered with a problem: {problem}', { problem: Api.problem })),
+      modalHead(Api.signedOut ? t('Please sign in') : Api.unreachable ? t('You’re offline') : /disabled/i.test(Api.problem || '') ? t('Account disabled') : t('The server isn’t ready')),
+      h('p', null, Api.signedOut ? t('Sign in with your Google account to open your practice.') : Api.unreachable ? t('Euno needs a connection to load your practice. Reconnect, then reload.') : t('The app’s server answered with a problem: {problem}', { problem: Api.problem })),
       Api.signedOut ? btn(t('Sign in with Google'), () => signIn(), { kind: 'primary', size: 'big' }) : btn(t('Reload'), () => location.reload(), { kind: 'primary', size: 'big' }),
     ], { narrow: true });
     return;

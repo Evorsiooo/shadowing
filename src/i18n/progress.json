@@ -1011,6 +1011,18 @@
     "fr": "Il n’est pas encore 10 h, donc une séance faite maintenant peut encore compter pour hier : tu auras le choix à la fin.",
     "es": "Aún no son las 10, así que una sesión que hagas ahora todavía puede contar para ayer: tendrás la opción al terminar."
   },
+  "Day {n} of your first week. Short and regular beats long and rare: even 5 minutes counts today.": {
+    "fr": "Jour {n} de ta première semaine. Court et régulier vaut mieux que long et rare : même 5 minutes comptent aujourd’hui.",
+    "es": "Día {n} de tu primera semana. Corto y constante es mejor que largo y raro: hoy cuentan incluso 5 minutos."
+  },
+  "{n}-day streak. Well done for coming back every day.": {
+    "fr": "Série de {n} jours. Bravo d’être revenu chaque jour.",
+    "es": "Racha de {n} días. Bien hecho por volver cada día."
+  },
+  "Weekly goal reached: {n} days this week.": {
+    "fr": "Objectif de la semaine atteint : {n} jours cette semaine.",
+    "es": "Objetivo semanal cumplido: {n} días esta semana."
+  },
   "Add another note": {
     "fr": "Ajouter une autre note",
     "es": "Añadir otra nota"

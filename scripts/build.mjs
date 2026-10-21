@@ -69,6 +69,7 @@ const body = readFileSync(join(src, 'index.html'), 'utf8')
   .replace('@SCRIPTS@', () => `..${appJs}`);
 
 const ICON_LINKS = `<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">\n<link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">\n<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">\n<link rel="manifest" href="/site.webmanifest">`;
+const APP_THEME_COLOR = '<meta name="theme-color" content="#f4f8f1">'; // light is the default; applyTheme (88-settings.js) switches it for dark
 
 // The app's CSP is a <meta> tag so it can pin the page's own inline scripts by hash. Scripts are
 // only these and this site's own files; everything else the app loads is data: video links on any https site, Google Drive,
@@ -93,7 +94,7 @@ mkdirSync(dist, { recursive: true });
 rmSync(join(dist, 'artifact.html'), { force: true });
 out(
   'app/index.html',
-  `<!doctype html>\n<html lang="en-AU">\n<head>\n<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy" content="${appCsp}">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<meta name="robots" content="noindex, nofollow">\n${ICON_LINKS}\n</head>\n<body>\n${body}\n</body>\n</html>\n`,
+  `<!doctype html>\n<html lang="en-AU">\n<head>\n<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy" content="${appCsp}">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<meta name="robots" content="noindex, nofollow">\n${APP_THEME_COLOR}\n${ICON_LINKS}\n</head>\n<body>\n${body}\n</body>\n</html>\n`,
 );
 
 /* ---------- the public site ---------- */
@@ -215,7 +216,8 @@ for (const page of pages) {
 mkdirSync(join(dist, 'assets'), { recursive: true });
 for (const f of readdirSync(join(src, 'site', 'assets'))) copyFileSync(join(src, 'site', 'assets', f), join(dist, 'assets', f));
 copyFileSync(join(src, 'site', 'site.js'), join(dist, 'assets', 'site.js'));
-copyFileSync(join(src, 'site', 'sw.js'), join(dist, 'sw.js'));
+// The build id changes whenever the app's files do, so each deploy installs a fresh service worker that drops the old cache.
+out('sw.js', readFileSync(join(src, 'site', 'sw.js'), 'utf8').replace('@BUILD@', () => createHash('sha256').update(appJs + appCss).digest('hex').slice(0, 10)));
 
 // Every crawler is welcome on the public pages. The AI search and answer crawlers are also named,
 // so it's explicit that the site wants to be found and cited in AI answers (a named bot reads only its own group).
@@ -278,15 +280,17 @@ out(
     name: SITE.name,
     short_name: 'Euno',
     description: SITE.description,
+    id: '/app/',
     start_url: '/app/',
     scope: '/',
     display: 'standalone',
+    orientation: 'any',
     background_color: '#f4f8f1',
-    theme_color: '#45b52a',
+    theme_color: '#f4f8f1', // the app is light by default (--bg in styles.css)
     icons: [
       { src: '/assets/icon-192.png', sizes: '192x192', type: 'image/png' },
       { src: '/assets/icon-512.png', sizes: '512x512', type: 'image/png' },
-      { src: '/assets/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: '/assets/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
   }, null, 2) + '\n',
 );
@@ -295,11 +299,12 @@ out(
 // The app has its own CSP in a <meta> tag (above), so the site's one is detached under /app/.
 const siteCsp = [
   "default-src 'self'",
-  `script-src 'self' ${[...inlineScripts].map(sha).join(' ')}`,
+  `script-src 'self' ${[...inlineScripts].map(sha).join(' ')} https://challenges.cloudflare.com`, // Turnstile widget on /contact/
   `style-src 'self' ${[...inlineStyles].map(sha).join(' ')}`,
   "font-src 'self'",
   "img-src 'self' data:",
-  "connect-src 'self'",
+  "connect-src 'self' https://challenges.cloudflare.com",
+  "frame-src https://challenges.cloudflare.com",
   "form-action 'self'",
   "frame-ancestors 'none'",
   "base-uri 'none'",
