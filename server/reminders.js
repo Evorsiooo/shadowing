@@ -96,7 +96,7 @@ export function buildReminder(data, settings, { today, late = false, test = fals
   if (due != null) lines.push(T('🎙️ Week {n} check-in is due', { n: due }));
   lines.push('', T('Short on time? A 5-minute bad-day session still counts.'));
   const title = test ? T('Test reminder: it works ✅')
-    : late ? T('Still time for today’s shadowing') : T('Time for today’s shadowing 🎧');
+    : late ? T('Still time for today’s shadowing 🎧') : T('Time for today’s shadowing 🎧');
   return { title, lines, url: appLink(r.appUrl), settings: r };
 }
 
