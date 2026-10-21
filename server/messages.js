@@ -109,7 +109,7 @@ export const MESSAGES = {
   '🎙️ Week {n} check-in is due': { fr: '🎙️ C’est l’heure du bilan de la semaine {n}', es: '🎙️ Toca la evaluación de la semana {n}' },
   'Short on time? A 5-minute bad-day session still counts.': { fr: 'Pas le temps ? Une séance « jour sans » de 5 minutes compte quand même.', es: '¿Poco tiempo? Una sesión de día malo de 5 minutos también cuenta.' },
   'Test reminder: it works ✅': { fr: 'Rappel de test : ça marche ✅', es: 'Recordatorio de prueba: funciona ✅' },
-  'Still time for today’s shadowing': { fr: 'Il est encore temps pour le shadowing du jour', es: 'Aún estás a tiempo para el shadowing de hoy' },
+  'Still time for today’s shadowing 🎧': { fr: 'Il est encore temps pour le shadowing du jour 🎧', es: 'Aún estás a tiempo para el shadowing de hoy 🎧' },
   'Time for today’s shadowing 🎧': { fr: 'C’est l’heure du shadowing du jour 🎧', es: 'Es hora del shadowing de hoy 🎧' },
   'None of your devices accept notifications any more. Turn them on again in Settings → Reminders.': { fr: 'Aucun de tes appareils n’accepte plus les notifications. Réactive-les dans Réglages → Rappels.', es: 'Ninguno de tus dispositivos acepta ya notificaciones. Vuelve a activarlas en Ajustes → Recordatorios.' },
   'Couldn’t reach Discord ({detail})': { fr: 'Impossible de joindre Discord ({detail})', es: 'No se pudo conectar con Discord ({detail})' },
