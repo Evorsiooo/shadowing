@@ -16,7 +16,7 @@ API query is scoped to the signed-in user.
 - `DELETE /api/account` with `{ "confirm": "<your email>" }` deletes the account and everything
   the server keeps for it (docs, private values, sessions) and revokes its Google Drive access.
 - `POST /api/support` with `{ message, email? }` stores a contact-form message (signed in or not;
-  rate-limited; Cloudflare Turnstile is checked when `TURNSTILE_SECRET` is set).
+  rate-limited; Cloudflare Turnstile is checked when `TURNSTILE_SECRET` and `TURNSTILE_SITE_KEY` are set).
 
 ### Tables (migration 0003)
 
