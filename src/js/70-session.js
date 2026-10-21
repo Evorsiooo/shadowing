@@ -26,12 +26,13 @@ function buildPlan(mode, clip) {
   }
   return [
     { key: 'listen', name: N_('Listen'), passes: fit(s.listenPasses, s.listenMinutes, 2, 10), minutes: s.listenMinutes, speak: false },
-    { key: 'shadow', name: N_('Shadow'), passes: fit(s.shadowPasses, s.shadowMinutes, 5, 40), minutes: s.shadowMinutes, speak: true },
+    { key: 'shadow', name: N_('Shadow'), passes: fit(s.shadowPasses, s.shadowMinutes, 3, 40), minutes: s.shadowMinutes, speak: true },
     { key: 'record', name: N_('Record & compare'), passes: 1, minutes: s.recordMinutes, speak: true, recordLast: 'step3' },
     // the last pass records and is followed by a comparison, so leave it some time
-    { key: 'again', name: N_('Shadow again'), passes: fit(s.againPasses + 1, s.againMinutes, 2, 31, 45), minutes: s.againMinutes, speak: true, recordLast: 'final' },
+    { key: 'again', name: N_('Shadow again'), passes: fit(s.againPasses + 1, s.againMinutes, 2, 40, 45), minutes: s.againMinutes, speak: true, recordLast: 'final' },
   ];
 }
+const EXTEND_MINUTES = 2;
 const STEP_HELP = {
   listen: N_('Just listen. Don’t speak yet; take in the rhythm and melody.'),
   shadow: N_('Speak along at the same time as the speaker. Copy everything: rhythm, melody and sounds.'),
@@ -378,6 +379,25 @@ const Session = {
     this.phase = 'gap';
     this.beginPass();
   },
+  /* "Keep going": add about two more minutes of passes to the step that's running */
+  canExtend() {
+    const st = this.step();
+    if (!this.active || !st || !['playing', 'gap', 'paused'].includes(this.phase)) return false;
+    return !st.recordLast || this.pass < st.passes - 1; // the recorded pass stays last
+  },
+  extend() {
+    if (!this.canExtend()) return;
+    const st = this.step();
+    const clip = this.clip();
+    const perPass = (clip.end - clip.start) / ((Player.v && Player.v.playbackRate) || 1) + settings().loopGap;
+    const n = Math.max(2, Math.round(EXTEND_MINUTES * 60 / perPass));
+    st.passes += n;
+    st.minutes += EXTEND_MINUTES;
+    this.doc.extended = (this.doc.extended || 0) + n;
+    this.saveDoc();
+    toast(tp(n, 'Added {n} more pass.', 'Added {n} more passes.'));
+    renderSession();
+  },
   switchToBadDay() {
     if (!this.active) return;
     if (this.stepIdx > 1) { toast(t('You’re past the shadowing step already. Finish or end the session instead.')); return; }
@@ -567,6 +587,7 @@ function renderSession() {
       showCant ? btn(t('I can’t keep up'), () => S.flagCantKeepUp(), { size: 'sm', kind: 'wattle' }) : null,
       S.mode === 'full' && S.stepIdx <= 1 ? btn(t('Bad day? Switch to 5 min'), () => S.switchToBadDay(), { size: 'sm', icon: 'bad' }) : null,
       h('span', { class: 'spacer' }),
+      S.canExtend() ? btn(t('Keep going (+{min} min)', { min: EXTEND_MINUTES }), () => S.extend(), { size: 'sm', icon: 'plus', title: t('Add more passes to this step') }) : null,
       btn(t('Skip step'), () => S.skipStep(), { size: 'sm', icon: 'skip' }),
       btn(t('End session'), () => S.finish(true), { size: 'sm', kind: 'danger', icon: 'stop', title: t('End now; progress so far is saved') })));
 }
@@ -705,7 +726,7 @@ function passReviewCard() {
     mineVolumeControl(),
     step3 ? h('div', { class: 'row' }, h('span', { class: 'small muted grow' }, t('Compare with your step 3 recording from this session:')),
       btn(t('Compare overlaid'), () => openCompare(step3.id, R.recId, R.url), { size: 'sm', kind: 'blue' })) : null,
-    noteForm({ clipId: clip.id, sessionId: S.doc.id, recId: R.recId, pass: S.pass, step: S.step().key }),
+    noteForms({ clipId: clip.id, sessionId: S.doc.id, recId: R.recId, pass: S.pass, step: S.step().key }),
     h('div', { class: 'row' },
       btn(t('Redo this pass'), () => S.repeatPass(), { kind: 'ghost', icon: 'replay', title: t('Record this pass again, starting now') }),
       h('span', { class: 'spacer' }),

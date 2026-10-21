@@ -317,9 +317,11 @@ const Store = {
 const DEFAULT_SETTINGS = {
   clipMin: 10, clipMax: 20,
   listenPasses: 3, listenMinutes: 2,
-  shadowPasses: 15, shadowMinutes: 7,
+  // the first recording comes after a short shadow step, then a longer one leads to the final recording
+  shadowPasses: 8, shadowMinutes: 4,
   recordMinutes: 2,
-  againPasses: 8, againMinutes: 4,
+  againPasses: 15, againMinutes: 7,
+  planOrder: 2,
   badListenPasses: 3, badShadowPasses: 5, badMinutes: 5,
   fitPassesToClip: true,
   loopGap: 1.0,
@@ -341,7 +343,12 @@ const DEFAULT_SETTINGS = {
 };
 function settings() {
   const s = Store.get('meta', 'settings');
-  return { ...DEFAULT_SETTINGS, ...(s || {}) };
+  const merged = { ...DEFAULT_SETTINGS, ...(s || {}) };
+  // settings saved with the old defaults (long shadow step first) follow the new order; any other values are kept
+  if (s && !s.planOrder && s.shadowPasses === 15 && s.shadowMinutes === 7 && s.againPasses === 8 && s.againMinutes === 4) {
+    Object.assign(merged, { shadowPasses: 8, shadowMinutes: 4, againPasses: 15, againMinutes: 7 });
+  }
+  return merged;
 }
 function saveSettings(fields) {
   const cur = Store.get('meta', 'settings') || { id: 'settings' };

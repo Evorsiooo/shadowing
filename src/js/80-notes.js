@@ -1,11 +1,32 @@
 /* ---------- "what sounded off" notes, AI feedback, issues ---------- */
 const noteDrafts = new Map();
 
-function noteForm(ctx) {
-  const key = ctx.recId || `${ctx.sessionId}:${ctx.pass}`;
+/* a recording can have several notes: the saved ones, then one more form to add another */
+function noteForms(ctx) {
+  const base = ctx.recId || `${ctx.sessionId}:${ctx.pass}`;
   const clip = Store.get('clips', ctx.clipId);
-  if (!noteDrafts.has(key)) noteDrafts.set(key, { sentence: clip.sentence || clip.label || '', off: '', aim: '', issue: '', reply: null, saved: null, open: false });
-  const D = noteDrafts.get(key);
+  if (!noteDrafts.has(base)) {
+    const saved = ctx.recId ? Store.all('notes').filter((n) => n.recId === ctx.recId).sort((a, b) => ((a.created || '') < (b.created || '') ? -1 : 1)) : [];
+    const list = saved.map((n) => ({ sentence: n.sentence || '', off: n.off || '', aim: n.aim || '', issue: (Store.get('issues', n.issueId) || {}).name || '', reply: n.reply || null, saved: n.id, open: false }));
+    if (!list.length) list.push(blankNote(clip));
+    noteDrafts.set(base, list);
+  }
+  const list = noteDrafts.get(base);
+  const wrap = h('div', { class: 'stack' });
+  const draw = () => {
+    const last = list[list.length - 1];
+    mount(wrap,
+      list.map((D, i) => noteForm(ctx, D, `${base}-${i}`, list.length > 1 ? i + 1 : 0, draw)),
+      last.saved ? btn(t('Add another note'), () => { list.push({ ...blankNote(clip), sentence: last.sentence, open: true }); draw(); }, { size: 'sm', kind: 'ghost', icon: 'note' }) : null);
+  };
+  draw();
+  return wrap;
+}
+function blankNote(clip) {
+  return { sentence: (clip && (clip.sentence || clip.label)) || '', off: '', aim: '', issue: '', reply: null, saved: null, open: false };
+}
+
+function noteForm(ctx, D, key, num, onSaved) {
   const replyBox = h('div');
   const status = h('div', { role: 'status', class: 'small' });
   const issueNames = Store.all('issues').filter((i) => !i.mergedInto).map((i) => i.name);
@@ -64,12 +85,12 @@ function noteForm(ctx) {
         h('input', { type: 'text', id: `issue-${key}`, value: D.issue, list: `issues-${key}`, placeholder: t('Pick or name one'), oninput: (e) => { D.issue = e.target.value; } }),
         h('datalist', { id: `issues-${key}` }, issueNames.map((n) => h('option', { value: n }))))),
     h('div', { class: 'row' },
-      btn(D.saved ? t('Update note') : t('Save note'), () => { saveNote(ctx, D); mount(status, h('span', { class: 'formok' }, t('Note saved.'))); }, { size: 'sm', kind: 'primary', icon: 'note' }),
+      btn(D.saved ? t('Update note') : t('Save note'), () => { saveNote(ctx, D); if (!D.saved) return; mount(status, h('span', { class: 'formok' }, t('Note saved.'))); onSaved(); }, { size: 'sm', kind: 'primary', icon: 'note' }),
       askBtn),
     status, replyBox);
   drawReply();
   return h('details', { class: 'card', open: D.open, ontoggle: (e) => { D.open = e.target.open; } },
-    h('summary', { style: { cursor: 'pointer', fontWeight: 800 } }, D.saved ? t('Note saved · edit') : t('What sounded off? Add a note')),
+    h('summary', { style: { cursor: 'pointer', fontWeight: 800 } }, D.saved ? t('Note saved · edit') : t('What sounded off? Add a note'), num ? ` (${num})` : ''),
     body);
 }
 
@@ -324,6 +345,7 @@ async function openCompare(idA, idB, urlB) {
     holder,
     h('div', { class: 'stack' }, players),
     h('p', { class: 'small muted' }, t('Each line is shown against that voice’s own average pitch. A final line that follows the speaker’s shape more closely than step 3, or a smaller lag, is progress.')),
+    B && B.sessionId ? noteForms({ clipId: clip.id, sessionId: B.sessionId, recId: B.id, pass: B.pass, step: B.step || 'again' }) : null,
   ]);
 }
 
