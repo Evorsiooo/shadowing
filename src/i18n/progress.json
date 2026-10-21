@@ -1014,5 +1014,21 @@
   "Add another note": {
     "fr": "Ajouter une autre note",
     "es": "Añadir otra nota"
+  },
+  "Minutes per week": {
+    "fr": "Minutes par semaine",
+    "es": "Minutos por semana"
+  },
+  "First and final recording, session by session": {
+    "fr": "Premier et dernier enregistrement, séance par séance",
+    "es": "Primera y última grabación, sesión por sesión"
+  },
+  "Average lag behind the speaker in each recording. Clips and speeds differ, so read it as a rough trend.": {
+    "fr": "Décalage moyen sur le locuteur dans chaque enregistrement. Les extraits et les vitesses diffèrent : lisez-le comme une tendance approximative.",
+    "es": "Retraso medio respecto al hablante en cada grabación. Los fragmentos y las velocidades difieren, así que léelo como una tendencia aproximada."
+  },
+  "Date": {
+    "fr": "Date",
+    "es": "Fecha"
   }
 }
