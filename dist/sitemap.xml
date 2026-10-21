@@ -19,6 +19,15 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/guides/"/>
   </url>
   <url>
+    <loc>https://shadowing.euno.cc/what-is-euno-shadowing/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/what-is-euno-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/what-is-euno-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/what-is-euno-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/what-is-euno-shadowing/"/>
+  </url>
+  <url>
     <loc>https://shadowing.euno.cc/what-is-shadowing/</loc>
     <lastmod>2026-10-14</lastmod>
     <priority>0.8</priority>
@@ -163,6 +172,15 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/guides/"/>
   </url>
   <url>
+    <loc>https://shadowing.euno.cc/fr/what-is-euno-shadowing/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/what-is-euno-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/what-is-euno-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/what-is-euno-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/what-is-euno-shadowing/"/>
+  </url>
+  <url>
     <loc>https://shadowing.euno.cc/fr/what-is-shadowing/</loc>
     <lastmod>2026-10-14</lastmod>
     <priority>0.8</priority>
@@ -305,6 +323,15 @@
     <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/guides/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/guides/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/guides/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/what-is-euno-shadowing/</loc>
+    <lastmod>2026-10-21</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/what-is-euno-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/what-is-euno-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/what-is-euno-shadowing/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/what-is-euno-shadowing/"/>
   </url>
   <url>
     <loc>https://shadowing.euno.cc/es/what-is-shadowing/</loc>

@@ -51,6 +51,7 @@ export const DEFAULT_LANG = 'en';
 // Every guide, in the order of the Guides page. Their words are in content/guides-<lang>.mjs under the same key
 // (the first two predate it and live in content/<lang>.mjs). group: the Guides page section; next: the "Read next" links.
 const GUIDES = [
+  { key: 'what-is-euno-shadowing', slug: '/what-is-euno-shadowing/', group: 'start', published: '2026-10-21', next: ['what-is-shadowing', 'euno-vs-elsa-language-reactor'] },
   { key: 'what-is-shadowing', slug: '/what-is-shadowing/', group: 'start', published: '2026-10-14', text: (c) => c.whatIs, next: ['how-long-shadowing-takes', 'choosing-clips'] },
   { key: 'how-long-shadowing-takes', slug: '/how-long-does-shadowing-take/', group: 'start', published: '2026-10-15', next: ['accent-shadowing', 'shadowing-vs-other-methods'] },
   { key: 'choosing-clips', slug: '/choosing-shadowing-clips/', group: 'start', published: '2026-10-15', next: ['what-is-shadowing', 'how-long-shadowing-takes'] },

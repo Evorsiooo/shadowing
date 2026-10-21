@@ -15,6 +15,63 @@ const make = ({ L }) => ({
     all: 'Tous les guides, avec les accents anglais, français et espagnols →',
   },
 
+  'what-is-euno-shadowing': {
+    title: 'C’est quoi Euno Shadowing ? Ce qu’il fait et ne fait pas | Euno Shadowing',
+    h1: 'C’est quoi Euno Shadowing ? Ce que c’est, et ce que ce n’est pas',
+    crumb: 'C’est quoi Euno Shadowing ?',
+    description: 'Euno Shadowing est une application web gratuite pour travailler son accent en faisant du shadowing sur tes propres vidéos. Ce qu’elle fait, ce qu’elle ne fait pas (pas de leçons, de sous-titres ni de transcriptions), et en quoi elle diffère de noms proches.',
+    lede: 'Euno Shadowing est une application web gratuite qui déroule une routine de shadowing quotidienne sur de courts extraits de vidéos que tu apportes, t’enregistre, et montre comment ton rythme et ta mélodie se comparent à ceux du locuteur.',
+    body: `
+    <h2>En un paragraphe</h2>
+    <p>Tu ajoutes une vidéo ou un fichier audio d’un locuteur dont tu veux l’accent, tu découpes un extrait d’une ou deux phrases, et Euno te guide dans une séance de 15 minutes : écouter, imiter, enregistrer, comparer, imiter encore. Après une passe enregistrée, il montre ta courbe de hauteur à côté de celle du locuteur, ton décalage et quelques différences mesurées. Il fonctionne en anglais, en français et en espagnol, dans ton navigateur, et il est gratuit.</p>
+
+    <h2>Ce qu’il fait</h2>
+    <ul>
+      <li><strong>Des extraits de tes propres vidéos.</strong> Envoie un fichier ou colle un lien vers un .mp4, puis fais glisser sur la ligne de temps pour découper un extrait. Une forme d’onde agrandie t’aide à couper dans les pauses.</li>
+      <li><strong>Une séance guidée.</strong> Une routine en quatre étapes avec minuteur, compteur de passes et lecture en boucle automatique. Une version de cinq minutes pour les mauvais jours est incluse, et chaque durée est réglable.</li>
+      <li><strong>Des commandes de lecture.</strong> Boucle sur l’extrait, lecture à 0,5x, 0,75x ou 1x avec une hauteur naturelle, et raccourcis clavier.</li>
+      <li><strong>Enregistrement et comparaison.</strong> Écoute l’original, toi-même, l’un après l’autre ou les deux ensemble. Tes enregistrements de l’étape 3 et final sont conservés pour chaque extrait.</li>
+      <li><strong>Hauteur et décalage.</strong> Euno trace la mélodie du locuteur et la tienne, chacune relative à sa propre voix, et mesure de combien tu étais en retard ou en avance.</li>
+      <li><strong>Différences avec le locuteur.</strong> Après une passe, il peut signaler les passages où tu as été plus vite ou plus lentement, où la hauteur est allée dans l’autre sens, ou où l’accentuation différait. Ces indications viennent de la mesure des deux enregistrements, pas d’un modèle de langage qui écoute ta voix. Si tu l’actives dans les Réglages (désactivé par défaut, Chrome uniquement, ta voix est envoyée à Google pendant son fonctionnement), il peut aussi signaler les mots de l’extrait que la reconnaissance vocale du navigateur n’a pas entendus et qui étaient peut-être peu clairs. Elle peut aussi rater des mots clairs : prends cela comme une piste.</li>
+      <li><strong>Notes et problèmes.</strong> Note ce qui sonnait faux ; les problèmes récurrents sont regroupés dans une liste.</li>
+      <li><strong>Bilans sur 12 semaines.</strong> Un point de départ, puis les mêmes exercices aux semaines 4, 8 et 12.</li>
+      <li><strong>Rappels.</strong> Rappels optionnels par Discord et notifications du navigateur.</li>
+    </ul>
+
+    <h2>Ce qu’il ne fait pas</h2>
+    <ul>
+      <li><strong>Il n’a ni leçons ni bibliothèque de contenu.</strong> Tu apportes les vidéos. Il n’y a ni leçons intégrées, ni cours, ni extraits prêts à l’emploi.</li>
+      <li><strong>Il n’a ni sous-titres ni transcriptions.</strong> Il ne transcrit pas la vidéo, n’affiche pas de sous-titres synchronisés et ne la découpe pas en phrases à ta place. C’est toi qui choisis le début et la fin de chaque extrait.</li>
+      <li><strong>Il ne récupère pas de contenu sur YouTube ou d’autres sites.</strong> Tu utilises des fichiers que tu as le droit d’utiliser pour un entraînement privé.</li>
+      <li><strong>Il ne note pas les sons un par un.</strong> Il ne te dit pas quelle voyelle ou quelle consonne était fausse, et la hauteur et le rythme ne font pas à eux seuls une bonne prononciation.</li>
+      <li><strong>Ce n’est ni un coach, ni un cours, ni une garantie.</strong> C’est un outil d’entraînement.</li>
+    </ul>
+
+    <h2>Quels retours tu obtiens</h2>
+    <p>Trois sortes, utilisables séparément :</p>
+    <ol>
+      <li><strong>Des retours mesurés, toujours actifs :</strong> courbes de hauteur, décalage, et les différences avec le locuteur décrites plus haut.</li>
+      <li><strong>Ta propre écoute :</strong> lecture côte à côte et tes notes sur ce qui sonnait faux.</li>
+      <li><strong>Des retours de l’IA, optionnels :</strong> si tu ajoutes ta propre clé API d’Anthropic, d’OpenAI ou d’OpenRouter, tu peux demander un retour sur tes notes. Seul du texte est envoyé, jamais d’audio : ta note, plus de courtes lignes décrivant ce qui a été mesuré sur l’enregistrement (par exemple un passage où tu as été plus vite que le locuteur), auxquelles l’IA a pour consigne de ne pas ajouter d’autres problèmes. Tu paies directement le fournisseur. Sans clé, Euno écrit le prompt à coller dans n’importe quel chatbot.</li>
+    </ol>
+
+    <h2>Prix et confidentialité</h2>
+    <p>Euno Shadowing est gratuit. Tes vidéos et tes enregistrements sont rangés dans un dossier « Euno Shadowing » de ton propre Google Drive, pas sur notre serveur. Notre serveur garde tes notes, tes réglages et ta progression. Les détails sont dans la <a href="${L('/privacy/')}">politique de confidentialité</a>.</p>
+
+    <h2>À ne pas confondre avec</h2>
+    <p>Le nom est partagé avec des choses sans rapport, et aucune n’est Euno Shadowing :</p>
+    <ul>
+      <li><strong>Les stages d’observation en entreprise</strong> (« job shadowing »), comme les visites Erasmus+ pour enseignants, où l’on suit un professionnel au travail.</li>
+      <li><strong>Le shadowing médical</strong>, où des étudiants observent des médecins.</li>
+      <li><strong>Euno, la plateforme d’IA d’entreprise</strong>, et ses déploiements « shadow » d’agents d’IA.</li>
+      <li><strong>D’autres applications nommées Euno</strong>, comme des applications de journal intime.</li>
+    </ul>
+    <p>Euno Shadowing, c’est uniquement l’application d’entraînement aux langues sur shadowing.euno.cc. Elle n’est affiliée à aucune des précédentes.</p>
+
+    <h2>À qui il convient</h2>
+    <p>À ceux qui comprennent assez bien une langue et veulent sonner plus naturellement : le rythme, la mélodie et le timing d’un locuteur qu’ils admirent. Si tu veux un cours structuré, une bibliothèque de leçons, des sous-titres ou une note par son, regarde la <a href="${L('/euno-vs-elsa-and-language-reactor/')}">comparaison avec ELSA Speak et Language Reactor</a>. Tu débutes avec la technique ? Lis <a href="${L('/what-is-shadowing/')}">c’est quoi le shadowing</a>.</p>`,
+  },
+
   'how-long-shadowing-takes': {
     title: 'Combien de temps faut-il pour améliorer son accent avec le shadowing ? | Euno Shadowing',
     h1: 'Combien de temps faut-il pour que le shadowing marche ?',

@@ -13,6 +13,63 @@ const make = ({ L }) => ({
     all: 'All guides, including English, French and Spanish accents →',
   },
 
+  'what-is-euno-shadowing': {
+    title: 'What is Euno Shadowing? What it does and does not do | Euno Shadowing',
+    h1: 'What is Euno Shadowing? What it is, and what it is not',
+    crumb: 'What is Euno Shadowing?',
+    description: 'Euno Shadowing is a free web app for practising accent by shadowing your own videos. What it does, what it does not do (no lessons, subtitles or transcripts), and how it differs from similarly named things.',
+    lede: 'Euno Shadowing is a free web app that runs a daily shadowing routine on short clips of videos you bring, records you, and shows how your timing and melody compare with the speaker’s.',
+    body: `
+    <h2>In one paragraph</h2>
+    <p>You add a video or audio file of a speaker whose accent you want, cut a clip of one or two sentences, and Euno guides you through a 15-minute session: listen, shadow, record, compare, shadow again. After a recorded pass it shows your pitch line next to the speaker’s, your lag, and a few measured differences. It works in English, French and Spanish, in your browser, and is free.</p>
+
+    <h2>What it does</h2>
+    <ul>
+      <li><strong>Clips from your own videos.</strong> Upload a file or paste a link to an .mp4, then drag on the timeline to cut a clip. A zoomed waveform helps you trim at the pauses.</li>
+      <li><strong>A guided session.</strong> A four-step routine with a timer, a pass counter and automatic looping. A five-minute bad-day version is built in, and every duration is a setting.</li>
+      <li><strong>Playback controls.</strong> Loop the current clip, play at 0.5x, 0.75x or 1x with the pitch kept natural, and use keyboard shortcuts.</li>
+      <li><strong>Recording and comparison.</strong> Play the original, yourself, one after the other, or both together. Your step 3 and final recordings are kept for each clip.</li>
+      <li><strong>Pitch and lag.</strong> Euno draws the speaker’s melody and yours, each relative to its own voice, and measures how far behind or ahead of the speaker you were.</li>
+      <li><strong>Differences from the speaker.</strong> After a pass it can point out stretches where you went faster or slower, where the pitch went the other way, or where the stress differed. These come from measuring the two recordings, not from a language model listening to your voice. If you switch it on in Settings (off by default, Chrome only, your voice goes to Google while it runs), it can also mark clip words the browser’s speech recognition did not hear, which may have been unclear. It can miss clear words too, so treat it as a hint.</li>
+      <li><strong>Notes and issues.</strong> Write down what sounded off; recurring problems collect into an issues list.</li>
+      <li><strong>12-week check-ins.</strong> A baseline, then the same tasks at weeks 4, 8 and 12.</li>
+      <li><strong>Reminders.</strong> Optional Discord and browser push reminders.</li>
+    </ul>
+
+    <h2>What it does not do</h2>
+    <ul>
+      <li><strong>It has no lessons or content library.</strong> You bring the videos. There are no built-in lessons, courses or ready-made clips.</li>
+      <li><strong>It has no subtitles or transcripts.</strong> It does not transcribe the video, show synchronised subtitles or break it into sentences for you. You choose where each clip starts and ends.</li>
+      <li><strong>It does not take content from YouTube or other sites.</strong> You use files you have the right to use for private practice.</li>
+      <li><strong>It does not score individual sounds.</strong> It does not tell you which vowel or consonant you got wrong, and pitch and timing are not the same as good pronunciation.</li>
+      <li><strong>It is not a coach, a course or a guarantee.</strong> It is a practice tool.</li>
+    </ul>
+
+    <h2>What feedback you get</h2>
+    <p>Three kinds, and you can use any of them without the others:</p>
+    <ol>
+      <li><strong>Measured feedback, always on:</strong> pitch lines, lag, and the differences from the speaker described above.</li>
+      <li><strong>Your own listening:</strong> side-by-side playback and your notes about what sounded off.</li>
+      <li><strong>Optional AI feedback:</strong> if you add your own API key from Anthropic, OpenAI or OpenRouter, you can ask for feedback on your notes. Only text is sent, never audio: your note, plus short lines describing what was measured on the recording (such as a stretch where you went faster than the speaker), which the AI is told not to go beyond. You pay the provider directly. Without a key, Euno writes the prompt for you to paste into any chatbot.</li>
+    </ol>
+
+    <h2>Cost and privacy</h2>
+    <p>Euno Shadowing is free. Your videos and recordings are kept in a “Euno Shadowing” folder in your own Google Drive, not on our server. Our server keeps your practice notes, settings and progress. Details are in the <a href="${L('/privacy/')}">privacy policy</a>.</p>
+
+    <h2>Not to be confused with</h2>
+    <p>The name is shared with unrelated things, and none of these is Euno Shadowing:</p>
+    <ul>
+      <li><strong>Job shadowing programmes</strong>, such as Erasmus+ job-shadowing visits for teachers, where you follow a professional at work.</li>
+      <li><strong>Pre-med and clinical shadowing</strong>, where students observe doctors.</li>
+      <li><strong>Euno, the enterprise AI platform</strong>, and its “shadow” deployments of AI agents.</li>
+      <li><strong>Other apps called Euno</strong>, such as journaling apps.</li>
+    </ul>
+    <p>Euno Shadowing is only the language practice app at shadowing.euno.cc. It is not affiliated with any of the above.</p>
+
+    <h2>Who it suits</h2>
+    <p>People who understand a language reasonably well and want to sound more natural: the rhythm, melody and timing of a speaker they admire. If you want a structured course, a lesson library, subtitles or per-sound scores, see the <a href="${L('/euno-vs-elsa-and-language-reactor/')}">comparison with ELSA Speak and Language Reactor</a>. New to the technique? Read <a href="${L('/what-is-shadowing/')}">what shadowing is</a>.</p>`,
+  },
+
   'how-long-shadowing-takes': {
     title: 'How long does shadowing take to improve your accent? | Euno Shadowing',
     h1: 'How long does shadowing take to work?',
