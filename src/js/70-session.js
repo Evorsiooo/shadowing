@@ -703,6 +703,7 @@ function passReviewCard() {
       btn(t('Both together'), () => playBoth(clip, R.url, an), { size: 'sm' }),
       btn('', () => stopReviewPlayback(), { size: 'sm', icon: 'stop', title: t('Stop playback') })),
     mineVolumeControl(),
+    prosodyCard(clip, an),
     step3 ? h('div', { class: 'row' }, h('span', { class: 'small muted grow' }, t('Compare with your step 3 recording from this session:')),
       btn(t('Compare overlaid'), () => openCompare(step3.id, R.recId, R.url), { size: 'sm', kind: 'blue' })) : null,
     noteForm({ clipId: clip.id, sessionId: S.doc.id, recId: R.recId, pass: S.pass, step: S.step().key }),
