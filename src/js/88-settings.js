@@ -299,6 +299,21 @@ function saveReminders(fields) {
   Api.req('POST', '/api/reminders/arm').catch(() => {}); // make sure the schedule is running
 }
 
+/* the time of day (HH:MM, to 15 minutes) the user usually starts a session, from their last 14; null with under 5 */
+function usualPracticeTime() {
+  const mins = Store.all('sessions').filter((x) => !x.empty && x.startedAt && x.passes && x.passes.length)
+    .sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1)).slice(0, 14)
+    .map((x) => { const d = new Date(x.startedAt); return d.getHours() * 60 + d.getMinutes(); }).sort((a, b) => a - b);
+  if (mins.length < 5) return null;
+  const m = Math.round(mins[Math.floor(mins.length / 2)] / 15) * 15 % 1440;
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+}
+function usualTimeHint(current, draw) {
+  const usual = usualPracticeTime();
+  if (!usual || usual === current) return null;
+  return h('p', { class: 'small row' }, t('You usually start practising around {time}. A reminder then tends to fit your routine.', { time: usual }),
+    btn(t('Remind me at {time}', { time: usual }), () => { saveReminders({ time: usual }); draw(); }, { size: 'sm' }));
+}
 function remindersView() {
   const wrap = h('div', { class: 'stack' });
   if (Store.mode !== 'cloud') {
@@ -361,6 +376,7 @@ function remindersView() {
       h('div', { class: 'row' },
         h('label', { class: 'field', for: 'rem-time' }, t('Reminder time'), h('input', { type: 'time', id: 'rem-time', value: r.time, step: 900, onchange: (e) => { if (e.target.value) saveReminders({ time: e.target.value }); } })),
         h('label', { class: 'field', for: 'rem-late' }, t('Second nudge if I still haven’t (optional)'), h('input', { type: 'time', id: 'rem-late', value: r.lateTime, step: 900, onchange: (e) => saveReminders({ lateTime: e.target.value || '' }) }))),
+      usualTimeHint(r.time, draw),
       h('div', { class: 'stack' }, h('span', { class: 'label' }, t('Days')), h('div', { class: 'row' }, dayBtns)),
       h('label', { class: 'check', for: 'rem-skip' }, h('input', { type: 'checkbox', id: 'rem-skip', checked: r.skipIfDone, onchange: (e) => saveReminders({ skipIfDone: e.target.checked }) }), t('Skip the reminder if I’ve already practised that day')),
       h('label', { class: 'check', for: 'rem-ci' }, h('input', { type: 'checkbox', id: 'rem-ci', checked: r.checkins, onchange: (e) => saveReminders({ checkins: e.target.checked }) }), t('Mention when a check-in is due')),
