@@ -1,1 +1,46 @@
-{}
+{
+  "Goal": {
+    "fr": "Objectif",
+    "es": "Objetivo"
+  },
+  "How often will you practise?": {
+    "fr": "À quelle fréquence vas-tu t’entraîner ?",
+    "es": "¿Con qué frecuencia vas a practicar?"
+  },
+  "Pick a goal you can keep. A short session counts, and you can change it later in Settings.": {
+    "fr": "Choisis un objectif tenable. Une séance courte compte, et tu pourras le changer plus tard dans les réglages.",
+    "es": "Elige una meta que puedas cumplir. Una sesión corta cuenta, y podrás cambiarla más tarde en Ajustes."
+  },
+  "Days per week": {
+    "fr": "Jours par semaine",
+    "es": "Días por semana"
+  },
+  "3 days a week": {
+    "fr": "3 jours par semaine",
+    "es": "3 días a la semana"
+  },
+  "Relaxed. Good for a busy week.": {
+    "fr": "Tranquille. Idéal pour une semaine chargée.",
+    "es": "Tranquila. Buena para una semana ocupada."
+  },
+  "5 days a week": {
+    "fr": "5 jours par semaine",
+    "es": "5 días a la semana"
+  },
+  "Steady. Most people improve fastest here.": {
+    "fr": "Régulier. C’est là que la plupart progressent le plus vite.",
+    "es": "Constante. Aquí es donde la mayoría mejora más rápido."
+  },
+  "Every day": {
+    "fr": "Tous les jours",
+    "es": "Todos los días"
+  },
+  "Ambitious. One rest day in a row never breaks your streak.": {
+    "fr": "Ambitieux. Un seul jour de repos d’affilée ne casse jamais ta série.",
+    "es": "Ambiciosa. Un solo día de descanso seguido nunca rompe tu racha."
+  },
+  "Pick a goal to continue.": {
+    "fr": "Choisis un objectif pour continuer.",
+    "es": "Elige una meta para continuar."
+  }
+}

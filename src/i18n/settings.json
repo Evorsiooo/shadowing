@@ -1638,5 +1638,13 @@
   "That is the first clip.": {
     "fr": "C’est le premier clip.",
     "es": "Es el primer clip."
+  },
+  "You usually start practising around {time}. A reminder then tends to fit your routine.": {
+    "fr": "Tu commences d’habitude vers {time}. Un rappel à ce moment-là s’intègre mieux à ta routine.",
+    "es": "Sueles empezar a practicar hacia las {time}. Un recordatorio a esa hora encaja mejor con tu rutina."
+  },
+  "Remind me at {time}": {
+    "fr": "Me rappeler à {time}",
+    "es": "Recordarme a las {time}"
   }
 }
