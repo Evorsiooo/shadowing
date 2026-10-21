@@ -1054,5 +1054,17 @@
   "Undo": {
     "fr": "Annuler",
     "es": "Deshacer"
+  },
+  "Keep going (+{min} min)": {
+    "fr": "Prolonger (+{min} min)",
+    "es": "Alargar (+{min} min)"
+  },
+  "Add more passes to this step": {
+    "fr": "Ajouter des passages à cette étape",
+    "es": "Añadir más repeticiones a este paso"
+  },
+  "Added {n} more pass.|Added {n} more passes.": {
+    "fr": "{n} passage de plus ajouté.|{n} passages de plus ajoutés.",
+    "es": "Se añadió {n} repetición más.|Se añadieron {n} repeticiones más."
   }
 }
