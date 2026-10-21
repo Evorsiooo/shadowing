@@ -179,10 +179,11 @@ const Prosody = {
 };
 
 /* "Differences from the speaker" card for one recording */
-function prosodyCard(clip, analysis) {
+function prosodyCard(clip, analysis, heard) {
   let res = null;
   try { res = Prosody.compare(clip, analysis); } catch (e) { res = null; }
-  if (!res) return null;
+  const spoken = heard ? Speech.unclear(clip.sentence, heard) : null;
+  if (!res && !spoken) return null;
   const when = (f) => `${fmtNum(f.a, 1)}–${fmtNum(f.b, 1)} s`;
   const line = (f) => {
     const where = f.words ? t('around “{words}” ({when})', { words: f.words, when: when(f) }) : t('at {when}', { when: when(f) });
@@ -194,12 +195,43 @@ function prosodyCard(clip, analysis) {
     }
     return f.dir === 'softer' ? t('The speaker leans on a syllable {where} that you said more softly.', { where }) : t('You leaned on a syllable {where} that the speaker keeps light.', { where });
   };
-  const shown = res.findings.slice(0, 6);
+  const found = res ? res.findings : [];
+  const shown = found.slice(0, 6);
   return h('details', { class: 'card', open: true },
     h('summary', null, h('strong', null, t('Differences from the speaker'))),
-    shown.length
+    res ? (shown.length
       ? h('ul', { class: 'small' }, shown.map((f) => h('li', null, line(f))))
-      : h('p', { class: 'small' }, t('No big differences in timing, pitch direction or stress. Nice.')),
-    res.findings.length > shown.length ? h('p', { class: 'small muted' }, t('{n} more not shown.', { n: res.findings.length - shown.length })) : null,
-    h('p', { class: 'small muted' }, t('Worked out on your device from pitch and loudness only, so it can’t hear vowels or consonants, and the words are a rough guess from timing.')));
+      : h('p', { class: 'small' }, t('No big differences in timing, pitch direction or stress. Nice.'))) : null,
+    found.length > shown.length ? h('p', { class: 'small muted' }, t('{n} more not shown.', { n: found.length - shown.length })) : null,
+    spoken ? h('p', { class: 'small' }, spoken.missing.length
+      ? t('Words that may have been unclear: {words}. (The browser didn’t pick them up; it can also miss clear words.)', { words: spoken.missing.slice(0, 8).join(', ') })
+      : t('The browser’s speech recognition picked up every word. Nice.')) : null,
+    h('p', { class: 'small muted' }, t('Timing and pitch are worked out on your device from pitch and loudness only, so they can’t hear vowels or consonants, and the words are a rough guess from timing.')));
+}
+
+/* the measured differences as plain English lines for the AI (never translated: the prompt is English) */
+function measuredLines(clip, analysis, heard) {
+  const out = [];
+  let res = null;
+  try { res = Prosody.compare(clip, analysis); } catch (e) { res = null; }
+  if (res) {
+    const at = (f) => `${f.a}-${f.b} s${f.words ? ` (around "${f.words}")` : ''}`;
+    for (const f of res.findings.slice(0, 6)) {
+      if (f.kind === 'rushed') out.push(`Faster than the speaker at ${at(f)}.`);
+      else if (f.kind === 'dragged') out.push(`Slower than the speaker at ${at(f)}.`);
+      else if (f.kind === 'pitch') out.push(`Speaker's pitch goes ${f.dir} at ${at(f)}; the learner's ${f.ours === 'flat' ? 'stayed flat' : `went ${f.ours}`}.`);
+      else out.push(f.dir === 'softer' ? `Speaker stresses a syllable at ${at(f)} that the learner said more softly.` : `Learner stressed a syllable at ${at(f)} that the speaker keeps light.`);
+    }
+    if (!res.findings.length) out.push('No notable differences in timing, pitch direction or stress.');
+  }
+  const spoken = heard ? Speech.unclear(clip.sentence, heard) : null;
+  if (spoken) out.push(spoken.missing.length ? `Speech recognition did not pick up these words: ${spoken.missing.slice(0, 8).join(', ')} (it also misses clear words).` : 'Speech recognition picked up every word.');
+  return out;
+}
+/* for a note on a saved recording */
+function measuredForNote(ctx) {
+  const rec = ctx.recId && Store.get('recordings', ctx.recId);
+  const clip = Store.get('clips', ctx.clipId);
+  if (!rec || !clip || !rec.analysis) return [];
+  return measuredLines(clip, rec.analysis, rec.heard);
 }

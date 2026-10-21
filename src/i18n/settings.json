@@ -1646,5 +1646,9 @@
   "Remind me at {time}": {
     "fr": "Me rappeler à {time}",
     "es": "Recordarme a las {time}"
+  },
+  "Mark words that may have been unclear after a recorded pass, using the browser’s speech recognition (Chrome only; your voice is sent to Google while it runs)": {
+    "fr": "Marquer les mots peut-être peu clairs après une passe enregistrée, avec la reconnaissance vocale du navigateur (Chrome seulement ; ta voix est envoyée à Google pendant son fonctionnement)",
+    "es": "Marcar las palabras que quizá no se entendieron tras una pasada grabada, con el reconocimiento de voz del navegador (solo Chrome; tu voz se envía a Google mientras funciona)"
   }
 }

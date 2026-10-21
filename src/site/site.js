@@ -82,6 +82,38 @@
   if (!form) return;
   var status = form.querySelector('.form-status');
   var button = form.querySelector('button[type="submit"]');
+  var slot = form.querySelector('[data-turnstile]');
+  var widgetId = null;
+  var turnstileToken = '';
+
+  // Cloudflare Turnstile: only when the server has a site key (and secret) configured; otherwise the form works as before.
+  function loadTurnstile() {
+    if (!slot) return;
+    fetch('/api/support-config', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (cfg) {
+        if (!cfg || !cfg.turnstileSiteKey) return;
+        window.eunoTurnstileReady = function () {
+          widgetId = window.turnstile.render(slot, {
+            sitekey: cfg.turnstileSiteKey,
+            language: LANG,
+            callback: function (t) { turnstileToken = t; },
+            'expired-callback': function () { turnstileToken = ''; },
+            'error-callback': function () { turnstileToken = ''; },
+          });
+        };
+        var s = document.createElement('script');
+        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=eunoTurnstileReady';
+        s.async = true;
+        document.head.appendChild(s);
+      })
+      .catch(function () { /* no backend: plain form */ });
+  }
+  loadTurnstile();
+  function resetTurnstile() {
+    turnstileToken = '';
+    if (widgetId !== null && window.turnstile) window.turnstile.reset(widgetId);
+  }
   function say(text, kind) { status.textContent = text; status.className = 'form-status' + (kind ? ' ' + kind : ''); }
 
   form.addEventListener('submit', function (e) {
@@ -97,7 +129,7 @@
       credentials: 'same-origin',
       headers: { 'content-type': 'application/json', 'x-euno-lang': LANG },
       // the inbox stores {email, message}; topic, name and page language ride along in the message so nothing is lost
-      body: JSON.stringify({ email: data.email, message: '[' + (data.topic || 'question') + ']' + (LANG !== 'en' ? ' [' + LANG + ']' : '') + (data.name ? ' from ' + data.name : '') + '\n\n' + data.message, name: data.name || '', topic: data.topic || 'question' }),
+      body: JSON.stringify({ email: data.email, message: '[' + (data.topic || 'question') + ']' + (LANG !== 'en' ? ' [' + LANG + ']' : '') + (data.name ? ' from ' + data.name : '') + '\n\n' + data.message, name: data.name || '', topic: data.topic || 'question', turnstileToken: turnstileToken }),
     })
       .then(function (r) {
         if (r.ok) { say(M.sentReply, 'ok'); form.reset(); return; }
@@ -106,6 +138,6 @@
         });
       })
       .catch(function () { say(M.offline, 'bad'); })
-      .then(function () { button.disabled = false; });
+      .then(function () { resetTurnstile(); button.disabled = false; });
   });
 })();

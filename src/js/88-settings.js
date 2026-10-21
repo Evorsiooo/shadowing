@@ -19,6 +19,7 @@ const SETTING_GROUPS = [
     ['manualOffsetMs', N_('Manual offset (ms); used when auto-alignment fails or is off'), -500, 2000, 10],
     ['latencyMs', N_('Device delay correction (ms); subtracted from every lag'), -500, 1000, 5],
     ['livePitchAllPasses', N_('Show my live pitch line on every shadow pass (not just recorded ones)'), 'bool'],
+    ['speechCheck', N_('Mark words that may have been unclear after a recorded pass, using the browser’s speech recognition (Chrome only; your voice is sent to Google while it runs)'), 'bool'],
     ['keepAllPassRecordings', N_('Keep every pass recording (uses more storage)'), 'bool'],
     ['micAuto', N_('Automatic microphone volume (recommended)'), 'bool'],
     ['micGain', N_('Microphone boost when automatic volume is off (×)'), 0.5, 12, 0.5],

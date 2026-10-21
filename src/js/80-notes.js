@@ -35,26 +35,26 @@ function noteForm(ctx, D, key, num, onSaved) {
   const ask = async (askBtn) => {
     if (!D.off.trim()) { mount(status, h('span', { class: 'formerr' }, t('Write what sounded off first.'))); return; }
     if (Store.mode === 'cloud') {
-      if (!Api.ai) { openCopyPrompt(D, issueNames, drawReply); return; }
+      if (!Api.ai) { openCopyPrompt(D, issueNames, drawReply, ctx); return; }
       askBtn.disabled = true;
       mount(status, h('span', { class: 'muted' }, t('Thinking…')));
       try {
-        const { reply } = await Api.req('POST', '/api/ai/feedback', { sentence: D.sentence, off: D.off, aim: D.aim, issues: issueNames, profile: profileForAI() });
+        const { reply } = await Api.req('POST', '/api/ai/feedback', { sentence: D.sentence, off: D.off, aim: D.aim, issues: issueNames, measured: measuredForNote(ctx), profile: profileForAI() });
         D.reply = normaliseReply(reply);
         if (D.reply.issue && !D.issue) { D.issue = D.reply.issue; const inp = $(`#issue-${key}`); if (inp) inp.value = D.issue; }
         status.replaceChildren();
         drawReply();
         if (D.saved) saveNote(ctx, D, true);
       } catch (e) {
-        mount(status, h('span', { class: 'formerr' }, e.message), ' ', btn(t('Copy prompt instead'), () => openCopyPrompt(D, issueNames, drawReply), { size: 'sm', kind: 'ghost' }));
+        mount(status, h('span', { class: 'formerr' }, e.message), ' ', btn(t('Copy prompt instead'), () => openCopyPrompt(D, issueNames, drawReply, ctx), { size: 'sm', kind: 'ghost' }));
       } finally { askBtn.disabled = false; }
       return;
     }
-    if (!Caps.sample) { openCopyPrompt(D, issueNames, () => { drawReply(); }); return; }
+    if (!Caps.sample) { openCopyPrompt(D, issueNames, () => { drawReply(); }, ctx); return; }
     askBtn.disabled = true;
     mount(status, h('span', { class: 'muted' }, t('Thinking… (this uses your Claude plan)')));
     try {
-      const r = await Caps.sample.json(claudePrompt(D, issueNames), { cache: false });
+      const r = await Caps.sample.json(claudePrompt(D, issueNames, measuredForNote(ctx)), { cache: false });
       D.reply = normaliseReply(r);
       if (D.reply.issue && !D.issue) { D.issue = D.reply.issue; const inp = $(`#issue-${key}`); if (inp) inp.value = D.issue; }
       status.replaceChildren();
@@ -123,7 +123,12 @@ function spellingLine(P) {
   return P.spelling ? `Answer in ${P.spelling} spelling, plainly` : 'Answer plainly';
 }
 
-function claudePrompt(D, issueNames) {
+/* what was measured on the recording, for the prompt; empty when there's nothing */
+function measuredBlock(lines) {
+  return lines && lines.length ? `\nMeasured on their recording by software (pitch, loudness and timing only, so it can't hear vowels or consonants; speech recognition can also miss clear words). Treat it as evidence about the recording, not as the learner's opinion, and don't invent problems beyond it and their description:\n${lines.map((l) => `- ${l}`).join('\n')}\n` : '';
+}
+
+function claudePrompt(D, issueNames, measured) {
   const P = profileForAI();
   return `You are helping a learner with shadowing practice: they repeat a model speaker's clip to pick up the accent, rhythm and melody. ${learnerLine(P)}
 
@@ -133,13 +138,13 @@ Sentence being practised: ${D.sentence.trim() || '(not given)'}
 What sounded off: ${D.off.trim()}
 What they were aiming for: ${D.aim.trim() || '(not given)'}
 Issue names they already track: ${issueNames.length ? issueNames.join('; ') : '(none yet)'}
-
+${measuredBlock(measured)}
 Reply with only a JSON object, no other text:
 {"feature": "the likely ${P.accent} feature behind this, 1-2 sentences", "change": "what to change in their speech, 1-3 sentences", "listenFor": "what to listen for in the model clip, 1-2 sentences", "issue": "a short name (max 5 words) for this as a recurring problem; reuse one of their existing issue names if it fits", "unsure": false, "question": ""}
 If unsure, use {"unsure": true, "question": "I don't know ... what did you mean by ...?", "feature": "", "change": "", "listenFor": "", "issue": ""}.`;
 }
 
-function claudePromptPlain(D) {
+function claudePromptPlain(D, measured) {
   const P = profileForAI();
   const native = P.nativeLanguages ? ` My native language is ${P.nativeLanguages}.` : '';
   return `I'm doing shadowing practice to move my ${P.targetLanguage} accent towards ${P.accent}.${native}${P.notes ? ` ${P.notes}` : ''} Please answer ${P.replyLanguage && P.replyLanguage !== 'English' ? `in ${P.replyLanguage}, ` : P.spelling ? `in ${P.spelling} spelling, ` : ''}plainly, no jargon. If my description is too ambiguous, say "I don't know" and ask what I meant.
@@ -147,12 +152,12 @@ function claudePromptPlain(D) {
 Sentence: ${D.sentence.trim() || '(not given)'}
 What sounded off: ${D.off.trim()}
 What I was aiming for: ${D.aim.trim() || '(not given)'}
-
+${measuredBlock(measured)}
 Tell me: 1) the likely ${P.accent} feature, 2) what to change, 3) what to listen for in the model clip.`;
 }
 
-function openCopyPrompt(D, issueNames, onDone) {
-  const text = claudePromptPlain(D);
+function openCopyPrompt(D, issueNames, onDone, ctx) {
+  const text = claudePromptPlain(D, ctx ? measuredForNote(ctx) : []);
   const ta = h('textarea', { rows: 8, readonly: true, value: text, id: 'promptText' });
   const reply = h('textarea', { rows: 6, id: 'replyPaste', placeholder: t('Paste the reply here') });
   openModal([
@@ -344,7 +349,7 @@ async function openCompare(idA, idB, urlB) {
     h('div', { class: 'row' }, seg, h('span', { class: 'spacer' }), legend),
     holder,
     h('div', { class: 'stack' }, players),
-    layers.slice(1).filter((L) => L.series && L.series.db).map((L) => { const c = prosodyCard(clip, L.series); return c && h('div', { class: 'stack' }, h('strong', { class: 'small' }, L.label), c); }),
+    layers.slice(1).filter((L) => L.series && L.series.db).map((L) => { const c = prosodyCard(clip, L.series, L.rec && L.rec.heard); return c && h('div', { class: 'stack' }, h('strong', { class: 'small' }, L.label), c); }),
     h('p', { class: 'small muted' }, t('Each line is shown against that voice’s own average pitch. A final line that follows the speaker’s shape more closely than step 3, or a smaller lag, is progress.')),
     B && B.sessionId ? noteForms({ clipId: clip.id, sessionId: B.sessionId, recId: B.id, pass: B.pass, step: B.step || 'again' }) : null,
   ]);

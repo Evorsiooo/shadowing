@@ -24,6 +24,10 @@ async function handle(ctx) {
   if (path[0] === 'support' && path.length === 1 && method === 'POST') {
     try { return await supportRoute(env, request); } catch (e) { console.error(e); return error(500, 'Server error'); }
   }
+  // the contact page asks for the (public) Turnstile site key; null means the spam check is off
+  if (path[0] === 'support-config' && path.length === 1 && method === 'GET') {
+    return json({ turnstileSiteKey: env.TURNSTILE_SECRET && env.TURNSTILE_SITE_KEY ? env.TURNSTILE_SITE_KEY : null });
+  }
   const auth = await requireUser(request, env);
   if (!auth.ok) return error(auth.status, auth.reason, { signin: auth.status === 401 });
   const user = { id: auth.userId, email: auth.email, name: auth.name, picture: auth.picture, role: auth.role };

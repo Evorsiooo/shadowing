@@ -25,4 +25,5 @@ service = "shadowing-reminders"
 #   GOOGLE_CLIENT_SECRET
 #   KEY_ENCRYPTION_KEY    32 random bytes, base64 (`openssl rand -base64 32`): seals users' AI keys and Drive tokens.
 #                         Never change it: saved keys and Drive connections would stop opening.
-#   TURNSTILE_SECRET      optional: spam check for the contact form (the form needs the widget added first)
+#   TURNSTILE_SECRET      optional: spam check for the contact form. Set it together with TURNSTILE_SITE_KEY
+#                         (a plain variable, the public site key); with either missing the check stays off.
