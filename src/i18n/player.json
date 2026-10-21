@@ -631,8 +631,16 @@
     "fr": "{n} de plus non affichées.",
     "es": "{n} más sin mostrar."
   },
-  "Worked out on your device from pitch and loudness only, so it can’t hear vowels or consonants, and the words are a rough guess from timing.": {
-    "fr": "Calculé sur ton appareil à partir de la hauteur et du volume seulement : il n’entend ni les voyelles ni les consonnes, et les mots sont une estimation approximative d’après le rythme.",
-    "es": "Calculado en tu dispositivo solo con el tono y el volumen: no oye vocales ni consonantes, y las palabras son una estimación aproximada según el ritmo."
+  "Timing and pitch are worked out on your device from pitch and loudness only, so they can’t hear vowels or consonants, and the words are a rough guess from timing.": {
+    "fr": "Le rythme et la mélodie sont calculés sur ton appareil à partir de la hauteur et du volume seulement : il n’entend ni les voyelles ni les consonnes, et les mots sont une estimation approximative d’après le rythme.",
+    "es": "El ritmo y el tono se calculan en tu dispositivo solo con el tono y el volumen: no oye vocales ni consonantes, y las palabras son una estimación aproximada según el ritmo."
+  },
+  "Words that may have been unclear: {words}. (The browser didn’t pick them up; it can also miss clear words.)": {
+    "fr": "Mots peut-être peu clairs : {words}. (Le navigateur ne les a pas reconnus ; il peut aussi rater des mots clairs.)",
+    "es": "Palabras que quizá no se entendieron bien: {words}. (El navegador no las captó; también puede perder palabras claras.)"
+  },
+  "The browser’s speech recognition picked up every word. Nice.": {
+    "fr": "La reconnaissance vocale du navigateur a reconnu tous les mots. Bravo.",
+    "es": "El reconocimiento de voz del navegador captó todas las palabras. Bien."
   }
 }

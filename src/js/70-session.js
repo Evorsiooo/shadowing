@@ -157,6 +157,7 @@ const Session = {
     if (this.recordingThisPass || this.liveThisPass) {
       this.rec = new Recording();
       this.rec.start();
+      this.speech = this.recordingThisPass && settings().speechCheck ? Speech.start(targetLang()) : null;
       Panel.live = { clipId: clip.id, points: [], frames: 0, ref: (Store.get('meta', 'voice') || {}).refHz || null, f0s: [], userOnset: null, shift: 0 };
       this.liveOff = Mic.on(() => this.liveAnalyse());
     }
@@ -218,6 +219,8 @@ const Session = {
       if (this.liveOff) { this.liveOff(); this.liveOff = null; }
       const res = await this.rec.stop();
       this.rec = null;
+      const heard = this.speech ? await this.speech.stop() : null;
+      this.speech = null;
       const an = analysePass(res, clip, this.zero != null ? this.zero : median(this.clipZero), Player.v.playbackRate || 1, Panel.live);
       if (an) {
         entry.lag = an.lag;
@@ -233,7 +236,7 @@ const Session = {
             const r = Store.put('recordings', {
               kind: 'pass', sessionId: this.doc.id, clipId: clip.id, step: st.key, pass: this.pass + 1, slot: st.recordLast,
               ref, mime: res.blob.type, created: new Date().toISOString(), lag: an ? an.lag : null, score: an ? an.score : null,
-              analysis: an ? { st: an.st, db: an.db, hop: an.hop, offset: an.offset } : null, durationSec: round(res.samples.length / SR, 1),
+              analysis: an ? { st: an.st, db: an.db, hop: an.hop, offset: an.offset } : null, durationSec: round(res.samples.length / SR, 1), heard,
             });
             recId = r.id;
             this.doc.recs[st.recordLast] = recId;
@@ -242,7 +245,7 @@ const Session = {
           }
         }
         entry.recorded = true; entry.recId = recId;
-        this.review = { recId, blob: res.blob, url: URL.createObjectURL(res.blob), analysis: an, slot: st.recordLast, clipId: clip.id };
+        this.review = { recId, blob: res.blob, url: URL.createObjectURL(res.blob), analysis: an, heard, slot: st.recordLast, clipId: clip.id };
         this.doc.passes.push(entry);
         this.pass++;
         this.saveDoc();
@@ -728,7 +731,7 @@ function passReviewCard() {
       btn(t('Both together'), () => playBoth(clip, R.url, an), { size: 'sm' }),
       btn('', () => stopReviewPlayback(), { size: 'sm', icon: 'stop', title: t('Stop playback') })),
     mineVolumeControl(),
-    prosodyCard(clip, an),
+    prosodyCard(clip, an, R.heard),
     step3 ? h('div', { class: 'row' }, h('span', { class: 'small muted grow' }, t('Compare with your step 3 recording from this session:')),
       btn(t('Compare overlaid'), () => openCompare(step3.id, R.recId, R.url), { size: 'sm', kind: 'blue' })) : null,
     noteForms({ clipId: clip.id, sessionId: S.doc.id, recId: R.recId, pass: S.pass, step: S.step().key }),
