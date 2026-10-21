@@ -138,7 +138,7 @@ These keep one account or one visitor from running up costs or filling the datab
 | Google Drive access tokens | 120 per user per hour |
 | Test reminder | 1 per user per 20 seconds |
 | Push notification devices | 10 per user |
-| Contact form | 5 per hour per address or account, 300 per day in total, plus a hidden honeypot field. Cloudflare Turnstile is supported when `TURNSTILE_SECRET` is set. |
+| Contact form | 5 per hour per address or account, 300 per day in total, plus a hidden honeypot field. Cloudflare Turnstile is checked when both `TURNSTILE_SECRET` and `TURNSTILE_SITE_KEY` are set (the page fetches the site key from `GET /api/support-config`). |
 
 ## Look and feel
 

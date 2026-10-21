@@ -295,11 +295,12 @@ out(
 // The app has its own CSP in a <meta> tag (above), so the site's one is detached under /app/.
 const siteCsp = [
   "default-src 'self'",
-  `script-src 'self' ${[...inlineScripts].map(sha).join(' ')}`,
+  `script-src 'self' ${[...inlineScripts].map(sha).join(' ')} https://challenges.cloudflare.com`, // Turnstile widget on /contact/
   `style-src 'self' ${[...inlineStyles].map(sha).join(' ')}`,
   "font-src 'self'",
   "img-src 'self' data:",
-  "connect-src 'self'",
+  "connect-src 'self' https://challenges.cloudflare.com",
+  "frame-src https://challenges.cloudflare.com",
   "form-action 'self'",
   "frame-ancestors 'none'",
   "base-uri 'none'",
