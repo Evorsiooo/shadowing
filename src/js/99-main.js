@@ -95,8 +95,17 @@ function onKey(e) {
   else if (k === 'ArrowRight') { e.preventDefault(); Player.seek(Player.time() + 2); }
   else if (k === 'Enter' && Session.active && (Session.phase === 'intro' || Session.phase === 'armed')) Session.go();
   else if (k === 'c' || k === 'C') { if (Player.current() && !Session.active) setCutMode(!UI.cutMode); }
+  else if ((k === 'n' || k === 'N' || k === 'p' || k === 'P') && Player.current() && !Session.active) stepClip(k === 'n' || k === 'N' ? 1 : -1);
   else if (k === 'Escape') { if (UI.drawer) closeDrawer(); else if ((UI.sel || UI.cutMode) && !Session.active) cancelCut(); else zoomOut(); }
   else if (k === '?') openShortcuts();
+}
+
+function stepClip(dir) {
+  const list = videoClips(UI.videoId);
+  if (!list.length) return;
+  const i = list.findIndex((c) => c.id === UI.clipId);
+  const next = list[i < 0 ? (dir > 0 ? 0 : list.length - 1) : i + dir];
+  if (next) selectClip(next.id); else toast(dir > 0 ? t('That is the last clip.') : t('That is the first clip.'));
 }
 
 async function boot() {
