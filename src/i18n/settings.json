@@ -1627,6 +1627,14 @@
     "fr": "Fermer une fenêtre, annuler un nouvel extrait, ou afficher toute la vidéo sur la barre de lecture",
     "es": "Cerrar una ventana, cancelar un fragmento nuevo o mostrar todo el vídeo en la línea de tiempo"
   },
+  "You’re offline": {
+    "fr": "Tu es hors ligne",
+    "es": "Estás sin conexión"
+  },
+  "Euno needs a connection to load your practice. Reconnect, then reload.": {
+    "fr": "Euno a besoin d’une connexion pour charger ta pratique. Reconnecte-toi, puis recharge la page.",
+    "es": "Euno necesita conexión para cargar tu práctica. Vuelve a conectarte y recarga la página."
+  },
   "You usually start practising around {time}. A reminder then tends to fit your routine.": {
     "fr": "Tu commences d’habitude vers {time}. Un rappel à ce moment-là s’intègre mieux à ta routine.",
     "es": "Sueles empezar a practicar hacia las {time}. Un recordatorio a esa hora encaja mejor con tu rutina."
