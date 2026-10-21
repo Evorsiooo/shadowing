@@ -1022,5 +1022,9 @@
   "Weekly goal reached: {n} days this week.": {
     "fr": "Objectif de la semaine atteint : {n} jours cette semaine.",
     "es": "Objetivo semanal cumplido: {n} días esta semana."
+  },
+  "Add another note": {
+    "fr": "Ajouter une autre note",
+    "es": "Añadir otra nota"
   }
 }

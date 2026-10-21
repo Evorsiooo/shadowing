@@ -1058,5 +1058,17 @@
   "New here? Start with the short session. It counts as a practice day, and you can do the full one tomorrow.": {
     "fr": "Nouveau ici ? Commence par la séance courte. Elle compte comme un jour de pratique, et tu feras la complète demain.",
     "es": "¿Eres nuevo? Empieza con la sesión corta. Cuenta como día de práctica y mañana podrás hacer la completa."
+  },
+  "Keep going (+{min} min)": {
+    "fr": "Prolonger (+{min} min)",
+    "es": "Alargar (+{min} min)"
+  },
+  "Add more passes to this step": {
+    "fr": "Ajouter des passages à cette étape",
+    "es": "Añadir más repeticiones a este paso"
+  },
+  "Added {n} more pass.|Added {n} more passes.": {
+    "fr": "{n} passage de plus ajouté.|{n} passages de plus ajoutés.",
+    "es": "Se añadió {n} repetición más.|Se añadieron {n} repeticiones más."
   }
 }
