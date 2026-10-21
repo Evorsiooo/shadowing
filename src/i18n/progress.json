@@ -1010,5 +1010,9 @@
   "It’s not 10am yet, so a session you do now can still count for yesterday: you’ll get the option when you finish.": {
     "fr": "Il n’est pas encore 10 h, donc une séance faite maintenant peut encore compter pour hier : tu auras le choix à la fin.",
     "es": "Aún no son las 10, así que una sesión que hagas ahora todavía puede contar para ayer: tendrás la opción al terminar."
+  },
+  "Add another note": {
+    "fr": "Ajouter une autre note",
+    "es": "Añadir otra nota"
   }
 }

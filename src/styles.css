@@ -318,6 +318,7 @@ button.chip { font-family: inherit; cursor: pointer; }
 .bracket-hit { position: absolute; top: 4px; height: 30px; cursor: pointer; background: transparent; border: 0; padding: 0; }
 .bracket-hit:hover + .bracket, .bracket.sel { border-color: #fff; }
 .bracket.sel { border-width: 4px; }
+.bracket-next { position: absolute; top: -12px; width: 20px; height: 18px; margin-left: -10px; color: var(--accent, var(--green)); pointer-events: none; filter: drop-shadow(0 1px 0 rgba(0,0,0,.5)); }
 .bracket-tick { position: absolute; top: -10px; width: 20px; height: 18px; margin-left: -10px; color: var(--green); pointer-events: none; filter: drop-shadow(0 1px 0 rgba(0,0,0,.5)); }
 .ctrl-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
 .ctrl-row .btn { --b-bg: rgba(255, 255, 255, 0.12); --b-fg: #fff; --b-edge: rgba(255, 255, 255, 0.18); }
@@ -363,6 +364,9 @@ button.chip { font-family: inherit; cursor: pointer; }
 .panel { background: var(--surface); border: 2px solid var(--line); border-radius: var(--r-lg); padding: 12px 14px 14px; box-shadow: var(--shadow); }
 .panel-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
 .panel canvas { display: block; width: 100%; height: 220px; border-radius: var(--r-sm); background: var(--surface-2); touch-action: none; }
+.panel { position: relative; }
+.panel.rec-blur canvas { filter: blur(12px); }
+.panel.rec-blur::after { content: attr(data-blur-text); position: absolute; left: 0; right: 0; top: 50%; text-align: center; font-size: 0.85rem; font-weight: 800; color: var(--muted); pointer-events: none; }
 .panel canvas.editor { height: 170px; cursor: ew-resize; }
 /* wide screens: the panel under the player reaches the bottom of the window; the chart stretches to fill it */
 .layout.fit.cutting .below, .layout.fit.in-session .below { height: var(--below-h, auto); }
