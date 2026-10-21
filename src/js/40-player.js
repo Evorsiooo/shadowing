@@ -372,6 +372,7 @@ function renderScrubber() {
   // clips that are only partly in a zoomed view are cut at its edges
   const clips = videoClips(UI.videoId).filter((c) => !c.archived && c.end > v0 && c.start < v1);
   const pct = (t) => (d && v1 > v0 ? clamp((t - v0) / (v1 - v0), 0, 1) * 100 : 0);
+  const rec = recommendedClipId();
   mount(box, view.zoomed ? h('button', { type: 'button', class: 'scrub-out', onclick: () => zoomOut(), title: t('Back to the whole video (Esc)') }, t('Zoomed on the clip'), icon('close')) : null, d ? clips.map((c) => {
     const left = pct(c.start), width = Math.max(pct(c.end) - pct(c.start), 0);
     const sel = c.id === UI.clipId;
@@ -379,13 +380,21 @@ function renderScrubber() {
       // zoomed in, the selected clip fills most of the bar: leave it free for scrubbing
       sel && view.zoomed ? null : h('button', { type: 'button', class: 'bracket-hit', style: { left: `calc(${left}% - 4px)`, width: `calc(max(${width}%, 12px) + 8px)` }, title: `${clipName(c)} · ${fmtTime(c.start)}–${fmtTime(c.end)}${c.done ? ` · ${t('done')}` : ''}`, 'aria-label': t('Select {clip}', { clip: clipName(c) }), onclick: () => selectClip(c.id) }),
       h('div', { class: `bracket ${sel ? 'sel' : ''}`, style: { left: left + '%', width: `max(${width}%, 12px)` } }),
-      c.done ? h('div', { class: 'bracket-tick', style: { left: (left + width / 2) + '%' } }, icon('check', 'stroke-width="3.4"')) : null,
+      c.id === rec ? h('div', { class: 'bracket-next', style: { left: (left + width / 2) + '%' }, title: t('Recommended clip to do now') }, icon('arrow-down', 'stroke-width="3.4"')) : c.done ? h('div', { class: 'bracket-tick', style: { left: (left + width / 2) + '%' } }, icon('check', 'stroke-width="3.4"')) : null,
     ];
   }) : null);
   const sb = $('#scrubSel');
   if (UI.sel && d) { sb.hidden = false; sb.style.left = pct(UI.sel.start) + '%'; sb.style.width = Math.max(0.3, pct(UI.sel.end) - pct(UI.sel.start)) + '%'; }
   else sb.hidden = true;
   Player.paintHead();
+}
+
+/* the clip to do now: today's suggested repeat, else the first clip of this video that isn't done yet */
+function recommendedClipId() {
+  const list = videoClips(UI.videoId).filter((c) => !c.archived);
+  const sug = typeof rotationSuggestion === 'function' ? rotationSuggestion().clipId : null;
+  const pick = list.find((c) => c.id === sug) || list.find((c) => !c.done);
+  return pick ? pick.id : null;
 }
 
 function renderPlayerEmpty() {

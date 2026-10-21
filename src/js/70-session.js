@@ -497,6 +497,10 @@ function renderSession() {
   const el = $('#session');
   el.classList.toggle('active', Session.active);
   enterOnChange(el, Session.active); // the card swaps between "start a session" and the session itself
+  // the pitch view is blurred while you record yourself: eyes on the video
+  const blur = Session.active && Session.phase === 'recording';
+  const panel = $('#panel');
+  if (panel) { panel.classList.toggle('rec-blur', blur); if (blur) panel.dataset.blurText = t('Eyes on the video!'); }
   if (!Session.active) { renderSession.bars = null; mount(el, idleSession()); return; }
   const S = Session;
   const clip = S.clip();
@@ -519,7 +523,7 @@ function renderSession() {
       h('div', { class: 'bar' }, fill));
   }));
   if (before.length) requestAnimationFrame(() => fills.forEach((f, i) => { f.style.width = pcts[i] + '%'; }));
-  const counter = st ? h('div', { class: 'counter' }, t('{step}: {n}', { step: t(st.name), n: Math.min(S.pass + (S.phase === 'playing' || S.phase === 'recording' ? 1 : 0), st.passes) }), h('small', null, ` / ${st.passes}`)) : null;
+  const counter = st ? h('div', { class: 'counter' }, t('{step}: {n}', { step: t(st.name), n: Math.min(S.pass + (S.phase === 'playing' || S.phase === 'recording' || (S.phase === 'paused' && ['playing', 'recording'].includes(S.pausedFrom)) ? 1 : 0), st.passes) }), h('small', null, ` / ${st.passes}`)) : null;
   const left = st ? Math.max(0, st.passes - S.pass) : 0;
   let main;
   if (S.phase === 'intro') {
