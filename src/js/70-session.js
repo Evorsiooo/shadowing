@@ -723,7 +723,9 @@ function idleSession() {
   const s = settings();
   const queued = UI.queue.filter((id) => Store.get('clips', id));
   const reviewDue = s.review ? reviewDueClips() : [];
+  const firstTime = !Store.all('sessions').some((x) => !x.empty);
   return h('div', { class: 'stack' },
+    firstTime ? h('p', { class: 'small muted' }, t('New here? Start with the short session. It counts as a practice day, and you can do the full one tomorrow.')) : null,
     h('div', { class: 'idle-cta' },
       h('div', { class: 'grow' },
         h('span', { class: 'label' }, `${dayName(new Date().getDay())} · ${sugg.title}`),
@@ -731,8 +733,8 @@ function idleSession() {
       sugg.clipId && sugg.clipId !== UI.clipId ? btn(t('Select it'), () => selectClip(sugg.clipId), { size: 'sm' }) : null),
     h('div', { class: 'row' },
       btn(queued.length > 1 ? t('Start queue ({n} clips)', { n: queued.length }) : t('Start 15-minute session'), () => Session.start(queued.length ? queued : [UI.clipId], 'full'),
-        { kind: 'primary', size: 'big', icon: 'play', disabled: !clip && !queued.length }),
-      btn(t('Bad-day session ({n} min)', { n: s.badMinutes }), () => Session.start(queued.length ? queued : [UI.clipId], 'badday'), { icon: 'bad', disabled: !clip && !queued.length }),
+        { kind: firstTime ? undefined : 'primary', size: 'big', icon: 'play', disabled: !clip && !queued.length }),
+      btn(t('Bad-day session ({n} min)', { n: s.badMinutes }), () => Session.start(queued.length ? queued : [UI.clipId], 'badday'), { kind: firstTime ? 'primary' : undefined, size: firstTime ? 'big' : undefined, icon: 'bad', disabled: !clip && !queued.length }),
       reviewDue.length ? btn(t('Review run ({n} due)', { n: reviewDue.length }), () => Session.start(reviewDue.map((c) => c.id), 'review'), { kind: 'blue', icon: 'history' }) : null,
       clip ? h('span', { class: 'small muted' }, clip.done ? t('“{clip}” is done. Practise it again any time.', { clip: clipName(clip) }) : t('Clip: {clip} · {len}', { clip: clipName(clip), len: fmtSec(clip.end - clip.start) })) : h('span', { class: 'small muted' }, t('Select a clip on the timeline or in the library.'))));
 }

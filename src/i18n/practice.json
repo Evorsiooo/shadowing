@@ -1054,5 +1054,9 @@
   "Undo": {
     "fr": "Annuler",
     "es": "Deshacer"
+  },
+  "New here? Start with the short session. It counts as a practice day, and you can do the full one tomorrow.": {
+    "fr": "Nouveau ici ? Commence par la séance courte. Elle compte comme un jour de pratique, et tu feras la complète demain.",
+    "es": "¿Eres nuevo? Empieza con la sesión corta. Cuenta como día de práctica y mañana podrás hacer la completa."
   }
 }
