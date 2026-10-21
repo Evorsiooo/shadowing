@@ -183,13 +183,17 @@ function toast(msg, kind = '', ms = 3800) {
 
 /* ---------- modal ---------- */
 let modalCloseHook = null;
+let modalReturnFocus = null;
 function openModal(content, { narrow = false, onClose = null } = {}) {
   // a modal replacing an open one (a tab or wizard step) only fades its content in, without the pop
   const swap = isModalOpen();
+  if (!swap) modalReturnFocus = document.activeElement;
   closeModal(true);
   modalCloseHook = onClose;
   const back = h('div', { class: `modal-back${swap ? ' swap' : ''}`, onmousedown: (e) => { if (e.target === back) closeModal(); } },
-    h('div', { class: `modal ${narrow ? 'narrow' : ''}`, role: 'dialog', 'aria-modal': 'true' }, content));
+    h('div', { class: `modal ${narrow ? 'narrow' : ''}`, role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'modalTitle', onkeydown: trapModalFocus }, content));
+  const title = back.querySelector('h2');
+  if (title) title.id = 'modalTitle';
   mount($('#modalRoot'), back);
   const f = back.querySelector('[autofocus]') || back.querySelector('button, input, textarea, select');
   if (f) setTimeout(() => f.focus(), 30);
@@ -200,6 +204,17 @@ function closeModal(silent) {
   const hook = modalCloseHook;
   modalCloseHook = null;
   if (had && hook && !silent) hook();
+  if (!silent && modalReturnFocus && document.contains(modalReturnFocus)) modalReturnFocus.focus();
+  if (!silent) modalReturnFocus = null;
+}
+/* Tab stays inside an open window instead of walking into the page behind it */
+function trapModalFocus(e) {
+  if (e.key !== 'Tab') return;
+  const items = [...e.currentTarget.querySelectorAll('a[href], button, input, textarea, select, [tabindex]:not([tabindex="-1"])')].filter((x) => !x.disabled && x.offsetParent !== null);
+  if (!items.length) return;
+  const first = items[0], last = items[items.length - 1];
+  if (e.shiftKey && (document.activeElement === first || !e.currentTarget.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
 }
 function modalHead(title, sub) {
   return h('div', { class: 'modal-head' },

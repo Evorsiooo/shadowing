@@ -1627,6 +1627,18 @@
     "fr": "Fermer une fenêtre, annuler un nouvel extrait, ou afficher toute la vidéo sur la barre de lecture",
     "es": "Cerrar una ventana, cancelar un fragmento nuevo o mostrar todo el vídeo en la línea de tiempo"
   },
+  "Next / previous clip": {
+    "fr": "Clip suivant / précédent",
+    "es": "Clip siguiente / anterior"
+  },
+  "That is the last clip.": {
+    "fr": "C’est le dernier clip.",
+    "es": "Es el último clip."
+  },
+  "That is the first clip.": {
+    "fr": "C’est le premier clip.",
+    "es": "Es el primer clip."
+  },
   "You’re offline": {
     "fr": "Tu es hors ligne",
     "es": "Estás sin conexión"

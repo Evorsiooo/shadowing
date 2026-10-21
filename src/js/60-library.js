@@ -161,7 +161,7 @@ function videoItem(v) {
   const editing = UI.editVideoId === v.id;
   return h('div', { class: `vitem ${open ? 'open' : ''}` },
     editing ? editVideoForm(v) : [
-      h('div', { class: 'vitem-title', role: 'button', tabindex: 0, onclick: () => { Player.load(v.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter') { Player.load(v.id); closeDrawer(); } } }, v.title || t('Untitled video')),
+      h('div', { class: 'vitem-title', role: 'button', tabindex: 0, onclick: () => { Player.load(v.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); Player.load(v.id); closeDrawer(); } } }, v.title || t('Untitled video')),
       h('div', { class: 'meta' }, `${t('{done}/{total} clips done', { done: p.done, total: p.total })} · ${p.last ? t('last practised {day}', { day: fmtDay(p.last) }) : t('not practised yet')}${v.speaker ? ` · ${v.speaker}` : ''}${v.fileRef ? ` · ${mediaStatus(v.fileRef) || t('saved')}` : ''}`),
       h('div', { class: 'bar vprog' }, h('i', { style: { width: (p.total ? (p.done / p.total) * 100 : 0) + '%' } })),
       h('div', { class: 'row' },
@@ -211,7 +211,7 @@ function clipList(v) {
         : c.done ? h('span', { class: 'tick done', title: t('Done {day}', { day: fmtDay(c.doneAt) }), 'aria-label': t('Done {day}', { day: fmtDay(c.doneAt) }) }, icon('check', 'stroke-width="3.4"'))
         : h('span', { class: 'tick', title: t('Not done yet'), 'aria-label': t('Not done yet') }),
       h('div', { style: { minWidth: 0 } },
-        h('div', { class: 'clabel', role: 'button', tabindex: 0, onclick: () => { selectClip(c.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter') selectClip(c.id); } }, clipName(c, i)),
+        h('div', { class: 'clabel', role: 'button', tabindex: 0, onclick: () => { selectClip(c.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectClip(c.id); } } }, clipName(c, i)),
         h('div', { class: 'cmeta' }, `${fmtTime(c.start)}–${fmtTime(c.end)} · ${fmtSec(c.end - c.start)}${c.noisy ? ` · ${t('noisy')}` : ''}${queued ? ` · ${t('#{n} in queue', { n: UI.queue.indexOf(c.id) + 1 })}` : ''}`)),
       h('div', { class: 'row', style: { gap: '2px', flexWrap: 'nowrap' } },
         !c.archived ? btn('', () => { editClip(c.id); closeDrawer(); }, { size: 'sm', kind: 'ghost', icon: 'edit', title: t('Edit clip (start, end, length, label)'), disabled: Session.active }) : null,

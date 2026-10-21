@@ -289,6 +289,7 @@ function openShortcuts() {
       h('span', null, K(','), ' ', K('.')), h('span', null, t('Slower / faster (0.5x, 0.75x, 1x)')),
       h('span', null, K('L')), h('span', null, t('Loop on / off')),
       h('span', null, K('←'), ' ', K('→')), h('span', null, t('Back / forward 2 seconds')),
+      h('span', null, K('N'), ' ', K('P')), h('span', null, t('Next / previous clip')),
       h('span', null, K('Enter')), h('span', null, t('Start the step or recording when a session is waiting')),
       h('span', null, K('Esc')), h('span', null, t('Close a window, cancel a new clip, or show the whole video on the timeline')),
       h('span', null, K('?')), h('span', null, t('Show this help'))),
