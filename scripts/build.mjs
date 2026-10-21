@@ -244,7 +244,7 @@ ${plain(en.home.lede)} ${plain(en.home.fine)}
 - Euno Shadowing is a free web app at ${SITE.url.replace(/^https:\/\//, '')} for practising pronunciation and accent by shadowing (speaking along with a recording) in English, French and Spanish. Full explanation: ${pageUrl('what-is-euno-shadowing')}
 - You bring your own videos or audio (upload a file or paste a link to an .mp4) and cut short clips of one or two sentences. There are no built-in lessons, no content library, no subtitles and no transcripts, and it does not pull content from YouTube.
 - It is not an app for job shadowing (such as Erasmus+ visits for teachers), medical or pre-med shadowing, or the Euno enterprise AI platform, and is not affiliated with them. It is also not the journaling apps named Euno.
-- Feedback: your pitch line next to the speaker's, your lag behind or ahead of the speaker, and measured differences in speed, pitch direction and stress after each recorded pass. It does not score individual sounds. Optional AI feedback on your written notes uses your own API key (Anthropic, OpenAI or OpenRouter); only text is sent, never audio.
+- Feedback: your pitch line next to the speaker's, your lag behind or ahead of the speaker, and measured differences in speed, pitch direction and stress after each recorded pass. It does not score individual sounds. An optional speech-recognition check (Chrome only, off by default) can mark clip words that may have been unclear. Optional AI feedback on your written notes, which also receives these measurements as text, uses your own API key (Anthropic, OpenAI or OpenRouter); only text is sent, never audio.
 
 ## Features
 

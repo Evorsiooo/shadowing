@@ -30,7 +30,7 @@ const make = ({ L }) => ({
       <li><strong>Playback controls.</strong> Loop the current clip, play at 0.5x, 0.75x or 1x with the pitch kept natural, and use keyboard shortcuts.</li>
       <li><strong>Recording and comparison.</strong> Play the original, yourself, one after the other, or both together. Your step 3 and final recordings are kept for each clip.</li>
       <li><strong>Pitch and lag.</strong> Euno draws the speaker’s melody and yours, each relative to its own voice, and measures how far behind or ahead of the speaker you were.</li>
-      <li><strong>Differences from the speaker.</strong> After a pass it can point out stretches where you went faster or slower, where the pitch went the other way, or where the stress differed. These come from measuring the two recordings, not from a language model listening to your voice.</li>
+      <li><strong>Differences from the speaker.</strong> After a pass it can point out stretches where you went faster or slower, where the pitch went the other way, or where the stress differed. These come from measuring the two recordings, not from a language model listening to your voice. If you switch it on in Settings (off by default, Chrome only, your voice goes to Google while it runs), it can also mark clip words the browser’s speech recognition did not hear, which may have been unclear. It can miss clear words too, so treat it as a hint.</li>
       <li><strong>Notes and issues.</strong> Write down what sounded off; recurring problems collect into an issues list.</li>
       <li><strong>12-week check-ins.</strong> A baseline, then the same tasks at weeks 4, 8 and 12.</li>
       <li><strong>Reminders.</strong> Optional Discord and browser push reminders.</li>
@@ -50,7 +50,7 @@ const make = ({ L }) => ({
     <ol>
       <li><strong>Measured feedback, always on:</strong> pitch lines, lag, and the differences from the speaker described above.</li>
       <li><strong>Your own listening:</strong> side-by-side playback and your notes about what sounded off.</li>
-      <li><strong>Optional AI feedback:</strong> if you add your own API key from Anthropic, OpenAI or OpenRouter, you can ask for feedback on your notes. Only text is sent, never audio, and you pay the provider directly. Without a key, Euno writes the prompt for you to paste into any chatbot.</li>
+      <li><strong>Optional AI feedback:</strong> if you add your own API key from Anthropic, OpenAI or OpenRouter, you can ask for feedback on your notes. Only text is sent, never audio: your note, plus short lines describing what was measured on the recording (such as a stretch where you went faster than the speaker), which the AI is told not to go beyond. You pay the provider directly. Without a key, Euno writes the prompt for you to paste into any chatbot.</li>
     </ol>
 
     <h2>Cost and privacy</h2>

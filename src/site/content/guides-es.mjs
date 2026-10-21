@@ -29,7 +29,7 @@ const make = ({ L }) => ({
       <li><strong>Controles de reproducción.</strong> Repetir el fragmento en bucle, reproducir a 0,5x, 0,75x o 1x con el tono natural, y atajos de teclado.</li>
       <li><strong>Grabación y comparación.</strong> Escucha el original, a ti mismo, uno tras otro o los dos a la vez. Se guardan tus grabaciones del paso 3 y la final de cada fragmento.</li>
       <li><strong>Tono y desfase.</strong> Euno dibuja la melodía del hablante y la tuya, cada una relativa a su propia voz, y mide cuánto ibas por detrás o por delante.</li>
-      <li><strong>Diferencias con el hablante.</strong> Tras una pasada puede señalar tramos en los que fuiste más rápido o más lento, donde el tono fue en dirección contraria o donde el acento de intensidad era distinto. Esto sale de medir las dos grabaciones, no de un modelo de lenguaje que escuche tu voz.</li>
+      <li><strong>Diferencias con el hablante.</strong> Tras una pasada puede señalar tramos en los que fuiste más rápido o más lento, donde el tono fue en dirección contraria o donde el acento de intensidad era distinto. Esto sale de medir las dos grabaciones, no de un modelo de lenguaje que escuche tu voz. Si lo activas en los Ajustes (desactivado por defecto, solo en Chrome, tu voz se envía a Google mientras funciona), también puede marcar palabras del fragmento que el reconocimiento de voz del navegador no oyó y que quizá no se entendieron bien. También puede no captar palabras claras, así que tómalo como una pista.</li>
       <li><strong>Notas y problemas.</strong> Apunta lo que sonó mal; los problemas que se repiten se reúnen en una lista.</li>
       <li><strong>Revisiones de 12 semanas.</strong> Un punto de partida y después las mismas tareas en las semanas 4, 8 y 12.</li>
       <li><strong>Recordatorios.</strong> Recordatorios opcionales por Discord y notificaciones del navegador.</li>
@@ -49,7 +49,7 @@ const make = ({ L }) => ({
     <ol>
       <li><strong>Comentarios medidos, siempre activos:</strong> líneas de tono, desfase y las diferencias con el hablante descritas arriba.</li>
       <li><strong>Tu propia escucha:</strong> reproducción lado a lado y tus notas sobre lo que sonó mal.</li>
-      <li><strong>Comentarios de IA, opcionales:</strong> si añades tu propia clave de API de Anthropic, OpenAI u OpenRouter, puedes pedir comentarios sobre tus notas. Solo se envía texto, nunca audio, y pagas directamente al proveedor. Sin clave, Euno escribe el prompt para que lo pegues en cualquier chatbot.</li>
+      <li><strong>Comentarios de IA, opcionales:</strong> si añades tu propia clave de API de Anthropic, OpenAI u OpenRouter, puedes pedir comentarios sobre tus notas. Solo se envía texto, nunca audio: tu nota, más breves líneas que describen lo medido en la grabación (por ejemplo, un tramo en el que fuiste más rápido que el hablante), a las que la IA tiene instrucción de no añadir otros problemas. Pagas directamente al proveedor. Sin clave, Euno escribe el prompt para que lo pegues en cualquier chatbot.</li>
     </ol>
 
     <h2>Coste y privacidad</h2>
