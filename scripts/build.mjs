@@ -4,7 +4,7 @@
 //                          so browsers keep them for a year and fetch new ones only after a change
 //   dist/index.html, dist/<page>/index.html, dist/404.html — the public site (src/site/), pre-rendered,
 //                    in English at the root and in French and Spanish under dist/fr/ and dist/es/
-//   dist/assets/         — site script, icons and the social image
+//   dist/assets/         — site script, icons and the social image; dist/favicon.ico at the root
 //   dist/robots.txt, dist/sitemap.xml, dist/llms.txt, dist/site.webmanifest
 //   dist/sw.js           — the service worker (reminder notifications; makes the site installable)
 //   dist/_headers        — security headers, caching and noindex rules
@@ -68,7 +68,8 @@ const body = readFileSync(join(src, 'index.html'), 'utf8')
   .replace('@STYLES@', () => `..${appCss}`)
   .replace('@SCRIPTS@', () => `..${appJs}`);
 
-const ICON_LINKS = `<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">\n<link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">\n<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">\n<link rel="manifest" href="/site.webmanifest">`;
+// Google's search results want a PNG/ICO whose size is a multiple of 48px, so the 48 and 96 are not optional.
+const ICON_LINKS = `<link rel="icon" href="/favicon.ico" sizes="48x48">\n<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">\n<link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">\n<link rel="icon" href="/assets/favicon-48.png" sizes="48x48" type="image/png">\n<link rel="icon" href="/assets/favicon-96.png" sizes="96x96" type="image/png">\n<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">\n<link rel="manifest" href="/site.webmanifest">`;
 const APP_THEME_COLOR = '<meta name="theme-color" content="#f4f8f1">'; // light is the default; applyTheme (88-settings.js) switches it for dark
 
 // The app's CSP is a <meta> tag so it can pin the page's own inline scripts by hash. Scripts are
@@ -216,6 +217,7 @@ for (const page of pages) {
 mkdirSync(join(dist, 'assets'), { recursive: true });
 for (const f of readdirSync(join(src, 'site', 'assets'))) copyFileSync(join(src, 'site', 'assets', f), join(dist, 'assets', f));
 copyFileSync(join(src, 'site', 'site.js'), join(dist, 'assets', 'site.js'));
+copyFileSync(join(src, 'site', 'favicon.ico'), join(dist, 'favicon.ico')); // crawlers ask for /favicon.ico without reading the page
 // The build id changes whenever the app's files do, so each deploy installs a fresh service worker that drops the old cache.
 out('sw.js', readFileSync(join(src, 'site', 'sw.js'), 'utf8').replace('@BUILD@', () => createHash('sha256').update(appJs + appCss).digest('hex').slice(0, 10)));
 
@@ -339,6 +341,9 @@ out(
   X-Robots-Tag: noindex, nofollow
 
 /assets/*
+  Cache-Control: public, max-age=86400
+
+/favicon.ico
   Cache-Control: public, max-age=86400
 
 /assets/h/*
