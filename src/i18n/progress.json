@@ -1042,5 +1042,37 @@
   "Date": {
     "fr": "Date",
     "es": "Fecha"
+  },
+  "Import from CSV": {
+    "fr": "Importer un CSV",
+    "es": "Importar un CSV"
+  },
+  "Import ratings": {
+    "fr": "Importer les notes",
+    "es": "Importar puntuaciones"
+  },
+  "Couldn’t read that file.": {
+    "fr": "Impossible de lire ce fichier.",
+    "es": "No se pudo leer ese archivo."
+  },
+  "No valid ratings found in that file.": {
+    "fr": "Aucune note valide dans ce fichier.",
+    "es": "No se encontraron puntuaciones válidas en ese archivo."
+  },
+  "Expected columns: listener name, sample, rating, what gave it away.": {
+    "fr": "Colonnes attendues : nom de l’auditeur, échantillon, note, ce qui l’a trahi.",
+    "es": "Columnas esperadas: nombre del oyente, muestra, puntuación, qué lo delató."
+  },
+  "{n} listener found|{n} listeners found": {
+    "fr": "{n} auditeur trouvé|{n} auditeurs trouvés",
+    "es": "{n} oyente encontrado|{n} oyentes encontrados"
+  },
+  "{n} row was skipped (unknown sample or rating outside 1–9).|{n} rows were skipped (unknown sample or rating outside 1–9).": {
+    "fr": "{n} ligne ignorée (échantillon inconnu ou note hors de 1–9).|{n} lignes ignorées (échantillon inconnu ou note hors de 1–9).",
+    "es": "Se omitió {n} fila (muestra desconocida o puntuación fuera de 1–9).|Se omitieron {n} filas (muestra desconocida o puntuación fuera de 1–9)."
+  },
+  "Save {n} rating|Save {n} ratings": {
+    "fr": "Enregistrer {n} note|Enregistrer {n} notes",
+    "es": "Guardar {n} puntuación|Guardar {n} puntuaciones"
   }
 }

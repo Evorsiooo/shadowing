@@ -593,8 +593,57 @@ function openRatings() {
     h('tbody', null, pack.items.map((it) => h('tr', null, h('td', null, it.label),
       h('td', null, h('input', { type: 'number', min: 1, max: 9, id: `r-${it.label}`, style: { width: '80px' }, oninput: (e) => { (F.vals[it.label] ||= {}).rating = e.target.value; } })),
       h('td', null, h('input', { type: 'text', id: `c-${it.label}`, oninput: (e) => { (F.vals[it.label] ||= {}).comment = e.target.value; } }))))))),
-  h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary' }, h('span', null, t('Save ratings')))));
+  h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary' }, h('span', null, t('Save ratings'))),
+    filePickButton(t('Import from CSV'), '.csv,text/csv,text/plain', (f) => importRatingsCsv(pack, f), { icon: 'upload' })));
   openModal([modalHead(t('Enter listener ratings'), tp((pack.ratings || []).length, 'Pack from {date} · {n} listener so far', 'Pack from {date} · {n} listeners so far', { date: fmtDay(dayKey(new Date(pack.created))) })), form]);
+}
+/* reads the filled-in rating-sheet.csv (one or several listeners) and shows a preview before saving */
+async function importRatingsCsv(pack, f) {
+  let rows;
+  try { rows = parseCsv(await f.text()); } catch { toast(t('Couldn’t read that file.'), 'bad'); return; }
+  const res = rows.length ? ratingsFromCsv(rows, pack) : { listeners: [] };
+  if (!res.listeners.length) { toast(res.error || t('No valid ratings found in that file.'), 'bad'); return; }
+  previewRatingsImport(pack, res);
+}
+function ratingsFromCsv(rows, pack) {
+  const labels = new Set(pack.items.map((i) => i.label));
+  const norm = (x) => String(x || '').trim().toLowerCase();
+  // header detection: the first row counts as a header when no cell in its sample column is a pack label
+  let head = rows[0].map(norm), hasHeader = true, cols;
+  const find = (re) => head.findIndex((c) => re.test(c));
+  cols = { name: find(/listener|name|nom|oyente|nombre/), sample: find(/sample|échantillon|echantillon|muestra/), rating: find(/rating|note|puntuaci|valoraci/), comment: find(/gave|away|comment|trahi|delató|delato|reveló|revelo/) };
+  if (cols.sample < 0 || cols.rating < 0) {
+    hasHeader = false;
+    if (rows[0].length < 3) return { listeners: [], error: t('Expected columns: listener name, sample, rating, what gave it away.') };
+    cols = { name: 0, sample: 1, rating: 2, comment: 3 };
+  }
+  const by = new Map(); let skipped = 0;
+  for (const r of hasHeader ? rows.slice(1) : rows) {
+    const label = String(r[cols.sample] || '').trim().toUpperCase();
+    const rating = +String(r[cols.rating] || '').trim().replace(',', '.');
+    if (!label && !String(r[cols.rating] || '').trim()) continue; // blank line
+    if (!labels.has(label) || !(rating >= 1 && rating <= 9)) { skipped++; continue; }
+    const name = (cols.name >= 0 && String(r[cols.name] || '').trim()) || 'Listener';
+    if (!by.has(name)) by.set(name, new Map());
+    by.get(name).set(label, { label, rating, comment: cols.comment >= 0 ? String(r[cols.comment] || '').trim() : '' });
+  }
+  return { listeners: [...by.entries()].map(([listener, m]) => ({ listener, rows: [...m.values()] })), skipped };
+}
+function previewRatingsImport(pack, res) {
+  const total = res.listeners.reduce((n, l) => n + l.rows.length, 0);
+  openModal([modalHead(t('Import ratings'), tp(res.listeners.length, '{n} listener found', '{n} listeners found', {})),
+    h('div', { class: 'stack' },
+      h('div', { class: 'table-wrap' }, h('table', null, h('thead', null, h('tr', null, h('th', null, t('Listener name')), h('th', null, t('Sample')), h('th', null, t('Rating 1–9')), h('th', null, t('What gave it away?')))),
+        h('tbody', null, res.listeners.flatMap((l) => l.rows.map((r) => h('tr', null, h('td', null, l.listener), h('td', null, r.label), h('td', { class: 'num' }, String(r.rating)), h('td', null, r.comment))))))),
+      res.skipped ? h('p', { class: 'small muted' }, tp(res.skipped, '{n} row was skipped (unknown sample or rating outside 1–9).', '{n} rows were skipped (unknown sample or rating outside 1–9).', {})) : null,
+      h('div', { class: 'row' },
+        btn(tp(total, 'Save {n} rating', 'Save {n} ratings', {}), () => {
+          const at = dayKey();
+          Store.patch('meta', pack.id, { ratings: [...(pack.ratings || []), ...res.listeners.map((l) => ({ listener: l.listener, rows: l.rows, at }))] });
+          toast(t('Ratings saved.'), 'good');
+          openProgress('measures');
+        }, { kind: 'primary' }),
+        btn(t('Cancel'), () => openRatings())))]);
 }
 function ratingAverages() {
   const out = new Map();
