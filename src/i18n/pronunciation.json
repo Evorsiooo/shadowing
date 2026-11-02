@@ -179,10 +179,6 @@
     "fr": "Prononciation (bêta)",
     "es": "Pronunciación (beta)"
   },
-  "After a recorded pass, show up to three sounds that differ from the speaker (English only; worked out on your device, and it can be wrong)": {
-    "fr": "Après un passage enregistré, montrer jusqu’à trois sons qui diffèrent du locuteur (anglais seulement ; calculé sur ton appareil, et il peut se tromper)",
-    "es": "Tras una pasada grabada, mostrar hasta tres sonidos que difieren del hablante (solo inglés; calculado en tu dispositivo, y puede equivocarse)"
-  },
   "Suggest a note when the same sound keeps differing on different days (shown in Progress → Issues, never sent to an AI unless you ask)": {
     "fr": "Proposer une note quand le même son diffère sur plusieurs jours (affichée dans Progrès → Points faibles, jamais envoyée à une IA sans ta demande)",
     "es": "Sugerir una nota cuando el mismo sonido difiere en distintos días (se muestra en Progreso → Puntos débiles, nunca se envía a una IA si no lo pides)"

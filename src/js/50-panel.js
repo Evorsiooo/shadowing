@@ -23,7 +23,7 @@ function renderPanel() {
   let key;
   if (UI.sel && vid) key = `editor:${UI.sel.clipId || 'new'}:${VideoAudio.state(vid.id).status}`;
   else if (UI.cutMode && !Session.active) key = 'empty-cut';
-  else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.view === 'pron' ? Pron.top + ':' + Pron.noWords + ':' + Pron.takeKey(clip) : ''}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
+  else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.view === 'pron' ? PronTab.top + ':' + PronTab.noWords + ':' + PronTab.takeKey(clip) : ''}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
   else key = UI.cutMode ? 'empty-cut' : 'empty';
 
   // fade the panel in when it shows another clip or mode (not for a view toggle or an audio status change)
@@ -56,7 +56,7 @@ function panelEmpty() {
 function buildAnalysis(clip) {
   const vid = Store.get('videos', clip.videoId);
   const audio = VideoAudio.state(clip.videoId);
-  const pronOk = targetLang() === 'en'; // the pronunciation check is English only for now
+  const pronOk = targetLang() === 'en' && Pron.enabled(); // the pronunciation check is English only for now
   if (UI.view === 'pron' && !pronOk) UI.view = 'pitch';
   const canvas = h('canvas', { class: 'analysis', 'aria-label': UI.overlay ? t('Pitch or loudness of the speaker and you on one chart') : t('Pitch or loudness lanes: speaker on top, you below') });
   Panel.canvas = canvas;
@@ -66,8 +66,8 @@ function buildAnalysis(clip) {
       h('button', { type: 'button', class: UI.view === 'wave' ? 'on' : '', onclick: () => { UI.view = 'wave'; renderPanel(); } }, t('Waveform')),
       pronOk ? h('button', { type: 'button', class: UI.view === 'pron' ? 'on' : '', onclick: () => { UI.view = 'pron'; renderPanel(); } }, t('Pronunciation')) : null),
     UI.view === 'pron' ? h('div', { class: 'seg', role: 'group', 'aria-label': t('Which row is big') },
-      h('button', { type: 'button', class: Pron.top !== 'phones' && !Pron.noWords ? 'on' : '', disabled: Pron.noWords || null, title: Pron.noWords ? t('No words for this clip, only sounds') : t('Words big, sounds small'), onclick: () => setPronTop('words') }, t('Words')),
-      h('button', { type: 'button', class: Pron.top === 'phones' || Pron.noWords ? 'on' : '', title: t('Sounds big, words small'), onclick: () => setPronTop('phones') }, t('Phones'))) :
+      h('button', { type: 'button', class: PronTab.top !== 'phones' && !PronTab.noWords ? 'on' : '', disabled: PronTab.noWords || null, title: PronTab.noWords ? t('No words for this clip, only sounds') : t('Words big, sounds small'), onclick: () => setPronTop('words') }, t('Words')),
+      h('button', { type: 'button', class: PronTab.top === 'phones' || PronTab.noWords ? 'on' : '', title: t('Sounds big, words small'), onclick: () => setPronTop('phones') }, t('Phones'))) :
     h('div', { class: 'seg', role: 'group', 'aria-label': t('Layout') },
       h('button', { type: 'button', class: UI.overlay ? '' : 'on', title: t('Speaker on top, you below'), onclick: () => setOverlay(false) }, t('Separate')),
       h('button', { type: 'button', class: UI.overlay ? 'on' : '', title: t('Both lines on one chart'), onclick: () => setOverlay(true) }, t('Overlaid'))),
@@ -91,7 +91,7 @@ function buildAnalysis(clip) {
 
 /* not while a pass is running: moving the video would spoil its timing */
 function analysisCanScrub() { return !Session.active || !['playing', 'recording', 'gap', 'armed-go'].includes(Session.phase); }
-function setPronTop(v) { Pron.top = v; lsSet('pronTop', v); renderPanel(); }
+function setPronTop(v) { PronTab.top = v; lsSet('pronTop', v); renderPanel(); }
 
 function setOverlay(on) {
   UI.overlay = on;

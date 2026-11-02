@@ -4,7 +4,7 @@
    is as long as the word. Green: sounds like the speaker. Orange: differs from the speaker, with a YOU line
    under it showing the sounds that differ. Grey: no comparison (no take yet, or too unsure).
    The data comes through PronSource (54-pron-source.js). The wording is "differences from the speaker". */
-const Pron = {
+const PronTab = {
   top: lsGet('pronTop', 'words'), // which row is big: 'words' or 'phones'
   cache: new Map(), // `${clipId}:${recId}` -> PronResult
   asked: new Set(),
@@ -22,7 +22,7 @@ const Pron = {
   takeKey(clip) { const k = this.take(clip); return k ? k.id || 'review' : 'none'; },
   async takeUrl(take) { if (!take.url) take.url = await Store.blobUrl(take.ref); return take.url; },
   label(w) { return w.text || pvPlain(w.phones, 'spk'); },
-  skey(clip, w) { return `${clip.id}|${Pron.label(w)}|${w.phones.map((p) => (p.spk || '') + '>' + (p.you || '')).join(',')}`; },
+  skey(clip, w) { return `${clip.id}|${PronTab.label(w)}|${w.phones.map((p) => (p.spk || '') + '>' + (p.you || '')).join(',')}`; },
   /* the differences worth showing: not dismissed, most certain first, at most MAX */
   shown(clip, res) {
     return res.confidence === 'low' ? [] : res.words.filter((w) => w.differs && !this.dismissed.has(this.skey(clip, w))).sort((a, b) => b.confidence - a.confidence).slice(0, this.MAX);
@@ -74,18 +74,18 @@ function buildPronView(clip) {
       h('span', { class: 'small muted' }, t('{pct}% of {mb} MB', { pct, mb }))));
     if (m.state === 'downloaded' || m.state === 'loading') return mount(root, pvMsg(t('Starting the pronunciation check…'), null, h('span', { class: 'pv-spin', 'aria-hidden': 'true' })));
     if (m.state === 'error') return mount(root, pvMsg(t('The pronunciation check couldn’t start'), (m.error && m.error.message) || null, btn(t('Try again'), () => PronSource.download().catch(() => {}), { kind: 'primary' })));
-    const take = Pron.take(clip);
+    const take = PronTab.take(clip);
     const key = `${clip.id}:${take ? take.id || 'review' : 'none'}`;
-    const res = Pron.cache.get(key);
+    const res = PronTab.cache.get(key);
     if (failed === key) return mount(root, pvMsg(t('The comparison didn’t work'), t('Something went wrong while comparing. Try again.'), btn(t('Try again'), () => { failed = null; fill(); }, { kind: 'primary' })));
     if (!res) {
       mount(root, pvMsg(take ? t('Comparing your take with the speaker…') : t('Reading the speaker…'), null, h('span', { class: 'pv-spin', 'aria-hidden': 'true' })));
-      if (!Pron.asked.has(key)) {
-        Pron.asked.add(key);
+      if (!PronTab.asked.has(key)) {
+        PronTab.asked.add(key);
         PronSource.analyse(clip, take)
-          .then((r) => { Pron.cache.set(key, r); })
+          .then((r) => { PronTab.cache.set(key, r); })
           .catch(() => { failed = key; })
-          .finally(() => { Pron.asked.delete(key); if (root.isConnected) fill(); });
+          .finally(() => { PronTab.asked.delete(key); if (root.isConnected) fill(); });
       }
       return;
     }
@@ -95,12 +95,12 @@ function buildPronView(clip) {
   function renderResult(clip, res, take) {
     const dur = clip.end - clip.start;
     const hasWords = res.words.every((w) => w.text);
-    if (Pron.noWords === hasWords) { Pron.noWords = !hasWords; setTimeout(renderPanel); }
-    const wordsTop = hasWords && Pron.top !== 'phones';
+    if (PronTab.noWords === hasWords) { PronTab.noWords = !hasWords; setTimeout(renderPanel); }
+    const wordsTop = hasWords && PronTab.top !== 'phones';
     const pct = (s) => (s / dur) * 100 + '%';
-    const shown = Pron.shown(clip, res);
+    const shown = PronTab.shown(clip, res);
     const hidden = res.hidden || 0;
-    const stateOf = (w) => (!take || res.confidence === 'low' ? 'none' : shown.includes(w) ? 'diff' : w.differs && !Pron.dismissed.has(Pron.skey(clip, w)) ? 'none' : 'ok');
+    const stateOf = (w) => (!take || res.confidence === 'low' ? 'none' : shown.includes(w) ? 'diff' : w.differs && !PronTab.dismissed.has(PronTab.skey(clip, w)) ? 'none' : 'ok');
 
     const words = res.words.map((w) => {
       const st = stateOf(w);
@@ -139,11 +139,11 @@ function buildPronView(clip) {
     else if (res.confidence === 'low') note = t('Hard to tell for this take (too quiet, noisy or cut short), so no differences are shown. Try recording again closer to the microphone.');
     else if (!shown.length) note = t('No clear differences from the speaker this time.');
     const items = shown.map((w) => h('div', { class: 'pv-item' },
-      h('span', { class: 'pv-word' + (w.text ? '' : ' ph') }, Pron.label(w)),
+      h('span', { class: 'pv-word' + (w.text ? '' : ' ph') }, PronTab.label(w)),
       h('span', { class: 'pv-btns' },
-        btn(t('Speaker'), () => pronPlay(clip, take, w, 'spk'), { size: 'sm', icon: 'play', title: t('Hear the speaker say “{word}”', { word: Pron.label(w) }), cls: 'pv-spk' }),
-        btn(t('You'), () => pronPlay(clip, take, w, 'you'), { size: 'sm', icon: 'play', title: t('Hear how you said “{word}”', { word: Pron.label(w) }), cls: 'pv-you' })),
-      btn(t('Sounds the same to me'), () => { Pron.dismiss(clip, w); fill(); }, { size: 'sm', kind: 'ghost', title: t('Hide this one. It won’t come back for this clip.') })));
+        btn(t('Speaker'), () => pronPlay(clip, take, w, 'spk'), { size: 'sm', icon: 'play', title: t('Hear the speaker say “{word}”', { word: PronTab.label(w) }), cls: 'pv-spk' }),
+        btn(t('You'), () => pronPlay(clip, take, w, 'you'), { size: 'sm', icon: 'play', title: t('Hear how you said “{word}”', { word: PronTab.label(w) }), cls: 'pv-you' })),
+      btn(t('Sounds the same to me'), () => { PronTab.dismiss(clip, w); fill(); }, { size: 'sm', kind: 'ghost', title: t('Hide this one. It won’t come back for this clip.') })));
     const legend = h('div', { class: 'pv-legend small muted' },
       take && res.confidence !== 'low' ? [h('span', { class: 'pv-key ok' }), t('same as the speaker'), h('span', { class: 'pv-key diff' }), t('differs from the speaker')] : null,
       h('span', { class: 'pv-beta' }, t('beta')));
@@ -171,7 +171,7 @@ async function pronPlay(clip, take, w, who) {
     Player.play();
     return;
   }
-  const url = await Pron.takeUrl(take);
+  const url = await PronTab.takeUrl(take);
   if (!url) { toast(t('That recording couldn’t be found.'), 'bad'); return; }
   playSynced(clip, url, take.analysis, { from, stopAt });
 }
@@ -183,7 +183,7 @@ Panel.drawPron = function (now) {
   const W = view.clientWidth;
   if (W && W !== this.refs.w) { // size each word to the room it has before the next one starts
     this.refs.w = W;
-    const wordsTop = !Pron.noWords && Pron.top !== 'phones';
+    const wordsTop = !PronTab.noWords && PronTab.top !== 'phones';
     words.forEach(({ w, big, sub }, i) => {
       const next = words[i + 1];
       const room = ((next ? next.w.start : dur) - w.start) / dur * W - 8;

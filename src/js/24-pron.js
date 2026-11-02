@@ -55,11 +55,11 @@ const PronMock = {
 /* turns the engine's ClipResult (global Phones.analyse, src/phones/contract.d.ts) into the shape above:
    substitutions only (not extra or missing sounds yet), model noise (`weak`) left out, the engine's own pick first */
 const PhonesAdapter = {
-  ready() { return !!(window.Phones && typeof Phones.analyse === 'function' && Phones.supported().ok); },
+  ready() { return !!(typeof Phones !== 'undefined' && typeof Phones.analyse === 'function' && Phones.supported().ok); },
   async diff({ clip, samples }) {
     const speaker = VideoAudio.slice(clip.videoId, clip.start, clip.end);
     if (!speaker || !samples) return null;
-    const r = await Phones.analyse(speaker, samples, { speakerOriginSec: clip.start });
+    const r = await Heavy.run('pronunciation', () => Phones.analyse(speaker, samples, { speakerOriginSec: clip.start }), { timeoutMs: 90000 });
     if (!r || r.status !== 'ok') return null;
     const syms = (seq, w) => (w == null || !seq.words[w] ? [] : seq.phones.slice(seq.words[w].first, seq.words[w].last + 1).map((p) => p.sym));
     const diffs = r.comparison.diffs.filter((d) => d.kind === 'sub' && !d.weak).map((d) => {
@@ -82,8 +82,11 @@ const Pron = {
   },
   /* the feature exists in this build/browser, for an English target */
   available() { return !!this.engine() && targetLang() === 'en'; },
-  /* also respects the Analysis switch from the safety work (Heavy, PR #72) once it is in the build */
-  on() { return this.available() && !!settings().pronunciation && (typeof Heavy === 'undefined' || !Heavy.isOn || Heavy.isOn('pronunciation')); },
+  /* the one switch is Settings → Analysis (Heavy, off by default, remembered per device). With the real engine the model must also be
+     on this device, so nothing shows up or runs before it has been downloaded. The demo mock (?pronmock=1) skips both. */
+  modelReady() { return this.engine() !== PhonesAdapter || ['downloaded', 'loading', 'ready'].includes(Phones.status().state); },
+  enabled() { return this.available() && (this.mockAsked() || Heavy.isOn('pronunciation')); }, // the Pronunciation tab (and its download button) may show
+  on() { return this.enabled() && (this.mockAsked() || this.modelReady()); }, // differences are computed and shown around the app
 
   /* ---- the small device-side document ---- */
   doc() { return Store.get('meta', 'pron') || { id: 'pron', tally: {}, occ: {}, blocked: [], seen: [], autoMade: [] }; },
@@ -358,3 +361,17 @@ const Pron = {
     return this.rows().filter((r) => this.hidden(r.e)).sort((x, y) => (x.e.stateAt < y.e.stateAt ? 1 : -1));
   },
 };
+
+/* the two switches in Settings → Analysis (src/js/21-heavy.js). Both are off until the learner turns them on, on this device. */
+Heavy.register('pronunciation', {
+  name: N_('Pronunciation analysis'),
+  about: N_('Compares the sounds in your recording with the speaker’s, on this device. English only. It can be wrong.'),
+  sizeMB: 71, minMemGB: 4, minCores: 4,
+  cacheNames: ['euno-phones-model-v1'],
+  remove: () => Phones.remove(),
+});
+Heavy.register('prosody', {
+  name: N_('Timing, pitch and stress history'),
+  about: N_('Keeps a count on this device of how often your timing, pitch or stress differed from the speaker, so Progress can show a trend. No download.'),
+  sizeMB: 0, minMemGB: 0.25, minCores: 1,
+});

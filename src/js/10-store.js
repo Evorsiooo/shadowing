@@ -336,7 +336,6 @@ const DEFAULT_SETTINGS = {
   latencyMs: 0,
   livePitchAllPasses: false,
   speechCheck: false,
-  pronunciation: false, // sound-level differences after a recorded pass (beta, English)
   pronAutoNotes: true, // possible notes from sounds that keep coming back
   pronAutoArchive: true, // hide such a note once the sound has stopped coming back (it returns on relapse)
   review: false, reviewAfterDays: 2, reviewShadowPasses: 5,

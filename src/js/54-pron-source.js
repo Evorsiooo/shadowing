@@ -138,10 +138,10 @@ const PronSource = (() => {
       if (!spk) throw new Error('The speaker’s sound isn’t ready.');
       // words, when the clip has them (clip.words = [{w, s, e}], automatic, seconds from the clip start); sounds alone otherwise
       const external = clip.words && clip.words.length ? { source: 'asr', words: clip.words.map((x) => ({ text: x.w, t0: x.s, t1: x.e })) } : undefined;
-      if (!take) return pronFromSequence(await Phones.transcribe(spk, { originSec: 0, external }));
+      if (!take) return pronFromSequence(await Heavy.run('pronunciation', () => Phones.transcribe(spk, { originSec: 0, external }), { timeoutMs: 90000 }));
       const blob = take.blob || (await (await fetch(await Store.blobUrl(take.ref))).blob());
       const you = await AudioEng.decodeBlob(blob);
-      return pronFromClipResult(await Phones.analyse(spk, you, { speakerOriginSec: 0, external }));
+      return pronFromClipResult(await Heavy.run('pronunciation', () => Phones.analyse(spk, you, { speakerOriginSec: 0, external }), { timeoutMs: 90000 }));
     },
   };
   return new Proxy({}, { get: (_, k) => (typeof Phones !== 'undefined' ? real : mock)[k], has: (_, k) => k in mock });

@@ -14,8 +14,7 @@ const SETTING_GROUPS = [
   { title: N_('Bad-day mode'), fields: [['badListenPasses', N_('Listen: passes'), 1, 10, 1], ['badShadowPasses', N_('Shadow: passes'), 1, 20, 1], ['badMinutes', N_('Minutes'), 2, 15, 1]] },
   { title: N_('Clips'), fields: [['clipMin', N_('Target length: shortest (seconds)'), 2, 60, 1], ['clipMax', N_('Target length: longest (seconds)'), 3, 90, 1]] },
   { title: N_('Review runs'), fields: [['review', N_('Bring finished clips back for a shorter review run'), 'bool'], ['reviewAfterDays', N_('Review after (days)'), 1, 7, 1], ['reviewShadowPasses', N_('Review: shadow passes'), 1, 20, 1]] },
-  { title: N_('Pronunciation (beta)'), when: () => Pron.available(), fields: [
-    ['pronunciation', N_('After a recorded pass, show up to three sounds that differ from the speaker (English only; worked out on your device, and it can be wrong)'), 'bool'],
+  { title: N_('Pronunciation (beta)'), when: () => Pron.on(), fields: [
     ['pronAutoNotes', N_('Suggest a note when the same sound keeps differing on different days (shown in Progress → Issues, never sent to an AI unless you ask)'), 'bool'],
     ['pronAutoArchive', N_('Move a suggested sound to “Gone quiet” once it has stopped coming back (it returns if it does)'), 'bool'],
   ] },

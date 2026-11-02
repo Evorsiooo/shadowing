@@ -130,5 +130,21 @@
   "Little free storage is left for the download ({mb} MB).": {
     "fr": "Il reste peu de stockage libre pour le téléchargement ({mb} Mo).",
     "es": "Queda poco almacenamiento libre para la descarga ({mb} MB)."
+  },
+  "Pronunciation analysis": {
+    "fr": "Analyse de la prononciation",
+    "es": "Análisis de la pronunciación"
+  },
+  "Compares the sounds in your recording with the speaker’s, on this device. English only. It can be wrong.": {
+    "fr": "Compare les sons de ton enregistrement à ceux du locuteur, sur cet appareil. Anglais uniquement. Il peut se tromper.",
+    "es": "Compara los sonidos de tu grabación con los del hablante, en este dispositivo. Solo en inglés. Puede equivocarse."
+  },
+  "Timing, pitch and stress history": {
+    "fr": "Historique du rythme, de la hauteur et de l’accent",
+    "es": "Historial de ritmo, tono y acento"
+  },
+  "Keeps a count on this device of how often your timing, pitch or stress differed from the speaker, so Progress can show a trend. No download.": {
+    "fr": "Garde sur cet appareil un décompte des fois où ton rythme, ta hauteur ou ton accent différaient de ceux du locuteur, pour que Progrès montre une tendance. Aucun téléchargement.",
+    "es": "Guarda en este dispositivo un recuento de las veces que tu ritmo, tono o acento difirió del hablante, para que Progreso muestre una tendencia. Sin descarga."
   }
 }

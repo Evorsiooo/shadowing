@@ -1,6 +1,6 @@
 # Pronunciation differences in the app
 
-Sound-level differences from the speaker (English only, beta, off by default: Settings → Pronunciation).
+Sound-level differences from the speaker (English only, beta, off by default: turn it on in Settings → Analysis, which also downloads the ~71 MB model; automatic-note options are then under Settings → Pronunciation).
 The engine is the global `Phones` (contract: `src/phones/contract.d.ts`). `src/js/24-pron.js` adapts its `ClipResult`
 (substitutions only, `weak` ones dropped, the engine's `suggested` first) to one small object per recorded pass,
 saved on the recording as `phones`: `{ v, diffs: [{ a, b, words, speaker, you, from, to, conf }], sounds }`.
