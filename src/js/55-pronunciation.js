@@ -9,6 +9,7 @@ const PronTab = {
   cache: new Map(), // `${clipId}:${recId}` -> PronResult
   asked: new Set(),
   dismissed: new Set(lsGet('pronDismissed', [])), // "Sounds the same to me", kept on this device
+  wordsFailed: new Set(), // clips whose words couldn't be read this time
   noWords: false, // the source gave sounds but no words: show sounds only
   MAX: 3, // at most this many differences are shown for a take
 
@@ -92,9 +93,61 @@ function buildPronView(clip) {
     mount(root, renderResult(clip, res, take));
   }
 
+  /* ---- the word labels (src/js/26-words.js): off until the learner asks; sounds are shown either way ---- */
+  const wordsFailed = PronTab.wordsFailed;
+  const relabel = (clip) => { for (const k of [...PronTab.cache.keys()]) if (k.startsWith(clip.id + ':')) PronTab.cache.delete(k); };
+  function startWords(clip) {
+    clip = Store.get('clips', clip.id) || clip;
+    if (Words.isRunning(clip.id)) return;
+    wordsFailed.delete(clip.id);
+    Words.ensure(clip)
+      .then((w) => { if (w) relabel(clip); else wordsFailed.add(clip.id); }) // null: feature off or the clip's sound isn't ready
+      .catch(() => { wordsFailed.add(clip.id); })
+      .finally(() => { if (root.isConnected) fill(); });
+    if (root.isConnected) setTimeout(fill); // show "reading the words"
+  }
+  function wordsBlock(clip) {
+    clip = Store.get('clips', clip.id) || clip;
+    const has = clip.words && clip.words.length;
+    if (has) {
+      return h('div', { class: 'pv-words small muted' },
+        clip.wordsFor && clip.wordsFor.timing === 'phrase' ? h('span', null, t('The words are placed roughly: this device couldn’t time each word.')) : null,
+        h('span', null, t('Words are read automatically and can be wrong.')),
+        btn(t('Fix words'), () => openWordsEditor(clip, () => { relabel(clip); if (root.isConnected) fill(); }), { size: 'sm', kind: 'ghost' }));
+    }
+    if (clip.wordsFor) return h('div', { class: 'pv-words small muted' }, t('No words were recognised in this clip, so only sounds are shown.'));
+    if (!Words.supported().ok || Heavy.check('words').level === 'no') return null;
+    if (Heavy.isOn('words')) {
+      if (Words.isRunning(clip.id)) return wordsProgress();
+      if (wordsFailed.has(clip.id)) return h('div', { class: 'pv-words small muted' }, t('The words couldn’t be read for this clip, so only sounds are shown.'), btn(t('Try again'), () => startWords(clip), { size: 'sm', kind: 'ghost' }));
+      setTimeout(() => { if (root.isConnected && !Words.isRunning(clip.id)) startWords(clip); }); // on and not read yet: read it now, after the sounds
+      return wordsProgress();
+    }
+    const chk = Heavy.check('words'), mb = Heavy.spec('words').sizeMB;
+    return h('div', { class: 'pv-words card' },
+      h('b', null, t('Show the words too?')),
+      h('p', { class: 'small' }, t('The clip has no transcript, so Euno can read the words with a speech model that runs on this device (nothing is sent anywhere). It can mishear, and you can fix a word. Without it you still get the sounds.')),
+      chk.reasons.length ? h('ul', { class: 'small' }, chk.reasons.map((r) => h('li', null, r))) : null,
+      h('div', { class: 'row' }, btn(t('Get words ({mb} MB)', { mb }), () => { if (Heavy.enable('words')) startWords(clip); }, { kind: 'primary', icon: 'download' }),
+        h('span', { class: 'small muted' }, t('One-time download. You can delete it in Settings → Analysis.'))));
+  }
+  function wordsProgress() {
+    const bar = h('i'), label = h('span', { class: 'small muted' });
+    const box = h('div', { class: 'pv-words', role: 'status' }, label, h('div', { class: 'pv-prog', 'aria-hidden': 'true' }, bar));
+    const draw = (m) => {
+      const pct = Math.round(m.progress * 100);
+      label.textContent = m.state === 'downloading' ? t('Downloading the word model… {pct}% of {mb} MB', { pct, mb: Heavy.spec('words').sizeMB }) : t('Reading the words…');
+      box.querySelector('.pv-prog').hidden = m.state !== 'downloading';
+      bar.style.width = pct + '%';
+    };
+    draw(Words.status());
+    const stop = Words.onStatus((m) => { if (box.isConnected) draw(m); else stop(); });
+    return box;
+  }
+
   function renderResult(clip, res, take) {
     const dur = clip.end - clip.start;
-    const hasWords = res.words.every((w) => w.text);
+    const hasWords = res.words.some((w) => w.text); // a word the recogniser skipped shows its sounds instead
     if (PronTab.noWords === hasWords) { PronTab.noWords = !hasWords; setTimeout(renderPanel); }
     const wordsTop = hasWords && PronTab.top !== 'phones';
     const pct = (s) => (s / dur) * 100 + '%';
@@ -105,8 +158,8 @@ function buildPronView(clip) {
     const words = res.words.map((w) => {
       const st = stateOf(w);
       const sp = pvPhones(w.phones, 'spk');
-      const big = h('div', { class: 'tv-big ' + (wordsTop ? 'wd' : 'ph') }, h('span', null, wordsTop ? w.text : sp));
-      const sub = h('div', { class: 'tv-sub ' + (wordsTop ? 'ph' : 'wd') }, hasWords ? h('span', null, wordsTop ? sp : w.text) : null);
+      const big = h('div', { class: 'tv-big ' + (wordsTop && w.text ? 'wd' : 'ph') }, h('span', null, wordsTop && w.text ? w.text : sp));
+      const sub = h('div', { class: 'tv-sub ' + (wordsTop ? 'ph' : 'wd') }, hasWords && w.text ? h('span', null, wordsTop ? sp : w.text) : null);
       const el = h('div', { class: 'tv-w ' + st, style: { left: pct(w.start), width: pct(w.end - w.start) } }, big, h('div', { class: 'tv-bar' }), sub,
         st === 'diff' ? h('div', { class: 'tv-you' }, h('span', { class: 'tv-tag' }, t('You')), h('span', { class: 'tv-yph' }, pvPhones(w.phones, 'you'))) : null);
       return { w, el, big, sub };
@@ -153,11 +206,34 @@ function buildPronView(clip) {
         items,
         hidden ? h('p', { class: 'small muted' }, tp(hidden, '{n} more possible difference is hidden because it is less certain.', '{n} more possible differences are hidden because they are less certain.')) : null,
         take && shown.length ? h('p', { class: 'small muted' }, t('Not exact. Listen to both and decide.')) : null,
+        wordsBlock(clip),
         legend)];
   }
 
   fill();
   return root;
+}
+
+/* "Fix words": every word of the clip as a text box. The times stay; an empty box removes the word. Fixed words keep a mark so they are
+   never taken for the recogniser's own guess. */
+function openWordsEditor(clip, done) {
+  const words = (clip.words || []).map((x) => ({ ...x }));
+  const rows = words.map((x) => {
+    const inp = h('input', { type: 'text', value: x.w, 'aria-label': t('Word at {when}', { when: fmtSec(x.s) }), maxlength: 40 });
+    return { x, inp };
+  });
+  const save = () => {
+    const out = [];
+    rows.forEach(({ x, inp }) => { const v = inp.value.trim(); if (v) out.push(v !== x.w ? { ...x, w: v, x: 1 } : x); });
+    Words.edit(clip.id, out);
+    closeModal();
+    done();
+  };
+  openModal([
+    modalHead(t('Fix the words'), t('Only the spelling changes; each word keeps its place in the clip. Clear a box to remove a word.')),
+    h('div', { class: 'pv-edit' }, rows.map(({ x, inp }) => h('label', { class: 'pv-edit-w' }, h('span', { class: 'small muted' }, fmtSec(x.s)), inp))),
+    h('div', { class: 'row' }, btn(t('Save'), save, { kind: 'primary' }), btn(t('Cancel'), () => closeModal(), { kind: 'ghost' })),
+  ]);
 }
 
 /* play one word: the speaker's, or yours lined up with the clip */
@@ -188,7 +264,7 @@ Panel.drawPron = function (now) {
       const next = words[i + 1];
       const room = ((next ? next.w.start : dur) - w.start) / dur * W - 8;
       const sp = pvPlain(w.phones, 'spk');
-      big.style.fontSize = pvFit(wordsTop ? w.text : sp, room, 1.6, 0.85, wordsTop ? 0.56 : 0.62);
+      big.style.fontSize = pvFit(wordsTop && w.text ? w.text : sp, room, 1.6, 0.85, wordsTop ? 0.56 : 0.62);
       sub.style.fontSize = pvFit(wordsTop ? sp : (w.text || ''), room, 0.95, 0.72, wordsTop ? 0.62 : 0.56);
     });
   }

@@ -1,0 +1,66 @@
+{
+  "Word labels": {
+    "fr": "Étiquettes de mots",
+    "es": "Etiquetas de palabras"
+  },
+  "Reads the words of a clip so the Pronunciation tab can show them. Speech recognition runs on this device; nothing is sent anywhere. It can mishear, and you can fix a word.": {
+    "fr": "Lit les mots d’un extrait pour que l’onglet Prononciation puisse les afficher. La reconnaissance vocale s’exécute sur cet appareil ; rien n’est envoyé nulle part. Elle peut se tromper, et tu peux corriger un mot.",
+    "es": "Lee las palabras de un clip para que la pestaña Pronunciación pueda mostrarlas. El reconocimiento de voz se ejecuta en este dispositivo; no se envía nada a ningún sitio. Puede oír mal, y puedes corregir una palabra."
+  },
+  "The words are placed roughly: this device couldn’t time each word.": {
+    "fr": "Les mots sont placés approximativement : cet appareil n’a pas pu dater chaque mot.",
+    "es": "Las palabras están colocadas de forma aproximada: este dispositivo no pudo medir el momento de cada palabra."
+  },
+  "Words are read automatically and can be wrong.": {
+    "fr": "Les mots sont lus automatiquement et peuvent être faux.",
+    "es": "Las palabras se leen automáticamente y pueden ser incorrectas."
+  },
+  "Fix words": {
+    "fr": "Corriger les mots",
+    "es": "Corregir palabras"
+  },
+  "No words were recognised in this clip, so only sounds are shown.": {
+    "fr": "Aucun mot n’a été reconnu dans cet extrait, donc seuls les sons sont affichés.",
+    "es": "No se reconoció ninguna palabra en este clip, así que solo se muestran los sonidos."
+  },
+  "The words couldn’t be read for this clip, so only sounds are shown.": {
+    "fr": "Les mots n’ont pas pu être lus pour cet extrait, donc seuls les sons sont affichés.",
+    "es": "No se pudieron leer las palabras de este clip, así que solo se muestran los sonidos."
+  },
+  "Show the words too?": {
+    "fr": "Afficher aussi les mots ?",
+    "es": "¿Mostrar también las palabras?"
+  },
+  "The clip has no transcript, so Euno can read the words with a speech model that runs on this device (nothing is sent anywhere). It can mishear, and you can fix a word. Without it you still get the sounds.": {
+    "fr": "L’extrait n’a pas de transcription : Euno peut lire les mots avec un modèle vocal qui s’exécute sur cet appareil (rien n’est envoyé nulle part). Il peut se tromper, et tu peux corriger un mot. Sans lui, tu as quand même les sons.",
+    "es": "El clip no tiene transcripción, así que Euno puede leer las palabras con un modelo de voz que se ejecuta en este dispositivo (no se envía nada a ningún sitio). Puede oír mal, y puedes corregir una palabra. Sin él, sigues teniendo los sonidos."
+  },
+  "Get words ({mb} MB)": {
+    "fr": "Obtenir les mots ({mb} Mo)",
+    "es": "Obtener las palabras ({mb} MB)"
+  },
+  "One-time download. You can delete it in Settings → Analysis.": {
+    "fr": "Téléchargement unique. Tu peux le supprimer dans Réglages → Analyse.",
+    "es": "Descarga única. Puedes borrarla en Ajustes → Análisis."
+  },
+  "Downloading the word model… {pct}% of {mb} MB": {
+    "fr": "Téléchargement du modèle de mots… {pct} % sur {mb} Mo",
+    "es": "Descargando el modelo de palabras… {pct} % de {mb} MB"
+  },
+  "Reading the words…": {
+    "fr": "Lecture des mots…",
+    "es": "Leyendo las palabras…"
+  },
+  "Word at {when}": {
+    "fr": "Mot à {when}",
+    "es": "Palabra en {when}"
+  },
+  "Fix the words": {
+    "fr": "Corriger les mots",
+    "es": "Corregir las palabras"
+  },
+  "Only the spelling changes; each word keeps its place in the clip. Clear a box to remove a word.": {
+    "fr": "Seule l’orthographe change ; chaque mot garde sa place dans l’extrait. Vide une case pour supprimer un mot.",
+    "es": "Solo cambia la ortografía; cada palabra conserva su lugar en el clip. Vacía una casilla para quitar una palabra."
+  }
+}

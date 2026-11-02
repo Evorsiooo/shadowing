@@ -523,7 +523,7 @@ function saveSelection(shadowNow) {
   if (!sel || !vid) return;
   let clip;
   if (sel.clipId) {
-    clip = Store.patch('clips', sel.clipId, { start: round(sel.start, 2), end: round(sel.end, 2), label: (sel.label || '').trim(), model: null });
+    clip = Store.patch('clips', sel.clipId, { start: round(sel.start, 2), end: round(sel.end, 2), label: (sel.label || '').trim(), model: null, words: null, wordsFor: null });
     toast(t('Clip updated.'), 'good');
   } else {
     clip = Store.put('clips', { videoId: vid.id, start: round(sel.start, 2), end: round(sel.end, 2), label: (sel.label || '').trim(), done: false, archived: false, noisy: false, created: new Date().toISOString() });

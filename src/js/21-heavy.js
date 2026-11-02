@@ -152,13 +152,13 @@ const Heavy = (() => {
   /* a Web Worker with a call/reply protocol and an idle timeout (terminating it frees the model's memory).
      Worker side: onmessage = async (e) => { const { id, type, payload } = e.data; try { postMessage({ id, ok: true, result }) } catch (err) { postMessage({ id, ok: false, error: String(err) }) } }
      An optional { progress: true, id, value } message calls onProgress. */
-  function worker(url, { idleMs = 30000, onProgress } = {}) {
+  function worker(url, { idleMs = 30000, onProgress, module = false } = {}) {
     let w = null, seq = 0, idle = 0;
     const waiting = new Map();
     const fail = (err) => { for (const p of waiting.values()) p.rej(err); waiting.clear(); };
     const stop = () => { clearTimeout(idle); if (w) { w.terminate(); w = null; } fail(new HeavyError('cancelled', 'The worker was stopped.')); };
     function open() {
-      w = new Worker(url);
+      w = new Worker(url, module ? { type: 'module' } : undefined);
       w.onmessage = (e) => {
         const m = e.data || {};
         if (m.progress) { onProgress && onProgress(m.value, m.id); return; }

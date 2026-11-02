@@ -25,6 +25,11 @@
   ! Content-Security-Policy
   Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'
 
+# The word-label worker runs WebAssembly and downloads Whisper from Hugging Face (and the CDN it redirects to), so it may connect out.
+/assets/h/words/*
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' https:
+
 /sw.js
   Cache-Control: no-cache
 

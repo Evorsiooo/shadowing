@@ -69,10 +69,23 @@ out(`${phonesDir}/dev.js`, phonesDev);
 for (const f of ORT_FILES) copyFileSync(join(ortDist, f), join(dist, phonesDir, f));
 const withPhones = (code) => code.replace('__PHONES_WORKER_URL__', `/${phonesDir}/worker.js`).replace('__PHONES_WASM_BASE__', `/${phonesDir}/`);
 
+/* ---------- in-browser word labels (src/words/): Whisper base.en through transformers.js, worker + its own ONNX Runtime files ---------- */
+// transformers.js ships a different ONNX Runtime build from the pronunciation engine's, so its files get their own folder. Only the
+// WebAssembly backend is used (device: 'wasm'), but the JSEP build is the one this transformers.js version is compiled against.
+const WORDS_ORT = ['ort-wasm-simd-threaded.jsep.mjs', 'ort-wasm-simd-threaded.jsep.wasm'];
+const wordsDist = join(root, 'node_modules', '@huggingface', 'transformers', 'dist');
+const wordsWorker = buildSync({ entryPoints: [join(src, 'words', 'worker.mjs')], bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022', minify: true, legalComments: 'none' }).outputFiles[0].text;
+const wordsHash = createHash('sha256').update(wordsWorker);
+for (const f of WORDS_ORT) wordsHash.update(readFileSync(join(wordsDist, f)));
+const wordsDir = `assets/h/words/${wordsHash.digest('hex').slice(0, 10)}`;
+out(`${wordsDir}/worker.js`, wordsWorker);
+for (const f of WORDS_ORT) copyFileSync(join(wordsDist, f), join(dist, wordsDir, f));
+const withWords = (code) => code.replace('__WORDS_WORKER_URL__', `/${wordsDir}/worker.js`).replace('__WORDS_WASM_BASE__', `/${wordsDir}/`);
+
 const js = `const I18N_STRINGS = ${JSON.stringify(i18n).replace(/</g, '\\u003c')};\n` + readdirSync(join(src, 'js'))
   .filter((f) => f.endsWith('.js'))
   .sort()
-  .map((f) => `/* ---- ${f} ---- */\n` + withPhones(readFileSync(join(src, 'js', f), 'utf8')))
+  .map((f) => `/* ---- ${f} ---- */\n` + withWords(withPhones(readFileSync(join(src, 'js', f), 'utf8'))))
   .join('\n');
 if (js.includes('</script')) throw new Error('A script contains "</script", which would break the inline page.');
 
@@ -375,6 +388,11 @@ out(
 /assets/h/phones/*
   ! Content-Security-Policy
   Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'
+
+# The word-label worker runs WebAssembly and downloads Whisper from Hugging Face (and the CDN it redirects to), so it may connect out.
+/assets/h/words/*
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' https:
 
 /sw.js
   Cache-Control: no-cache

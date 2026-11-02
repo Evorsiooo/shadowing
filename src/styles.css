@@ -633,6 +633,12 @@ b.x { font-weight: 800; text-decoration: underline 2px; text-underline-offset: 3
 .pv-btns .pv-spk { color: var(--green-ink); }
 .pv-btns .pv-you { color: var(--sky-dark); }
 .pv-item > .btn.ghost { margin-left: auto; }
+.pv-words { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pv-words.card { flex-direction: column; align-items: flex-start; padding: 10px 12px; }
+.pv-words .pv-prog { width: 160px; }
+.pv-edit { display: flex; flex-wrap: wrap; gap: 8px; max-height: 50vh; overflow: auto; padding: 4px 0; }
+.pv-edit-w { display: flex; flex-direction: column; gap: 2px; }
+.pv-edit-w input { width: 9ch; min-width: 6ch; }
 .pv-legend { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .pv-key { width: 14px; height: 6px; border-radius: 4px; background: var(--green); }
 .pv-key.diff { background: var(--amber); margin-left: 8px; }

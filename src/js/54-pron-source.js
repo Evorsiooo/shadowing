@@ -7,7 +7,8 @@
    What the view gets (times in seconds from the start of the clip):
    PronPhone  { spk: string|null, you: string|null }   aligned pair; null = nothing there (left out / added)
    PronWord   { text: string|null, start, end, phones: PronPhone[], differs: boolean, confidence: 0..1 }
-              text is null when no transcript is attached (the engine has none): the view then shows sounds only.
+              text is null when no word covers it (no words for the clip, or the recogniser skipped it): the view then shows its sounds.
+              ext = index of that word in clip.words (for fixing its spelling), else null.
    PronResult { confidence: 'ok'|'low', lowWho: 'you'|'speaker'|null, words: PronWord[], hidden: number }
               hidden = real but less certain differences that are not shown (the engine's top 3 only, never padded)
 
@@ -29,15 +30,15 @@ function pronWords(S, shown, ext) {
     }
     const ins = shown.filter((d) => d.kind === 'ins' && d.speakerWord === wi && d.learner);
     ins.forEach((d) => phones.push({ spk: null, you: d.learner.sym }));
-    let text = null;
+    let text = null, ext = null;
     if (exts) { // the external word most of this word's sounds fall in
       const n = {};
       for (let i = w.first; i <= w.last; i++) if (S.phones[i].extWord != null) n[S.phones[i].extWord] = (n[S.phones[i].extWord] || 0) + 1;
       const best = Object.keys(n).sort((a, b) => n[b] - n[a])[0];
-      if (best != null && exts[best]) text = exts[best].text;
+      if (best != null && exts[best]) { text = exts[best].text; ext = +best; }
     }
     const used = mine.concat(ins);
-    return { text, start: w.t0, end: w.t1, phones, differs: used.length > 0, confidence: used.length ? Math.max(...used.map((d) => d.confidence)) : 1 };
+    return { text, ext, start: w.t0, end: w.t1, phones, differs: used.length > 0, confidence: used.length ? Math.max(...used.map((d) => d.confidence)) : 1 };
   });
 }
 function pronFromClipResult(res) {
@@ -134,14 +135,18 @@ const PronSource = (() => {
     onStatus: (fn) => Phones.onStatus(fn),
     download: () => Phones.download(),
     async analyse(clip, take) {
+      clip = Store.get('clips', clip.id) || clip; // words may have arrived or been fixed since the tab opened
       const spk = VideoAudio.slice(clip.videoId, clip.start, clip.end);
       if (!spk) throw new Error('The speaker’s sound isn’t ready.');
-      // words, when the clip has them (clip.words = [{w, s, e}], automatic, seconds from the clip start); sounds alone otherwise
+      // words, when the clip has them (clip.words = [{w, s, e}], automatic or fixed by the learner, seconds from the clip start); sounds alone otherwise.
+      // Attached after the engine, never passed in: its cached results must not freeze an older version of the words.
       const external = clip.words && clip.words.length ? { source: 'asr', words: clip.words.map((x) => ({ text: x.w, t0: x.s, t1: x.e })) } : undefined;
-      if (!take) return pronFromSequence(await Heavy.run('pronunciation', () => Phones.transcribe(spk, { originSec: 0, external }), { timeoutMs: 90000 }));
+      const withWords = (seq) => (external ? Phones.attachExternalWords(seq, external) : { ...seq, external: undefined });
+      if (!take) return pronFromSequence(withWords(await Heavy.run('pronunciation', () => Phones.transcribe(spk, { originSec: 0 }), { timeoutMs: 90000 })));
       const blob = take.blob || (await (await fetch(await Store.blobUrl(take.ref))).blob());
       const you = await AudioEng.decodeBlob(blob);
-      return pronFromClipResult(await Heavy.run('pronunciation', () => Phones.analyse(spk, you, { speakerOriginSec: 0, external }), { timeoutMs: 90000 }));
+      const res = await Heavy.run('pronunciation', () => Phones.analyse(spk, you, { speakerOriginSec: 0 }), { timeoutMs: 90000 });
+      return pronFromClipResult({ ...res, speaker: withWords(res.speaker) });
     },
   };
   return new Proxy({}, { get: (_, k) => (typeof Phones !== 'undefined' ? real : mock)[k], has: (_, k) => k in mock });
