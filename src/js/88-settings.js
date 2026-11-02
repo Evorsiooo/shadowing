@@ -14,6 +14,10 @@ const SETTING_GROUPS = [
   { title: N_('Bad-day mode'), fields: [['badListenPasses', N_('Listen: passes'), 1, 10, 1], ['badShadowPasses', N_('Shadow: passes'), 1, 20, 1], ['badMinutes', N_('Minutes'), 2, 15, 1]] },
   { title: N_('Clips'), fields: [['clipMin', N_('Target length: shortest (seconds)'), 2, 60, 1], ['clipMax', N_('Target length: longest (seconds)'), 3, 90, 1]] },
   { title: N_('Review runs'), fields: [['review', N_('Bring finished clips back for a shorter review run'), 'bool'], ['reviewAfterDays', N_('Review after (days)'), 1, 7, 1], ['reviewShadowPasses', N_('Review: shadow passes'), 1, 20, 1]] },
+  { title: N_('Pronunciation (beta)'), when: () => Pron.available(), fields: [
+    ['pronunciation', N_('After a recorded pass, show up to three sounds that differ from the speaker (English only; worked out on your device, and it can be wrong)'), 'bool'],
+    ['pronAutoNotes', N_('Suggest a note when the same sound keeps differing on different days (shown in Progress → Issues, never sent to an AI unless you ask)'), 'bool'],
+  ] },
   { title: N_('Sync and microphone'), fields: [
     ['alignMode', N_('Line up your recording'), 'select', [['auto', N_('Automatically (match loudness patterns)')], ['manual', N_('With my manual offset')]]],
     ['manualOffsetMs', N_('Manual offset (ms); used when auto-alignment fails or is off'), -500, 2000, 10],
@@ -41,7 +45,7 @@ function openSettings(tab = 'practice') {
 function settingsForm() {
   const s = settings();
   const draft = { ...s };
-  const groups = SETTING_GROUPS.map((g) => h('div', { class: 'card' }, h('h3', null, t(g.title)),
+  const groups = SETTING_GROUPS.filter((g) => !g.when || g.when()).map((g) => h('div', { class: 'card' }, h('h3', null, t(g.title)),
     h('div', { class: 'cards', style: { gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))' } }, g.fields.map(([key, label, a, b, step]) => {
       const id = `set-${key}`;
       if (a === 'bool') return h('label', { class: 'check', for: id }, h('input', { type: 'checkbox', id, checked: !!draft[key], onchange: (e) => { draft[key] = e.target.checked; } }), t(label));

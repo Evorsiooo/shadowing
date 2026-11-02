@@ -6,7 +6,7 @@ function noteForms(ctx) {
   const base = ctx.recId || `${ctx.sessionId}:${ctx.pass}`;
   const clip = Store.get('clips', ctx.clipId);
   if (!noteDrafts.has(base)) {
-    const saved = ctx.recId ? Store.all('notes').filter((n) => n.recId === ctx.recId).sort((a, b) => ((a.created || '') < (b.created || '') ? -1 : 1)) : [];
+    const saved = ctx.recId ? Store.all('notes').filter((n) => n.recId === ctx.recId && !(n.auto && !n.confirmed)).sort((a, b) => ((a.created || '') < (b.created || '') ? -1 : 1)) : [];
     const list = saved.map((n) => ({ sentence: n.sentence || '', off: n.off || '', aim: n.aim || '', issue: (Store.get('issues', n.issueId) || {}).name || '', reply: n.reply || null, saved: n.id, open: false }));
     if (!list.length) list.push(blankNote(clip));
     noteDrafts.set(base, list);
@@ -89,9 +89,11 @@ function noteForm(ctx, D, key, num, onSaved) {
       askBtn),
     status, replyBox);
   drawReply();
-  return h('details', { class: 'card', open: D.open, ontoggle: (e) => { D.open = e.target.open; } },
+  const details = h('details', { class: 'card', open: D.open, ontoggle: (e) => { D.open = e.target.open; } },
     h('summary', { style: { cursor: 'pointer', fontWeight: 800 } }, D.saved ? t('Note saved · edit') : t('What sounded off? Add a note'), num ? ` (${num})` : ''),
     body);
+  const sugg = D.saved ? null : pronSuggestions(ctx, D, key, details);
+  return sugg ? h('div', { class: 'stack' }, sugg, details) : details;
 }
 
 function normaliseReply(r) {
@@ -124,8 +126,11 @@ function spellingLine(P) {
 }
 
 /* what was measured on the recording, for the prompt; empty when there's nothing */
+const PHONES_CAVEAT = 'Lines starting "Phones" come from a phone recogniser that is only about 90% right per sound, so it can be wrong: say "may", never state a difference as fact. Compare the speaker\'s sounds with the learner\'s and describe what may differ in everyday example words.';
 function measuredBlock(lines) {
-  return lines && lines.length ? `\nMeasured on their recording by software (pitch, loudness and timing only, so it can't hear vowels or consonants; speech recognition can also miss clear words). Treat it as evidence about the recording, not as the learner's opinion, and don't invent problems beyond it and their description:\n${lines.map((l) => `- ${l}`).join('\n')}\n` : '';
+  if (!lines || !lines.length) return '';
+  const phones = lines.some((l) => l.startsWith('Phones'));
+  return `\nMeasured on their recording by software (${phones ? 'the pitch, loudness and timing lines can\'t hear vowels or consonants' : 'pitch, loudness and timing only, so it can\'t hear vowels or consonants'}; speech recognition can also miss clear words). Treat it as evidence about the recording, not as the learner's opinion, and don't invent problems beyond it and their description:\n${lines.map((l) => `- ${l}`).join('\n')}\n${phones ? PHONES_CAVEAT + '\n' : ''}`;
 }
 
 function claudePrompt(D, issueNames, measured) {
@@ -178,6 +183,9 @@ function saveNote(ctx, D, quiet) {
     clipId: ctx.clipId, sessionId: ctx.sessionId, recId: ctx.recId || null, pass: ctx.pass, step: ctx.step,
     sentence: D.sentence.trim(), off: D.off.trim(), aim: D.aim.trim(), reply: D.reply || null, date: dayKey(),
   };
+  const prev = D.saved && Store.get('notes', D.saved);
+  if (prev && prev.auto && !quiet) fields.confirmed = true; // saving an automatic note is confirming it
+  if (prev && prev.auto) { delete fields.date; delete fields.created; }
   if (!fields.off && !quiet) { toast(t('Write what sounded off first.')); return; }
   const note = D.saved ? Store.patch('notes', D.saved, fields) : Store.put('notes', { ...fields, created: new Date().toISOString() });
   D.saved = note.id;
@@ -208,6 +216,7 @@ function issuesView() {
       return { i, notes, recent, days };
     }).sort((a, b) => (a.i.status === 'fixed') - (b.i.status === 'fixed') || b.recent - a.recent || b.notes.length - a.notes.length);
     mount(wrap,
+      pronSeenView(draw),
       h('p', { class: 'muted' }, t('Problems pulled from your notes. Ones that keep coming back over several days are the ones to target in step 4.')),
       rows.length ? h('div', { class: 'table-wrap' }, h('table', null,
         h('thead', null, h('tr', null, h('th', null, ''), h('th', null, t('Issue')), h('th', null, t('Notes')), h('th', null, t('Last 14 days')), h('th', null, t('Days seen')), h('th', null, ''))),
@@ -349,7 +358,8 @@ async function openCompare(idA, idB, urlB) {
     h('div', { class: 'row' }, seg, h('span', { class: 'spacer' }), legend),
     holder,
     h('div', { class: 'stack' }, players),
-    layers.slice(1).filter((L) => L.series && L.series.db).map((L) => { const c = prosodyCard(clip, L.series, L.rec && L.rec.heard); return c && h('div', { class: 'stack' }, h('strong', { class: 'small' }, L.label), c); }),
+    layers.slice(1).filter((L) => L.series && L.series.db).map((L) => { const c = prosodyCard(clip, L.series, L.rec && L.rec.heard, Pron.on()); return c && h('div', { class: 'stack' }, h('strong', { class: 'small' }, L.label), c); }),
+    pronCompareCard(A, B),
     h('p', { class: 'small muted' }, t('Each line is shown against that voice’s own average pitch. A final line that follows the speaker’s shape more closely than step 3, or a smaller lag, is progress.')),
     B && B.sessionId ? noteForms({ clipId: clip.id, sessionId: B.sessionId, recId: B.id, pass: B.pass, step: B.step || 'again' }) : null,
   ]);

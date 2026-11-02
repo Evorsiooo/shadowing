@@ -1,0 +1,194 @@
+{
+  "Timing and pitch are worked out on your device from pitch and loudness only, so they can’t hear sounds; the sounds are in the box below. The words are a rough guess from timing.": {
+    "fr": "Le rythme et la hauteur sont calculés sur ton appareil à partir de la hauteur et du volume seulement, donc ils n’entendent pas les sons ; les sons sont dans l’encadré ci-dessous. Les mots sont une estimation approximative d’après le rythme.",
+    "es": "El ritmo y el tono se calculan en tu dispositivo solo a partir del tono y el volumen, así que no oyen los sonidos; los sonidos están en el recuadro de abajo. Las palabras son una estimación aproximada según el ritmo."
+  },
+  "Possibly {to} where the speaker says {from}. Flagged on {days} days.": {
+    "fr": "Peut-être {to} là où le locuteur dit {from}. Signalé sur {days} jours.",
+    "es": "Quizá {to} donde el hablante dice {from}. Señalado en {days} días."
+  },
+  "{sound} as in “{word}”": {
+    "fr": "{sound} comme dans « {word} »",
+    "es": "{sound} como en «{word}»"
+  },
+  "Checking the sounds…": {
+    "fr": "Analyse des sons…",
+    "es": "Revisando los sonidos…"
+  },
+  "Sounds that differ from the speaker": {
+    "fr": "Sons qui diffèrent du locuteur",
+    "es": "Sonidos que difieren del hablante"
+  },
+  "beta": {
+    "fr": "bêta",
+    "es": "beta"
+  },
+  "At {when}": {
+    "fr": "À {when}",
+    "es": "En {when}"
+  },
+  "also in your step 3 take": {
+    "fr": "aussi dans ta prise de l’étape 3",
+    "es": "también en tu toma del paso 3"
+  },
+  "{a} as in “{aw}”; you may have said {b}{bw}.": {
+    "fr": "{a} comme dans « {aw} » ; tu as peut-être dit {b}{bw}.",
+    "es": "{a} como en «{aw}»; quizá dijiste {b}{bw}."
+  },
+  "Drill this": {
+    "fr": "S’entraîner là-dessus",
+    "es": "Practicar esto"
+  },
+  "Sounds the same to me": {
+    "fr": "Ça sonne pareil pour moi",
+    "es": "Me suena igual"
+  },
+  "Okay. {a} → {b} won’t be flagged again.": {
+    "fr": "D’accord. {a} → {b} ne sera plus signalé.",
+    "es": "De acuerdo. {a} → {b} no se volverá a señalar."
+  },
+  "No clear differences this time.": {
+    "fr": "Pas de différence nette cette fois.",
+    "es": "Ninguna diferencia clara esta vez."
+  },
+  "Not exact: a computer listened to both of you and can be wrong. Play both and decide for yourself.": {
+    "fr": "Pas exact : un ordinateur vous a écoutés tous les deux et peut se tromper. Écoute les deux et juge par toi-même.",
+    "es": "No es exacto: un ordenador os ha escuchado a los dos y puede equivocarse. Escucha ambos y decide tú."
+  },
+  "Pass {n} of {total}": {
+    "fr": "Passage {n} sur {total}",
+    "es": "Pasada {n} de {total}"
+  },
+  "Shadow along. This one is recorded.": {
+    "fr": "Répète en même temps. Celui-ci est enregistré.",
+    "es": "Repite a la vez. Esta se graba."
+  },
+  "Shadow along with the speaker.": {
+    "fr": "Répète en même temps que le locuteur.",
+    "es": "Repite a la vez que el hablante."
+  },
+  "Hear any difference?": {
+    "fr": "Tu entends une différence ?",
+    "es": "¿Notas alguna diferencia?"
+  },
+  "Done. Hear any difference between how you sound and the speaker?": {
+    "fr": "Terminé. Tu entends une différence entre toi et le locuteur ?",
+    "es": "Hecho. ¿Notas alguna diferencia entre cómo suenas tú y el hablante?"
+  },
+  "Speaker then mine": {
+    "fr": "Locuteur puis moi",
+    "es": "Hablante y luego yo"
+  },
+  "Again": {
+    "fr": "Encore",
+    "es": "Otra vez"
+  },
+  "The speaker’s snippet ({a}–{b} s) plays {n} times. Shadow it; the last time is recorded. Headphones on.": {
+    "fr": "L’extrait du locuteur ({a}–{b} s) passe {n} fois. Répète-le ; la dernière fois est enregistrée. Casque sur les oreilles.",
+    "es": "El fragmento del hablante ({a}–{b} s) suena {n} veces. Repítelo; la última vez se graba. Con auriculares."
+  },
+  "I said {to} where the speaker says {from} in “{words}”.": {
+    "fr": "J’ai dit {to} là où le locuteur dit {from} dans « {words} ».",
+    "es": "Dije {to} donde el hablante dice {from} en «{words}»."
+  },
+  "I said {to} where the speaker says {from}.": {
+    "fr": "J’ai dit {to} là où le locuteur dit {from}.",
+    "es": "Dije {to} donde el hablante dice {from}."
+  },
+  "From this take:": {
+    "fr": "D’après cette prise :",
+    "es": "De esta toma:"
+  },
+  "{label}: you may have said {to} where the speaker says {from}": {
+    "fr": "{label} : tu as peut-être dit {to} là où le locuteur dit {from}",
+    "es": "{label}: quizá dijiste {to} donde el hablante dice {from}"
+  },
+  "Use in note": {
+    "fr": "Utiliser dans la note",
+    "es": "Usar en la nota"
+  },
+  "Sounds that differ from the speaker: step 3 and final": {
+    "fr": "Sons qui diffèrent du locuteur : étape 3 et dernier passage",
+    "es": "Sonidos que difieren del hablante: paso 3 y final"
+  },
+  "No longer flagged: {list}.": {
+    "fr": "Plus signalé : {list}.",
+    "es": "Ya no se señala: {list}."
+  },
+  "Still flagged: {list}.": {
+    "fr": "Toujours signalé : {list}.",
+    "es": "Se sigue señalando: {list}."
+  },
+  "Newly flagged: {list}.": {
+    "fr": "Nouvellement signalé : {list}.",
+    "es": "Señalado ahora: {list}."
+  },
+  "“No longer flagged” isn’t proof it’s fixed, and “still flagged” isn’t proof it’s wrong: the computer can be off either way. Listen to both.": {
+    "fr": "« Plus signalé » ne prouve pas que c’est réglé, et « toujours signalé » ne prouve pas que c’est faux : l’ordinateur peut se tromper dans les deux sens. Écoute les deux.",
+    "es": "«Ya no se señala» no prueba que esté resuelto, y «se sigue señalando» no prueba que esté mal: el ordenador puede equivocarse en ambos sentidos. Escucha las dos."
+  },
+  "Still there in both recordings: {list}.": {
+    "fr": "Toujours présent dans les deux enregistrements : {list}.",
+    "es": "Sigue en las dos grabaciones: {list}."
+  },
+  "Add a note": {
+    "fr": "Ajouter une note",
+    "es": "Añadir una nota"
+  },
+  "Seen across sessions": {
+    "fr": "Vu sur plusieurs séances",
+    "es": "Visto en varias sesiones"
+  },
+  "Sounds a computer flagged on several different days, counted on this device. They can be wrong, so listen and confirm before you trust one.": {
+    "fr": "Sons qu’un ordinateur a signalés sur plusieurs jours différents, comptés sur cet appareil. Ils peuvent être faux : écoute et confirme avant d’y croire.",
+    "es": "Sonidos que un ordenador señaló en varios días distintos, contados en este dispositivo. Pueden ser falsos: escucha y confirma antes de fiarte."
+  },
+  "possible, listen and confirm": {
+    "fr": "possible, écoute et confirme",
+    "es": "posible, escucha y confirma"
+  },
+  "Open note": {
+    "fr": "Ouvrir la note",
+    "es": "Abrir la nota"
+  },
+  "Make this an issue": {
+    "fr": "En faire un point faible",
+    "es": "Convertir en punto débil"
+  },
+  "Ignored:": {
+    "fr": "Ignorés :",
+    "es": "Ignorados:"
+  },
+  "Allow again": {
+    "fr": "Autoriser de nouveau",
+    "es": "Permitir otra vez"
+  },
+  "Today’s focus: {issue}": {
+    "fr": "Priorité du jour : {issue}",
+    "es": "Foco de hoy: {issue}"
+  },
+  "{sounds} (possible)": {
+    "fr": "{sounds} (possible)",
+    "es": "{sounds} (posible)"
+  },
+  "Worth a listen ({shown} of {n} spot)|Worth a listen ({shown} of {n} spots)": {
+    "fr": "À écouter ({shown} sur {n} endroit)|À écouter ({shown} sur {n} endroits)",
+    "es": "Merece una escucha ({shown} de {n} punto)|Merece una escucha ({shown} de {n} puntos)"
+  },
+  "Pronunciation (beta)": {
+    "fr": "Prononciation (bêta)",
+    "es": "Pronunciación (beta)"
+  },
+  "After a recorded pass, show up to three sounds that differ from the speaker (English only; worked out on your device, and it can be wrong)": {
+    "fr": "Après un passage enregistré, montrer jusqu’à trois sons qui diffèrent du locuteur (anglais seulement ; calculé sur ton appareil, et il peut se tromper)",
+    "es": "Tras una pasada grabada, mostrar hasta tres sonidos que difieren del hablante (solo inglés; calculado en tu dispositivo, y puede equivocarse)"
+  },
+  "Suggest a note when the same sound keeps differing on different days (shown in Progress → Issues, never sent to an AI unless you ask)": {
+    "fr": "Proposer une note quand le même son diffère sur plusieurs jours (affichée dans Progrès → Points faibles, jamais envoyée à une IA sans ta demande)",
+    "es": "Sugerir una nota cuando el mismo sonido difiere en distintos días (se muestra en Progreso → Puntos débiles, nunca se envía a una IA si no lo pides)"
+  },
+  "Flagged on {days} and {clips}, in {flagged} of {occurred} places where the speaker has that sound.": {
+    "fr": "Signalé sur {days} et {clips}, dans {flagged} des {occurred} endroits où le locuteur a ce son.",
+    "es": "Señalado en {days} y {clips}, en {flagged} de los {occurred} sitios donde el hablante tiene ese sonido."
+  }
+}

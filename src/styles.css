@@ -584,3 +584,11 @@ input.time-in { width: 76px; padding: 5px 8px; height: 32px; min-height: 32px; }
 .mins .col { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; min-width: 0; }
 .mins .col i { width: 100%; max-width: 28px; background: var(--sky); border-radius: 6px 6px 2px 2px; }
 .mins .col span { position: absolute; bottom: -18px; font-size: 0.68rem; font-weight: 800; color: var(--muted); white-space: nowrap; }
+
+/* sounds that differ from the speaker (review card, drill, issues) */
+.pron-item { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-top: 2px solid var(--line); }
+.pron-item:first-of-type { border-top: 0; }
+.pron-ph { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; font-weight: 800; }
+.pron-ph > span { min-width: 56px; }
+.pron-ph b { padding: 1px 8px; border-radius: 8px; background: var(--surface-2); font-weight: 800; }
+.pron-ph b.diff { background: var(--wattle); color: #2b2100; }
