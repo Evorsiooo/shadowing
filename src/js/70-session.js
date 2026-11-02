@@ -666,7 +666,7 @@ function recTimeAt(clip, analysis, at, rate) {
 }
 /* play your recording lined up with the clip: the video runs alongside (muted for "Mine",
    audible for "Both together"), so the scrub bar and the chart's playhead follow along */
-function playSynced(clip, url, analysis, { withOriginal = false, then, from = reviewFrom(clip) } = {}) {
+function playSynced(clip, url, analysis, { withOriginal = false, then, from = reviewFrom(clip), stopAt = clip.end } = {}) {
   Player2.stop();
   const a = new window.Audio(url);
   Player2.el = a;
@@ -676,7 +676,7 @@ function playSynced(clip, url, analysis, { withOriginal = false, then, from = re
   const restoreMute = () => { Player.v.muted = UI.volume === 0; };
   const go = async () => {
     Player.v.muted = !withOriginal || UI.volume === 0;
-    Session.preview = { stopAt: clip.end, then: () => { a.pause(); restoreMute(); Session.previewRec = null; then && then(); } };
+    Session.preview = { stopAt, then: () => { a.pause(); restoreMute(); Session.previewRec = null; then && then(); } };
     Session.previewRec = { a, clip, analysis, rate };
     await Player.seekAndWait(from);
     Player.play();

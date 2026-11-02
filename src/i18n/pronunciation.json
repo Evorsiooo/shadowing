@@ -1,0 +1,146 @@
+{
+  "Pronunciation": {
+    "fr": "Prononciation",
+    "es": "Pronunciación"
+  },
+  "Which row is big": {
+    "fr": "Quelle ligne est en grand",
+    "es": "Qué fila va en grande"
+  },
+  "Words": {
+    "fr": "Mots",
+    "es": "Palabras"
+  },
+  "Phones": {
+    "fr": "Sons",
+    "es": "Sonidos"
+  },
+  "Words big, sounds small": {
+    "fr": "Mots en grand, sons en petit",
+    "es": "Palabras grandes, sonidos pequeños"
+  },
+  "Sounds big, words small": {
+    "fr": "Sons en grand, mots en petit",
+    "es": "Sonidos grandes, palabras pequeñas"
+  },
+  "This browser can’t run the pronunciation check": {
+    "fr": "Ce navigateur ne peut pas lancer la vérification de prononciation",
+    "es": "Este navegador no puede ejecutar la comprobación de pronunciación"
+  },
+  "It needs a recent Chrome, Edge, Firefox or Safari on a computer. Pitch and Waveform still work here.": {
+    "fr": "Il faut un Chrome, Edge, Firefox ou Safari récent sur ordinateur. Hauteur et Forme d’onde fonctionnent quand même ici.",
+    "es": "Necesita un Chrome, Edge, Firefox o Safari reciente en un ordenador. Tono y Forma de onda siguen funcionando aquí."
+  },
+  "Pronunciation check (beta)": {
+    "fr": "Vérification de prononciation (bêta)",
+    "es": "Comprobación de pronunciación (beta)"
+  },
+  "It compares your take with the speaker, sound by sound, and runs on this device: your voice isn’t sent anywhere. It needs a one-time download of {mb} MB.": {
+    "fr": "Elle compare ta prise avec le locuteur, son par son, et tourne sur cet appareil : ta voix n’est envoyée nulle part. Il faut télécharger {mb} Mo une seule fois.",
+    "es": "Compara tu toma con el hablante, sonido a sonido, y funciona en este dispositivo: tu voz no se envía a ningún sitio. Hay que descargar {mb} MB una sola vez."
+  },
+  "Download the model ({mb} MB)": {
+    "fr": "Télécharger le modèle ({mb} Mo)",
+    "es": "Descargar el modelo ({mb} MB)"
+  },
+  "Downloading the model…": {
+    "fr": "Téléchargement du modèle…",
+    "es": "Descargando el modelo…"
+  },
+  "{pct}% of {mb} MB": {
+    "fr": "{pct} % de {mb} Mo",
+    "es": "{pct} % de {mb} MB"
+  },
+  "The comparison didn’t work": {
+    "fr": "La comparaison n’a pas fonctionné",
+    "es": "La comparación no funcionó"
+  },
+  "Something went wrong while comparing. Try again.": {
+    "fr": "Un problème est survenu pendant la comparaison. Réessaie.",
+    "es": "Algo salió mal al comparar. Inténtalo de nuevo."
+  },
+  "Try again": {
+    "fr": "Réessayer",
+    "es": "Reintentar"
+  },
+  "Comparing your take with the speaker…": {
+    "fr": "Comparaison de ta prise avec le locuteur…",
+    "es": "Comparando tu toma con el hablante…"
+  },
+  "Reading the speaker…": {
+    "fr": "Analyse du locuteur…",
+    "es": "Analizando al hablante…"
+  },
+  "Words of the clip on a time line; press or drag to move through it": {
+    "fr": "Mots du clip sur une ligne de temps ; appuie ou fais glisser pour te déplacer",
+    "es": "Palabras del clip en una línea de tiempo; pulsa o arrastra para moverte"
+  },
+  "Record a pass and the differences from the speaker show up here.": {
+    "fr": "Enregistre un passage et les différences avec le locuteur apparaissent ici.",
+    "es": "Graba una pasada y las diferencias con el hablante aparecerán aquí."
+  },
+  "Hard to tell for this take (too quiet, noisy or cut short), so no differences are shown. Try recording again closer to the microphone.": {
+    "fr": "Difficile à dire pour cette prise (trop faible, bruyante ou coupée), donc aucune différence n’est affichée. Réessaie plus près du micro.",
+    "es": "Difícil de saber con esta toma (muy baja, ruidosa o cortada), así que no se muestran diferencias. Prueba a grabar más cerca del micrófono."
+  },
+  "No clear differences from the speaker this time.": {
+    "fr": "Aucune différence nette avec le locuteur cette fois.",
+    "es": "Ninguna diferencia clara con el hablante esta vez."
+  },
+  "Hear the speaker say “{word}”": {
+    "fr": "Écouter le locuteur dire « {word} »",
+    "es": "Oír al hablante decir «{word}»"
+  },
+  "Hear how you said “{word}”": {
+    "fr": "Écouter comment tu as dit « {word} »",
+    "es": "Oír cómo dijiste «{word}»"
+  },
+  "Sounds the same to me": {
+    "fr": "Pour moi, ça sonne pareil",
+    "es": "A mí me suena igual"
+  },
+  "Hide this one. It won’t come back for this clip.": {
+    "fr": "Masquer celui-ci. Il ne reviendra pas pour ce clip.",
+    "es": "Ocultar este. No volverá en este clip."
+  },
+  "same as the speaker": {
+    "fr": "comme le locuteur",
+    "es": "igual que el hablante"
+  },
+  "differs from the speaker": {
+    "fr": "diffère du locuteur",
+    "es": "difiere del hablante"
+  },
+  "beta": {
+    "fr": "bêta",
+    "es": "beta"
+  },
+  "Worth a listen": {
+    "fr": "À écouter",
+    "es": "Vale la pena escuchar"
+  },
+  "{n} more possible difference is hidden because it is less certain.|{n} more possible differences are hidden because they are less certain.": {
+    "fr": "{n} autre différence possible est masquée car elle est moins sûre.|{n} autres différences possibles sont masquées car elles sont moins sûres.",
+    "es": "Se oculta {n} diferencia posible más porque es menos segura.|Se ocultan {n} diferencias posibles más porque son menos seguras."
+  },
+  "Not exact. Listen to both and decide.": {
+    "fr": "Pas exact. Écoute les deux et décide.",
+    "es": "No es exacto. Escucha ambos y decide."
+  },
+  "No words for this clip, only sounds": {
+    "fr": "Pas de mots pour ce clip, seulement des sons",
+    "es": "Sin palabras para este clip, solo sonidos"
+  },
+  "The speaker’s sound is hard to analyse here (music, noise or overlapping voices), so no differences are shown.": {
+    "fr": "Le son du locuteur est difficile à analyser ici (musique, bruit ou voix qui se chevauchent), donc aucune différence n’est affichée.",
+    "es": "El sonido del hablante es difícil de analizar aquí (música, ruido o voces superpuestas), así que no se muestran diferencias."
+  },
+  "Starting the pronunciation check…": {
+    "fr": "Démarrage de la vérification de prononciation…",
+    "es": "Iniciando la comprobación de pronunciación…"
+  },
+  "The pronunciation check couldn’t start": {
+    "fr": "La vérification de prononciation n’a pas pu démarrer",
+    "es": "La comprobación de pronunciación no pudo iniciarse"
+  }
+}

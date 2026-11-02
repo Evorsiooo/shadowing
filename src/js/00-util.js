@@ -89,7 +89,7 @@ function icon(name, extra = '') {
   return span.firstChild;
 }
 function btn(label, onclick, opts = {}) {
-  const cls = ['btn', opts.kind || '', opts.size || '', opts.on ? 'on' : '', !label ? 'icon' : ''].filter(Boolean).join(' ');
+  const cls = ['btn', opts.kind || '', opts.size || '', opts.cls || '', opts.on ? 'on' : '', !label ? 'icon' : ''].filter(Boolean).join(' ');
   return h('button', { type: 'button', class: cls, onclick, disabled: opts.disabled, title: opts.title || null, 'aria-label': opts.aria || (!label ? opts.title : null), 'aria-pressed': opts.pressed != null ? String(!!opts.pressed) : null, id: opts.id },
     opts.icon ? icon(opts.icon) : null, label ? h('span', { class: opts.txtClass || 'txt' }, label) : null);
 }

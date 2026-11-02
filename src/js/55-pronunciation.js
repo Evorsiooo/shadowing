@@ -1,0 +1,196 @@
+/* ---------- Pronunciation tab in the analysis panel ----------
+   The clip's words on the same time axis as the Pitch and Waveform charts: one-second lines, an orange
+   playhead, press or drag to seek (and never during a pass). A word sits where it was said and the bar under it
+   is as long as the word. Green: sounds like the speaker. Orange: differs from the speaker, with a YOU line
+   under it showing the sounds that differ. Grey: no comparison (no take yet, or too unsure).
+   The data comes through PronSource (54-pron-source.js). The wording is "differences from the speaker". */
+const Pron = {
+  top: lsGet('pronTop', 'words'), // which row is big: 'words' or 'phones'
+  cache: new Map(), // `${clipId}:${recId}` -> PronResult
+  asked: new Set(),
+  dismissed: new Set(lsGet('pronDismissed', [])), // "Sounds the same to me", kept on this device
+  noWords: false, // the source gave sounds but no words: show sounds only
+  MAX: 3, // at most this many differences are shown for a take
+
+  /* the take to compare: the pass just recorded, else the clip's newest saved recording */
+  take(clip) {
+    const R = Session.review;
+    if (Session.active && R && R.clipId === clip.id) return { id: R.recId, blob: R.blob, url: R.url, analysis: R.analysis };
+    const rec = Store.all('recordings').filter((r) => r.clipId === clip.id && r.kind === 'pass' && r.ref).sort((a, b) => String(b.created).localeCompare(String(a.created)))[0];
+    return rec ? { id: rec.id, ref: rec.ref, url: null, analysis: rec.analysis } : null;
+  },
+  takeKey(clip) { const k = this.take(clip); return k ? k.id || 'review' : 'none'; },
+  async takeUrl(take) { if (!take.url) take.url = await Store.blobUrl(take.ref); return take.url; },
+  label(w) { return w.text || pvPlain(w.phones, 'spk'); },
+  skey(clip, w) { return `${clip.id}|${Pron.label(w)}|${w.phones.map((p) => (p.spk || '') + '>' + (p.you || '')).join(',')}`; },
+  /* the differences worth showing: not dismissed, most certain first, at most MAX */
+  shown(clip, res) {
+    return res.confidence === 'low' ? [] : res.words.filter((w) => w.differs && !this.dismissed.has(this.skey(clip, w))).sort((a, b) => b.confidence - a.confidence).slice(0, this.MAX);
+  },
+  dismiss(clip, w) {
+    this.dismissed.add(this.skey(clip, w));
+    lsSet('pronDismissed', [...this.dismissed].slice(-500));
+  },
+};
+
+/* phone pairs as text, the differing symbols marked: spk side or you side */
+function pvPhones(phones, who) {
+  const out = [];
+  for (const p of phones) {
+    const v = p[who];
+    if (p.spk === p.you) out.push(v);
+    else out.push(h('b', { class: 'x' }, v || '∅'));
+  }
+  return out;
+}
+const pvPlain = (phones, who) => phones.map((p) => p[who] || '').join('');
+
+/* shrink a word only if it wouldn't fit before the next word starts */
+function pvFit(text, widthPx, maxRem, minRem, em = 0.6) {
+  return Math.max(minRem, Math.min(maxRem, widthPx / ((String(text).length || 1) * em * 16))) + 'rem';
+}
+
+function pvMsg(title, body, ...actions) {
+  return h('div', { class: 'panel-msg pv-msg' }, h('h3', null, title), body ? h('p', null, body) : null, actions.length ? h('div', { class: 'row' }, actions) : null);
+}
+
+function buildPronView(clip) {
+  const root = h('div', { class: 'pv' });
+  const stop = PronSource.onStatus(() => { if (root.isConnected) fill(); else stop(); });
+  let failed = null;
+
+  function fill() {
+    Panel.canvas = null;
+    Panel.refs = {};
+    const sup = PronSource.supported();
+    if (!sup.ok) return mount(root, pvMsg(t('This browser can’t run the pronunciation check'), t('It needs a recent Chrome, Edge, Firefox or Safari on a computer. Pitch and Waveform still work here.')));
+    const m = PronSource.status(), mb = Math.round(m.bytes / 1e6) || 71, pct = Math.round(m.progress * 100);
+    if (m.state === 'unsupported') return mount(root, pvMsg(t('This browser can’t run the pronunciation check'), t('It needs a recent Chrome, Edge, Firefox or Safari on a computer. Pitch and Waveform still work here.')));
+    if (m.state === 'not-downloaded') return mount(root, pvMsg(t('Pronunciation check (beta)'),
+      t('It compares your take with the speaker, sound by sound, and runs on this device: your voice isn’t sent anywhere. It needs a one-time download of {mb} MB.', { mb }),
+      btn(t('Download the model ({mb} MB)', { mb }), () => PronSource.download().catch(() => {}), { kind: 'primary', icon: 'download' })));
+    if (m.state === 'downloading') return mount(root, pvMsg(t('Downloading the model…'), null,
+      h('div', { class: 'pv-prog', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': pct }, h('i', { style: { width: pct + '%' } })),
+      h('span', { class: 'small muted' }, t('{pct}% of {mb} MB', { pct, mb }))));
+    if (m.state === 'downloaded' || m.state === 'loading') return mount(root, pvMsg(t('Starting the pronunciation check…'), null, h('span', { class: 'pv-spin', 'aria-hidden': 'true' })));
+    if (m.state === 'error') return mount(root, pvMsg(t('The pronunciation check couldn’t start'), (m.error && m.error.message) || null, btn(t('Try again'), () => PronSource.download().catch(() => {}), { kind: 'primary' })));
+    const take = Pron.take(clip);
+    const key = `${clip.id}:${take ? take.id || 'review' : 'none'}`;
+    const res = Pron.cache.get(key);
+    if (failed === key) return mount(root, pvMsg(t('The comparison didn’t work'), t('Something went wrong while comparing. Try again.'), btn(t('Try again'), () => { failed = null; fill(); }, { kind: 'primary' })));
+    if (!res) {
+      mount(root, pvMsg(take ? t('Comparing your take with the speaker…') : t('Reading the speaker…'), null, h('span', { class: 'pv-spin', 'aria-hidden': 'true' })));
+      if (!Pron.asked.has(key)) {
+        Pron.asked.add(key);
+        PronSource.analyse(clip, take)
+          .then((r) => { Pron.cache.set(key, r); })
+          .catch(() => { failed = key; })
+          .finally(() => { Pron.asked.delete(key); if (root.isConnected) fill(); });
+      }
+      return;
+    }
+    mount(root, renderResult(clip, res, take));
+  }
+
+  function renderResult(clip, res, take) {
+    const dur = clip.end - clip.start;
+    const hasWords = res.words.every((w) => w.text);
+    if (Pron.noWords === hasWords) { Pron.noWords = !hasWords; setTimeout(renderPanel); }
+    const wordsTop = hasWords && Pron.top !== 'phones';
+    const pct = (s) => (s / dur) * 100 + '%';
+    const shown = Pron.shown(clip, res);
+    const hidden = res.hidden || 0;
+    const stateOf = (w) => (!take || res.confidence === 'low' ? 'none' : shown.includes(w) ? 'diff' : w.differs && !Pron.dismissed.has(Pron.skey(clip, w)) ? 'none' : 'ok');
+
+    const words = res.words.map((w) => {
+      const st = stateOf(w);
+      const sp = pvPhones(w.phones, 'spk');
+      const big = h('div', { class: 'tv-big ' + (wordsTop ? 'wd' : 'ph') }, h('span', null, wordsTop ? w.text : sp));
+      const sub = h('div', { class: 'tv-sub ' + (wordsTop ? 'ph' : 'wd') }, hasWords ? h('span', null, wordsTop ? sp : w.text) : null);
+      const el = h('div', { class: 'tv-w ' + st, style: { left: pct(w.start), width: pct(w.end - w.start) } }, big, h('div', { class: 'tv-bar' }), sub,
+        st === 'diff' ? h('div', { class: 'tv-you' }, h('span', { class: 'tv-tag' }, t('You')), h('span', { class: 'tv-yph' }, pvPhones(w.phones, 'you'))) : null);
+      return { w, el, big, sub };
+    });
+
+    // one-second lines, as in the Pitch and Waveform views
+    const ticks = [];
+    for (let s = 1; s < dur; s++) ticks.push(h('div', { class: 'tv-tick', style: { left: pct(s) } }));
+    const head = h('div', { class: 'tv-head' });
+    const view = h('div', { class: 'tv-view', 'aria-label': t('Words of the clip on a time line; press or drag to move through it') }, ticks, words.map((x) => x.el), head);
+    Panel.canvas = view;
+    Panel.refs = { view, head, dur, words, w: 0 };
+
+    // press or drag to move through the clip, as on the Pitch and Waveform charts
+    let down = false;
+    const seekTo = (e) => {
+      const r = view.getBoundingClientRect();
+      Player.seek(Math.min(clip.start + clamp((e.clientX - r.left) / r.width, 0, 1) * dur, clip.end - 0.05));
+      if (Session.previewRec && Session.previewRec.clip.id === clip.id) syncRecTo(Player.time());
+    };
+    view.addEventListener('pointerdown', (e) => { if (!analysisCanScrub()) return; down = true; view.setPointerCapture(e.pointerId); seekTo(e); });
+    view.addEventListener('pointermove', (e) => { if (down) seekTo(e); });
+    view.addEventListener('pointerup', () => { down = false; });
+    view.addEventListener('pointercancel', () => { down = false; });
+
+    // under the chart: what it shows, then the differences with their play buttons
+    let note;
+    if (!take) note = t('Record a pass and the differences from the speaker show up here.');
+    else if (res.confidence === 'low' && res.lowWho === 'speaker') note = t('The speaker’s sound is hard to analyse here (music, noise or overlapping voices), so no differences are shown.');
+    else if (res.confidence === 'low') note = t('Hard to tell for this take (too quiet, noisy or cut short), so no differences are shown. Try recording again closer to the microphone.');
+    else if (!shown.length) note = t('No clear differences from the speaker this time.');
+    const items = shown.map((w) => h('div', { class: 'pv-item' },
+      h('span', { class: 'pv-word' + (w.text ? '' : ' ph') }, Pron.label(w)),
+      h('span', { class: 'pv-btns' },
+        btn(t('Speaker'), () => pronPlay(clip, take, w, 'spk'), { size: 'sm', icon: 'play', title: t('Hear the speaker say “{word}”', { word: Pron.label(w) }), cls: 'pv-spk' }),
+        btn(t('You'), () => pronPlay(clip, take, w, 'you'), { size: 'sm', icon: 'play', title: t('Hear how you said “{word}”', { word: Pron.label(w) }), cls: 'pv-you' })),
+      btn(t('Sounds the same to me'), () => { Pron.dismiss(clip, w); fill(); }, { size: 'sm', kind: 'ghost', title: t('Hide this one. It won’t come back for this clip.') })));
+    const legend = h('div', { class: 'pv-legend small muted' },
+      take && res.confidence !== 'low' ? [h('span', { class: 'pv-key ok' }), t('same as the speaker'), h('span', { class: 'pv-key diff' }), t('differs from the speaker')] : null,
+      h('span', { class: 'pv-beta' }, t('beta')));
+    return [view,
+      h('div', { class: 'pv-foot' },
+        note ? h('p', { class: 'pv-note' + (res.confidence === 'low' ? ' warn' : '') }, note) : h('div', { class: 'pv-list-head' }, h('b', null, t('Differences from the speaker')), h('span', { class: 'small muted' }, t('Worth a listen'))),
+        items,
+        hidden ? h('p', { class: 'small muted' }, tp(hidden, '{n} more possible difference is hidden because it is less certain.', '{n} more possible differences are hidden because they are less certain.')) : null,
+        take && shown.length ? h('p', { class: 'small muted' }, t('Not exact. Listen to both and decide.')) : null,
+        legend)];
+  }
+
+  fill();
+  return root;
+}
+
+/* play one word: the speaker's, or yours lined up with the clip */
+async function pronPlay(clip, take, w, who) {
+  if (!analysisCanScrub()) return;
+  const from = clip.start + Math.max(0, w.start - 0.12), stopAt = Math.min(clip.end, clip.start + w.end + 0.2);
+  if (who === 'spk') {
+    stopReviewPlayback();
+    Session.preview = { stopAt, then: null };
+    Player.seek(from);
+    Player.play();
+    return;
+  }
+  const url = await Pron.takeUrl(take);
+  if (!url) { toast(t('That recording couldn’t be found.'), 'bad'); return; }
+  playSynced(clip, url, take.analysis, { from, stopAt });
+}
+
+Panel.drawPron = function (now) {
+  const { view, head, dur, words } = this.refs;
+  const clip = Store.get('clips', UI.clipId);
+  if (!view || !clip) return;
+  const W = view.clientWidth;
+  if (W && W !== this.refs.w) { // size each word to the room it has before the next one starts
+    this.refs.w = W;
+    const wordsTop = !Pron.noWords && Pron.top !== 'phones';
+    words.forEach(({ w, big, sub }, i) => {
+      const next = words[i + 1];
+      const room = ((next ? next.w.start : dur) - w.start) / dur * W - 8;
+      const sp = pvPlain(w.phones, 'spk');
+      big.style.fontSize = pvFit(wordsTop ? w.text : sp, room, 1.6, 0.85, wordsTop ? 0.56 : 0.62);
+      sub.style.fontSize = pvFit(wordsTop ? sp : (w.text || ''), room, 0.95, 0.72, wordsTop ? 0.62 : 0.56);
+    });
+  }
+  head.style.left = clamp((now - clip.start) / dur, 0, 1) * W + 'px';
+};

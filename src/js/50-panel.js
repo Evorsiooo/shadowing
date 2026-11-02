@@ -11,7 +11,7 @@ const Panel = {
   onTime(t) {
     if (!this.canvas) return;
     if (this.key && this.key.startsWith('editor')) this.drawEditor(t);
-    else if (this.key && this.key.startsWith('clip')) (UI.view === 'text' ? this.drawText(t) : this.drawAnalysis(t));
+    else if (this.key && this.key.startsWith('clip')) (UI.view === 'pron' ? this.drawPron(t) : this.drawAnalysis(t));
   },
 };
 
@@ -23,7 +23,7 @@ function renderPanel() {
   let key;
   if (UI.sel && vid) key = `editor:${UI.sel.clipId || 'new'}:${VideoAudio.state(vid.id).status}`;
   else if (UI.cutMode && !Session.active) key = 'empty-cut';
-  else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.textTop}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
+  else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.view === 'pron' ? Pron.top + ':' + Pron.noWords + ':' + Pron.takeKey(clip) : ''}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
   else key = UI.cutMode ? 'empty-cut' : 'empty';
 
   // fade the panel in when it shows another clip or mode (not for a view toggle or an audio status change)
@@ -56,16 +56,18 @@ function panelEmpty() {
 function buildAnalysis(clip) {
   const vid = Store.get('videos', clip.videoId);
   const audio = VideoAudio.state(clip.videoId);
+  const pronOk = targetLang() === 'en'; // the pronunciation check is English only for now
+  if (UI.view === 'pron' && !pronOk) UI.view = 'pitch';
   const canvas = h('canvas', { class: 'analysis', 'aria-label': UI.overlay ? t('Pitch or loudness of the speaker and you on one chart') : t('Pitch or loudness lanes: speaker on top, you below') });
   Panel.canvas = canvas;
   const head = h('div', { class: 'panel-head' },
     h('div', { class: 'seg', role: 'group', 'aria-label': t('View') },
       h('button', { type: 'button', class: UI.view === 'pitch' ? 'on' : '', onclick: () => { UI.view = 'pitch'; renderPanel(); } }, t('Pitch')),
       h('button', { type: 'button', class: UI.view === 'wave' ? 'on' : '', onclick: () => { UI.view = 'wave'; renderPanel(); } }, t('Waveform')),
-      h('button', { type: 'button', class: UI.view === 'text' ? 'on' : '', onclick: () => { UI.view = 'text'; renderPanel(); } }, 'Pronunciation')),
-    UI.view === 'text' ? h('div', { class: 'seg', role: 'group', 'aria-label': 'Big row' },
-      h('button', { type: 'button', class: UI.textTop !== 'phones' ? 'on' : '', onclick: () => { UI.textTop = 'words'; renderPanel(); } }, 'Words on top'),
-      h('button', { type: 'button', class: UI.textTop === 'phones' ? 'on' : '', onclick: () => { UI.textTop = 'phones'; renderPanel(); } }, 'Phones on top')) :
+      pronOk ? h('button', { type: 'button', class: UI.view === 'pron' ? 'on' : '', onclick: () => { UI.view = 'pron'; renderPanel(); } }, t('Pronunciation')) : null),
+    UI.view === 'pron' ? h('div', { class: 'seg', role: 'group', 'aria-label': t('Which row is big') },
+      h('button', { type: 'button', class: Pron.top !== 'phones' && !Pron.noWords ? 'on' : '', disabled: Pron.noWords || null, title: Pron.noWords ? t('No words for this clip, only sounds') : t('Words big, sounds small'), onclick: () => setPronTop('words') }, t('Words')),
+      h('button', { type: 'button', class: Pron.top === 'phones' || Pron.noWords ? 'on' : '', title: t('Sounds big, words small'), onclick: () => setPronTop('phones') }, t('Phones'))) :
     h('div', { class: 'seg', role: 'group', 'aria-label': t('Layout') },
       h('button', { type: 'button', class: UI.overlay ? '' : 'on', title: t('Speaker on top, you below'), onclick: () => setOverlay(false) }, t('Separate')),
       h('button', { type: 'button', class: UI.overlay ? 'on' : '', title: t('Both lines on one chart'), onclick: () => setOverlay(true) }, t('Overlaid'))),
@@ -82,10 +84,14 @@ function buildAnalysis(clip) {
     else msg = [h('p', null, t('The model line for this clip hasn’t been worked out yet.')), btn(t('Work it out now'), () => ensureModels(vid).then(renderPanel), { kind: 'primary' })];
     return [head, h('div', { class: 'panel-msg' }, msg), canvas];
   }
-  if (UI.view === 'text') return [head, buildTextView(clip)];
+  if (UI.view === 'pron') return [head, buildPronView(clip)];
   bindAnalysisCanvas(canvas, clip);
   return [head, canvas];
 }
+
+/* not while a pass is running: moving the video would spoil its timing */
+function analysisCanScrub() { return !Session.active || !['playing', 'recording', 'gap', 'armed-go'].includes(Session.phase); }
+function setPronTop(v) { Pron.top = v; lsSet('pronTop', v); renderPanel(); }
 
 function setOverlay(on) {
   UI.overlay = on;
@@ -96,7 +102,7 @@ function setOverlay(on) {
 /* click or drag on the chart to move through the clip (not while a pass is running: that would spoil its timing) */
 function bindAnalysisCanvas(canvas, clip) {
   let down = false;
-  const canScrub = () => !Session.active || !['playing', 'recording', 'gap', 'armed-go'].includes(Session.phase);
+  const canScrub = analysisCanScrub;
   const seekTo = (e) => {
     const r = canvas.getBoundingClientRect();
     const t = clip.start + clamp((e.clientX - r.left) / r.width, 0, 1) * (clip.end - clip.start);
