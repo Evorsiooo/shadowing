@@ -20,7 +20,7 @@ const make = ({ L }) => ({
     lede: 'Euno Shadowing es una aplicación web gratuita que lleva una rutina diaria de shadowing sobre fragmentos cortos de los vídeos que tú aportas, te graba y muestra cómo se comparan tu ritmo y tu melodía con los del hablante.',
     body: `
     <h2>En un párrafo</h2>
-    <p>Añades un vídeo o un archivo de audio de un hablante cuyo acento quieres, cortas un fragmento de una o dos frases, y Euno te guía en una sesión de 15 minutos: escuchar, imitar, grabar, comparar, imitar de nuevo. Tras una pasada grabada muestra tu línea de tono junto a la del hablante, tu desfase y algunas diferencias medidas. Funciona en inglés, francés y español, en tu navegador, y es gratis.</p>
+    <p>Añades un vídeo o un archivo de audio de un hablante cuyo acento quieres, cortas un fragmento de una o dos frases, y Euno te guía en una sesión de 15 minutos: escuchar, imitar, grabar, comparar, imitar de nuevo. Tras una pasada grabada muestra tu línea de tono junto a la del hablante, tu desfase y algunas diferencias medidas. Para los fragmentos en inglés, también puede mostrar dónde los sonidos que hiciste difieren de los del hablante. Funciona en inglés, francés y español, en tu navegador, y es gratis.</p>
 
     <h2>Qué hace</h2>
     <ul>
@@ -29,6 +29,7 @@ const make = ({ L }) => ({
       <li><strong>Controles de reproducción.</strong> Repetir el fragmento en bucle, reproducir a 0,5x, 0,75x o 1x con el tono natural, y atajos de teclado.</li>
       <li><strong>Grabación y comparación.</strong> Escucha el original, a ti mismo, uno tras otro o los dos a la vez. Se guardan tus grabaciones del paso 3 y la final de cada fragmento.</li>
       <li><strong>Tono y desfase.</strong> Euno dibuja la melodía del hablante y la tuya, cada una relativa a su propia voz, y mide cuánto ibas por detrás o por delante.</li>
+      <li><strong>Diferencias de pronunciación (solo en inglés, por ahora).</strong> Tras una pasada grabada, la pestaña Pronunciación alinea los sonidos que hiciste con los del audio del hablante y marca hasta tres sitios donde difieren. Te compara con el hablante que elegiste, no con una transcripción, un diccionario ni un acento estándar, no da puntuación y no llama error a nada. Funciona en tu navegador: el modelo de voz se descarga la primera vez que lo usas y tu grabación no se sube para el análisis. Puede interpretar mal un sonido, así que toma cada elemento como un sitio donde escuchar, y descártalo con «A mí me suena igual» si es el caso. Los fragmentos en francés y español todavía no lo tienen.</li>
       <li><strong>Diferencias con el hablante.</strong> Tras una pasada puede señalar tramos en los que fuiste más rápido o más lento, donde el tono fue en dirección contraria o donde el acento de intensidad era distinto. Esto sale de medir las dos grabaciones, no de un modelo de lenguaje que escuche tu voz. Si lo activas en los Ajustes (desactivado por defecto, solo en Chrome, tu voz se envía a Google mientras funciona), también puede marcar palabras del fragmento que el reconocimiento de voz del navegador no oyó y que quizá no se entendieron bien. También puede no captar palabras claras, así que tómalo como una pista.</li>
       <li><strong>Notas y problemas.</strong> Apunta lo que sonó mal; los problemas que se repiten se reúnen en una lista.</li>
       <li><strong>Revisiones de 12 semanas.</strong> Un punto de partida y después las mismas tareas en las semanas 4, 8 y 12.</li>
@@ -40,20 +41,20 @@ const make = ({ L }) => ({
       <li><strong>No tiene lecciones ni biblioteca de contenido.</strong> Los vídeos los pones tú. No hay lecciones integradas, cursos ni fragmentos ya preparados.</li>
       <li><strong>No tiene subtítulos ni transcripciones.</strong> No transcribe el vídeo, no muestra subtítulos sincronizados y no lo divide en frases por ti. Tú eliges dónde empieza y acaba cada fragmento.</li>
       <li><strong>No toma contenido de YouTube ni de otros sitios.</strong> Usas archivos que tienes derecho a usar para tu práctica privada.</li>
-      <li><strong>No puntúa los sonidos uno a uno.</strong> No te dice qué vocal o consonante pronunciaste mal, y el tono y el ritmo no equivalen por sí solos a una buena pronunciación.</li>
+      <li><strong>No califica tu pronunciación.</strong> No hay puntuación ni veredicto de bien o mal. En inglés, la pestaña Pronunciación muestra sonidos que difieren de los del hablante, y puede equivocarse; en francés y español todavía no hay comparación sonido a sonido. Tampoco el tono y el ritmo equivalen por sí solos a una buena pronunciación.</li>
       <li><strong>No es un profesor, un curso ni una garantía.</strong> Es una herramienta de práctica.</li>
     </ul>
 
     <h2>Qué comentarios recibes</h2>
     <p>De tres tipos, que puedes usar por separado:</p>
     <ol>
-      <li><strong>Comentarios medidos, siempre activos:</strong> líneas de tono, desfase y las diferencias con el hablante descritas arriba.</li>
+      <li><strong>Comentarios medidos:</strong> líneas de tono, desfase, las diferencias con el hablante descritas arriba y, en inglés, la pestaña Pronunciación (que descarga su modelo de voz la primera vez que la usas).</li>
       <li><strong>Tu propia escucha:</strong> reproducción lado a lado y tus notas sobre lo que sonó mal.</li>
       <li><strong>Comentarios de IA, opcionales:</strong> si añades tu propia clave de API de Anthropic, OpenAI u OpenRouter, puedes pedir comentarios sobre tus notas. Solo se envía texto, nunca audio: tu nota, más breves líneas que describen lo medido en la grabación (por ejemplo, un tramo en el que fuiste más rápido que el hablante), a las que la IA tiene instrucción de no añadir otros problemas. Pagas directamente al proveedor. Sin clave, Euno escribe el prompt para que lo pegues en cualquier chatbot.</li>
     </ol>
 
     <h2>Coste y privacidad</h2>
-    <p>Euno Shadowing es gratis. Tus vídeos y grabaciones se guardan en una carpeta «Euno Shadowing» de tu propio Google Drive, no en nuestro servidor. Nuestro servidor guarda tus notas, ajustes y progreso. Los detalles están en la <a href="${L('/privacy/')}">política de privacidad</a>.</p>
+    <p>Euno Shadowing es gratis. Tus vídeos y grabaciones se guardan en una carpeta «Euno Shadowing» de tu propio Google Drive, no en nuestro servidor. Nuestro servidor guarda tus notas, ajustes y progreso. El análisis de pronunciación en inglés se hace en tu dispositivo, así que tu audio no se envía a ningún sitio para ello. Los detalles están en la <a href="${L('/privacy/')}">política de privacidad</a>.</p>
 
     <h2>No lo confundas con</h2>
     <p>El nombre se comparte con cosas que no tienen relación, y ninguna es Euno Shadowing:</p>
@@ -66,7 +67,7 @@ const make = ({ L }) => ({
     <p>Euno Shadowing es solo la aplicación de práctica de idiomas de shadowing.euno.cc. No está afiliada a ninguna de las anteriores.</p>
 
     <h2>A quién le conviene</h2>
-    <p>A quien entiende bastante bien un idioma y quiere sonar más natural: el ritmo, la melodía y el tempo de un hablante que admira. Si quieres un curso estructurado, una biblioteca de lecciones, subtítulos o una nota por sonido, mira la <a href="${L('/euno-vs-elsa-and-language-reactor/')}">comparación con ELSA Speak y Language Reactor</a>. ¿Empiezas con la técnica? Lee <a href="${L('/what-is-shadowing/')}">qué es el shadowing</a>.</p>`,
+    <p>A quien entiende bastante bien un idioma y quiere sonar más natural: el ritmo, la melodía y el tempo de un hablante que admira. Si quieres un curso estructurado, una biblioteca de lecciones, subtítulos o un curso con puntuación, mira la <a href="${L('/euno-vs-elsa-and-language-reactor/')}">comparación con ELSA Speak y Language Reactor</a>. ¿Empiezas con la técnica? Lee <a href="${L('/what-is-shadowing/')}">qué es el shadowing</a>.</p>`,
   },
 
   'how-long-shadowing-takes': {
@@ -210,18 +211,18 @@ const make = ({ L }) => ({
         <tr><td>Contenido</td><td>Tus propios vídeos y audios: subes un archivo o pegas un enlace y cortas fragmentos</td><td>Lecciones creadas por la empresa</td><td>Los vídeos que ya ves en las plataformas de streaming</td></tr>
         <tr><td>Idea principal</td><td>Imitar a un hablante real y comparar tu entonación y tu ritmo con los suyos</td><td>Decir una frase y recibir una valoración de tus sonidos</td><td>Subtítulos dobles y diccionario emergente para entender lo que oyes</td></tr>
         <tr><td>Idiomas</td><td>Acentos de inglés, francés y español</td><td>Inglés</td><td>Muchos idiomas</td></tr>
-        <tr><td>Valoración</td><td>Tu línea de entonación y tu desfase junto a los del hablante; opinión de IA opcional con tu propia clave de API</td><td>Puntuación automática de tu pronunciación</td><td>No es una herramienta de pronunciación</td></tr>
+        <tr><td>Valoración</td><td>Tu línea de entonación y tu desfase junto a los del hablante; en inglés, los sonidos que difieren de los del hablante; opinión de IA opcional con tu propia clave de API</td><td>Puntuación automática de tu pronunciación</td><td>No es una herramienta de pronunciación</td></tr>
         <tr><td>Coste</td><td>Gratis; el uso de IA, si lo eliges, lo factura tu proveedor</td><td>Plan gratuito y planes de pago</td><td>Plan gratuito y planes de pago</td></tr>
       </tbody>
     </table>
 
     <h2>Euno Shadowing</h2>
     <p>Euno lleva la rutina de shadowing por ti. Traes un vídeo de un hablante cuyo acento quieres, cortas un fragmento de una o dos frases, y Euno lo repite en bucle, cuenta tus pasadas, te graba y dibuja tu melodía y tu desfase junto a los del hablante. Se basa en el hablante real, no en un acento modelo, así que sirve con cualquier voz que encuentres.</p>
-    <p><strong>Lo que no hace:</strong> no tiene lecciones ni biblioteca propia, ni subtítulos ni transcripciones, ni integración con plataformas de streaming, ni puntuación por sonido. Muestra las diferencias con la melodía y el ritmo del hablante; no te dice qué vocal has dicho mal. La opinión de IA es opcional y usa una clave que tú pones.</p>
+    <p><strong>Lo que no hace:</strong> no tiene lecciones ni biblioteca propia, ni subtítulos ni transcripciones, ni integración con plataformas de streaming, ni puntuación ni nota. Muestra las diferencias con la melodía y el ritmo del hablante y, en inglés, los sonidos que difieren de los suyos; no dice que estés bien o mal, y puede interpretar mal un sonido. La opinión de IA es opcional y usa una clave que tú pones.</p>
 
     <h2>ELSA Speak</h2>
     <p>ELSA es una app de pronunciación del inglés. Sigues sus lecciones y ejercicios, hablas, y la app puntúa tu pronunciación y señala los sonidos que mejorar. Es buena opción si quieres un curso estructurado y una respuesta rápida sobre sonidos concretos frente a un acento estándar.</p>
-    <p><strong>En qué se diferencia:</strong> el contenido es de la empresa, no puedes practicar con tu hablante favorito, y su valoración te juzga frente a un modelo, no frente a la persona a la que imitas. Está centrada en el inglés.</p>
+    <p><strong>En qué se diferencia:</strong> el contenido es de la empresa, no puedes practicar con tu hablante favorito, y su valoración te juzga frente a un modelo, no frente a la persona a la que imitas. Está centrada en el inglés. La pestaña Pronunciación de Euno hace lo contrario: te compara con el hablante que elegiste y no da puntuación.</p>
 
     <h2>Language Reactor</h2>
     <p>Language Reactor es una extensión del navegador que añade subtítulos dobles, un diccionario emergente y controles de reproducción a los vídeos de sitios como Netflix y YouTube. Sirve para entender y aprender vocabulario con contenido real, y cubre muchos idiomas.</p>
