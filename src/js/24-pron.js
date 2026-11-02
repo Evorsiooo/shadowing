@@ -12,6 +12,9 @@
 
 const PRON_SHOWN = 3; // at most this many differences in the review card
 const PRON_AUTO = { minDays: 2, minShare: 0.5, minPlaces: 3 }; // guesses until the native-ear check has been done
+/* when a sound has "gone quiet" (all guesses until the native-ear check): chances are places where the speaker has that
+   sound, so a week without practice, or clips without the sound, never count towards it */
+const PRON_QUIET = { chances: 10, days: 14, maxRecent: 1, recentDays: 30, easeWindow: 14, easeMin: 6, relapseDays: 14, relapseShare: 0.3, keepDays: 120, trendGap: 0.2 };
 
 /* spelling and an everyday example word for the sounds the recogniser may report (English) */
 const PHONE_INFO = {
@@ -113,7 +116,9 @@ const Pron = {
     return phones;
   },
 
-  /* add one recorded pass to the per-sound tally (once per pass), and make an automatic note when a pair has come back enough */
+  /* add one recorded pass to the per-sound tally (once per pass), and make an automatic note when a pair has come back enough.
+     Every tracked pair also gets this pass's "chances" (how often the speaker's sound occurred), flagged or not: that is
+     what lets a pair be seen to have stopped, and what the trend is worked out from. */
   record(phones, { clip, token, recId, sessionId, pass, step }) {
     const d = this.doc();
     if (d.seen.includes(token)) return;
@@ -125,11 +130,20 @@ const Pron = {
     for (const [pair, n] of pairsNow) {
       if (d.blocked.includes(pair)) continue;
       const e = d.tally[pair] || { f: 0, days: [], clips: [], last: today };
-      e.f += n; e.last = today;
+      e.f += n; e.last = today; e.first = e.first || today;
       if (!e.days.includes(today)) e.days = [...e.days, today].slice(-60);
       if (clip && !e.clips.includes(clip.id)) e.clips = [...e.clips, clip.id].slice(-30);
+      e.ex = [...(e.ex || []), ...phones.diffs.filter((x) => this.pairOf(x) === pair).slice(0, 2).map((x) => ({ d: today, w: x.words || '', c: clip ? clip.id : '' }))].slice(-8);
       e.recId = recId || e.recId || null; e.sessionId = sessionId || e.sessionId || null; e.clipId = clip ? clip.id : e.clipId; e.pass = pass; e.step = step;
       d.tally[pair] = e;
+    }
+    for (const [pair, e] of Object.entries(d.tally)) {
+      if (d.blocked.includes(pair)) continue;
+      const flagged = pairsNow.get(pair) || 0;
+      const chances = Math.max(phones.sounds[pair.split('→')[0]] || 0, flagged);
+      if (chances) this.addChances(e, today, flagged, chances);
+      e.bk = (e.bk || []).filter((x) => x.d >= addDays(today, -PRON_QUIET.keepDays));
+      this.settle(pair, e, today);
     }
     if (settings().pronAutoNotes) {
       for (const pair of pairsNow.keys()) {
@@ -138,6 +152,91 @@ const Pron = {
       }
     }
     this.save(d);
+  },
+
+  /* ---- history: daily buckets {d, f: flagged, o: chances}, newest last, kept for PRON_QUIET.keepDays ---- */
+  addChances(e, day, f, o) {
+    e.bk = e.bk || [];
+    let b = e.bk[e.bk.length - 1];
+    if (!b || b.d !== day) { b = { d: day, f: 0, o: 0 }; e.bk.push(b); }
+    b.f += f; b.o += o;
+  },
+  sumBuckets(e, from, to) {
+    let f = 0, o = 0;
+    for (const b of e.bk || []) if (b.d >= from && b.d <= to) { f += b.f; o += b.o; }
+    return { f, o };
+  },
+  /* more / less often: the last 14 days against the 14 before, only with enough chances in both (wide bands: the recogniser is noisy) */
+  trend(e, today = dayKey()) {
+    const Q = PRON_QUIET;
+    const recent = this.sumBuckets(e, addDays(today, -(Q.easeWindow - 1)), today);
+    const before = this.sumBuckets(e, addDays(today, -(2 * Q.easeWindow - 1)), addDays(today, -Q.easeWindow));
+    let label = null;
+    if (recent.o >= Q.easeMin && before.o >= Q.easeMin) {
+      const gap = recent.f / recent.o - before.f / before.o;
+      label = gap <= -Q.trendGap ? 'less' : gap >= Q.trendGap ? 'more' : 'same';
+    }
+    return { recent, before, label };
+  },
+  /* 'active' | 'easing' | 'archived' for one tally entry; `was` is its previous state (relapse needs it) */
+  status(e, today = dayKey()) {
+    const Q = PRON_QUIET, bk = e.bk || [];
+    const was = e.state || 'active';
+    if (!bk.length) return was;
+    if (was === 'archived') {
+      const flagDays = bk.filter((b) => b.f > 0 && b.d >= addDays(today, -(Q.relapseDays - 1))).length;
+      let o = 0, f = 0;
+      for (let i = bk.length - 1; i >= 0 && o < 10; i--) { o += bk[i].o; f += bk[i].f; }
+      return flagDays >= 2 || (o >= 5 && f / o >= Q.relapseShare) ? 'active' : 'archived';
+    }
+    const since = bk.filter((b) => b.d > e.last).reduce((n, b) => n + b.o, 0);
+    const r30 = this.sumBuckets(e, addDays(today, -(Q.recentDays - 1)), today);
+    if (since >= Q.chances && daysBetween(e.last, today) >= Q.days && r30.f <= Q.maxRecent) return 'archived';
+    const T = this.trend(e, today);
+    if (T.recent.o >= Q.easeMin && T.before.o >= Q.easeMin && T.before.f > 0 && T.recent.f / T.recent.o <= (T.before.f / T.before.o) / 2) return 'easing';
+    return 'active';
+  },
+  /* move a pair to its new state; an unconfirmed automatic note is hidden while archived (when the setting is on) and comes back on relapse */
+  settle(pair, e, today = dayKey()) {
+    const next = this.status(e, today);
+    if (next === (e.state || 'active')) return;
+    e.state = next; e.stateAt = today;
+    this.flagNote(e, next === 'archived');
+  },
+  flagNote(e, archived) {
+    const n = e.noteId && Store.get('notes', e.noteId);
+    if (!n || !n.auto || n.confirmed) return;
+    if (archived && settings().pronAutoArchive === false) return;
+    Store.patch('notes', n.id, archived ? { archived: true, archivedAt: dayKey() } : { archived: false, archivedAt: null });
+  },
+  /* an archived pair is out of the main list only while "hide quiet sounds" is on */
+  hidden(e) { return e.state === 'archived' && settings().pronAutoArchive !== false; },
+  /* "Still happening to me" */
+  reopen(pair) {
+    const d = this.doc();
+    const e = d.tally[pair];
+    if (!e) return;
+    e.state = 'active'; e.stateAt = dayKey(); e.last = dayKey();
+    this.flagNote(e, false);
+    this.save(d);
+  },
+  /* the Issues row of a confirmed pair, if its sound has gone quiet: offers "Mark as fixed?" (the learner's own record is never changed by software) */
+  quietIssue(issueId) {
+    const d = this.doc();
+    return Object.entries(d.tally).some(([pair, e]) => e.state === 'archived' && !d.blocked.includes(pair) && e.noteId && (Store.get('notes', e.noteId) || {}).issueId === issueId);
+  },
+  /* one English line for the AI about a pair's history; '' when there is nothing useful to say */
+  historyLine(pair) {
+    const d = this.doc();
+    const e = d.tally[pair];
+    if (!e || d.blocked.includes(pair) || !(e.bk || []).length) return '';
+    const T = this.trend(e);
+    const name = `"${pair}"`;
+    if (e.state === 'archived') return `History: the learner's ${name} was flagged earlier (last on ${e.last}) and has been quiet since${e.stateAt ? ` (archived ${e.stateAt})` : ''}.`;
+    const first = e.first ? `, first seen ${e.first}` : '';
+    if (!T.recent.o) return '';
+    const before = T.before.o ? ` (${T.before.f} of ${T.before.o} before)` : '';
+    return `History: the learner's ${name} was flagged in ${T.recent.f} of ${T.recent.o} chances in the last 2 weeks${before}${first}${T.label ? `, trend: ${{ less: 'less often', more: 'more often', same: 'about the same' }[T.label]}` : ''}.`;
   },
 
   /* flagged on 2+ different days and in about half or more of the places that sound occurred */
@@ -243,13 +342,19 @@ const Pron = {
     };
   },
 
-  /* tallies worth listing in Progress → Issues: flagged on 2+ days, not dismissed, not already confirmed as an issue */
-  seenAcross() {
+  /* tallies worth listing in Progress → Issues: flagged on 2+ days, not dismissed, not already confirmed as an issue.
+     `quiet` ones (gone quiet, hidden while the setting is on) are listed separately by quietAcross(). */
+  rows() {
     const d = this.doc();
     return Object.entries(d.tally)
       .filter(([pair, e]) => !d.blocked.includes(pair) && e.days.length >= 2)
-      .map(([pair, e]) => ({ pair, e, note: e.noteId ? Store.get('notes', e.noteId) : null, recurring: this.recurring(d, pair), ...this.share(d, pair) }))
-      .filter((r) => !(r.note && r.note.confirmed))
-      .sort((x, y) => (y.recurring - x.recurring) || (y.e.days.length - x.e.days.length));
+      .map(([pair, e]) => ({ pair, e, note: e.noteId ? Store.get('notes', e.noteId) : null, recurring: this.recurring(d, pair), state: e.state || 'active', trend: this.trend(e), ...this.share(d, pair) }))
+      .filter((r) => !(r.note && r.note.confirmed));
+  },
+  seenAcross() {
+    return this.rows().filter((r) => !this.hidden(r.e)).sort((x, y) => (y.recurring - x.recurring) || (y.e.days.length - x.e.days.length));
+  },
+  quietAcross() {
+    return this.rows().filter((r) => this.hidden(r.e)).sort((x, y) => (x.e.stateAt < y.e.stateAt ? 1 : -1));
   },
 };

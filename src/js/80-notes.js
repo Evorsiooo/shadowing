@@ -127,10 +127,11 @@ function spellingLine(P) {
 
 /* what was measured on the recording, for the prompt; empty when there's nothing */
 const PHONES_CAVEAT = 'Lines starting "Phones" come from a phone recogniser that is only about 90% right per sound, so it can be wrong: say "may", never state a difference as fact. Compare the speaker\'s sounds with the learner\'s and describe what may differ in everyday example words.';
+const HISTORY_NOTE = 'Lines starting "History" say how often the same difference came up over the last weeks (chances are places where the speaker has that sound). Use them to say whether it seems to be improving or recurring, gently and with "may"; if one says it went quiet, acknowledge the progress rather than re-diagnosing it.';
 function measuredBlock(lines) {
   if (!lines || !lines.length) return '';
   const phones = lines.some((l) => l.startsWith('Phones'));
-  return `\nMeasured on their recording by software (${phones ? 'the pitch, loudness and timing lines can\'t hear vowels or consonants' : 'pitch, loudness and timing only, so it can\'t hear vowels or consonants'}; speech recognition can also miss clear words). Treat it as evidence about the recording, not as the learner's opinion, and don't invent problems beyond it and their description:\n${lines.map((l) => `- ${l}`).join('\n')}\n${phones ? PHONES_CAVEAT + '\n' : ''}`;
+  return `\nMeasured on their recording by software (${phones ? 'the pitch, loudness and timing lines can\'t hear vowels or consonants' : 'pitch, loudness and timing only, so it can\'t hear vowels or consonants'}; speech recognition can also miss clear words). Treat it as evidence about the recording, not as the learner's opinion, and don't invent problems beyond it and their description:\n${lines.map((l) => `- ${l}`).join('\n')}\n${phones ? PHONES_CAVEAT + '\n' : ''}${lines.some((l) => l.startsWith('History')) ? HISTORY_NOTE + '\n' : ''}`;
 }
 
 function claudePrompt(D, issueNames, measured) {
@@ -217,13 +218,15 @@ function issuesView() {
     }).sort((a, b) => (a.i.status === 'fixed') - (b.i.status === 'fixed') || b.recent - a.recent || b.notes.length - a.notes.length);
     mount(wrap,
       pronSeenView(draw),
+      prosodyTrendView(),
       h('p', { class: 'muted' }, t('Problems pulled from your notes. Ones that keep coming back over several days are the ones to target in step 4.')),
       rows.length ? h('div', { class: 'table-wrap' }, h('table', null,
         h('thead', null, h('tr', null, h('th', null, ''), h('th', null, t('Issue')), h('th', null, t('Notes')), h('th', null, t('Last 14 days')), h('th', null, t('Days seen')), h('th', null, ''))),
         h('tbody', null, rows.map(({ i, notes, recent, days }) => h('tr', null,
           h('td', null, h('input', { type: 'checkbox', checked: i.status === 'fixed', 'aria-label': t('Mark {name} as sorted', { name: i.name }), title: t('Tick when it no longer comes back'), onchange: (e) => { Store.patch('issues', i.id, { status: e.target.checked ? 'fixed' : 'open' }); draw(); } })),
           h('td', null, h('strong', { style: { textDecoration: i.status === 'fixed' ? 'line-through' : 'none' } }, i.name),
-            recent >= 2 && days >= 2 && i.status !== 'fixed' ? h('div', null, h('span', { class: 'issue-pill' }, t('target this next'))) : null),
+            recent >= 2 && days >= 2 && i.status !== 'fixed' ? h('div', null, h('span', { class: 'issue-pill' }, t('target this next'))) : null,
+            i.status !== 'fixed' && Pron.quietIssue(i.id) ? h('div', { class: 'row' }, h('span', { class: 'small muted' }, t('Looks quiet lately.')), btn(t('Mark as fixed?'), () => { Store.patch('issues', i.id, { status: 'fixed' }); draw(); }, { size: 'sm', kind: 'ghost' })) : null),
           h('td', { class: 'num' }, notes.length),
           h('td', { class: 'num' }, recent),
           h('td', { class: 'num' }, days),

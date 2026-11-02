@@ -147,6 +147,8 @@ Write ${reply !== 'English' ? `your explanation in ${reply}, ` : spelling ? `in 
 }
 // Said whenever the measured lines include sound-level ("Phones") lines
 const PHONES_CAVEAT = 'Lines starting "Phones" come from a phone recogniser that is only about 90% right per sound, so it can be wrong: say "may", never state a difference as fact. Compare the speaker\'s sounds with the learner\'s and describe what may differ in everyday example words.';
+// Said whenever the measured lines include "History" lines (how often the same difference came up in recent weeks)
+const HISTORY_NOTE = 'Lines starting "History" say how often the same difference came up over the last weeks (chances are places where the speaker has that sound). Use them to say whether it seems to be improving or recurring, gently and with "may"; if one says it went quiet, acknowledge the progress rather than re-diagnosing it.';
 // Used when a model can't do schema-constrained output
 const JSON_INSTRUCTION = '\n\nReply with only a JSON object with the string fields feature, change, listenFor, issue, question and the boolean field unsure. No other text.';
 
@@ -169,7 +171,7 @@ export async function noteFeedback(env, userId, { sentence = '', off = '', aim =
   const c = await keyFor(env, userId);
   await rateLimit(env, userId);
   const system = systemPrompt(profile && typeof profile === 'object' ? profile : {});
-  const lines = Array.isArray(measured) ? measured.slice(0, 12).map((l) => String(l).replace(/\s+/g, ' ').slice(0, 200)) : [];
+  const lines = Array.isArray(measured) ? measured.slice(0, 14).map((l) => String(l).replace(/\s+/g, ' ').slice(0, 200)) : [];
   const phones = lines.some((l) => l.startsWith('Phones'));
   const user = `Sentence being practised: ${String(sentence).slice(0, 500) || '(not given)'}
 What sounded off: ${String(off).slice(0, 2000)}
@@ -177,7 +179,8 @@ What they were aiming for: ${String(aim).slice(0, 500) || '(not given)'}
 Issue names they already track: ${Array.isArray(issues) && issues.length ? issues.slice(0, 60).map(String).join('; ') : '(none yet)'}${lines.length ? `
 Measured on their recording by software (${phones ? "the pitch, loudness and timing lines can't hear vowels or consonants" : "pitch, loudness and timing only, so it can't hear vowels or consonants"}; speech recognition can also miss clear words). Treat it as evidence about the recording, not as the learner's opinion, and don't invent problems beyond it and their description:
 ${lines.map((l) => `- ${l}`).join('\n')}${phones ? `
-${PHONES_CAVEAT}` : ''}` : ''}`;
+${PHONES_CAVEAT}` : ''}${lines.some((l) => l.startsWith('History')) ? `
+${HISTORY_NOTE}` : ''}` : ''}`;
   const ask = c.provider === 'anthropic' ? askAnthropic : askOpenAICompatible;
   let text;
   try {

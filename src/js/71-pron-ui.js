@@ -190,18 +190,37 @@ function pronSummaryCard(sum) {
 }
 
 /* ---------- Progress → Issues: sounds seen across sessions ---------- */
+const TREND_WORDS = { less: N_('less often'), more: N_('more often'), same: N_('about the same') };
+
+/* "5 of 9 chances flagged in the last 2 weeks (was 7 of 8) · less often" */
+function trendLine(T) {
+  if (!T.recent.o) return null;
+  const was = T.before.o ? ` ${t('(was {f} of {o})', { f: T.before.f, o: T.before.o })}` : '';
+  return t('{f} of {o} chances flagged in the last 2 weeks', { f: T.recent.f, o: T.recent.o }) + was + (T.label ? ` · ${t(TREND_WORDS[T.label])}` : '');
+}
+function examplesLine(e) {
+  const ex = (e.ex || []).slice(-4).reverse().map((x) => `${fmtDayShort(x.d)}${x.w ? `: ${x.w}` : ''}`);
+  return ex.length ? t('Recent: {list}', { list: ex.join(', ') }) : null;
+}
+function fmtDayShort(k) { try { return parseDay(k).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }); } catch { return k; } }
+
 function pronSeenView(redraw) {
   const rows = Pron.seenAcross();
+  const quiet = Pron.quietAcross();
   const blocked = Pron.doc().blocked;
-  if (!rows.length && !blocked.length) return null;
+  if (!rows.length && !blocked.length && !quiet.length) return null;
   return h('div', { class: 'card' },
     h('h3', null, t('Seen across sessions')),
     h('p', { class: 'small muted' }, t('Sounds a computer flagged on several different days, counted on this device. They can be wrong, so listen and confirm before you trust one.')),
-    rows.map(({ pair, e, note, recurring, flagged, occurred }) => h('div', { class: 'pron-item' },
+    rows.map(({ pair, e, note, recurring, flagged, occurred, state, trend }) => h('div', { class: 'pron-item', style: state === 'easing' ? { opacity: 0.8 } : null },
       h('div', { class: 'row' },
         h('strong', null, Pron.pairName(pair)),
-        recurring && note ? h('span', { class: 'issue-pill' }, t('possible, listen and confirm')) : null),
+        recurring && note ? h('span', { class: 'issue-pill' }, t('possible, listen and confirm')) : null,
+        state === 'easing' ? h('span', { class: 'issue-pill' }, t('showing up less')) : null,
+        state === 'archived' ? h('span', { class: 'issue-pill' }, t('gone quiet')) : null),
       h('p', { class: 'small muted' }, t('Flagged on {days} and {clips}, in {flagged} of {occurred} places where the speaker has that sound.', { days: tp(e.days.length, '{n} day', '{n} days'), clips: tp(e.clips.length, '{n} clip', '{n} clips'), flagged, occurred })),
+      trendLine(trend) ? h('p', { class: 'small muted' }, trendLine(trend)) : null,
+      examplesLine(e) ? h('p', { class: 'small muted' }, examplesLine(e)) : null,
       h('div', { class: 'row' },
         recurring && note ? btn(t('Open note'), () => {
           const D = { sentence: note.sentence || '', off: note.off || '', aim: note.aim || '', issue: Pron.pairName(pair), reply: note.reply || null, saved: note.id, open: true };
@@ -209,8 +228,31 @@ function pronSeenView(redraw) {
         }, { size: 'sm', icon: 'note' }) : null,
         recurring && note ? btn(t('Make this an issue'), () => { Pron.confirm(pair); redraw(); }, { size: 'sm', kind: 'primary' }) : null,
         btn(t('Sounds the same to me'), () => { Pron.dismiss(pair); redraw(); }, { size: 'sm', kind: 'ghost' })))),
+    quiet.length ? h('details', { class: 'pron-quiet' },
+      h('summary', null, t('Gone quiet ({n})', { n: quiet.length })),
+      h('p', { class: 'small muted' }, t('No longer flagged over several recent chances. They come back on their own if they show up again.')),
+      quiet.map(({ pair, e }) => h('div', { class: 'pron-item' },
+        h('div', { class: 'row' }, h('strong', null, Pron.pairName(pair)), e.stateAt ? h('span', { class: 'small muted' }, t('quiet since {date}', { date: fmtDayShort(e.stateAt) })) : null),
+        examplesLine(e) ? h('p', { class: 'small muted' }, examplesLine(e)) : null,
+        h('div', { class: 'row' },
+          btn(t('Still happening to me'), () => { Pron.reopen(pair); redraw(); }, { size: 'sm', kind: 'ghost' }),
+          btn(t('Sounds the same to me'), () => { Pron.dismiss(pair); redraw(); }, { size: 'sm', kind: 'ghost' }))))) : null,
     blocked.length ? h('p', { class: 'small muted' }, t('Ignored:'), ' ', blocked.map((p) => h('span', null, Pron.pairName(p), ' ',
       btn(t('Allow again'), () => { Pron.allow(p); redraw(); }, { size: 'sm', kind: 'ghost' }), ' '))) : null);
+}
+
+/* timing, pitch and stress over time (every language): how many of the last passes had each kind of difference */
+const PROSODY_NAMES = { rushed: N_('Faster than the speaker'), dragged: N_('Slower than the speaker'), pitch: N_('Pitch moving a different way'), stress: N_('Stress in a different place') };
+function prosodyTrendView() {
+  const rows = ProsodyLog.summary().filter((r) => r.T.recent.o >= PRON_QUIET.easeMin);
+  if (!rows.length) return null;
+  return h('div', { class: 'card' },
+    h('h3', null, t('Timing, pitch and stress')),
+    h('p', { class: 'small muted' }, t('How many of your recent recorded passes had each kind of difference from the speaker. Rough measures, worked out on this device.')),
+    rows.map(({ kind, T }) => {
+      const was = T.before.o ? ` ${t('(was {f} of {o})', { f: T.before.f, o: T.before.o })}` : '';
+      return h('p', { class: 'small' }, h('strong', null, t(PROSODY_NAMES[kind])), ': ', t('{f} of {o} passes in the last 2 weeks', { f: T.recent.f, o: T.recent.o }) + was + (T.label ? ` · ${t(TREND_WORDS[T.label])}` : ''));
+    }));
 }
 
 /* ---------- step 4: today's focus ---------- */

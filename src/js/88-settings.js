@@ -17,6 +17,7 @@ const SETTING_GROUPS = [
   { title: N_('Pronunciation (beta)'), when: () => Pron.available(), fields: [
     ['pronunciation', N_('After a recorded pass, show up to three sounds that differ from the speaker (English only; worked out on your device, and it can be wrong)'), 'bool'],
     ['pronAutoNotes', N_('Suggest a note when the same sound keeps differing on different days (shown in Progress → Issues, never sent to an AI unless you ask)'), 'bool'],
+    ['pronAutoArchive', N_('Move a suggested sound to “Gone quiet” once it has stopped coming back (it returns if it does)'), 'bool'],
   ] },
   { title: N_('Sync and microphone'), fields: [
     ['alignMode', N_('Line up your recording'), 'select', [['auto', N_('Automatically (match loudness patterns)')], ['manual', N_('With my manual offset')]]],
