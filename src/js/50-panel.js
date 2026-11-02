@@ -11,7 +11,7 @@ const Panel = {
   onTime(t) {
     if (!this.canvas) return;
     if (this.key && this.key.startsWith('editor')) this.drawEditor(t);
-    else if (this.key && this.key.startsWith('clip')) this.drawAnalysis(t);
+    else if (this.key && this.key.startsWith('clip')) (UI.view === 'text' ? this.drawText(t) : this.drawAnalysis(t));
   },
 };
 
@@ -23,7 +23,7 @@ function renderPanel() {
   let key;
   if (UI.sel && vid) key = `editor:${UI.sel.clipId || 'new'}:${VideoAudio.state(vid.id).status}`;
   else if (UI.cutMode && !Session.active) key = 'empty-cut';
-  else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
+  else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.textTop}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
   else key = UI.cutMode ? 'empty-cut' : 'empty';
 
   // fade the panel in when it shows another clip or mode (not for a view toggle or an audio status change)
@@ -61,7 +61,11 @@ function buildAnalysis(clip) {
   const head = h('div', { class: 'panel-head' },
     h('div', { class: 'seg', role: 'group', 'aria-label': t('View') },
       h('button', { type: 'button', class: UI.view === 'pitch' ? 'on' : '', onclick: () => { UI.view = 'pitch'; renderPanel(); } }, t('Pitch')),
-      h('button', { type: 'button', class: UI.view === 'wave' ? 'on' : '', onclick: () => { UI.view = 'wave'; renderPanel(); } }, t('Waveform'))),
+      h('button', { type: 'button', class: UI.view === 'wave' ? 'on' : '', onclick: () => { UI.view = 'wave'; renderPanel(); } }, t('Waveform')),
+      h('button', { type: 'button', class: UI.view === 'text' ? 'on' : '', onclick: () => { UI.view = 'text'; renderPanel(); } }, 'Text')),
+    UI.view === 'text' ? h('div', { class: 'seg', role: 'group', 'aria-label': 'Big row' },
+      h('button', { type: 'button', class: UI.textTop !== 'phones' ? 'on' : '', onclick: () => { UI.textTop = 'words'; renderPanel(); } }, 'Words on top'),
+      h('button', { type: 'button', class: UI.textTop === 'phones' ? 'on' : '', onclick: () => { UI.textTop = 'phones'; renderPanel(); } }, 'Phones on top')) :
     h('div', { class: 'seg', role: 'group', 'aria-label': t('Layout') },
       h('button', { type: 'button', class: UI.overlay ? '' : 'on', title: t('Speaker on top, you below'), onclick: () => setOverlay(false) }, t('Separate')),
       h('button', { type: 'button', class: UI.overlay ? 'on' : '', title: t('Both lines on one chart'), onclick: () => setOverlay(true) }, t('Overlaid'))),
@@ -78,6 +82,7 @@ function buildAnalysis(clip) {
     else msg = [h('p', null, t('The model line for this clip hasn’t been worked out yet.')), btn(t('Work it out now'), () => ensureModels(vid).then(renderPanel), { kind: 'primary' })];
     return [head, h('div', { class: 'panel-msg' }, msg), canvas];
   }
+  if (UI.view === 'text') return [head, buildTextView(clip)];
   bindAnalysisCanvas(canvas, clip);
   return [head, canvas];
 }

@@ -584,3 +584,25 @@ input.time-in { width: 76px; padding: 5px 8px; height: 32px; min-height: 32px; }
 .mins .col { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; min-width: 0; }
 .mins .col i { width: 100%; max-width: 28px; background: var(--sky); border-radius: 6px 6px 2px 2px; }
 .mins .col span { position: absolute; bottom: -18px; font-size: 0.68rem; font-weight: 800; color: var(--muted); white-space: nowrap; }
+
+/* prototype: Text view in the analysis panel */
+.tv-box { position: relative; height: 220px; border-radius: var(--r-sm); background: var(--surface-2); overflow: hidden; touch-action: pan-y; cursor: grab; user-select: none; }
+.tv-track { position: absolute; left: 0; top: 0; bottom: 0; will-change: transform; }
+.tv-pitch { position: absolute; left: 0; top: 6px; }
+.tv-pitch path { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.tv-pitch .sp { stroke: var(--green); }
+.tv-pitch .you { stroke: var(--sky); opacity: 0.85; }
+.tv-word { position: absolute; top: 92px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 10px 8px; border-radius: var(--r-sm); min-width: 54px; text-align: center; }
+.tv-top { font: 600 1.5rem/1.15 var(--font-display); color: var(--fg); }
+.tv-top.phones { font-family: "Nunito", "DejaVu Sans", system-ui, sans-serif; font-weight: 800; font-size: 1.45rem; }
+.tv-sub { font-weight: 700; font-size: 0.92rem; color: var(--muted); opacity: 0.85; }
+.tv-sub.phones { font-family: "Nunito", "DejaVu Sans", system-ui, sans-serif; }
+.tv-word.diff { background: var(--wattle-soft); box-shadow: inset 0 0 0 2px var(--wattle); }
+.tv-fix { display: flex; flex-direction: column; align-items: center; margin-top: 4px; padding-top: 6px; border-top: 2px dashed var(--wattle-dark); }
+.tv-you { font: 800 1.05rem/1 "Nunito", "DejaVu Sans", system-ui, sans-serif; color: var(--sky-dark); background: var(--sky-soft); padding: 4px 9px; border-radius: 8px; }
+.tv-swap { font-size: 0.72rem; font-weight: 800; color: var(--muted); letter-spacing: 0.04em; }
+.tv-hear { gap: 6px; flex-wrap: nowrap; }
+.tv-head { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--ochre); pointer-events: none; }
+.tv-legend { margin-top: 8px; gap: 8px; }
+.tv-key { width: 14px; height: 5px; border-radius: 3px; display: inline-block; margin-left: 6px; }
+.tv-key.sp { background: var(--green); } .tv-key.you { background: var(--sky); } .tv-key.diff { background: var(--wattle); height: 12px; width: 12px; border-radius: 4px; }
