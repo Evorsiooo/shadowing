@@ -79,7 +79,8 @@ const Pron = {
   },
   /* the feature exists in this build/browser, for an English target */
   available() { return !!this.engine() && targetLang() === 'en'; },
-  on() { return this.available() && !!settings().pronunciation; },
+  /* also respects the Analysis switch from the safety work (Heavy, PR #72) once it is in the build */
+  on() { return this.available() && !!settings().pronunciation && (typeof Heavy === 'undefined' || !Heavy.isOn || Heavy.isOn('pronunciation')); },
 
   /* ---- the small device-side document ---- */
   doc() { return Store.get('meta', 'pron') || { id: 'pron', tally: {}, occ: {}, blocked: [], seen: [], autoMade: [] }; },
