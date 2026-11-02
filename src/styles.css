@@ -585,46 +585,32 @@ input.time-in { width: 76px; padding: 5px 8px; height: 32px; min-height: 32px; }
 .mins .col i { width: 100%; max-width: 28px; background: var(--sky); border-radius: 6px 6px 2px 2px; }
 .mins .col span { position: absolute; bottom: -18px; font-size: 0.68rem; font-weight: 800; color: var(--muted); white-space: nowrap; }
 
-/* prototype: Text view in the analysis panel */
-.tv-view { position: relative; height: 216px; border-radius: var(--r-sm); background: var(--surface-2); overflow: hidden; touch-action: pan-y; cursor: grab; user-select: none;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
-.tv-track { position: absolute; left: 0; top: 0; bottom: 0; will-change: transform; z-index: 1; }
-.tv-w { position: absolute; top: 50px; display: flex; flex-direction: column; align-items: flex-start; cursor: pointer; }
-.tv-big { height: 2.15rem; display: flex; align-items: flex-end; line-height: 1.15; white-space: nowrap; color: var(--fg); }
+/* prototype: Pronunciation view in the analysis panel (same size, axis and playhead as the Pitch and Waveform charts) */
+.tv-view { position: relative; height: 220px; border-radius: var(--r-sm); background: var(--surface-2); overflow: hidden; touch-action: none; cursor: pointer; user-select: none; }
+.tv-tick { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); opacity: 0.5; }
+.tv-w { position: absolute; top: 42px; display: flex; flex-direction: column; align-items: flex-start; }
+.tv-big { height: 2.1rem; display: flex; align-items: flex-end; line-height: 1.15; white-space: nowrap; color: var(--fg); }
 .tv-big.wd { font-family: var(--font-display); font-weight: 600; }
 .tv-big.ph, .tv-sub.ph, .tv-yph { font-family: "Nunito", "DejaVu Sans", system-ui, sans-serif; font-weight: 700; }
 .tv-big.ph { color: var(--green-ink); }
 /* yellow highlighter on a word that sounds different */
-.tv-w.diff .tv-mark { background: linear-gradient(transparent 58%, var(--wattle-soft) 58%, var(--wattle-soft) 92%, transparent 92%); box-decoration-break: clone; padding: 0 2px; margin: 0 -2px; }
-:root[data-theme="dark"] .tv-w.diff .tv-mark { background: linear-gradient(transparent 58%, var(--wattle-soft) 58%); }
-/* how long it was said, filling green as it plays */
-.tv-bar { height: 4px; margin: 5px 0 7px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.tv-w.diff .tv-mark { background: linear-gradient(transparent 58%, var(--wattle-soft) 58%, var(--wattle-soft) 92%, transparent 92%); padding: 0 2px; margin: 0 -2px; }
+.tv-bar { align-self: stretch; height: 4px; margin: 5px 4px 0 0; border-radius: 4px; background: var(--line); overflow: hidden; }
 .tv-bar > i { display: block; height: 100%; width: 0; background: var(--green); border-radius: 4px; }
 .tv-w.diff .tv-bar { background: var(--wattle); }
-.tv-w.now .tv-big { color: var(--green-ink); }
-.tv-w.now.diff .tv-big.wd { color: var(--fg); }
-.tv-sub { display: flex; align-items: center; gap: 6px; font-size: 0.98rem; white-space: nowrap; color: var(--muted); }
-.tv-sub.ph { color: var(--muted); }
+.tv-sub { display: flex; align-items: center; gap: 5px; margin-top: 6px; white-space: nowrap; color: var(--muted); }
 .tv-w.diff .tv-sub.ph { color: var(--green-ink); }
 .tv-sub.wd { font-weight: 800; }
 b.x { font-weight: 800; text-decoration: underline 2px; text-underline-offset: 3px; }
 .tv-sub b.x, .tv-big b.x { color: var(--green-ink); text-decoration-color: var(--green); }
-.tv-you { display: flex; align-items: center; gap: 6px; margin-top: 6px; white-space: nowrap; font-size: 0.98rem; color: var(--sky-dark); }
+.tv-you { display: flex; align-items: center; gap: 5px; margin-top: 6px; white-space: nowrap; font-size: 0.92rem; color: var(--sky-dark); }
 .tv-yph b.x { color: var(--red); text-decoration-color: var(--red); }
-.tv-tag { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sky-dark); background: var(--sky-soft); border-radius: 999px; padding: 2px 7px; }
-.tv-listen { appearance: none; border: 0; padding: 0; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
-.tv-listen svg { width: 15px; height: 15px; }
+.tv-tag { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sky-dark); background: var(--sky-soft); border-radius: 999px; padding: 2px 6px; }
+.tv-listen { appearance: none; border: 0; padding: 0; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
+.tv-listen svg { width: 14px; height: 14px; }
 .tv-listen.spk { background: var(--green-soft); color: var(--green-ink); }
 .tv-listen.you { background: var(--sky-soft); color: var(--sky-dark); }
 .tv-listen:hover { filter: brightness(0.95); }
-.tv-ruler { position: absolute; left: 0; right: 0; bottom: 0; height: 26px; }
-.tv-tick { position: absolute; bottom: 0; width: 1px; height: 5px; background: var(--line); }
-.tv-tick.whole { height: 9px; background: var(--muted); opacity: 0.6; }
-.tv-tick.whole { font-size: 0.7rem; font-weight: 700; }
-.tv-tick.whole::after { content: none; }
-.tv-tick { color: var(--muted); }
-.tv-tick.whole { overflow: visible; white-space: nowrap; text-indent: 5px; line-height: 0; }
-.tv-head { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--ochre); pointer-events: none; z-index: 0; opacity: 0.8; }
-.tv-head > span { position: absolute; top: 6px; left: -7px; width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 3px solid var(--ochre); }
+.tv-head { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; margin-left: -1px; background: var(--ochre); pointer-events: none; }
 .tv-foot { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
 .tv-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--wattle); flex: none; }

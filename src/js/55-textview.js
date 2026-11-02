@@ -1,7 +1,8 @@
 /* ---------- PROTOTYPE (design mockup, demo data, not for merge) ----------
    "Text" view in the analysis panel: the clip's transcript as plain text on a time axis.
-   - Each word starts at its real start time. A thin bar under it is as long as the word was said, and fills
-     green as the playhead passes (karaoke style), so the strip reads like the scrub bar.
+   - The clip runs across the full width on the same time axis as the Pitch and Waveform charts: one-second
+     lines, an orange playhead that moves, click or drag to seek. Each word starts where it was said, and the
+     bar under it is as long as the word was said and fills green as the playhead passes.
    - The speaker's phones sit under each word (or above it, with the toggle).
    - Only where your take differs: the word gets a yellow marker, and a "you" line appears under the speaker's
      phones. Each of the two lines has its own small listen icon.
@@ -17,8 +18,6 @@ const DEMO_TEXT = [
   { w: 'for', a: 3.56, b: 3.74, p: 'fɔɹ' },
   { w: 'us', a: 3.74, b: 4.08, p: 'ʌs' },
 ];
-const TEXT_PPS = 300; // pixels per second of clip, the same for every word
-const TEXT_HEAD = 0.32; // the playhead sits a third of the way in
 
 /* shrink a word only if it wouldn't fit before the next word starts */
 function tvFit(text, widthPx, maxRem, minRem, em = 0.6) {
@@ -39,7 +38,7 @@ const tvPlain = (s) => String(s).replace(/[{}]/g, '');
 function buildTextView(clip) {
   const dur = clip.end - clip.start;
   const wordsTop = UI.textTop !== 'phones';
-  const trackW = Math.ceil(dur * TEXT_PPS);
+  const pct = (t) => (t / dur) * 100 + '%';
 
   const listen = (who, d) => h('button', {
     type: 'button', class: 'tv-listen ' + who,
@@ -48,54 +47,61 @@ function buildTextView(clip) {
     onclick: (e) => { e.stopPropagation(); if (who === 'spk') { Player.seek(clip.start + d.a); Player.play(); } },
   }, icon('volume'));
 
-  const words = DEMO_TEXT.map((d, i) => {
-    const next = DEMO_TEXT[i + 1];
-    const room = ((next ? next.a : dur) - d.a) * TEXT_PPS - 10; // space before the next word
-    const big = wordsTop ? d.w : tvPlain(d.p);
+  const words = DEMO_TEXT.map((d) => {
+    const big = h('div', { class: 'tv-big ' + (wordsTop ? 'wd' : 'ph') }, h('span', { class: 'tv-mark' }, wordsTop ? d.w : tvPhones(d.p)));
+    const sub = h('div', { class: 'tv-sub ' + (wordsTop ? 'ph' : 'wd') }, h('span', null, wordsTop ? tvPhones(d.p) : d.w), d.you ? listen('spk', d) : null);
     const fill = h('i');
-    const el = h('div', { class: 'tv-w' + (d.you ? ' diff' : ''), style: { left: d.a * TEXT_PPS + 'px' }, onclick: () => Player.seek(clip.start + d.a) },
-      h('div', { class: 'tv-big ' + (wordsTop ? 'wd' : 'ph'), style: { fontSize: tvFit(big, room, 1.75, 0.95, wordsTop ? 0.56 : 0.62) } },
-        h('span', { class: 'tv-mark' }, wordsTop ? d.w : tvPhones(d.p))),
-      h('div', { class: 'tv-bar', style: { width: Math.max(8, (d.b - d.a) * TEXT_PPS - 6) + 'px' } }, fill),
-      h('div', { class: 'tv-sub ' + (wordsTop ? 'ph' : 'wd') }, h('span', null, wordsTop ? tvPhones(d.p) : d.w), d.you ? listen('spk', d) : null),
+    const bar = h('div', { class: 'tv-bar' }, fill);
+    const el = h('div', { class: 'tv-w' + (d.you ? ' diff' : ''), style: { left: pct(d.a), width: pct(d.b - d.a) } }, big, bar, sub,
       d.you ? h('div', { class: 'tv-you' }, h('span', { class: 'tv-tag' }, 'you'), h('span', { class: 'tv-yph' }, tvPhones(d.you)), listen('you', d)) : null);
-    return { d, el, fill };
+    return { d, el, big, sub, fill };
   });
 
-  // a quiet ruler of seconds along the bottom, in the video's own time
+  // one-second lines, as in the Pitch and Waveform views
   const ticks = [];
-  for (let s = Math.ceil(clip.start * 2) / 2; s <= clip.end; s += 0.5) {
-    const whole = Math.abs(s - Math.round(s)) < 1e-6;
-    ticks.push(h('div', { class: 'tv-tick' + (whole ? ' whole' : ''), style: { left: (s - clip.start) * TEXT_PPS + 'px' } }, whole ? fmtTime(s) : null));
-  }
-
-  const track = h('div', { class: 'tv-track', style: { width: trackW + 'px' } }, words.map((x) => x.el), h('div', { class: 'tv-ruler' }, ticks));
-  const view = h('div', { class: 'tv-view' }, track, h('div', { class: 'tv-head', style: { left: TEXT_HEAD * 100 + '%' } }, h('span')));
+  for (let s = 1; s < dur; s++) ticks.push(h('div', { class: 'tv-tick', style: { left: pct(s) } }));
+  const head = h('div', { class: 'tv-head' });
+  const view = h('div', { class: 'tv-view' }, ticks, words.map((x) => x.el), head);
   Panel.canvas = view;
-  Panel.refs = { track, view, dur, words };
+  Panel.refs = { view, head, dur, words, w: 0 };
 
-  // drag the text to scrub, like the scrub bar
-  let down = null;
-  view.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) return; down = { x: e.clientX, t: Player.time() }; view.setPointerCapture(e.pointerId); });
-  view.addEventListener('pointermove', (e) => { if (down) Player.seek(clamp(down.t - (e.clientX - down.x) / TEXT_PPS, clip.start, clip.end - 0.05)); });
-  view.addEventListener('pointerup', () => { down = null; });
+  // click or drag to move through the clip: the same as on the Pitch and Waveform charts
+  let down = false;
+  const seekTo = (e) => {
+    const r = view.getBoundingClientRect();
+    Player.seek(Math.min(clip.start + clamp((e.clientX - r.left) / r.width, 0, 1) * dur, clip.end - 0.05));
+  };
+  view.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) return; down = true; view.setPointerCapture(e.pointerId); seekTo(e); });
+  view.addEventListener('pointermove', (e) => { if (down) seekTo(e); });
+  view.addEventListener('pointerup', () => { down = false; });
+  view.addEventListener('pointercancel', () => { down = false; });
 
   const diffs = DEMO_TEXT.filter((d) => d.you).length;
   return [view,
     h('p', { class: 'tv-foot small muted' },
-      h('span', { class: 'tv-dot' }), `${diffs} words sound different from the speaker in your last take. `,
-      'Tap a word to jump to it, or drag the text to scrub.')];
+      h('span', { class: 'tv-dot' }), `Highlighted: ${diffs} words that sound different from the speaker in your last take. `,
+      'Each word sits where it was said.')];
 }
 
 Panel.drawText = function (now) {
-  const { track, view, dur, words } = this.refs;
+  const { view, head, dur, words } = this.refs;
   const clip = Store.get('clips', UI.clipId);
-  if (!track || !clip) return;
+  if (!view || !clip) return;
+  const W = view.clientWidth;
+  if (W && W !== this.refs.w) { // size each word to the room it has before the next one starts
+    this.refs.w = W;
+    words.forEach(({ d, big, sub }, i) => {
+      const next = DEMO_TEXT[i + 1];
+      const room = ((next ? next.a : dur) - d.a) / dur * W - 8;
+      const wordsTop = UI.textTop !== 'phones';
+      big.style.fontSize = tvFit(wordsTop ? d.w : tvPlain(d.p), room, 1.6, 0.85, wordsTop ? 0.56 : 0.62);
+      sub.style.fontSize = tvFit(wordsTop ? d.p : d.w, room - (d.you ? 26 : 0), 0.95, 0.72, wordsTop ? 0.62 : 0.56);
+    });
+  }
+  head.style.left = clamp((now - clip.start) / dur, 0, 1) * W + 'px';
   const ct = clamp(now - clip.start, 0, dur);
-  track.style.transform = `translateX(${Math.round(view.clientWidth * TEXT_HEAD - ct * TEXT_PPS)}px)`;
-  for (const { d, el, fill } of words) {
-    const f = clamp((ct - d.a) / (d.b - d.a), 0, 1);
-    fill.style.width = f * 100 + '%';
+  for (const { d, fill, el } of words) {
+    fill.style.width = clamp((ct - d.a) / (d.b - d.a), 0, 1) * 100 + '%';
     el.classList.toggle('now', ct >= d.a && ct < d.b);
   }
 };

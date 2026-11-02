@@ -62,7 +62,7 @@ function buildAnalysis(clip) {
     h('div', { class: 'seg', role: 'group', 'aria-label': t('View') },
       h('button', { type: 'button', class: UI.view === 'pitch' ? 'on' : '', onclick: () => { UI.view = 'pitch'; renderPanel(); } }, t('Pitch')),
       h('button', { type: 'button', class: UI.view === 'wave' ? 'on' : '', onclick: () => { UI.view = 'wave'; renderPanel(); } }, t('Waveform')),
-      h('button', { type: 'button', class: UI.view === 'text' ? 'on' : '', onclick: () => { UI.view = 'text'; renderPanel(); } }, 'Text')),
+      h('button', { type: 'button', class: UI.view === 'text' ? 'on' : '', onclick: () => { UI.view = 'text'; renderPanel(); } }, 'Pronunciation')),
     UI.view === 'text' ? h('div', { class: 'seg', role: 'group', 'aria-label': 'Big row' },
       h('button', { type: 'button', class: UI.textTop !== 'phones' ? 'on' : '', onclick: () => { UI.textTop = 'words'; renderPanel(); } }, 'Words on top'),
       h('button', { type: 'button', class: UI.textTop === 'phones' ? 'on' : '', onclick: () => { UI.textTop = 'phones'; renderPanel(); } }, 'Phones on top')) :
