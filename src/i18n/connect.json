@@ -134,5 +134,9 @@
   "{name} disconnected.": {
     "fr": "{name} est déconnectée.",
     "es": "{name} se desconectó."
+  },
+  "This includes your pronunciation history: which sounds keep differing, how often, and whether they’ve gone quiet.": {
+    "fr": "Cela inclut ton historique de prononciation : quels sons continuent de différer, à quelle fréquence, et s’ils sont devenus discrets.",
+    "es": "Esto incluye tu historial de pronunciación: qué sonidos siguen difiriendo, con qué frecuencia y si se han calmado."
   }
 }
