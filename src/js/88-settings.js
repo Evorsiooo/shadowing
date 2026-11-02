@@ -29,8 +29,8 @@ const SETTING_GROUPS = [
 ];
 
 function openSettings(tab = 'practice') {
-  const tabs = [['practice', t('Practice'), 'mic'], ['profile', t('Profile'), 'user'], ['storage', t('Storage'), 'folder'], ['ai', t('AI'), 'sparkle'], ['reminders', t('Reminders'), 'bell'], ['apps', t('Connected apps'), 'link'], ['data', t('Data'), 'database'], ['checks', t('Device checks'), 'headphones'], ['look', t('Language and theme'), 'palette']];
-  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'storage' ? storageView() : tab === 'ai' ? aiPanel() : tab === 'reminders' ? remindersView() : tab === 'apps' ? connectedAppsView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
+  const tabs = [['practice', t('Practice'), 'mic'], ['profile', t('Profile'), 'user'], ['storage', t('Storage'), 'folder'], ['ai', t('AI'), 'sparkle'], ['reminders', t('Reminders'), 'bell'], ['apps', t('Connected apps'), 'link'], ['data', t('Data'), 'database'], ['checks', t('Device checks'), 'headphones'], ...(Heavy.list().length ? [['analysis', t('Analysis'), 'flask']] : []), ['look', t('Language and theme'), 'palette']];
+  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'storage' ? storageView() : tab === 'ai' ? aiPanel() : tab === 'reminders' ? remindersView() : tab === 'apps' ? connectedAppsView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : tab === 'analysis' ? analysisView() : lookView();
   openModal([
     modalHead(t('Settings')),
     h('div', { class: 'tabs' }, tabs.map(([k, l, ic]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab, icon: ic }))),

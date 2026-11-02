@@ -1,0 +1,134 @@
+{
+  "the browser stopped while it was running": {
+    "fr": "le navigateur s’est arrêté pendant son exécution",
+    "es": "el navegador se detuvo mientras funcionaba"
+  },
+  "the device ran out of memory": {
+    "fr": "l’appareil a manqué de mémoire",
+    "es": "el dispositivo se quedó sin memoria"
+  },
+  "it ran too slowly on this device": {
+    "fr": "elle était trop lente sur cet appareil",
+    "es": "iba demasiado lenta en este dispositivo"
+  },
+  "it failed twice in a row": {
+    "fr": "elle a échoué deux fois de suite",
+    "es": "falló dos veces seguidas"
+  },
+  "Memory: {gb} GB or more": {
+    "fr": "Mémoire : {gb} Go ou plus",
+    "es": "Memoria: {gb} GB o más"
+  },
+  "Memory: not reported by this browser": {
+    "fr": "Mémoire : non indiquée par ce navigateur",
+    "es": "Memoria: este navegador no la indica"
+  },
+  "{n} processor core|{n} processor cores": {
+    "fr": "{n} cœur de processeur|{n} cœurs de processeur",
+    "es": "{n} núcleo de procesador|{n} núcleos de procesador"
+  },
+  "Phone or tablet": {
+    "fr": "Téléphone ou tablette",
+    "es": "Teléfono o tableta"
+  },
+  "Data saver on": {
+    "fr": "Économiseur de données activé",
+    "es": "Ahorro de datos activado"
+  },
+  "{mb} MB of free storage": {
+    "fr": "{mb} Mo de stockage libre",
+    "es": "{mb} MB de almacenamiento libre"
+  },
+  "These features run an AI model inside your browser, on this device. They are off until you turn them on, each one downloads a model the first time you use it, and the rest of the app works the same without them. These switches apply to this device only.": {
+    "fr": "Ces fonctions font tourner un modèle d’IA dans votre navigateur, sur cet appareil. Elles sont désactivées tant que vous ne les activez pas, chacune télécharge un modèle à la première utilisation, et le reste de l’appli fonctionne pareil sans elles. Ces réglages ne valent que pour cet appareil.",
+    "es": "Estas funciones ejecutan un modelo de IA dentro del navegador, en este dispositivo. Están desactivadas hasta que las actives, cada una descarga un modelo la primera vez que la usas y el resto de la app funciona igual sin ellas. Estos ajustes valen solo para este dispositivo."
+  },
+  "This device": {
+    "fr": "Cet appareil",
+    "es": "Este dispositivo"
+  },
+  "Download: about {mb} MB, kept on this device.": {
+    "fr": "Téléchargement : environ {mb} Mo, conservé sur cet appareil.",
+    "es": "Descarga: unos {mb} MB, que se guardan en este dispositivo."
+  },
+  "{name} downloads about {mb} MB the first time you use it and uses a lot of memory while it runs. If it makes your device struggle, it turns itself off.": {
+    "fr": "{name} télécharge environ {mb} Mo à la première utilisation et utilise beaucoup de mémoire pendant son exécution. Si votre appareil peine, elle se désactive toute seule.",
+    "es": "{name} descarga unos {mb} MB la primera vez que la usas y consume mucha memoria mientras funciona. Si el dispositivo se atasca, se desactiva sola."
+  },
+  "{name} uses a lot of memory while it runs. If it makes your device struggle, it turns itself off.": {
+    "fr": "{name} utilise beaucoup de mémoire pendant son exécution. Si votre appareil peine, elle se désactive toute seule.",
+    "es": "{name} consume mucha memoria mientras funciona. Si el dispositivo se atasca, se desactiva sola."
+  },
+  "Turn on": {
+    "fr": "Activer",
+    "es": "Activar"
+  },
+  "On": {
+    "fr": "Activé",
+    "es": "Activado"
+  },
+  "Off": {
+    "fr": "Désactivé",
+    "es": "Desactivado"
+  },
+  "Turned off automatically because {why}. Your recordings and everything else are fine.": {
+    "fr": "Désactivée automatiquement parce que {why}. Vos enregistrements et le reste sont intacts.",
+    "es": "Desactivada automáticamente porque {why}. Tus grabaciones y todo lo demás siguen bien."
+  },
+  "Not available on this device.": {
+    "fr": "Indisponible sur cet appareil.",
+    "es": "No disponible en este dispositivo."
+  },
+  "Turn off": {
+    "fr": "Désactiver",
+    "es": "Desactivar"
+  },
+  "Turn on…": {
+    "fr": "Activer…",
+    "es": "Activar…"
+  },
+  "Delete downloaded data": {
+    "fr": "Supprimer les données téléchargées",
+    "es": "Borrar los datos descargados"
+  },
+  "Deleted. {name} is off.": {
+    "fr": "Supprimé. {name} est désactivée.",
+    "es": "Borrado. {name} está desactivada."
+  },
+  "{name} was turned off on this device because {why}. You can turn it back on in Settings → Analysis.": {
+    "fr": "{name} a été désactivée sur cet appareil parce que {why}. Vous pouvez la réactiver dans Réglages → Analyse.",
+    "es": "{name} se desactivó en este dispositivo porque {why}. Puedes volver a activarla en Ajustes → Análisis."
+  },
+  "Analysis": {
+    "fr": "Analyse",
+    "es": "Análisis"
+  },
+  "This browser can’t run it (it needs Web Workers and WebAssembly).": {
+    "fr": "Ce navigateur ne peut pas l’exécuter (il faut les Web Workers et WebAssembly).",
+    "es": "Este navegador no puede ejecutarla (necesita Web Workers y WebAssembly)."
+  },
+  "This device reports {gb} GB of memory and this needs at least {min} GB.": {
+    "fr": "Cet appareil indique {gb} Go de mémoire et il en faut au moins {min} Go.",
+    "es": "Este dispositivo indica {gb} GB de memoria y se necesitan al menos {min} GB."
+  },
+  "This browser doesn’t say how much memory the device has, so it can’t be checked.": {
+    "fr": "Ce navigateur n’indique pas la mémoire de l’appareil, impossible de vérifier.",
+    "es": "Este navegador no indica la memoria del dispositivo, así que no se puede comprobar."
+  },
+  "Only {n} processor cores: it will be slow.": {
+    "fr": "Seulement {n} cœurs de processeur : ce sera lent.",
+    "es": "Solo {n} núcleos de procesador: irá lento."
+  },
+  "Phones and tablets can struggle with it and it drains the battery.": {
+    "fr": "Les téléphones et tablettes peuvent peiner et la batterie se vide vite.",
+    "es": "Los teléfonos y tabletas pueden tener problemas y gasta batería."
+  },
+  "Data saver is on, and the download is large.": {
+    "fr": "L’économiseur de données est activé et le téléchargement est volumineux.",
+    "es": "El ahorro de datos está activado y la descarga es grande."
+  },
+  "Little free storage is left for the download ({mb} MB).": {
+    "fr": "Il reste peu de stockage libre pour le téléchargement ({mb} Mo).",
+    "es": "Queda poco almacenamiento libre para la descarga ({mb} MB)."
+  }
+}
