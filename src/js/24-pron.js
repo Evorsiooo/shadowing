@@ -52,6 +52,11 @@ const PronMock = {
   },
 };
 
+/* the clip's words (src/js/26-words.js) that overlap a stretch of the clip, for "in “word”" labels; '' when the clip has none */
+function wordsAt(clip, a, b) {
+  const c = Store.get('clips', clip.id) || clip;
+  return ((c && c.words) || []).filter((x) => x.e > a && x.s < b).slice(0, 4).map((x) => x.w).join(' ');
+}
 /* turns the engine's ClipResult (global Phones.analyse, src/phones/contract.d.ts) into the shape above:
    substitutions only (not extra or missing sounds yet), model noise (`weak`) left out, the engine's own pick first */
 const PhonesAdapter = {
@@ -64,7 +69,7 @@ const PhonesAdapter = {
     const syms = (seq, w) => (w == null || !seq.words[w] ? [] : seq.phones.slice(seq.words[w].first, seq.words[w].last + 1).map((p) => p.sym));
     const diffs = r.comparison.diffs.filter((d) => d.kind === 'sub' && !d.weak).map((d) => {
       const [from, to] = d.pair.split('→');
-      return { a: d.t0, b: Math.max(d.t1, d.t0 + 0.3), words: '', speaker: syms(r.speaker, d.speakerWord), you: syms(r.learner, d.learnerWord), from, to, conf: d.confidence + (r.suggested.includes(d.id) ? 1 : 0) };
+      return { a: d.t0, b: Math.max(d.t1, d.t0 + 0.3), words: wordsAt(clip, d.t0, Math.max(d.t1, d.t0 + 0.3)), speaker: syms(r.speaker, d.speakerWord), you: syms(r.learner, d.learnerWord), from, to, conf: d.confidence + (r.suggested.includes(d.id) ? 1 : 0) };
     });
     const sounds = {};
     for (const p of r.speaker.phones) sounds[p.sym] = (sounds[p.sym] || 0) + 1;

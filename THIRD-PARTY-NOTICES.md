@@ -8,3 +8,7 @@
 
 ## ONNX Runtime Web
 - `onnxruntime-web` 1.20.1, MIT, Copyright (c) Microsoft Corporation. Its loader and WebAssembly files are served from this site (`/assets/h/phones/`).
+
+## Whisper word labels (Pronunciation tab, optional)
+- Model: Whisper `base.en` (OpenAI, MIT) as the ONNX conversion `Xenova/whisper-base.en` on Hugging Face, 8-bit files. Not bundled: each user's browser downloads it on opt-in (Settings → Analysis, "Word labels", about 80 MB) and keeps it on the device. The MIT licence of the weights is from memory and still to be checked against the model card.
+- Runtime: `@huggingface/transformers` 3.3.3 (Apache-2.0, Copyright Hugging Face) and the ONNX Runtime Web build it ships (MIT, Copyright (c) Microsoft Corporation). The worker and the runtime files are served from this site (`/assets/h/words/`). Attribution shown with the feature: "Word labels: Whisper (OpenAI, MIT) as ONNX files by Xenova, run on your device with transformers.js (Apache-2.0)."
