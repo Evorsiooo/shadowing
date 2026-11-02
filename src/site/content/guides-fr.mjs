@@ -32,7 +32,7 @@ const make = ({ L }) => ({
       <li><strong>Des commandes de lecture.</strong> Boucle sur l’extrait, lecture à 0,5x, 0,75x ou 1x avec une hauteur naturelle, et raccourcis clavier.</li>
       <li><strong>Enregistrement et comparaison.</strong> Écoute l’original, toi-même, l’un après l’autre ou les deux ensemble. Tes enregistrements de l’étape 3 et final sont conservés pour chaque extrait.</li>
       <li><strong>Hauteur et décalage.</strong> Euno trace la mélodie du locuteur et la tienne, chacune relative à sa propre voix, et mesure de combien tu étais en retard ou en avance.</li>
-      <li><strong>Différences de prononciation (anglais uniquement, pour l’instant).</strong> Après une passe enregistrée, l’onglet Prononciation aligne les sons que tu as produits sur ceux de l’audio du locuteur et signale jusqu’à trois endroits où ils diffèrent. Il te compare au locuteur que tu as choisi, pas à une transcription, un dictionnaire ou un accent standard, il ne donne pas de note et ne parle d’aucune erreur. Il fonctionne dans ton navigateur : c’est désactivé tant que tu ne l’actives pas dans Réglages → Analyse, ce qui télécharge une fois sur ton appareil un modèle vocal d’environ 71 Mo, et ton enregistrement n’est pas envoyé pour l’analyse. Il peut mal interpréter un son : vois chaque point comme un endroit où écouter, et écarte-le avec « Ça sonne pareil pour moi » si c’est le cas. Les extraits en français et en espagnol n’ont pas encore cela.</li>
+      <li><strong>Différences de prononciation (anglais uniquement, pour l’instant).</strong> Après une passe enregistrée, l’onglet Prononciation aligne les sons que tu as produits sur ceux de l’audio du locuteur et signale jusqu’à trois endroits où ils diffèrent. Il te compare au locuteur que tu as choisi, pas à une transcription, un dictionnaire ou un accent standard, il ne donne pas de note et ne parle d’aucune erreur. Il fonctionne dans ton navigateur : c’est désactivé tant que tu ne l’actives pas dans Réglages → Analyse, ce qui télécharge une fois sur ton appareil un modèle vocal d’environ 71 Mo (depuis Hugging Face, un hébergeur tiers), et ton enregistrement n’est pas envoyé pour l’analyse. C’est une fonction bêta, elle demande un ordinateur et n’affiche rien quand l’audio est trop bruyant pour être jugé. Il peut mal interpréter un son : vois chaque point comme un endroit où écouter, et écarte-le avec « Ça sonne pareil pour moi » si c’est le cas. Les extraits en français et en espagnol n’ont pas encore cela.</li>
       <li><strong>Différences avec le locuteur.</strong> Après une passe, il peut signaler les passages où tu as été plus vite ou plus lentement, où la hauteur est allée dans l’autre sens, ou où l’accentuation différait. Ces indications viennent de la mesure des deux enregistrements, pas d’un modèle de langage qui écoute ta voix. Si tu l’actives dans les Réglages (désactivé par défaut, Chrome uniquement, ta voix est envoyée à Google pendant son fonctionnement), il peut aussi signaler les mots de l’extrait que la reconnaissance vocale du navigateur n’a pas entendus et qui étaient peut-être peu clairs. Elle peut aussi rater des mots clairs : prends cela comme une piste.</li>
       <li><strong>Notes et problèmes.</strong> Note ce qui sonnait faux ; les problèmes récurrents sont regroupés dans une liste.</li>
       <li><strong>Bilans sur 12 semaines.</strong> Un point de départ, puis les mêmes exercices aux semaines 4, 8 et 12.</li>
@@ -57,7 +57,7 @@ const make = ({ L }) => ({
     </ol>
 
     <h2>Prix et confidentialité</h2>
-    <p>Euno Shadowing est gratuit. Tes vidéos et tes enregistrements sont rangés dans un dossier « Euno Shadowing » de ton propre Google Drive, pas sur notre serveur. Notre serveur garde tes notes, tes réglages et ta progression. L’analyse de prononciation en anglais se fait sur ton appareil : ton audio n’est envoyé nulle part pour cela. Les détails sont dans la <a href="${L('/privacy/')}">politique de confidentialité</a>.</p>
+    <p>Euno Shadowing est gratuit. Tes vidéos et tes enregistrements sont rangés dans un dossier « Euno Shadowing » de ton propre Google Drive, pas sur notre serveur. Notre serveur garde tes notes, tes réglages et ta progression. L’analyse de prononciation en anglais se fait sur ton appareil : ton audio n’est envoyé nulle part pour cela ; ses résultats écrits sont conservés avec tes données d’entraînement. Les détails sont dans la <a href="${L('/privacy/')}">politique de confidentialité</a>.</p>
 
     <h2>À ne pas confondre avec</h2>
     <p>Le nom est partagé avec des choses sans rapport, et aucune n’est Euno Shadowing :</p>
@@ -107,7 +107,7 @@ const make = ({ L }) => ({
     <ul>
       <li><strong>Des extraits trop longs ou trop rapides.</strong> Si tu ne suis pas après cinq passages, coupe un extrait plus court.</li>
       <li><strong>Copier les mots, pas la mélodie.</strong> Exagère les montées, les descentes et les syllabes longues jusqu’à trouver ça un peu théâtral.</li>
-      <li><strong>Ne jamais comparer.</strong> Enregistre un passage et regarde-le à côté de l’original. Les courbes de mélodie et le décalage montrent ce que tes oreilles ratent.</li>
+      <li><strong>Ne jamais comparer.</strong> Enregistre un passage et regarde-le à côté de l’original. Les courbes de mélodie et le décalage montrent ce que tes oreilles ratent. Pour les extraits en anglais, l’onglet Prononciation (bêta) peut aussi signaler des sons qui diffèrent de ceux du locuteur.</li>
       <li><strong>Changer de locuteur trop souvent.</strong> Garde une même voix quelques semaines pour que les schémas s’installent.</li>
       <li><strong>Ne faire que du shadowing.</strong> Utilise aussi l’accent dans tes propres phrases : raconte avec tes mots ce que tu viens d’imiter.</li>
     </ul>`,
@@ -130,6 +130,7 @@ const make = ({ L }) => ({
       <li><strong>Moins bien :</strong> livres audio, lecture du journal et publicités écrites à l’avance. La lecture n’a pas le même rythme que la conversation.</li>
       <li><strong>À éviter :</strong> de la musique sous la voix, plusieurs personnes qui parlent en même temps, un montage qui coupe au milieu des phrases, et une parole très rapide ou mâchée.</li>
     </ul>
+    <p>Un audio propre compte doublement si tu utilises l’onglet Prononciation d’Euno (anglais) : quand la voix du locuteur est noyée dans de la musique, du bruit ou des voix qui se chevauchent, il le dit et n’affiche aucune différence.</p>
 
     <h2>Trouve la bonne longueur</h2>
     <p>Une ou deux phrases, en général 10 à 20 secondes. Au début, plus court, c’est mieux. Si tu ne suis toujours pas le locuteur après cinq ou six passages, l’extrait est trop long ou trop rapide : coupe-le en deux.</p>
@@ -194,7 +195,8 @@ const make = ({ L }) => ({
       <li>Quand tu compares tes enregistrements, note ce qui sonne encore différemment.</li>
       <li>Si le même son revient sans cesse, passe quelques minutes sur des paires minimales pour lui.</li>
       <li>Puis reviens au shadowing pour utiliser ce son à vitesse normale, dans de vraies phrases.</li>
-    </ol>`,
+    </ol>
+    <p>Dans Euno Shadowing, les extraits en anglais ont un onglet Prononciation (bêta) qui peut suggérer quel son regarder : il signale jusqu’à trois endroits où tes sons diffèrent de l’audio du locuteur. Il peut se tromper, alors écoute les deux avant de t’investir dans un exercice.</p>`,
   },
 
   'euno-vs-elsa-language-reactor': {
@@ -215,17 +217,19 @@ const make = ({ L }) => ({
         <tr><td>Principe</td><td>Imiter un vrai locuteur, puis comparer ta hauteur de voix et ton timing aux siens</td><td>Dire une phrase et recevoir un retour sur tes sons</td><td>Sous-titres doubles et dictionnaire en infobulle pour comprendre ce que tu entends</td></tr>
         <tr><td>Langues</td><td>Accents anglais, français et espagnols</td><td>Anglais</td><td>De nombreuses langues</td></tr>
         <tr><td>Retour</td><td>Ta courbe de mélodie et ton décalage à côté de ceux du locuteur ; en anglais, les sons qui diffèrent de ceux du locuteur ; retour IA facultatif avec ta propre clé d’API</td><td>Notation automatique de ta prononciation</td><td>Pas un outil de prononciation</td></tr>
+        <tr><td>Retour au niveau des sons</td><td>Anglais uniquement, en bêta : jusqu’à trois endroits où tes sons diffèrent de l’audio du locuteur, sans note. Désactivé par défaut ; un modèle d’environ 71 Mo est téléchargé une fois et fonctionne dans ton navigateur</td><td>Note tes sons par rapport à un accent standard (anglais)</td><td>Aucun</td></tr>
+        <tr><td>Comparé à</td><td>Le locuteur que tu as choisi</td><td>Un accent cible</td><td>Personne : elle n’analyse pas ta voix</td></tr>
         <tr><td>Prix</td><td>Gratuit ; l’usage de l’IA, si tu la choisis, est facturé par ton fournisseur</td><td>Offre gratuite et abonnements payants</td><td>Offre gratuite et abonnements payants</td></tr>
       </tbody>
     </table>
 
     <h2>Euno Shadowing</h2>
     <p>Euno déroule la routine de shadowing à ta place. Tu apportes une vidéo d’un locuteur dont tu veux l’accent, tu découpes un extrait d’une ou deux phrases, et Euno le boucle, compte tes passages, t’enregistre et trace ta mélodie et ton décalage à côté de ceux du locuteur. Il s’appuie sur le vrai locuteur, pas sur un accent modèle, donc il marche avec n’importe quelle voix que tu trouves.</p>
-    <p><strong>Ce qu’il ne fait pas :</strong> pas de leçons ni de bibliothèque à lui, pas de sous-titres ni de transcriptions, pas d’intégration aux sites de streaming, et pas de note ni de score. Il montre les différences avec la mélodie et le timing du locuteur et, en anglais, les sons qui diffèrent des siens ; il ne dit pas que tu as juste ou faux, et il peut mal interpréter un son. Le retour IA est facultatif et utilise une clé que tu fournis.</p>
+    <p><strong>Ce qu’il ne fait pas :</strong> pas de leçons ni de bibliothèque à lui, pas de sous-titres ni de transcriptions, pas d’intégration aux sites de streaming, et pas de note ni de score. Il montre les différences avec la mélodie et le timing du locuteur et, en anglais, les sons qui diffèrent des siens ; il ne dit pas que tu as juste ou faux, et il peut mal interpréter un son. Le retour IA est facultatif et utilise une clé que tu fournis. La comparaison des sons est une fonction bêta, uniquement en anglais, et nous n’annonçons aucune précision particulière : c’est un indice pour écouter, pas un verdict.</p>
 
     <h2>ELSA Speak</h2>
     <p>ELSA est une app de prononciation de l’anglais. Tu suis ses leçons et exercices, tu parles, et l’app note ta prononciation et signale les sons à travailler. C’est un bon choix si tu veux un cours structuré et un retour rapide sur les sons, par rapport à un accent standard.</p>
-    <p><strong>La différence :</strong> le contenu est celui de l’entreprise, tu ne peux pas t’exercer avec ton locuteur préféré, et son retour te juge par rapport à une cible, pas par rapport à la personne que tu imites. Elle est centrée sur l’anglais. L’onglet Prononciation d’Euno fait l’inverse : il te compare au locuteur que tu as choisi et ne donne pas de note.</p>
+    <p><strong>La différence :</strong> le contenu est celui de l’entreprise, tu ne peux pas t’exercer avec ton locuteur préféré, et son retour te juge par rapport à une cible, pas par rapport à la personne que tu imites. Elle est centrée sur l’anglais. L’onglet Prononciation d’Euno fait l’inverse : il te compare au locuteur que tu as choisi et ne donne pas de note. Si tu veux un cours noté, son par son, ELSA est fait pour ça ; l’onglet Prononciation d’Euno est plus récent, en bêta, et pensé comme un indice à côté de ta propre écoute.</p>
 
     <h2>Language Reactor</h2>
     <p>Language Reactor est une extension de navigateur qui ajoute des sous-titres doubles, un dictionnaire en infobulle et des commandes de lecture aux vidéos de sites comme Netflix et YouTube. Elle sert à comprendre et à retenir du vocabulaire à partir de contenus réels, et couvre de nombreuses langues.</p>
@@ -233,7 +237,7 @@ const make = ({ L }) => ({
 
     <h2>Comment choisir</h2>
     <ul>
-      <li><strong>Tu veux ressembler à un locuteur précis</strong>, avec un rythme et une mélodie les plus proches possible : Euno.</li>
+      <li><strong>Tu veux ressembler à un locuteur précis</strong>, avec un rythme et une mélodie les plus proches possible : Euno. (En anglais, il signale aussi des sons qui diffèrent de ceux du locuteur.)</li>
       <li><strong>Tu veux un cours guidé</strong> et un retour sur les sons de l’anglais : ELSA.</li>
       <li><strong>Tu veux comprendre et apprendre des mots</strong> à partir de ce que tu regardes : Language Reactor.</li>
     </ul>
@@ -322,6 +326,8 @@ const make = ({ L }) => ({
       </tbody>
     </table>
 
+    <p>Dans Euno, les extraits en français ont la courbe de hauteur, le décalage et les mesures de rythme. L’onglet Prononciation, qui compare les sons un par un, est pour l’instant réservé à l’anglais.</p>
+
     <h2>Sur quoi te concentrer en français</h2>
     <ul>
       <li><strong>N’accentue pas les mots.</strong> Si ta langue maternelle accentue les mots, ton français sonnera saccadé tant que tu ne les aplatis pas pour n’allonger que la fin de chaque groupe.</li>
@@ -402,6 +408,8 @@ const make = ({ L }) => ({
         <tr><td>Shadowing à nouveau</td><td>4 min</td><td>Environ 8 passages de plus, puis un enregistrement final.</td></tr>
       </tbody>
     </table>
+
+    <p>Dans Euno, les extraits en espagnol ont la courbe de hauteur, le décalage et les mesures de rythme. L’onglet Prononciation, qui compare les sons un par un, est pour l’instant réservé à l’anglais.</p>
 
     <h2>Sur quoi te concentrer en espagnol</h2>
     <ul>

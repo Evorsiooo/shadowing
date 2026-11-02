@@ -15,7 +15,7 @@ export const SITE = {
   description: 'Euno Shadowing is a free daily coach for accent shadowing. Speak along with real clips, see your pitch and timing next to the speaker’s, and track your accent over 12 weeks.',
   // Starts Google sign-in (owned by the accounts work) and comes back to the app.
   signInUrl: '/auth/google',
-  updated: '2026-10-14',
+  updated: '2026-11-02',
 };
 
 const G = '<svg class="g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
@@ -33,9 +33,12 @@ const icons = {
   scissors: '<svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg>',
   note: '<svg viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg>',
   chart: '<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  ear: '<svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 3.5-3 4-3 7.5a2.5 2.5 0 0 1-5 0M9.5 9a2.5 2.5 0 0 1 5 0"/></svg>',
+  bell: '<svg viewBox="0 0 24 24"><path d="M6 17v-6a6 6 0 0 1 12 0v6l2 2H4zM10 22h4"/></svg>',
+  spark: '<svg viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>',
 };
 // the feature cards, in the order of home.cards in each content file
-const CARD_ICONS = ['scissors', 'wave', 'timer', 'mic', 'note', 'chart'];
+const CARD_ICONS = ['scissors', 'wave', 'timer', 'ear', 'mic', 'note', 'chart', 'bell', 'spark'];
 
 /* ---------- languages ---------- */
 // The path of a page in a language: '/privacy/' -> '/fr/privacy/'.
@@ -53,15 +56,15 @@ export const DEFAULT_LANG = 'en';
 const GUIDES = [
   { key: 'what-is-euno-shadowing', slug: '/what-is-euno-shadowing/', group: 'start', published: '2026-10-21', updated: '2026-11-02', next: ['what-is-shadowing', 'euno-vs-elsa-language-reactor'] },
   { key: 'what-is-shadowing', slug: '/what-is-shadowing/', group: 'start', published: '2026-10-14', text: (c) => c.whatIs, next: ['how-long-shadowing-takes', 'choosing-clips'] },
-  { key: 'how-long-shadowing-takes', slug: '/how-long-does-shadowing-take/', group: 'start', published: '2026-10-15', next: ['accent-shadowing', 'shadowing-vs-other-methods'] },
-  { key: 'choosing-clips', slug: '/choosing-shadowing-clips/', group: 'start', published: '2026-10-15', next: ['what-is-shadowing', 'how-long-shadowing-takes'] },
-  { key: 'shadowing-vs-other-methods', slug: '/shadowing-vs-other-methods/', group: 'start', published: '2026-10-15', next: ['what-is-shadowing', 'choosing-clips'] },
+  { key: 'how-long-shadowing-takes', slug: '/how-long-does-shadowing-take/', group: 'start', published: '2026-10-15', updated: '2026-11-02', next: ['accent-shadowing', 'shadowing-vs-other-methods'] },
+  { key: 'choosing-clips', slug: '/choosing-shadowing-clips/', group: 'start', published: '2026-10-15', updated: '2026-11-02', next: ['what-is-shadowing', 'how-long-shadowing-takes'] },
+  { key: 'shadowing-vs-other-methods', slug: '/shadowing-vs-other-methods/', group: 'start', published: '2026-10-15', updated: '2026-11-02', next: ['what-is-shadowing', 'choosing-clips'] },
   { key: 'euno-vs-elsa-language-reactor', slug: '/euno-vs-elsa-and-language-reactor/', group: 'start', published: '2026-10-21', updated: '2026-11-02', next: ['shadowing-vs-other-methods', 'what-is-shadowing'] },
-  { key: 'accent-shadowing', slug: '/accent-shadowing/', group: 'english', published: '2026-10-14', text: (c) => c.howTo, next: ['english-accents', 'choosing-clips'] },
+  { key: 'accent-shadowing', slug: '/accent-shadowing/', group: 'english', published: '2026-10-14', updated: '2026-11-02', text: (c) => c.howTo, next: ['english-accents', 'choosing-clips'] },
   { key: 'english-accents', slug: '/english-accents/', group: 'english', published: '2026-10-15', next: ['accent-shadowing', 'choosing-clips'] },
-  { key: 'french-accent-shadowing', slug: '/french-accent-shadowing/', group: 'french', published: '2026-10-15', next: ['french-accents', 'choosing-clips'] },
+  { key: 'french-accent-shadowing', slug: '/french-accent-shadowing/', group: 'french', published: '2026-10-15', updated: '2026-11-02', next: ['french-accents', 'choosing-clips'] },
   { key: 'french-accents', slug: '/french-accents/', group: 'french', published: '2026-10-15', next: ['french-accent-shadowing', 'choosing-clips'] },
-  { key: 'spanish-accent-shadowing', slug: '/spanish-accent-shadowing/', group: 'spanish', published: '2026-10-15', next: ['spanish-accents', 'choosing-clips'] },
+  { key: 'spanish-accent-shadowing', slug: '/spanish-accent-shadowing/', group: 'spanish', published: '2026-10-15', updated: '2026-11-02', next: ['spanish-accents', 'choosing-clips'] },
   { key: 'spanish-accents', slug: '/spanish-accents/', group: 'spanish', published: '2026-10-15', next: ['spanish-accent-shadowing', 'choosing-clips'] },
 ];
 const GUIDE_GROUPS = ['start', 'english', 'french', 'spanish'];
