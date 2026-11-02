@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https:; worker-src 'self'; img-src data:; base-uri 'none'; object-src 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Pronunciation engine (dev)</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; max-width: 880px; margin: 24px auto; padding: 0 16px; color: #1c2b1f; background: #f4f8f1; }
+  h1 { font-size: 20px; } h2 { font-size: 16px; margin-top: 28px; }
+  button, input { font: inherit; } button { padding: 6px 12px; margin-right: 6px; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
+  .bar { height: 8px; background: #d9e4d3; border-radius: 4px; overflow: hidden; width: 260px; } .bar i { display: block; height: 100%; background: #3f8f4f; width: 0; }
+  table { border-collapse: collapse; width: 100%; } td, th { text-align: left; padding: 4px 8px; border-bottom: 1px solid #d9e4d3; font-size: 14px; }
+  .ipa { font-family: "Noto Sans", "Segoe UI", sans-serif; font-size: 17px; } .ipa span { display: inline-block; margin-right: 6px; } .ipa .lo { opacity: .45; }
+  .weak { color: #8a8a8a; } .muted { color: #5b6b5e; font-size: 13px; } pre { background: #fff; padding: 8px; overflow: auto; max-height: 240px; font-size: 12px; }
+  .err { color: #b3261e; }
+</style>
+</head>
+<body>
+<h1>Pronunciation engine (developer page)</h1>
+<p class="muted">Runs the phone recogniser on this device. Pick the speaker's clip audio and your own recording (any audio or video file), and read the numbers. Nothing is uploaded. Timings below are measured on this device, not estimates.</p>
+<h2>1. Model</h2>
+<div class="row"><button id="dl">Download model (~71 MB)</button><button id="rm">Remove</button><div class="bar"><i id="barfill"></i></div><span id="status"></span></div>
+<p class="muted" id="credit"></p>
+<h2>2. Audio</h2>
+<div class="row"><label>Speaker clip <input type="file" id="fs" accept="audio/*,video/*"></label><label>Your take <input type="file" id="fl" accept="audio/*,video/*"></label></div>
+<div class="row"><button id="go">Analyse</button><span id="run" class="muted"></span></div>
+<div id="out"></div>
+<script src="@CLIENT@"></script>
+<script type="module" src="@DEV@"></script>
+</body>
+</html>
