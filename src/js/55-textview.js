@@ -1,9 +1,12 @@
 /* ---------- PROTOTYPE (design mockup, demo data, not for merge) ----------
-   "Text" view in the analysis panel. Every word sits at its real start time and is exactly as wide as it was
-   said, so the strip is a time axis like the scrub bar. Fixed rows, named in a gutter on the left:
-     Words (or Speaker's phones, with the toggle) / Speaker's phones (or words) / You.
-   {braces} in a phone string mark the symbols that differ. All of the words, phones, times and differences
-   below are hard-coded demo data for the screenshots. */
+   "Text" view in the analysis panel: the clip's transcript as plain text on a time axis.
+   - Each word starts at its real start time. A thin bar under it is as long as the word was said, and fills
+     green as the playhead passes (karaoke style), so the strip reads like the scrub bar.
+   - The speaker's phones sit under each word (or above it, with the toggle).
+   - Only where your take differs: the word gets a yellow marker, and a "you" line appears under the speaker's
+     phones. Each of the two lines has its own small listen icon.
+   {braces} in a phone string mark the symbols that differ. Words, phones, times and differences are
+   hard-coded demo data for the screenshots. */
 const DEMO_TEXT = [
   { w: 'It', a: 0.25, b: 0.38, p: 'ɪt' },
   { w: 'was', a: 0.38, b: 0.62, p: 'wəz' },
@@ -14,13 +17,13 @@ const DEMO_TEXT = [
   { w: 'for', a: 3.56, b: 3.74, p: 'fɔɹ' },
   { w: 'us', a: 3.74, b: 4.08, p: 'ʌs' },
 ];
-const TEXT_PPS = 320; // pixels per second of clip, the same for every word
-const TEXT_HEAD = 0.3; // the playhead sits 30% in from the left edge of the strip
+const TEXT_PPS = 300; // pixels per second of clip, the same for every word
+const TEXT_HEAD = 0.32; // the playhead sits a third of the way in
 
-/* text inside a cell: shrink to fit the word's own width, never wider than its time slot */
-function tvFit(text, widthPx, maxRem, minRem) {
+/* shrink a word only if it wouldn't fit before the next word starts */
+function tvFit(text, widthPx, maxRem, minRem, em = 0.6) {
   const chars = String(text).replace(/[{}]/g, '').length || 1;
-  return Math.max(minRem, Math.min(maxRem, widthPx / (chars * 0.62 * 16))) + 'rem';
+  return Math.max(minRem, Math.min(maxRem, widthPx / (chars * em * 16))) + 'rem';
 }
 /* "ɪmˈpɔ{ɹ}tənt" -> text with the differing symbols marked */
 function tvPhones(s) {
@@ -37,49 +40,39 @@ function buildTextView(clip) {
   const dur = clip.end - clip.start;
   const wordsTop = UI.textTop !== 'phones';
   const trackW = Math.ceil(dur * TEXT_PPS);
-  const m = clip.model;
 
-  // pitch lines behind (speaker green, your demo take blue), drawn like the Pitch view
-  const pts = (shift) => {
-    let d = '', pen = false;
-    for (let i = 0; i < m.st.length; i++) {
-      const v = m.st[i], ct = i * m.hop;
-      if (v == null || Math.abs(v) > 12) { pen = false; continue; }
-      d += (pen ? 'L' : 'M') + (ct * TEXT_PPS).toFixed(1) + ' ' + (23 - (v / 12) * 18 + shift(i)).toFixed(1);
-      pen = true;
-    }
-    return d;
-  };
-  const ns = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(ns, 'svg');
-  svg.setAttribute('class', 'tv-pitch'); svg.setAttribute('width', trackW); svg.setAttribute('height', 46);
-  for (const [d, cls] of [[pts(() => 0), 'sp'], [pts((i) => Math.sin(i / 7) * 2 + 4), 'you']]) {
-    const p = document.createElementNS(ns, 'path'); p.setAttribute('d', d); p.setAttribute('class', cls); svg.appendChild(p);
+  const listen = (who, d) => h('button', {
+    type: 'button', class: 'tv-listen ' + who,
+    title: who === 'spk' ? 'Hear the speaker say “' + d.w + '”' : 'Hear how you said “' + d.w + '”',
+    'aria-label': who === 'spk' ? 'Hear the speaker say “' + d.w + '”' : 'Hear how you said “' + d.w + '”',
+    onclick: (e) => { e.stopPropagation(); if (who === 'spk') { Player.seek(clip.start + d.a); Player.play(); } },
+  }, icon('volume'));
+
+  const words = DEMO_TEXT.map((d, i) => {
+    const next = DEMO_TEXT[i + 1];
+    const room = ((next ? next.a : dur) - d.a) * TEXT_PPS - 10; // space before the next word
+    const big = wordsTop ? d.w : tvPlain(d.p);
+    const fill = h('i');
+    const el = h('div', { class: 'tv-w' + (d.you ? ' diff' : ''), style: { left: d.a * TEXT_PPS + 'px' }, onclick: () => Player.seek(clip.start + d.a) },
+      h('div', { class: 'tv-big ' + (wordsTop ? 'wd' : 'ph'), style: { fontSize: tvFit(big, room, 1.75, 0.95, wordsTop ? 0.56 : 0.62) } },
+        h('span', { class: 'tv-mark' }, wordsTop ? d.w : tvPhones(d.p))),
+      h('div', { class: 'tv-bar', style: { width: Math.max(8, (d.b - d.a) * TEXT_PPS - 6) + 'px' } }, fill),
+      h('div', { class: 'tv-sub ' + (wordsTop ? 'ph' : 'wd') }, h('span', null, wordsTop ? tvPhones(d.p) : d.w), d.you ? listen('spk', d) : null),
+      d.you ? h('div', { class: 'tv-you' }, h('span', { class: 'tv-tag' }, 'you'), h('span', { class: 'tv-yph' }, tvPhones(d.you)), listen('you', d)) : null);
+    return { d, el, fill };
+  });
+
+  // a quiet ruler of seconds along the bottom, in the video's own time
+  const ticks = [];
+  for (let s = Math.ceil(clip.start * 2) / 2; s <= clip.end; s += 0.5) {
+    const whole = Math.abs(s - Math.round(s)) < 1e-6;
+    ticks.push(h('div', { class: 'tv-tick' + (whole ? ' whole' : ''), style: { left: (s - clip.start) * TEXT_PPS + 'px' } }, whole ? fmtTime(s) : null));
   }
 
-  const hear = (who, d) => btn(who === 'spk' ? 'Speaker' : 'You',
-    (e) => { e.stopPropagation(); if (who === 'spk') { Player.seek(clip.start + d.a); Player.play(); } },
-    { icon: 'play', size: 'sm', kind: who === 'spk' ? 'primary' : 'blue', title: who === 'spk' ? 'Hear the speaker say “' + d.w + '”' : 'Hear your take of “' + d.w + '”' });
-
-  const tile = (d) => {
-    const wpx = Math.max(30, (d.b - d.a) * TEXT_PPS - 6);
-    return h('div', { class: 'tv-tile' + (d.you ? ' diff' : ''), style: { left: d.a * TEXT_PPS + 'px', width: (d.b - d.a) * TEXT_PPS - 4 + 'px' }, onclick: () => Player.seek(clip.start + d.a) },
-      h('div', { class: 'tv-big ' + (wordsTop ? 'wd' : 'ph'), style: { fontSize: tvFit(wordsTop ? d.w : tvPlain(d.p), wpx, 1.4, 0.8) } }, wordsTop ? d.w : tvPhones(d.p)),
-      h('div', { class: 'tv-small ' + (wordsTop ? 'ph' : 'wd'), style: { fontSize: tvFit(wordsTop ? tvPlain(d.p) : d.w, wpx, 0.9, 0.66) } }, wordsTop ? tvPhones(d.p) : d.w));
-  };
-  const fixCard = (d) => {
-    const mid = ((d.a + d.b) / 2) * TEXT_PPS;
-    return h('div', { class: 'tv-fix', style: { left: mid + 'px' } },
-      h('div', { class: 'tv-line spk' }, hear('spk', d), h('span', { class: 'tv-ph' }, tvPhones(d.p))),
-      h('div', { class: 'tv-line you' }, hear('you', d), h('span', { class: 'tv-ph' }, tvPhones(d.you))));
-  };
-
-  const track = h('div', { class: 'tv-track', style: { width: trackW + 'px', backgroundSize: TEXT_PPS + 'px 100%' } }, svg,
-    DEMO_TEXT.map(tile), DEMO_TEXT.filter((d) => d.you).map(fixCard));
-  const view = h('div', { class: 'tv-view' }, track, h('div', { class: 'tv-head', style: { left: TEXT_HEAD * 100 + '%' } }));
-  const box = h('div', { class: 'tv-box' }, view);
-  Panel.canvas = box;
-  Panel.refs.track = track; Panel.refs.box = view; Panel.refs.dur = dur;
+  const track = h('div', { class: 'tv-track', style: { width: trackW + 'px' } }, words.map((x) => x.el), h('div', { class: 'tv-ruler' }, ticks));
+  const view = h('div', { class: 'tv-view' }, track, h('div', { class: 'tv-head', style: { left: TEXT_HEAD * 100 + '%' } }, h('span')));
+  Panel.canvas = view;
+  Panel.refs = { track, view, dur, words };
 
   // drag the text to scrub, like the scrub bar
   let down = null;
@@ -88,17 +81,21 @@ function buildTextView(clip) {
   view.addEventListener('pointerup', () => { down = null; });
 
   const diffs = DEMO_TEXT.filter((d) => d.you).length;
-  return [box,
-    h('div', { class: 'row tv-legend small muted' },
-      h('span', { class: 'tv-key' }), diffs + ' differences from the speaker in take 3',
-      h('span', { class: 'spacer' }),
-      'Each word is as wide as it was said · Drag to scrub')];
+  return [view,
+    h('p', { class: 'tv-foot small muted' },
+      h('span', { class: 'tv-dot' }), `${diffs} words sound different from the speaker in your last take. `,
+      'Tap a word to jump to it, or drag the text to scrub.')];
 }
 
 Panel.drawText = function (now) {
-  const { track, box, dur } = this.refs;
+  const { track, view, dur, words } = this.refs;
   const clip = Store.get('clips', UI.clipId);
   if (!track || !clip) return;
-  const x = clamp(now - clip.start, 0, dur) * TEXT_PPS;
-  track.style.transform = `translateX(${box.clientWidth * TEXT_HEAD - x}px)`;
+  const ct = clamp(now - clip.start, 0, dur);
+  track.style.transform = `translateX(${Math.round(view.clientWidth * TEXT_HEAD - ct * TEXT_PPS)}px)`;
+  for (const { d, el, fill } of words) {
+    const f = clamp((ct - d.a) / (d.b - d.a), 0, 1);
+    fill.style.width = f * 100 + '%';
+    el.classList.toggle('now', ct >= d.a && ct < d.b);
+  }
 };
