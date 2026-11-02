@@ -16,3 +16,11 @@ automatic note ("possible, listen and confirm", `notes` with `auto: true`) when 
 at least half of the places that sound occurred (3+ places). Thresholds are guesses until the native-ear check.
 Dismissing a pair deletes its tally and blocks it. Automatic notes never call the AI; Ask AI on one is a user tap with their own key.
 The AI gets `Phones …: speaker "θ r iː", learner "s r iː"` lines plus a caveat that the recogniser is about 90% right.
+
+## History, "gone quiet" and the AI/MCP view
+- Each tracked pair keeps daily buckets `{d, f, o}` (flagged, chances = how often the speaker's sound occurred) for 120 days, plus 8 example words/dates and `first`/`last`. Chances are added on every recorded pass for every tracked pair, flagged or not, so a pause in practice or clips without the sound never count as "stopped". Size: a few KB.
+- State per pair (`e.state`): `active`; `easing` (flagged share in the last 14 days at most half of the 14 before, 6+ chances in each); `archived` (10+ chances since the last flag, 14+ days, at most 1 flag in 30 days). Archived returns to active on 2 flagged days within 14 days, or 30%+ of the last 10 chances. Thresholds are guesses (`PRON_QUIET`) until the native-ear check.
+- Trend = last 14 days against the 14 before, only with 6+ chances in both; wide bands (±20 points).
+- Setting `pronAutoArchive` (default on): an unconfirmed automatic note gets `archived: true` and moves to "Gone quiet" in Progress → Issues; "Still happening to me" reopens it. Confirmed notes are never archived by software: their issue row shows "Mark as fixed?". Dismissed pairs stay blocked.
+- Timing/pitch/stress: `meta/prosody` keeps the same buckets per kind (rushed, dragged, pitch, stress), recorded from the comparison the review card already computes. Works in every language.
+- AI: up to two `History:` lines per note for the sound pairs in the take, one for the most frequent timing/pitch/stress difference. MCP: `get_pronunciation_progress` and a `pronunciation` summary in `get_overview`, on by default.

@@ -247,6 +247,7 @@ const Session = {
         entry.recorded = true; entry.recId = recId;
         this.review = { recId, blob: res.blob, url: URL.createObjectURL(res.blob), analysis: an, heard, slot: st.recordLast, clipId: clip.id, phones: undefined };
         startPhones(this.review, { clip, samples: res.samples, blob: res.blob, analysis: an, recId, slot: st.recordLast, sessionId: this.doc.id, pass: this.pass + 1, step: st.key });
+        try { ProsodyLog.record(clip, an, recId || `${this.doc.id}:${this.pass + 1}`); } catch (e) { console.warn('prosody history failed', e); }
         this.doc.passes.push(entry);
         this.pass++;
         this.saveDoc();

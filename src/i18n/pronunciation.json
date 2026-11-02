@@ -326,5 +326,93 @@
   "The pronunciation check couldn’t start": {
     "fr": "La vérification de prononciation n’a pas pu démarrer",
     "es": "La comprobación de pronunciación no pudo iniciarse"
+  },
+  "less often": {
+    "fr": "moins souvent",
+    "es": "con menos frecuencia"
+  },
+  "more often": {
+    "fr": "plus souvent",
+    "es": "con más frecuencia"
+  },
+  "about the same": {
+    "fr": "à peu près pareil",
+    "es": "más o menos igual"
+  },
+  "(was {f} of {o})": {
+    "fr": "(avant : {f} sur {o})",
+    "es": "(antes: {f} de {o})"
+  },
+  "{f} of {o} chances flagged in the last 2 weeks": {
+    "fr": "{f} occasions signalées sur {o} ces 2 dernières semaines",
+    "es": "{f} de {o} oportunidades señaladas en las últimas 2 semanas"
+  },
+  "Recent: {list}": {
+    "fr": "Récemment : {list}",
+    "es": "Reciente: {list}"
+  },
+  "showing up less": {
+    "fr": "apparaît moins",
+    "es": "aparece menos"
+  },
+  "gone quiet": {
+    "fr": "devenu discret",
+    "es": "se ha calmado"
+  },
+  "Gone quiet ({n})": {
+    "fr": "Devenus discrets ({n})",
+    "es": "Se han calmado ({n})"
+  },
+  "No longer flagged over several recent chances. They come back on their own if they show up again.": {
+    "fr": "Plus signalés depuis plusieurs occasions récentes. Ils reviennent d’eux-mêmes s’ils réapparaissent.",
+    "es": "Ya no se señalan en varias oportunidades recientes. Vuelven solos si reaparecen."
+  },
+  "quiet since {date}": {
+    "fr": "discret depuis le {date}",
+    "es": "tranquilo desde el {date}"
+  },
+  "Still happening to me": {
+    "fr": "Ça m’arrive encore",
+    "es": "Me sigue pasando"
+  },
+  "Faster than the speaker": {
+    "fr": "Plus rapide que le locuteur",
+    "es": "Más rápido que el hablante"
+  },
+  "Slower than the speaker": {
+    "fr": "Plus lent que le locuteur",
+    "es": "Más lento que el hablante"
+  },
+  "Pitch moving a different way": {
+    "fr": "Mélodie qui va dans l’autre sens",
+    "es": "Entonación que va en otro sentido"
+  },
+  "Stress in a different place": {
+    "fr": "Accent placé ailleurs",
+    "es": "Acento en otro lugar"
+  },
+  "Timing, pitch and stress": {
+    "fr": "Rythme, mélodie et accentuation",
+    "es": "Ritmo, entonación y acento"
+  },
+  "How many of your recent recorded passes had each kind of difference from the speaker. Rough measures, worked out on this device.": {
+    "fr": "Combien de tes passages enregistrés récents avaient chaque type de différence avec le locuteur. Mesures approximatives, calculées sur cet appareil.",
+    "es": "En cuántas de tus pasadas grabadas recientes hubo cada tipo de diferencia con el hablante. Medidas aproximadas, calculadas en este dispositivo."
+  },
+  "{f} of {o} passes in the last 2 weeks": {
+    "fr": "{f} passages sur {o} ces 2 dernières semaines",
+    "es": "{f} de {o} pasadas en las últimas 2 semanas"
+  },
+  "Looks quiet lately.": {
+    "fr": "Ça semble calme ces derniers temps.",
+    "es": "Parece tranquilo últimamente."
+  },
+  "Mark as fixed?": {
+    "fr": "Marquer comme réglé ?",
+    "es": "¿Marcar como resuelto?"
+  },
+  "Move a suggested sound to “Gone quiet” once it has stopped coming back (it returns if it does)": {
+    "fr": "Ranger un son suggéré dans « Devenus discrets » quand il ne revient plus (il revient s’il réapparaît)",
+    "es": "Mover un sonido sugerido a «Se han calmado» cuando deja de repetirse (vuelve si reaparece)"
   }
 }
