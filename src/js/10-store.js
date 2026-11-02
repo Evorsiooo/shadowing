@@ -336,6 +336,8 @@ const DEFAULT_SETTINGS = {
   latencyMs: 0,
   livePitchAllPasses: false,
   speechCheck: false,
+  pronAutoNotes: true, // possible notes from sounds that keep coming back
+  pronAutoArchive: true, // hide such a note once the sound has stopped coming back (it returns on relapse)
   review: false, reviewAfterDays: 2, reviewShadowPasses: 5,
   keepAllPassRecordings: false,
   noiseSuppression: false,

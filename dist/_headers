@@ -20,6 +20,11 @@
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
 
+# The pronunciation worker runs WebAssembly, which the site-wide policy above would block; it has its own narrow one.
+/assets/h/phones/*
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'
+
 /sw.js
   Cache-Control: no-cache
 

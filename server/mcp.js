@@ -71,9 +71,9 @@ This server is read-only and shows only the signed-in user's own data, stored as
 - notes {clipId, sessionId, sentence, off (what sounded off), aim, reply (AI feedback), issueId, date}
 - issues {name, noteIds[], status: open|fixed, lastSeen, mergedInto?}
 - checkins {week: 0|4|8|12, date, recs, questions[], measures}
-- meta: settings (routine settings and target accent profile), app, voice
+- meta: settings (routine settings and target accent profile), app, voice; pron (sound-level history) and prosody (timing/pitch/stress history), best read through get_pronunciation_progress
 Lag is in seconds (positive = behind the speaker). Pitch lines ("st") are semitones relative to the speaker's own median, at 10 ms hops.
-Start with get_overview. Use search to find notes, issues, clips and videos by text.`;
+Start with get_overview. Use get_pronunciation_progress for how the learner's pronunciation differences are changing over time. Use search to find notes, issues, clips and videos by text.`;
 
 const colProp = { type: 'string', enum: COLLECTIONS, description: 'Collection name' };
 
@@ -85,6 +85,14 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     annotations: { title: 'Practice overview', ...READ_ONLY },
     run: async (_a, { env, user }) => overview(await allDocs(env.DB, user.userId)),
+  },
+  {
+    name: 'get_pronunciation_progress',
+    title: 'Pronunciation progress',
+    description: 'How the learner’s sound-level pronunciation differences from the speaker (English, beta) and timing/pitch/stress differences are changing: per sound pair the state (active, easing, archived), chances vs times flagged in the last 2 weeks and the 2 weeks before, trend, first/last dates and recent example words. Evidence from a speech recogniser that is about 90% right per sound, not fact.',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    annotations: { title: 'Pronunciation progress', ...READ_ONLY },
+    run: async (_a, { env, user }) => pronunciationProgress(await allDocs(env.DB, user.userId)),
   },
   {
     name: 'list_records',
@@ -234,5 +242,57 @@ export function overview(data, today = dayKey()) {
       lags: s.passes.map((p) => p.lag).filter((x) => x != null),
     })),
     settings: data.meta.settings ? trim(data.meta.settings) : '(defaults)',
+    pronunciation: pronunciationSummary(data),
+  };
+}
+
+/* ---- pronunciation history (written by the browser into meta/pron and meta/prosody as daily buckets {d, f: flagged, o: chances}) ---- */
+const WINDOW = 14, MIN_CHANCES = 6, TREND_GAP = 0.2; // same rule as Pron.trend in src/js/24-pron.js
+function sumBk(bk, from, to) { let f = 0, o = 0; for (const b of bk || []) if (b.d >= from && b.d <= to) { f += b.f; o += b.o; } return { f, o }; }
+function trendOf(bk, today) {
+  const recent = sumBk(bk, addDays(today, -(WINDOW - 1)), today);
+  const before = sumBk(bk, addDays(today, -(2 * WINDOW - 1)), addDays(today, -WINDOW));
+  let trend = 'not enough practice yet to tell';
+  if (recent.o >= MIN_CHANCES && before.o >= MIN_CHANCES) {
+    const gap = recent.f / recent.o - before.f / before.o;
+    trend = gap <= -TREND_GAP ? 'less often' : gap >= TREND_GAP ? 'more often' : 'about the same';
+  }
+  return { recent, before, trend };
+}
+function pronunciationSummary(data, today = dayKey()) {
+  const pron = data.meta.pron;
+  if (!pron || !pron.tally) return { enabled: false };
+  const states = { active: 0, easing: 0, archived: 0 };
+  for (const [pair, e] of Object.entries(pron.tally)) if (!(pron.blocked || []).includes(pair)) states[e.state || 'active']++;
+  return { enabled: true, trackedSounds: states.active + states.easing + states.archived, ...states, details: 'get_pronunciation_progress' };
+}
+export function pronunciationProgress(data, today = dayKey()) {
+  const pron = data.meta.pron, prosody = data.meta.prosody;
+  if (!pron && !prosody) return { enabled: false, note: 'No pronunciation history yet (the learner has not turned on Settings → Pronunciation or recorded a pass).' };
+  const blocked = (pron && pron.blocked) || [];
+  const pairs = Object.entries((pron && pron.tally) || {}).filter(([pair]) => !blocked.includes(pair)).map(([pair, e]) => {
+    const T = trendOf(e.bk, today);
+    const note = e.noteId && data.notes[e.noteId];
+    const [from, to] = pair.split('→');
+    return {
+      pair, speakerSound: from, heardAsLearnerSound: to, state: e.state || 'active', stateSince: e.stateAt || null,
+      chances: { last14d: T.recent.o, prior14d: T.before.o }, flagged: { last14d: T.recent.f, prior14d: T.before.f },
+      trend: e.state === 'archived' ? 'gone quiet' : T.trend, firstSeen: e.first || null, lastFlagged: e.last || null,
+      daysFlaggedTotal: (e.days || []).length,
+      examples: (e.ex || []).slice(-5).map((x) => ({ date: x.d, word: x.w || null, clipId: x.c || null })),
+      noteId: e.noteId || null, confirmedByLearner: !!(note && note.confirmed),
+    };
+  }).sort((a, b) => (a.state === 'archived') - (b.state === 'archived') || b.flagged.last14d - a.flagged.last14d);
+  const timing = {};
+  for (const [kind, e] of Object.entries((prosody && prosody.kinds) || {})) {
+    const T = trendOf(e.bk, today);
+    timing[kind] = { passesWithDifference: { last14d: T.recent.f, prior14d: T.before.f }, recordedPasses: { last14d: T.recent.o, prior14d: T.before.o }, trend: T.trend };
+  }
+  return {
+    enabled: !!pron,
+    note: 'Sound differences come from a speech recogniser that is about 90% right per sound: treat them as evidence, not fact, and say "may". English only. A "chance" is a place where the speaker has that sound. Timing/pitch/stress are rough measures from loudness and pitch only. Archived means it stopped coming back over several chances; it returns on its own if it relapses.',
+    pairs,
+    timingPitchStress: timing,
+    dismissedByLearner: blocked,
   };
 }

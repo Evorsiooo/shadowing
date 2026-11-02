@@ -12,7 +12,7 @@ import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, copyFileSy
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
-import { transformSync } from 'esbuild';
+import { transformSync, buildSync } from 'esbuild';
 import { SITE, LOGO, LANGS, DEFAULT_LANG, langPath, pages, signInButton } from '../src/site/pages.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -53,10 +53,26 @@ const i18n = {};
 for (const f of readdirSync(join(src, 'i18n')).filter((f) => f.endsWith('.json')).sort()) {
   for (const [k, v] of Object.entries(JSON.parse(readFileSync(join(src, 'i18n', f), 'utf8')))) i18n[k] = { ...(i18n[k] || {}), ...v };
 }
+/* ---------- in-browser pronunciation engine (src/phones/): worker + ONNX Runtime Web files, served from this site ---------- */
+// The worker bundles onnxruntime-web (MIT) and the engine. The two runtime files (loader + WASM, about 11 MB) are copied
+// next to it, so nothing about the engine comes from a third-party host except the model download itself.
+const ORT_FILES = ['ort-wasm-simd-threaded.mjs', 'ort-wasm-simd-threaded.wasm'];
+const ortDist = join(root, 'node_modules', 'onnxruntime-web', 'dist');
+const bundle = (entry) => buildSync({ entryPoints: [join(src, 'phones', entry)], bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022', minify: true, legalComments: 'none' }).outputFiles[0].text;
+const phonesWorker = bundle('worker.mjs');
+const phonesDev = bundle('dev.mjs');
+const phonesHash = createHash('sha256').update(phonesWorker).update(phonesDev);
+for (const f of ORT_FILES) phonesHash.update(readFileSync(join(ortDist, f)));
+const phonesDir = `assets/h/phones/${phonesHash.digest('hex').slice(0, 10)}`;
+out(`${phonesDir}/worker.js`, phonesWorker);
+out(`${phonesDir}/dev.js`, phonesDev);
+for (const f of ORT_FILES) copyFileSync(join(ortDist, f), join(dist, phonesDir, f));
+const withPhones = (code) => code.replace('__PHONES_WORKER_URL__', `/${phonesDir}/worker.js`).replace('__PHONES_WASM_BASE__', `/${phonesDir}/`);
+
 const js = `const I18N_STRINGS = ${JSON.stringify(i18n).replace(/</g, '\\u003c')};\n` + readdirSync(join(src, 'js'))
   .filter((f) => f.endsWith('.js'))
   .sort()
-  .map((f) => `/* ---- ${f} ---- */\n` + readFileSync(join(src, 'js', f), 'utf8'))
+  .map((f) => `/* ---- ${f} ---- */\n` + withPhones(readFileSync(join(src, 'js', f), 'utf8')))
   .join('\n');
 if (js.includes('</script')) throw new Error('A script contains "</script", which would break the inline page.');
 
@@ -93,6 +109,11 @@ const appCsp = [
 
 mkdirSync(dist, { recursive: true });
 rmSync(join(dist, 'artifact.html'), { force: true });
+// Developer page for the pronunciation engine: /app/phones-dev/ (signed-in users only, like the rest of /app/, and noindex)
+out('app/phones-dev/index.html', readFileSync(join(src, 'phones', 'dev.html'), 'utf8')
+  .replace('@CLIENT@', () => `/${phonesDir}/client.js`).replace('@DEV@', () => `/${phonesDir}/dev.js`));
+out(`${phonesDir}/client.js`, withPhones(readFileSync(join(src, 'js', '24-phones.js'), 'utf8')));
+
 out(
   'app/index.html',
   `<!doctype html>\n<html lang="en-AU">\n<head>\n<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy" content="${appCsp}">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<meta name="robots" content="noindex, nofollow">\n${APP_THEME_COLOR}\n${ICON_LINKS}\n</head>\n<body>\n${body}\n</body>\n</html>\n`,
@@ -246,7 +267,7 @@ ${plain(en.home.lede)} ${plain(en.home.fine)}
 - Euno Shadowing is a free web app at ${SITE.url.replace(/^https:\/\//, '')} for practising pronunciation and accent by shadowing (speaking along with a recording) in English, French and Spanish. Full explanation: ${pageUrl('what-is-euno-shadowing')}
 - You bring your own videos or audio (upload a file or paste a link to an .mp4) and cut short clips of one or two sentences. There are no built-in lessons, no content library, no subtitles and no transcripts, and it does not pull content from YouTube.
 - It is not an app for job shadowing (such as Erasmus+ visits for teachers), medical or pre-med shadowing, or the Euno enterprise AI platform, and is not affiliated with them. It is also not the journaling apps named Euno.
-- Feedback: your pitch line next to the speaker's, your lag behind or ahead of the speaker, and measured differences in speed, pitch direction and stress after each recorded pass. It does not score individual sounds. An optional speech-recognition check (Chrome only, off by default) can mark clip words that may have been unclear. Optional AI feedback on your written notes, which also receives these measurements as text, uses your own API key (Anthropic, OpenAI or OpenRouter); only text is sent, never audio.
+- Feedback: your pitch line next to the speaker's, your lag behind or ahead of the speaker, and measured differences in speed, pitch direction and stress after each recorded pass. For English clips, a Pronunciation tab marks up to three places where the sounds differ from the speaker's audio (differences from the speaker, not mistakes; the analysis runs in the browser and the recording is not uploaded for it; it can misread a sound; French and Spanish clips do not have it yet). It gives no score and does not compare against a transcript or a standard accent. An optional speech-recognition check (Chrome only, off by default) can mark clip words that may have been unclear. Optional AI feedback on your written notes, which also receives these measurements as text, uses your own API key (Anthropic, OpenAI or OpenRouter); only text is sent, never audio.
 
 ## Features
 
@@ -349,6 +370,11 @@ out(
 /assets/h/*
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
+
+# The pronunciation worker runs WebAssembly, which the site-wide policy above would block; it has its own narrow one.
+/assets/h/phones/*
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'
 
 /sw.js
   Cache-Control: no-cache

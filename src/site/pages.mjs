@@ -51,12 +51,12 @@ export const DEFAULT_LANG = 'en';
 // Every guide, in the order of the Guides page. Their words are in content/guides-<lang>.mjs under the same key
 // (the first two predate it and live in content/<lang>.mjs). group: the Guides page section; next: the "Read next" links.
 const GUIDES = [
-  { key: 'what-is-euno-shadowing', slug: '/what-is-euno-shadowing/', group: 'start', published: '2026-10-21', next: ['what-is-shadowing', 'euno-vs-elsa-language-reactor'] },
+  { key: 'what-is-euno-shadowing', slug: '/what-is-euno-shadowing/', group: 'start', published: '2026-10-21', updated: '2026-11-02', next: ['what-is-shadowing', 'euno-vs-elsa-language-reactor'] },
   { key: 'what-is-shadowing', slug: '/what-is-shadowing/', group: 'start', published: '2026-10-14', text: (c) => c.whatIs, next: ['how-long-shadowing-takes', 'choosing-clips'] },
   { key: 'how-long-shadowing-takes', slug: '/how-long-does-shadowing-take/', group: 'start', published: '2026-10-15', next: ['accent-shadowing', 'shadowing-vs-other-methods'] },
   { key: 'choosing-clips', slug: '/choosing-shadowing-clips/', group: 'start', published: '2026-10-15', next: ['what-is-shadowing', 'how-long-shadowing-takes'] },
   { key: 'shadowing-vs-other-methods', slug: '/shadowing-vs-other-methods/', group: 'start', published: '2026-10-15', next: ['what-is-shadowing', 'choosing-clips'] },
-  { key: 'euno-vs-elsa-language-reactor', slug: '/euno-vs-elsa-and-language-reactor/', group: 'start', published: '2026-10-21', next: ['shadowing-vs-other-methods', 'what-is-shadowing'] },
+  { key: 'euno-vs-elsa-language-reactor', slug: '/euno-vs-elsa-and-language-reactor/', group: 'start', published: '2026-10-21', updated: '2026-11-02', next: ['shadowing-vs-other-methods', 'what-is-shadowing'] },
   { key: 'accent-shadowing', slug: '/accent-shadowing/', group: 'english', published: '2026-10-14', text: (c) => c.howTo, next: ['english-accents', 'choosing-clips'] },
   { key: 'english-accents', slug: '/english-accents/', group: 'english', published: '2026-10-15', next: ['accent-shadowing', 'choosing-clips'] },
   { key: 'french-accent-shadowing', slug: '/french-accent-shadowing/', group: 'french', published: '2026-10-15', next: ['french-accents', 'choosing-clips'] },

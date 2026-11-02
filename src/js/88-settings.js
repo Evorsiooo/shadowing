@@ -14,6 +14,10 @@ const SETTING_GROUPS = [
   { title: N_('Bad-day mode'), fields: [['badListenPasses', N_('Listen: passes'), 1, 10, 1], ['badShadowPasses', N_('Shadow: passes'), 1, 20, 1], ['badMinutes', N_('Minutes'), 2, 15, 1]] },
   { title: N_('Clips'), fields: [['clipMin', N_('Target length: shortest (seconds)'), 2, 60, 1], ['clipMax', N_('Target length: longest (seconds)'), 3, 90, 1]] },
   { title: N_('Review runs'), fields: [['review', N_('Bring finished clips back for a shorter review run'), 'bool'], ['reviewAfterDays', N_('Review after (days)'), 1, 7, 1], ['reviewShadowPasses', N_('Review: shadow passes'), 1, 20, 1]] },
+  { title: N_('Pronunciation (beta)'), when: () => Pron.on(), fields: [
+    ['pronAutoNotes', N_('Suggest a note when the same sound keeps differing on different days (shown in Progress → Issues, never sent to an AI unless you ask)'), 'bool'],
+    ['pronAutoArchive', N_('Move a suggested sound to “Gone quiet” once it has stopped coming back (it returns if it does)'), 'bool'],
+  ] },
   { title: N_('Sync and microphone'), fields: [
     ['alignMode', N_('Line up your recording'), 'select', [['auto', N_('Automatically (match loudness patterns)')], ['manual', N_('With my manual offset')]]],
     ['manualOffsetMs', N_('Manual offset (ms); used when auto-alignment fails or is off'), -500, 2000, 10],
@@ -29,8 +33,8 @@ const SETTING_GROUPS = [
 ];
 
 function openSettings(tab = 'practice') {
-  const tabs = [['practice', t('Practice'), 'mic'], ['profile', t('Profile'), 'user'], ['storage', t('Storage'), 'folder'], ['ai', t('AI'), 'sparkle'], ['reminders', t('Reminders'), 'bell'], ['apps', t('Connected apps'), 'link'], ['data', t('Data'), 'database'], ['checks', t('Device checks'), 'headphones'], ['look', t('Language and theme'), 'palette']];
-  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'storage' ? storageView() : tab === 'ai' ? aiPanel() : tab === 'reminders' ? remindersView() : tab === 'apps' ? connectedAppsView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : lookView();
+  const tabs = [['practice', t('Practice'), 'mic'], ['profile', t('Profile'), 'user'], ['storage', t('Storage'), 'folder'], ['ai', t('AI'), 'sparkle'], ['reminders', t('Reminders'), 'bell'], ['apps', t('Connected apps'), 'link'], ['data', t('Data'), 'database'], ['checks', t('Device checks'), 'headphones'], ...(Heavy.list().length ? [['analysis', t('Analysis'), 'flask']] : []), ['look', t('Language and theme'), 'palette']];
+  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'storage' ? storageView() : tab === 'ai' ? aiPanel() : tab === 'reminders' ? remindersView() : tab === 'apps' ? connectedAppsView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : tab === 'analysis' ? analysisView() : lookView();
   openModal([
     modalHead(t('Settings')),
     h('div', { class: 'tabs' }, tabs.map(([k, l, ic]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab, icon: ic }))),
@@ -41,7 +45,7 @@ function openSettings(tab = 'practice') {
 function settingsForm() {
   const s = settings();
   const draft = { ...s };
-  const groups = SETTING_GROUPS.map((g) => h('div', { class: 'card' }, h('h3', null, t(g.title)),
+  const groups = SETTING_GROUPS.filter((g) => !g.when || g.when()).map((g) => h('div', { class: 'card' }, h('h3', null, t(g.title)),
     h('div', { class: 'cards', style: { gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))' } }, g.fields.map(([key, label, a, b, step]) => {
       const id = `set-${key}`;
       if (a === 'bool') return h('label', { class: 'check', for: id }, h('input', { type: 'checkbox', id, checked: !!draft[key], onchange: (e) => { draft[key] = e.target.checked; } }), t(label));

@@ -160,6 +160,7 @@ async function boot() {
   window.addEventListener('beforeunload', () => { Store.flushAll(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) Store.flushAll(); });
   refreshAdminBadge();
+  announceHeavyOff();
   // first launch: the setup wizard (profile, files, first video, AI, baseline); see 90-onboarding.js
   if (needsOnboarding()) openOnboarding();
 }

@@ -98,6 +98,16 @@ const Prosody = {
   compare(clip, analysis) {
     const model = clip && clip.model;
     if (!model || !analysis || !model.db || !analysis.db) return null;
+    // the review card, the AI lines and the history tally all ask for the same comparison: work it out once per recording
+    const key = `${clip.id}:${clip.start}:${clip.end}`;
+    let hit = this._cache.get(analysis);
+    if (hit && hit.key === key) return hit.res;
+    const res = this.compareNow(clip, analysis, model);
+    this._cache.set(analysis, { key, res });
+    return res;
+  },
+  _cache: new WeakMap(),
+  compareNow(clip, analysis, model) {
     const dur = clip.end - clip.start;
     const M = this.grid({ ...model, offset: 0 }, dur), U = this.grid(analysis, dur + 2);
     const mSpeech = M.speech.filter(Boolean).length, uSpeech = U.speech.filter(Boolean).length;
@@ -179,7 +189,7 @@ const Prosody = {
 };
 
 /* "Differences from the speaker" card for one recording */
-function prosodyCard(clip, analysis, heard) {
+function prosodyCard(clip, analysis, heard, withPhones) {
   let res = null;
   try { res = Prosody.compare(clip, analysis); } catch (e) { res = null; }
   const spoken = heard ? Speech.unclear(clip.sentence, heard) : null;
@@ -206,12 +216,16 @@ function prosodyCard(clip, analysis, heard) {
     spoken ? h('p', { class: 'small' }, spoken.missing.length
       ? t('Words that may have been unclear: {words}. (The browser didn’t pick them up; it can also miss clear words.)', { words: spoken.missing.slice(0, 8).join(', ') })
       : t('The browser’s speech recognition picked up every word. Nice.')) : null,
-    h('p', { class: 'small muted' }, t('Timing and pitch are worked out on your device from pitch and loudness only, so they can’t hear vowels or consonants, and the words are a rough guess from timing.')));
+    h('p', { class: 'small muted' }, withPhones
+      ? t('Timing and pitch are worked out on your device from pitch and loudness only, so they can’t hear sounds; the sounds are in the box below. The words are a rough guess from timing.')
+      : t('Timing and pitch are worked out on your device from pitch and loudness only, so they can’t hear vowels or consonants, and the words are a rough guess from timing.')));
 }
 
 /* the measured differences as plain English lines for the AI (never translated: the prompt is English) */
-function measuredLines(clip, analysis, heard) {
-  const out = [];
+function measuredLines(clip, analysis, heard, phoneItems) {
+  const out = phoneItems && phoneItems.length ? Pron.aiLines(phoneItems) : [];
+  // what has been happening over time with the same sounds (at most two lines, only for pairs in this take)
+  for (const pair of [...new Set((phoneItems || []).map((d) => Pron.pairOf(d)))].slice(0, 2)) { const l = Pron.historyLine(pair); if (l) out.push(l); }
   let res = null;
   try { res = Prosody.compare(clip, analysis); } catch (e) { res = null; }
   if (res) {
@@ -223,6 +237,8 @@ function measuredLines(clip, analysis, heard) {
       else out.push(f.dir === 'softer' ? `Speaker stresses a syllable at ${at(f)} that the learner said more softly.` : `Learner stressed a syllable at ${at(f)} that the speaker keeps light.`);
     }
     if (!res.findings.length) out.push('No notable differences in timing, pitch direction or stress.');
+    const hist = ProsodyLog.historyLine(res.findings.map((f) => ProsodyLog.kindOf(f)));
+    if (hist) out.push(hist);
   }
   const spoken = heard ? Speech.unclear(clip.sentence, heard) : null;
   if (spoken) out.push(spoken.missing.length ? `Speech recognition did not pick up these words: ${spoken.missing.slice(0, 8).join(', ')} (it also misses clear words).` : 'Speech recognition picked up every word.');
@@ -232,6 +248,64 @@ function measuredLines(clip, analysis, heard) {
 function measuredForNote(ctx) {
   const rec = ctx.recId && Store.get('recordings', ctx.recId);
   const clip = Store.get('clips', ctx.clipId);
-  if (!rec || !clip || !rec.analysis) return [];
-  return measuredLines(clip, rec.analysis, rec.heard);
+  if (!clip) return [];
+  let items = [];
+  if (Pron.on()) {
+    const ph = Pron.phonesFor(ctx.recId, ctx.sessionId);
+    items = ctx.pair ? (ph ? ph.diffs.filter((d) => Pron.pairOf(d) === ctx.pair).slice(0, PRON_SHOWN) : []) : Pron.itemsFor(ctx.recId, ctx.sessionId);
+  }
+  if ((!rec || !rec.analysis) && !items.length) return [];
+  return measuredLines(clip, rec && rec.analysis, rec && rec.heard, items);
 }
+
+/* ---------- timing, pitch and stress over time ----------
+   One small `meta` document, 'prosody': per kind of difference, daily buckets {d, f, o} (f: passes that had it, o: recorded
+   passes) kept for PRON_QUIET.keepDays. Same shape and trend rule as the sound pairs in 24-pron.js, works in every language,
+   and adds no new analysis: it reads the comparison the review card already worked out (Prosody.compare is cached). */
+const PROSODY_KINDS = ['rushed', 'dragged', 'pitch', 'stress'];
+const PROSODY_PLAIN = { rushed: 'running faster than the speaker', dragged: 'running slower than the speaker', pitch: 'pitch moving a different way from the speaker', stress: 'stress in a different place from the speaker' };
+/* respects the Analysis (Heavy) switch from the safety work once it is in the build */
+function heavyOk(name) { return typeof Heavy === 'undefined' || !Heavy.isOn || Heavy.isOn(name); }
+
+const ProsodyLog = {
+  kindOf(f) { return f.kind === 'rushed' || f.kind === 'dragged' || f.kind === 'pitch' ? f.kind : 'stress'; },
+  doc() { return Store.get('meta', 'prosody') || { id: 'prosody', seen: [], kinds: {} }; },
+  /* add one recorded pass (once per token) */
+  record(clip, analysis, token) {
+    if (!token || !clip || !analysis || !heavyOk('prosody')) return;
+    let res = null;
+    try { res = Prosody.compare(clip, analysis); } catch { res = null; }
+    if (!res) return;
+    const d = this.doc();
+    if (d.seen.includes(token)) return;
+    d.seen = [...d.seen, token].slice(-300);
+    const today = dayKey();
+    const found = new Set(res.findings.map((f) => this.kindOf(f)));
+    for (const kind of PROSODY_KINDS) {
+      const e = d.kinds[kind] || { bk: [] };
+      Pron.addChances(e, today, found.has(kind) ? 1 : 0, 1);
+      e.bk = e.bk.filter((x) => x.d >= addDays(today, -PRON_QUIET.keepDays));
+      d.kinds[kind] = e;
+    }
+    Store.put('meta', d);
+  },
+  summary() {
+    const d = this.doc();
+    return PROSODY_KINDS.filter((k) => d.kinds[k]).map((kind) => ({ kind, T: Pron.trend(d.kinds[kind]) }));
+  },
+  /* one English line for the AI about the most frequent difference in this take, when there is enough history */
+  historyLine(kinds) {
+    const d = this.doc();
+    let best = null;
+    for (const kind of new Set(kinds)) {
+      const e = d.kinds[kind];
+      if (!e) continue;
+      const T = Pron.trend(e);
+      if (T.recent.o >= PRON_QUIET.easeMin && (!best || T.recent.f / T.recent.o > best.T.recent.f / best.T.recent.o)) best = { kind, T };
+    }
+    if (!best) return '';
+    const { T } = best;
+    const before = T.before.o ? ` (${T.before.f} of ${T.before.o} before)` : '';
+    return `History: ${PROSODY_PLAIN[best.kind]} in ${T.recent.f} of ${T.recent.o} recorded passes in the last 2 weeks${before}${T.label ? `, trend: ${{ less: 'less often', more: 'more often', same: 'about the same' }[T.label]}` : ''}.`;
+  },
+};

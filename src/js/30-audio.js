@@ -95,7 +95,7 @@ const VideoAudio = {
         console.info('partial audio read unavailable, decoding the whole file:', e.mp4Failed);
       }
       // reading the whole file is only sensible for small files; a long video would mean downloading hundreds of MB
-      const size = local ? 0 : video.size || 0;
+      const size = local ? local.size || 0 : video.size || 0;
       if (size > 150 * 1024 * 1024) {
         e.status = 'error';
         e.error = t('This video’s sound can’t be read in pieces in this browser ({reason}), and the file is too big ({mb} MB) to read whole. Chrome or Edge can read it.', { reason: e.mp4Failed, mb: Math.round(size / 1048576) });
