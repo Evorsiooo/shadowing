@@ -179,7 +179,7 @@ const Prosody = {
 };
 
 /* "Differences from the speaker" card for one recording */
-function prosodyCard(clip, analysis, heard) {
+function prosodyCard(clip, analysis, heard, withPhones) {
   let res = null;
   try { res = Prosody.compare(clip, analysis); } catch (e) { res = null; }
   const spoken = heard ? Speech.unclear(clip.sentence, heard) : null;
@@ -206,12 +206,14 @@ function prosodyCard(clip, analysis, heard) {
     spoken ? h('p', { class: 'small' }, spoken.missing.length
       ? t('Words that may have been unclear: {words}. (The browser didn’t pick them up; it can also miss clear words.)', { words: spoken.missing.slice(0, 8).join(', ') })
       : t('The browser’s speech recognition picked up every word. Nice.')) : null,
-    h('p', { class: 'small muted' }, t('Timing and pitch are worked out on your device from pitch and loudness only, so they can’t hear vowels or consonants, and the words are a rough guess from timing.')));
+    h('p', { class: 'small muted' }, withPhones
+      ? t('Timing and pitch are worked out on your device from pitch and loudness only, so they can’t hear sounds; the sounds are in the box below. The words are a rough guess from timing.')
+      : t('Timing and pitch are worked out on your device from pitch and loudness only, so they can’t hear vowels or consonants, and the words are a rough guess from timing.')));
 }
 
 /* the measured differences as plain English lines for the AI (never translated: the prompt is English) */
-function measuredLines(clip, analysis, heard) {
-  const out = [];
+function measuredLines(clip, analysis, heard, phoneItems) {
+  const out = phoneItems && phoneItems.length ? Pron.aiLines(phoneItems) : [];
   let res = null;
   try { res = Prosody.compare(clip, analysis); } catch (e) { res = null; }
   if (res) {
@@ -232,6 +234,12 @@ function measuredLines(clip, analysis, heard) {
 function measuredForNote(ctx) {
   const rec = ctx.recId && Store.get('recordings', ctx.recId);
   const clip = Store.get('clips', ctx.clipId);
-  if (!rec || !clip || !rec.analysis) return [];
-  return measuredLines(clip, rec.analysis, rec.heard);
+  if (!clip) return [];
+  let items = [];
+  if (Pron.on()) {
+    const ph = Pron.phonesFor(ctx.recId, ctx.sessionId);
+    items = ctx.pair ? (ph ? ph.diffs.filter((d) => Pron.pairOf(d) === ctx.pair).slice(0, PRON_SHOWN) : []) : Pron.itemsFor(ctx.recId, ctx.sessionId);
+  }
+  if ((!rec || !rec.analysis) && !items.length) return [];
+  return measuredLines(clip, rec && rec.analysis, rec && rec.heard, items);
 }

@@ -245,7 +245,8 @@ const Session = {
           }
         }
         entry.recorded = true; entry.recId = recId;
-        this.review = { recId, blob: res.blob, url: URL.createObjectURL(res.blob), analysis: an, heard, slot: st.recordLast, clipId: clip.id };
+        this.review = { recId, blob: res.blob, url: URL.createObjectURL(res.blob), analysis: an, heard, slot: st.recordLast, clipId: clip.id, phones: undefined };
+        startPhones(this.review, { clip, samples: res.samples, blob: res.blob, analysis: an, recId, slot: st.recordLast, sessionId: this.doc.id, pass: this.pass + 1, step: st.key });
         this.doc.passes.push(entry);
         this.pass++;
         this.saveDoc();
@@ -551,7 +552,7 @@ function renderSession() {
   let main;
   if (S.phase === 'intro') {
     main = [
-      h('div', { class: 'grow' }, h('h3', null, t('Step {n}: {step}', { n: S.stepIdx + 1, step: t(st.name) })), h('p', { class: 'session-hint' }, `${t(STEP_HELP[st.key])} ${tp(st.passes, '{n} pass, about {min} min.', '{n} passes, about {min} min.', { min: st.minutes })}${slowHint(S)}`)),
+      h('div', { class: 'grow' }, h('h3', null, t('Step {n}: {step}', { n: S.stepIdx + 1, step: t(st.name) })), h('p', { class: 'session-hint' }, `${t(STEP_HELP[st.key])} ${tp(st.passes, '{n} pass, about {min} min.', '{n} passes, about {min} min.', { min: st.minutes })}${slowHint(S)}`), st.key === 'again' ? focusLine() : null),
       btn(t(STEP_START[st.key]), () => S.go(), { kind: 'primary', size: 'big', icon: 'play' }),
     ];
   } else if (S.phase === 'armed') {
@@ -629,7 +630,8 @@ async function uploadPassRecording(file) {
     S.pass++;
     S.saveDoc();
     if (an) Panel.lastPass = { ...an, clipId: clip.id };
-    S.review = { recId: r.id, url: URL.createObjectURL(file), analysis: an, slot: st.recordLast, clipId: clip.id };
+    S.review = { recId: r.id, url: URL.createObjectURL(file), analysis: an, slot: st.recordLast, clipId: clip.id, phones: undefined };
+    startPhones(S.review, { clip, samples, blob: file, analysis: an, recId: r.id, slot: st.recordLast, sessionId: S.doc.id, pass: S.pass, step: st.key });
     S.phase = 'review';
     renderSession(); renderPanel();
   } catch (e) {
@@ -666,7 +668,7 @@ function recTimeAt(clip, analysis, at, rate) {
 }
 /* play your recording lined up with the clip: the video runs alongside (muted for "Mine",
    audible for "Both together"), so the scrub bar and the chart's playhead follow along */
-function playSynced(clip, url, analysis, { withOriginal = false, then, from = reviewFrom(clip) } = {}) {
+function playSynced(clip, url, analysis, { withOriginal = false, then, from = reviewFrom(clip), stopAt = clip.end } = {}) {
   Player2.stop();
   const a = new window.Audio(url);
   Player2.el = a;
@@ -676,7 +678,7 @@ function playSynced(clip, url, analysis, { withOriginal = false, then, from = re
   const restoreMute = () => { Player.v.muted = UI.volume === 0; };
   const go = async () => {
     Player.v.muted = !withOriginal || UI.volume === 0;
-    Session.preview = { stopAt: clip.end, then: () => { a.pause(); restoreMute(); Session.previewRec = null; then && then(); } };
+    Session.preview = { stopAt, then: () => { a.pause(); restoreMute(); Session.previewRec = null; then && then(); } };
     Session.previewRec = { a, clip, analysis, rate };
     await Player.seekAndWait(from);
     Player.play();
@@ -731,7 +733,8 @@ function passReviewCard() {
       btn(t('Both together'), () => playBoth(clip, R.url, an), { size: 'sm' }),
       btn('', () => stopReviewPlayback(), { size: 'sm', icon: 'stop', title: t('Stop playback') })),
     mineVolumeControl(),
-    prosodyCard(clip, an, R.heard),
+    prosodyCard(clip, an, R.heard, Pron.on()),
+    pronCard(clip, R),
     step3 ? h('div', { class: 'row' }, h('span', { class: 'small muted grow' }, t('Compare with your step 3 recording from this session:')),
       btn(t('Compare overlaid'), () => openCompare(step3.id, R.recId, R.url), { size: 'sm', kind: 'blue' })) : null,
     noteForms({ clipId: clip.id, sessionId: S.doc.id, recId: R.recId, pass: S.pass, step: S.step().key }),
@@ -818,6 +821,7 @@ function showSessionSummary(sum, streakBefore, nextClipId, redraw = false) {
       sum.tickNew ? h('p', { class: 'formok' }, t('“{clip}” gets its tick.', { clip: clipName(clip) })) : null,
       !sum.complete && sum.mode === 'full' ? h('p', { class: 'small muted' }, t('Progress so far is saved. The clip gets its tick after one complete session.')) : null),
     lateCard,
+    pronSummaryCard(sum),
     recs.length === 2 ? btn(t('Compare step 3 with your final pass'), () => openCompare(sum.recs.step3, sum.recs.final), { kind: 'blue' }) : null,
     h('div', { class: 'row' },
       nextClipId ? btn(t('Next clip in the queue'), () => { closeModal(); Session.begin(nextClipId, sum.mode === 'review' ? 'review' : 'full'); }, { kind: 'primary', size: 'big', icon: 'play' }) : btn(t('Done'), () => closeModal(), { kind: 'primary', size: 'big' }),
