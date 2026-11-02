@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <script>try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === 'dark' || t === 'system') document.documentElement.setAttribute('data-theme', t); } catch { /* storage blocked */ }</script>
 <title>Política de privacidad | Euno Shadowing</title>
-<meta name="description" content="Qué guarda Euno Shadowing, dónde están tus grabaciones, cómo se tratan las claves de IA y los datos de Google, y cómo exportar o eliminar tu cuenta.">
+<meta name="description" content="Qué guarda Euno Shadowing, dónde están tus grabaciones, qué se queda en tu dispositivo para el análisis de pronunciación, cómo se tratan las claves de IA y los datos de Google, y cómo exportar o eliminar tu cuenta.">
 <link rel="canonical" href="https://shadowing.euno.cc/es/privacy/">
 <meta name="robots" content="max-snippet:-1, max-image-preview:large">
 <link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/privacy/">
@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="Euno Shadowing">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Política de privacidad">
-<meta property="og:description" content="Qué guarda Euno Shadowing, dónde están tus grabaciones, cómo se tratan las claves de IA y los datos de Google, y cómo exportar o eliminar tu cuenta.">
+<meta property="og:description" content="Qué guarda Euno Shadowing, dónde están tus grabaciones, qué se queda en tu dispositivo para el análisis de pronunciación, cómo se tratan las claves de IA y los datos de Google, y cómo exportar o eliminar tu cuenta.">
 <meta property="og:url" content="https://shadowing.euno.cc/es/privacy/">
 <meta property="og:image" content="https://shadowing.euno.cc/assets/og.png">
 <meta property="og:image:width" content="1200">
@@ -57,7 +57,7 @@
 <article class="page">
   <div class="wrap">
     <h1>Política de privacidad</h1>
-    <p class="updated">Última actualización: 14 de octubre de 2026</p>
+    <p class="updated">Última actualización: 2 de noviembre de 2026</p>
     <p class="updated ref">Esta es una traducción. Si hay alguna diferencia, prevalece la <a href="/privacy/" hreflang="en" lang="en">versión en inglés</a>.</p>
     <p class="lede">En resumen: tus videos y las grabaciones de tu voz se guardan en tu propio Google Drive, no en nuestro servidor. Nuestro servidor guarda tu cuenta, tus notas de práctica y tu progreso. No vendemos datos, no mostramos anuncios ni usamos rastreo.</p>
     <h2>Quiénes somos</h2>
@@ -72,6 +72,7 @@
         <tr><td>Videos y grabaciones de tu voz</td><td>Una carpeta «Euno Shadowing» en tu propio Google Drive, más una copia en tu navegador de los archivos que abres para que se reproduzcan al instante. Si eliges guardar los archivos solo en este navegador (Ajustes → Almacenamiento), se quedan en tu dispositivo.</td><td>Para reproducir los fragmentos y comparar tus grabaciones. No guardamos copias en nuestro servidor.</td></tr>
         <tr><td>Clave de un proveedor de IA (opcional)</td><td>Nuestra base de datos, cifrada</td><td>Para pedir comentarios de la IA al proveedor que elegiste, cuando lo pides</td></tr>
         <tr><td>Webhook e identificador de usuario de Discord (opcionales)</td><td>Nuestra base de datos</td><td>Para enviar los recordatorios de práctica que configuraste</td></tr>
+        <tr><td>Resultados de pronunciación en inglés (opcional)</td><td>Nuestra base de datos, con tus datos de práctica</td><td>Para mostrar los sonidos que difirieron de los del hablante, seguirlos entre sesiones y, si lo pides, incluirlos en los comentarios de la IA. Son textos cortos, como un par de sonidos y una palabra de ejemplo, nunca audio.</td></tr>
         <tr><td>Mensajes del formulario de contacto</td><td>Nuestra base de datos</td><td>Para responderte</td></tr>
         <tr><td>Una cookie de inicio de sesión</td><td>Tu navegador</td><td>Para mantener tu sesión iniciada. Es la única cookie que usamos, y es estrictamente necesaria.</td></tr>
       </tbody>
@@ -82,8 +83,15 @@
     <p>Cuando inicias sesión con Google, recibimos tu dirección de correo, tu nombre y el identificador de tu cuenta, y nada más. Cuando conectas Google Drive, pedimos permiso para acceder solo a los archivos que Euno Shadowing crea en tu Drive (el permiso <code>drive.file</code>). No podemos ver ninguno de tus otros archivos.</p>
     <p>El uso y la transferencia por parte de Euno Shadowing de la información recibida de las API de Google cumplen la <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener">Política de datos de usuario de los servicios de API de Google</a> (Google API Services User Data Policy), incluidos los requisitos de uso limitado (Limited Use). No usamos los datos de Google para publicidad, no los vendemos y no dejamos que nadie los lea, salvo cuando tú nos lo pides (por ejemplo, en una solicitud de ayuda), por motivos de seguridad o cuando lo exige la ley.</p>
 
+    <h2>Análisis en tu dispositivo</h2>
+    <p>Estas funciones opcionales están desactivadas hasta que las actives en los ajustes.</p>
+    <ul>
+      <li><strong>Comprobación de pronunciación en inglés (beta).</strong> Compara tu grabación con el audio del hablante dentro de tu navegador. Al activarla se descarga una vez un modelo de voz de unos 71 MB desde Hugging Face, un alojamiento de terceros. Hugging Face recibe la solicitud de ese archivo, como cualquier sitio web (por ejemplo tu dirección IP), pero no tus grabaciones ni tus datos de práctica. Tu audio no se sube para la comprobación. Sus resultados escritos (los sonidos que difirieron, palabras de ejemplo y recuentos a lo largo del tiempo) se guardan con tus datos de práctica en nuestro servidor, y las apps de IA que conectes mediante el enlace MCP de Euno pueden leerlos.</li>
+      <li><strong>Comprobación por reconocimiento de voz (solo Chrome).</strong> Usa el reconocimiento de voz integrado en tu navegador. En Chrome, eso envía tu voz a Google mientras se ejecuta, según la política de privacidad de Google.</li>
+    </ul>
+
     <h2>Comentarios de la IA</h2>
-    <p>Los comentarios de la IA son opcionales. Si añades una clave, se cifra en nuestro servidor, nunca se devuelve a tu navegador y solo se usa cuando pides comentarios. Entonces, el texto de tu nota (la frase, lo que no sonó bien y tus puntos débiles recurrentes) se envía al proveedor que elegiste: Anthropic, OpenAI u OpenRouter. A esa solicitud se aplica su propia política de privacidad. No se envía audio.</p>
+    <p>Los comentarios de la IA son opcionales. Si añades una clave, se cifra en nuestro servidor, nunca se devuelve a tu navegador y solo se usa cuando pides comentarios. Entonces, el texto de tu nota (la frase, lo que no sonó bien y tus puntos débiles recurrentes) y unas líneas cortas que describen lo medido en tu grabación (por ejemplo, un sonido o una diferencia de ritmo) se envían al proveedor que elegiste: Anthropic, OpenAI u OpenRouter. A esa solicitud se aplica su propia política de privacidad. No se envía audio.</p>
 
     <h2>Lo que no hacemos</h2>
     <ul>

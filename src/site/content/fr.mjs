@@ -48,9 +48,9 @@ const make = ({ SITE, L, host }) => ({
     ['C’est quoi le shadowing ?', `Faire du shadowing, c’est parler en même temps qu’un enregistrement, en copiant le rythme, la mélodie et les sons du locuteur d’aussi près que possible. Ça entraîne ta façon de parler, pas seulement ta compréhension. <a href="${L('/what-is-shadowing/')}">Lire le guide complet</a>.`],
     ['C’est quoi Euno Shadowing, et est-ce lié au job shadowing ou à Euno AI ?', `Euno Shadowing est une application web gratuite pour travailler ton accent en faisant du shadowing : tu parles en même temps que de courts extraits de vidéos que tu apportes, puis tu compares ta hauteur et ton rythme à ceux du locuteur. Il n’a aucun rapport avec les stages d’observation comme Erasmus+, avec le shadowing médical, ni avec la plateforme d’IA d’entreprise Euno. <a href="${L('/what-is-euno-shadowing/')}">Ce que c’est, et ce que ce n’est pas</a>.`],
     ['Quels retours donne-t-il ?', 'Après une passe enregistrée, il montre ta courbe de hauteur à côté de celle du locuteur, ton décalage, et des différences mesurées de vitesse, de direction de la hauteur et d’accentuation. Une vérification optionnelle par reconnaissance vocale (Chrome uniquement, désactivée par défaut) peut signaler des mots peu clairs. Un retour optionnel de l’IA sur tes notes écrites, qui reçoit aussi ces mesures, utilise ta propre clé API. Pour les extraits en anglais, il y a aussi un onglet Prononciation, décrit juste après. Euno ne donne pas de note, et n’a ni sous-titres ni transcriptions automatiques.'],
-    ['Vérifie-t-il ma prononciation ?', 'En anglais, il montre des différences avec le locuteur, pas des erreurs. Après une passe enregistrée, l’onglet Prononciation compare les sons de ton enregistrement à ceux de l’audio du locuteur et signale jusqu’à trois endroits où les tiens diffèrent. Il te compare au locuteur que tu as choisi, pas à une transcription ni à un accent standard, et il ne donne pas de note. Il fonctionne dans ton navigateur : c’est désactivé tant que tu ne l’actives pas dans Réglages → Analyse, ce qui télécharge une fois sur ton appareil un modèle vocal d’environ 71 Mo, et ton enregistrement n’est pas envoyé pour cela. Il peut mal interpréter un son, donc chaque point peut être écarté avec « Ça sonne pareil pour moi ». Les extraits en français et en espagnol n’ont pour l’instant que les mesures de hauteur, de décalage et de rythme.'],
+    ['Vérifie-t-il ma prononciation ?', 'En anglais, il montre des différences avec le locuteur, pas des erreurs. C’est une fonction bêta. Après une passe enregistrée, l’onglet Prononciation compare les sons de ton enregistrement à ceux de l’audio du locuteur et signale jusqu’à trois endroits où les tiens diffèrent. Il te compare au locuteur que tu as choisi, pas à une transcription ni à un accent standard, et il ne donne pas de note. Il fonctionne dans ton navigateur, sur ordinateur : c’est désactivé tant que tu ne l’actives pas dans Réglages → Analyse, ce qui télécharge une fois sur ton appareil un modèle vocal d’environ 71 Mo (depuis Hugging Face, un hébergeur tiers), et ton enregistrement n’est pas envoyé pour cela. Il peut mal interpréter un son, et il peut ne rien afficher quand l’extrait est bruyant ou que le locuteur est difficile à entendre, donc chaque point peut être écarté avec « Ça sonne pareil pour moi ». Les extraits en français et en espagnol n’ont pour l’instant que les mesures de hauteur, de décalage et de rythme.'],
     ['C’est payant ?', 'Non. Euno Shadowing est gratuit. Les retours de l’IA sont optionnels et utilisent ta propre clé API : l’usage de l’IA t’est facturé directement par le fournisseur que tu choisis, et c’est toi qui choisis le modèle.'],
-    ['Quelles langues et quels accents ?', 'Tu peux pratiquer l’anglais (australien, américain ou britannique du Sud), le français (parisien ou québécois) ou l’espagnol (mexicain, d’Espagne ou rioplatense), ou indiquer un autre accent de ces langues. L’application est disponible en français, en anglais et en espagnol. D’autres langues, comme le japonais et l’allemand, sont prévues.'],
+    ['Quelles langues et quels accents ?', 'Tu peux pratiquer l’anglais (australien, américain ou britannique du Sud), le français (parisien ou québécois) ou l’espagnol (mexicain, d’Espagne ou rioplatense), ou indiquer un autre accent de ces langues. L’application est disponible en français, en anglais et en espagnol. D’autres langues, comme le japonais et l’allemand, sont prévues. L’onglet Prononciation, qui compare les sons, est pour l’instant réservé à l’anglais.'],
     ['Où sont stockés mes vidéos et mes enregistrements ?', 'Dans ton propre Google Drive. Quand tu le connectes, l’app range tes fichiers dans un dossier « Euno Shadowing », pour que tu les retrouves sur tous les appareils où tu te connectes, et elle ne voit que les fichiers qu’elle crée. Ton navigateur garde aussi une copie des fichiers que tu ouvres pour qu’ils se lancent tout de suite. Notre serveur ne garde que tes notes d’entraînement et tes progrès, jamais l’audio ni la vidéo.'],
     ['Quelles vidéos puis-je utiliser ?', 'N’importe quel fichier vidéo ou audio que tu as le droit d’utiliser pour t’entraîner : importe un fichier depuis ton appareil ou colle un lien direct vers un .mp4. Les interviews, podcasts et conférences avec un seul locuteur bien audible marchent le mieux.'],
     ['Euno propose-t-il des leçons, des vidéos ou des transcriptions ?', 'Non. Tu fais du shadowing sur tes propres vidéos : importe un fichier depuis ton appareil ou colle un lien, puis découpe les extraits que tu veux travailler. Euno n’a ni bibliothèque de leçons, ni sous-titres, ni transcriptions. Il déroule la routine de shadowing sur tes extraits et compare ta voix à celle du locuteur.'],
@@ -74,7 +74,7 @@ const make = ({ SITE, L, host }) => ({
     steps: [
       ['Écouter', '2 min.', 'Écoute l’extrait trois fois sans parler. Repère le rythme et les endroits où la voix monte et descend.'],
       ['Faire du shadowing', '7 min.', 'Parle en même temps que le locuteur, environ 15 passages, sans transcription. Copie tout : rythme, mélodie et sons.'],
-      ['Enregistrer et comparer', '2 min.', 'Enregistre un passage et écoute-le à côté de l’original. Regarde ta courbe de mélodie et ton décalage.'],
+      ['Enregistrer et comparer', '2 min.', 'Enregistre un passage et écoute-le à côté de l’original. Regarde ta courbe de mélodie et ton décalage. En anglais, l’onglet Prononciation (bêta, désactivé par défaut) peut aussi signaler des sons qui diffèrent.'],
       ['Recommencer', '4 min.', 'Environ 8 passages de plus, puis un dernier enregistrement à comparer avec le premier.'],
     ],
     after: 'Pas le temps ? Le mode jour sans propose une version de cinq minutes, pour ne jamais sauter un jour. Chaque durée et chaque nombre de passages se règle.',
@@ -83,9 +83,12 @@ const make = ({ SITE, L, host }) => ({
       ['Des extraits de n’importe quelle vidéo', 'Ajoute une vidéo, puis fais glisser sur la frise pour couper un extrait. Une forme d’onde zoomée t’aide à couper pile dans les pauses.'],
       ['Vois ta mélodie', 'Le suivi de la hauteur trace l’intonation du locuteur et la tienne, chacune par rapport à sa propre voix, pour voir où ta voix reste trop plate.'],
       ['Mesure ton décalage', 'Après chaque passage, Euno aligne ton enregistrement sur l’extrait et te dit de combien tu étais en retard ou en avance.'],
+['Les sons qui diffèrent (anglais, bêta)', 'Après une passe enregistrée, l’onglet Prononciation signale jusqu’à trois endroits où tes sons diffèrent de l’audio du locuteur. Désactivé par défaut, il fonctionne dans ton navigateur et ne donne pas de note.'],
       ['Enregistre et compare', 'Écoute l’original, puis toi, l’un après l’autre ou les deux ensemble. Tes enregistrements de l’étape 3 et de la fin sont gardés pour chaque extrait.'],
       ['Des notes qui repèrent les tendances', 'Note ce qui sonnait faux. Les problèmes qui reviennent forment une liste de points faibles, pour savoir quoi travailler ensuite.'],
       ['Bilans sur 12 semaines', 'Enregistre un point de départ, puis fais un bilan aux semaines 4, 8 et 12 avec les mêmes exercices, et entends le chemin parcouru.'],
+['Des rappels qui s’adaptent à ta journée', 'Des rappels optionnels par Discord et par notification du navigateur, pour que l’entraînement ait bien lieu.'],
+['Un retour IA, si tu le veux', 'Apporte ta propre clé et reçois un retour sur tes notes. Seul du texte est envoyé, jamais d’audio. Tout fonctionne sans.'],
     ],
     privH2: 'Ta voix reste à toi',
     panels: [
@@ -93,7 +96,7 @@ const make = ({ SITE, L, host }) => ({
         'Les vidéos et les enregistrements de ta voix vont dans un dossier « Euno Shadowing » de ton propre Google Drive, pour que tu les retrouves sur tous tes appareils.',
         'L’app ne voit que les fichiers qu’elle y range, et notre serveur ne les stocke jamais.',
         'Notre serveur ne garde que tes notes d’entraînement, tes réglages et tes progrès, que tu peux exporter ou supprimer quand tu veux.',
-        'Les retours de prononciation en anglais sont calculés dans ton navigateur : ton enregistrement n’est pas envoyé pour cela.',
+        'Les retours de prononciation en anglais sont calculés dans ton navigateur : ton enregistrement n’est pas envoyé pour cela. Son modèle (environ 71 Mo) est téléchargé une fois depuis Hugging Face.',
       ]],
       ['Des retours de l’IA avec ta propre clé, si tu veux', [
         'Apporte une clé Anthropic, OpenAI ou OpenRouter et choisis le modèle, du moins cher et rapide au plus performant.',
@@ -125,7 +128,7 @@ const make = ({ SITE, L, host }) => ({
       '<strong>Ta mélodie à côté de la sienne.</strong> Les deux courbes sont mesurées par rapport à la voix de chacun, donc une voix plus aiguë ou plus grave n’a pas d’importance.',
       '<strong>Ton décalage.</strong> Euno aligne les enregistrements et te dit de combien tu étais en retard ou en avance sur le locuteur.',
       '<strong>Le premier enregistrement contre le dernier.</strong> Écoute-les l’un après l’autre, ou ensemble, et entends le changement.',
-      '<strong>Les sons qui diffèrent (anglais).</strong> Un onglet Prononciation signale jusqu’à trois endroits où tes sons diffèrent de ceux du locuteur. Il fonctionne dans ton navigateur, ne donne pas de note et peut se tromper.',
+      '<strong>Les sons qui diffèrent (anglais).</strong> Un onglet Prononciation (bêta, désactivé par défaut) signale jusqu’à trois endroits où tes sons diffèrent de ceux du locuteur. Il fonctionne dans ton navigateur, te compare à l’audio réel du locuteur et non à une transcription, ne donne pas de note et peut se tromper.',
     ],
     finalH2: 'Ton premier extrait prend deux minutes',
     finalP: 'Connecte-toi avec Google, choisis un locuteur dont tu veux l’accent, et commence ta première séance aujourd’hui.',
@@ -206,6 +209,7 @@ const make = ({ SITE, L, host }) => ({
 
     <h2>5. Enregistre-toi, et regarde au lieu de seulement écouter</h2>
     <p>Ta propre voix sonne différemment de l’intérieur, donc l’enregistrement est indispensable. Voir aide aussi : une courbe de mélodie montre si ta voix monte et descend autant que celle du locuteur, et une mesure du décalage montre si tu suis le rythme. Les deux sont difficiles à juger à l’oreille seule.</p>
+    <p>Pour les extraits en anglais, il y a autre chose à regarder : l’onglet Prononciation (bêta) montre jusqu’à trois endroits où les sons que tu as produits diffèrent de ceux de l’audio du locuteur. Prends chacun comme un endroit à écouter, pas comme un verdict.</p>
 
     <h2>6. Mesure tes progrès sur 12 semaines</h2>
     <p>Un accent change lentement, donc les comparaisons d’un jour à l’autre sont trompeuses. Enregistre un point de départ avant de commencer : quelques phrases lues à voix haute, une minute à raconter un extrait avec tes propres mots, et une minute à répondre à une question que tu n’as pas vue avant. Refais les mêmes exercices aux semaines 4, 8 et 12 et compare. La parole spontanée est le vrai test, car la lecture à voix haute progresse en premier.</p>
@@ -221,7 +225,7 @@ const make = ({ SITE, L, host }) => ({
   },
   privacy: {
     title: 'Politique de confidentialité | Euno Shadowing',
-    description: 'Ce qu’Euno Shadowing stocke, où se trouvent tes enregistrements, comment sont traitées les clés d’IA et les données Google, et comment exporter ou supprimer ton compte.',
+    description: 'Ce qu’Euno Shadowing stocke, où se trouvent tes enregistrements, ce qui reste sur ton appareil pour l’analyse de prononciation, comment sont traitées les clés d’IA et les données Google, et comment exporter ou supprimer ton compte.',
     h1: 'Politique de confidentialité',
     lede: 'En bref : tes vidéos et les enregistrements de ta voix sont gardés dans ton propre Google Drive, pas sur notre serveur. Notre serveur stocke ton compte, tes notes d’entraînement et tes progrès. Nous ne vendons pas de données, n’affichons pas de publicité et n’utilisons aucun pistage.',
     body: `
@@ -237,6 +241,7 @@ const make = ({ SITE, L, host }) => ({
         <tr><td>Vidéos et enregistrements de ta voix</td><td>Un dossier « Euno Shadowing » dans ton propre Google Drive, plus une copie dans ton navigateur des fichiers que tu ouvres pour qu’ils se lancent tout de suite. Si tu choisis de garder tes fichiers uniquement dans ce navigateur (Réglages → Stockage), ils restent sur ton appareil.</td><td>Pour lire les extraits et comparer tes enregistrements. Nous n’en gardons aucune copie sur notre serveur.</td></tr>
         <tr><td>Clé d’un fournisseur d’IA (optionnelle)</td><td>Notre base de données, chiffrée</td><td>Pour demander un retour de l’IA au fournisseur que tu as choisi, quand tu le demandes</td></tr>
         <tr><td>Webhook et identifiant Discord (optionnels)</td><td>Notre base de données</td><td>Pour envoyer les rappels d’entraînement que tu as configurés</td></tr>
+        <tr><td>Résultats de la prononciation en anglais (optionnel)</td><td>Notre base de données, avec tes données d’entraînement</td><td>Pour montrer les sons qui ont différé de ceux du locuteur, les suivre d’une séance à l’autre et, si tu le demandes, les inclure dans un retour de l’IA. Ce sont de courts textes, comme une paire de sons et un mot d’exemple, jamais de l’audio.</td></tr>
         <tr><td>Messages du formulaire de contact</td><td>Notre base de données</td><td>Pour te répondre</td></tr>
         <tr><td>Un cookie de connexion</td><td>Ton navigateur</td><td>Pour que tu restes connecté. C’est le seul cookie que nous déposons, et il est strictement nécessaire.</td></tr>
       </tbody>
@@ -247,8 +252,15 @@ const make = ({ SITE, L, host }) => ({
     <p>Quand tu te connectes avec Google, nous recevons ton adresse e-mail, ton nom et l’identifiant de ton compte, et rien d’autre. Quand tu connectes Google Drive, nous demandons l’autorisation d’accéder uniquement aux fichiers qu’Euno Shadowing crée dans ton Drive (l’autorisation <code>drive.file</code>). Nous ne pouvons voir aucun de tes autres fichiers.</p>
     <p>L’utilisation et le transfert par Euno Shadowing des informations reçues des API Google respectent le <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener">règlement sur les données utilisateur des services d’API Google</a> (Google API Services User Data Policy), y compris les exigences d’utilisation limitée (Limited Use). Nous n’utilisons pas les données Google pour la publicité, ne les vendons pas, et ne laissons personne les lire, sauf si tu nous le demandes (par exemple dans une demande d’assistance), pour des raisons de sécurité, ou si la loi l’exige.</p>
 
+    <h2>Analyse sur ton appareil</h2>
+    <p>Ces fonctions optionnelles sont désactivées tant que tu ne les actives pas dans les réglages.</p>
+    <ul>
+      <li><strong>Vérification de la prononciation en anglais (bêta).</strong> Elle compare ton enregistrement à l’audio du locuteur dans ton navigateur. L’activer télécharge une fois un modèle vocal d’environ 71 Mo depuis Hugging Face, un hébergeur tiers. Hugging Face reçoit la demande de ce fichier, comme n’importe quel site (par exemple ton adresse IP), mais pas tes enregistrements ni tes données d’entraînement. Ton audio n’est pas envoyé pour cette vérification. Ses résultats écrits (les sons qui ont différé, des mots d’exemple et des comptes dans le temps) sont enregistrés avec tes données d’entraînement sur notre serveur, et les applis d’IA que tu connectes via le lien MCP d’Euno peuvent les lire.</li>
+      <li><strong>Vérification par reconnaissance vocale (Chrome uniquement).</strong> Elle utilise la reconnaissance vocale intégrée à ton navigateur. Dans Chrome, cela envoie ta voix à Google pendant la vérification, selon la politique de confidentialité de Google.</li>
+    </ul>
+
     <h2>Retours de l’IA</h2>
-    <p>Les retours de l’IA sont optionnels. Si tu ajoutes une clé, elle est chiffrée sur notre serveur, n’est jamais renvoyée à ton navigateur et n’est utilisée que quand tu demandes un retour. Le texte de ta note (la phrase, ce qui sonnait faux et tes points faibles récurrents) est alors envoyé au fournisseur que tu as choisi : Anthropic, OpenAI ou OpenRouter. Sa propre politique de confidentialité s’applique à cette requête. Aucun audio n’est envoyé.</p>
+    <p>Les retours de l’IA sont optionnels. Si tu ajoutes une clé, elle est chiffrée sur notre serveur, n’est jamais renvoyée à ton navigateur et n’est utilisée que quand tu demandes un retour. Le texte de ta note (la phrase, ce qui sonnait faux et tes points faibles récurrents) et de courtes lignes décrivant ce qui a été mesuré sur ton enregistrement (par exemple un son ou une différence de rythme) sont alors envoyés au fournisseur que tu as choisi : Anthropic, OpenAI ou OpenRouter. Sa propre politique de confidentialité s’applique à cette requête. Aucun audio n’est envoyé.</p>
 
     <h2>Ce que nous ne faisons pas</h2>
     <ul>
@@ -300,7 +312,7 @@ const make = ({ SITE, L, host }) => ({
     <p>N’abuse pas du service : pas de tentative d’accéder aux données d’autres personnes, de perturber ou de surcharger le service, de contourner les limites, ni de l’utiliser à des fins illégales.</p>
 
     <h2>Absence de garantie</h2>
-    <p>Euno Shadowing est fourni « tel quel », sans garantie d’aucune sorte. Nous ne promettons pas qu’il fonctionnera sans interruption ni erreur, ni qu’il changera ton accent. Dans la mesure permise par la loi, nous ne sommes pas responsables des pertes indirectes ou consécutives, ni des pertes de données. Rien dans ces conditions ne limite les droits que tu tiens du droit de la consommation et qui ne peuvent pas être limités.</p>
+    <p>Euno Shadowing est fourni « tel quel », sans garantie d’aucune sorte. Nous ne promettons pas qu’il fonctionnera sans interruption ni erreur, ni qu’il changera ton accent. Les retours de prononciation, y compris les sons que l’app dit différents de ceux du locuteur, sont des estimations automatiques et peuvent être faux. Dans la mesure permise par la loi, nous ne sommes pas responsables des pertes indirectes ou consécutives, ni des pertes de données. Rien dans ces conditions ne limite les droits que tu tiens du droit de la consommation et qui ne peuvent pas être limités.</p>
 
     <h2>Modification de ces conditions</h2>
     <p>Nous pouvons mettre à jour ces conditions. Si tu continues à utiliser Euno Shadowing après un changement, les nouvelles conditions s’appliquent. Si tu n’es pas d’accord, tu peux supprimer ton compte à tout moment.</p>
