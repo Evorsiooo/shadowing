@@ -2,9 +2,9 @@
    "Text" view in the analysis panel: the clip's transcript as plain text on a time axis.
    - The clip runs across the full width on the same time axis as the Pitch and Waveform charts: one-second
      lines, an orange playhead that moves, click or drag to seek. Each word starts where it was said, and the
-     bar under it is as long as the word was said and fills green as the playhead passes.
+     bar under it is as long as the word was said, green when it matches the speaker and orange when it differs.
    - The speaker's phones sit under each word (or above it, with the toggle).
-   - Only where your take differs: the word gets a yellow marker, and a "you" line appears under the speaker's
+   - Only where your take differs: the bar under the word is orange (green when it matches), and a "you" line appears under the speaker's
      phones. Each of the two lines has its own small listen icon.
    {braces} in a phone string mark the symbols that differ. Words, phones, times and differences are
    hard-coded demo data for the screenshots. */
@@ -50,11 +50,10 @@ function buildTextView(clip) {
   const words = DEMO_TEXT.map((d) => {
     const big = h('div', { class: 'tv-big ' + (wordsTop ? 'wd' : 'ph') }, h('span', { class: 'tv-mark' }, wordsTop ? d.w : tvPhones(d.p)));
     const sub = h('div', { class: 'tv-sub ' + (wordsTop ? 'ph' : 'wd') }, h('span', null, wordsTop ? tvPhones(d.p) : d.w), d.you ? listen('spk', d) : null);
-    const fill = h('i');
-    const bar = h('div', { class: 'tv-bar' }, fill);
+    const bar = h('div', { class: 'tv-bar' });
     const el = h('div', { class: 'tv-w' + (d.you ? ' diff' : ''), style: { left: pct(d.a), width: pct(d.b - d.a) } }, big, bar, sub,
       d.you ? h('div', { class: 'tv-you' }, h('span', { class: 'tv-tag' }, 'you'), h('span', { class: 'tv-yph' }, tvPhones(d.you)), listen('you', d)) : null);
-    return { d, el, big, sub, fill };
+    return { d, el, big, sub };
   });
 
   // one-second lines, as in the Pitch and Waveform views
@@ -79,8 +78,8 @@ function buildTextView(clip) {
   const diffs = DEMO_TEXT.filter((d) => d.you).length;
   return [view,
     h('p', { class: 'tv-foot small muted' },
-      h('span', { class: 'tv-dot' }), `Highlighted: ${diffs} words that sound different from the speaker in your last take. `,
-      'Each word sits where it was said.')];
+      h('span', { class: 'tv-dot' }), `${diffs} words sound different from the speaker in your last take. `,
+      'Green bar: same as the speaker. Orange bar: different. Each bar is as long as the word.')];
 }
 
 Panel.drawText = function (now) {
@@ -99,9 +98,5 @@ Panel.drawText = function (now) {
     });
   }
   head.style.left = clamp((now - clip.start) / dur, 0, 1) * W + 'px';
-  const ct = clamp(now - clip.start, 0, dur);
-  for (const { d, fill, el } of words) {
-    fill.style.width = clamp((ct - d.a) / (d.b - d.a), 0, 1) * 100 + '%';
-    el.classList.toggle('now', ct >= d.a && ct < d.b);
-  }
+
 };

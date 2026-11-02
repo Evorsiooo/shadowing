@@ -593,11 +593,9 @@ input.time-in { width: 76px; padding: 5px 8px; height: 32px; min-height: 32px; }
 .tv-big.wd { font-family: var(--font-display); font-weight: 600; }
 .tv-big.ph, .tv-sub.ph, .tv-yph { font-family: "Nunito", "DejaVu Sans", system-ui, sans-serif; font-weight: 700; }
 .tv-big.ph { color: var(--green-ink); }
-/* yellow highlighter on a word that sounds different */
-.tv-w.diff .tv-mark { background: linear-gradient(transparent 58%, var(--wattle-soft) 58%, var(--wattle-soft) 92%, transparent 92%); padding: 0 2px; margin: 0 -2px; }
-.tv-bar { align-self: stretch; height: 4px; margin: 5px 4px 0 0; border-radius: 4px; background: var(--line); overflow: hidden; }
-.tv-bar > i { display: block; height: 100%; width: 0; background: var(--green); border-radius: 4px; }
-.tv-w.diff .tv-bar { background: var(--wattle); }
+/* the bar under a word: how long it was said. Green = matches the speaker, orange = sounds different */
+.tv-bar { align-self: stretch; height: 6px; margin: 6px 4px 0 0; border-radius: 4px; background: var(--green); }
+.tv-w.diff .tv-bar { background: var(--amber); }
 .tv-sub { display: flex; align-items: center; gap: 5px; margin-top: 6px; white-space: nowrap; color: var(--muted); }
 .tv-w.diff .tv-sub.ph { color: var(--green-ink); }
 .tv-sub.wd { font-weight: 800; }
@@ -613,4 +611,4 @@ b.x { font-weight: 800; text-decoration: underline 2px; text-underline-offset: 3
 .tv-listen:hover { filter: brightness(0.95); }
 .tv-head { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; margin-left: -1px; background: var(--ochre); pointer-events: none; }
 .tv-foot { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
-.tv-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--wattle); flex: none; }
+.tv-dot { width: 14px; height: 6px; border-radius: 4px; background: var(--amber); flex: none; }
