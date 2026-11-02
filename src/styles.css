@@ -586,33 +586,30 @@ input.time-in { width: 76px; padding: 5px 8px; height: 32px; min-height: 32px; }
 .mins .col span { position: absolute; bottom: -18px; font-size: 0.68rem; font-weight: 800; color: var(--muted); white-space: nowrap; }
 
 /* prototype: Text view in the analysis panel */
-.tv-box { position: relative; height: 220px; border-radius: var(--r-sm); background: var(--surface-2); overflow: hidden; }
-.tv-gutter { position: absolute; left: 0; top: 0; bottom: 0; width: 92px; z-index: 3; background: var(--surface-2); border-right: 2px solid var(--line); }
-.tv-lab { position: absolute; left: 0; right: 0; display: flex; align-items: center; padding-left: 10px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
-.tv-lab.spk { color: var(--green-ink); } .tv-lab.you { color: var(--sky-dark); }
-.tv-lab.spk::before, .tv-lab.you::before { content: ""; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: currentColor; }
-.tv-view { position: absolute; left: 92px; right: 0; top: 0; bottom: 0; overflow: hidden; touch-action: pan-y; cursor: grab; user-select: none; }
-.tv-track { position: absolute; left: 0; top: 0; bottom: 0; will-change: transform; }
-.tv-pitch { position: absolute; left: 0; top: 6px; }
-.tv-pitch path { fill: none; stroke-width: 2.5; opacity: 0.55; stroke-linecap: round; stroke-linejoin: round; }
+.tv-box { position: relative; height: 216px; border-radius: var(--r-sm); background: var(--surface-2); overflow: hidden; }
+.tv-view { position: absolute; inset: 0; overflow: hidden; touch-action: pan-y; cursor: grab; user-select: none; }
+.tv-track { position: absolute; left: 0; top: 0; bottom: 0; will-change: transform; background-image: linear-gradient(to right, var(--line) 1px, transparent 1px); background-repeat: repeat-x; }
+.tv-pitch { position: absolute; left: 0; top: 2px; }
+.tv-pitch path { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: 0.6; }
 .tv-pitch .sp { stroke: var(--green); } .tv-pitch .you { stroke: var(--sky); }
-.tv-cols { position: absolute; left: 0; top: 92px; height: 102px; }
-.tv-word { position: absolute; height: 102px; border-radius: 10px; display: flex; flex-direction: column; }
-.tv-word.diff { background: var(--wattle-soft); }
-.tv-r { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 3px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0; }
-.tv-r.wd { font-family: var(--font-display); font-weight: 600; color: var(--fg); }
-.tv-r.ph, .tv-chip { font-family: "Nunito", "DejaVu Sans", system-ui, sans-serif; font-weight: 800; }
-.tv-r.big.ph { color: var(--green-ink); }
-.tv-r.small.ph { color: var(--green-ink); }
-.tv-r.small.wd { color: var(--muted); font-weight: 700; }
-.tv-r b.x { color: var(--green-ink); text-decoration: underline 3px var(--wattle-dark); text-underline-offset: 3px; }
-.tv-chip b.x { color: var(--red); text-decoration-color: var(--red); }
-.tv-chip { color: var(--sky-dark); background: var(--sky-soft); padding: 3px 7px; border-radius: 8px; overflow: hidden; text-overflow: ellipsis; }
-.tv-ok { display: none; }
-.tv-t { overflow: hidden; text-overflow: ellipsis; }
-.tv-play { appearance: none; border: 0; flex: none; width: 22px; height: 22px; padding: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; }
-.tv-play svg { width: 11px; height: 11px; margin-left: 1px; }
-.tv-play.spk { background: var(--green); } .tv-play.you { background: var(--sky); }
+/* a word is a tile like the app's buttons, as wide as it was said */
+.tv-tile { position: absolute; top: 52px; height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0 2px; overflow: hidden;
+  background: var(--surface); border: 2px solid var(--line); border-bottom-width: 4px; border-radius: var(--r-sm); cursor: pointer; }
+.tv-tile.diff { background: var(--wattle-soft); border-color: var(--wattle); border-bottom-color: var(--wattle-dark); }
+.tv-big, .tv-small { white-space: nowrap; line-height: 1.1; }
+.tv-big.wd { font-family: var(--font-display); font-weight: 600; color: var(--fg); }
+.tv-small.wd { font-weight: 800; color: var(--muted); }
+.tv-big.ph, .tv-small.ph, .tv-ph { font-family: "Nunito", "DejaVu Sans", system-ui, sans-serif; font-weight: 800; color: var(--green-ink); }
+.tv-small.ph { opacity: 0.85; }
+b.x { text-decoration: underline 3px var(--wattle-dark); text-underline-offset: 3px; }
+/* what differs: a small card under the word, Speaker line and You line, each with its own labelled button */
+.tv-fix { position: absolute; top: 118px; transform: translateX(-50%); min-width: 214px; display: flex; flex-direction: column; gap: 6px; padding: 8px 10px;
+  background: var(--surface); border: 2px solid var(--wattle); border-bottom-width: 4px; border-bottom-color: var(--wattle-dark); border-radius: var(--r-sm); }
+.tv-line { display: flex; align-items: center; gap: 10px; }
+.tv-line .btn { width: 92px; }
+.tv-line .tv-ph { font-size: 1.05rem; white-space: nowrap; }
+.tv-line.you .tv-ph { color: var(--sky-dark); }
+.tv-line.you b.x { color: var(--red); text-decoration-color: var(--red); }
 .tv-head { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--ochre); pointer-events: none; z-index: 2; }
-.tv-legend { margin-top: 8px; gap: 14px; }
-.tv-key { width: 12px; height: 12px; border-radius: 4px; display: inline-block; background: var(--wattle); margin-right: -6px; }
+.tv-legend { margin-top: 8px; gap: 8px; }
+.tv-key { width: 12px; height: 12px; border-radius: 4px; display: inline-block; background: var(--wattle); }

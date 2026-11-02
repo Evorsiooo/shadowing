@@ -16,7 +16,6 @@ const DEMO_TEXT = [
 ];
 const TEXT_PPS = 320; // pixels per second of clip, the same for every word
 const TEXT_HEAD = 0.3; // the playhead sits 30% in from the left edge of the strip
-const TEXT_ROWS = [34, 30, 38]; // row heights: big row, small row, "You" row
 
 /* text inside a cell: shrink to fit the word's own width, never wider than its time slot */
 function tvFit(text, widthPx, maxRem, minRem) {
@@ -39,57 +38,46 @@ function buildTextView(clip) {
   const wordsTop = UI.textTop !== 'phones';
   const trackW = Math.ceil(dur * TEXT_PPS);
   const m = clip.model;
-  const rowTop = [0, TEXT_ROWS[0], TEXT_ROWS[0] + TEXT_ROWS[1]];
 
-  // pitch lines behind (speaker green, your demo take blue)
+  // pitch lines behind (speaker green, your demo take blue), drawn like the Pitch view
   const pts = (shift) => {
     let d = '', pen = false;
     for (let i = 0; i < m.st.length; i++) {
       const v = m.st[i], ct = i * m.hop;
       if (v == null || Math.abs(v) > 12) { pen = false; continue; }
-      d += (pen ? 'L' : 'M') + (ct * TEXT_PPS).toFixed(1) + ' ' + (40 - (v / 12) * 33 + shift(i)).toFixed(1);
+      d += (pen ? 'L' : 'M') + (ct * TEXT_PPS).toFixed(1) + ' ' + (23 - (v / 12) * 18 + shift(i)).toFixed(1);
       pen = true;
     }
     return d;
   };
   const ns = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(ns, 'svg');
-  svg.setAttribute('class', 'tv-pitch'); svg.setAttribute('width', trackW); svg.setAttribute('height', 80);
-  for (const [d, cls] of [[pts(() => 0), 'sp'], [pts((i) => Math.sin(i / 7) * 3 + 6), 'you']]) {
+  svg.setAttribute('class', 'tv-pitch'); svg.setAttribute('width', trackW); svg.setAttribute('height', 46);
+  for (const [d, cls] of [[pts(() => 0), 'sp'], [pts((i) => Math.sin(i / 7) * 2 + 4), 'you']]) {
     const p = document.createElementNS(ns, 'path'); p.setAttribute('d', d); p.setAttribute('class', cls); svg.appendChild(p);
   }
 
-  const playDot = (who, label, onclick) => h('button', { type: 'button', class: 'tv-play ' + who, title: label, 'aria-label': label, onclick: (e) => { e.stopPropagation(); onclick(); } }, icon('play'));
+  const hear = (who, d) => btn(who === 'spk' ? 'Speaker' : 'You',
+    (e) => { e.stopPropagation(); if (who === 'spk') { Player.seek(clip.start + d.a); Player.play(); } },
+    { icon: 'play', size: 'sm', kind: who === 'spk' ? 'primary' : 'blue', title: who === 'spk' ? 'Hear the speaker say “' + d.w + '”' : 'Hear your take of “' + d.w + '”' });
 
-  const col = (d) => {
-    const wpx = Math.max(26, (d.b - d.a) * TEXT_PPS - 4);
-    const big = wordsTop ? d.w : tvPlain(d.p);
-    const small = wordsTop ? d.p : d.w;
-    const bigNode = wordsTop ? d.w : tvPhones(d.p);
-    const smallNode = wordsTop ? tvPhones(d.p) : d.w;
-    const spkPlay = d.you ? playDot('spk', 'Hear the speaker say “' + d.w + '”', () => { Player.seek(clip.start + d.a); Player.play(); }) : null;
-    const youRow = d.you
-      ? h('div', { class: 'tv-r you diff', style: { height: TEXT_ROWS[2] + 'px' } },
-        h('span', { class: 'tv-chip ph', style: { fontSize: tvFit(d.you, wpx - 36, 1.0, 0.72) } }, tvPhones(d.you)),
-        playDot('you', 'Hear your take of “' + d.w + '”', () => {}))
-      : h('div', { class: 'tv-r you same', style: { height: TEXT_ROWS[2] + 'px' } }, h('span', { class: 'tv-ok', title: 'Same as the speaker' }, '·'));
-    return h('div', { class: 'tv-word' + (d.you ? ' diff' : ''), style: { left: d.a * TEXT_PPS + 'px', width: (d.b - d.a) * TEXT_PPS - 3 + 'px' }, onclick: () => Player.seek(clip.start + d.a), title: d.w },
-      h('div', { class: 'tv-r big ' + (wordsTop ? 'wd' : 'ph'), style: { height: TEXT_ROWS[0] + 'px', fontSize: tvFit(big, wpx - (!wordsTop && spkPlay ? 26 : 0), 1.5, 0.78) } }, h('span', { class: 'tv-t' }, bigNode), wordsTop ? null : spkPlay),
-      h('div', { class: 'tv-r small ' + (wordsTop ? 'ph' : 'wd'), style: { height: TEXT_ROWS[1] + 'px', fontSize: tvFit(small, wpx - (spkPlay ? 26 : 0), 0.95, 0.7) } },
-        h('span', { class: 'tv-t' }, smallNode), wordsTop ? spkPlay : null),
-      youRow);
+  const tile = (d) => {
+    const wpx = Math.max(30, (d.b - d.a) * TEXT_PPS - 6);
+    return h('div', { class: 'tv-tile' + (d.you ? ' diff' : ''), style: { left: d.a * TEXT_PPS + 'px', width: (d.b - d.a) * TEXT_PPS - 4 + 'px' }, onclick: () => Player.seek(clip.start + d.a) },
+      h('div', { class: 'tv-big ' + (wordsTop ? 'wd' : 'ph'), style: { fontSize: tvFit(wordsTop ? d.w : tvPlain(d.p), wpx, 1.4, 0.8) } }, wordsTop ? d.w : tvPhones(d.p)),
+      h('div', { class: 'tv-small ' + (wordsTop ? 'ph' : 'wd'), style: { fontSize: tvFit(wordsTop ? tvPlain(d.p) : d.w, wpx, 0.9, 0.66) } }, wordsTop ? tvPhones(d.p) : d.w));
+  };
+  const fixCard = (d) => {
+    const mid = ((d.a + d.b) / 2) * TEXT_PPS;
+    return h('div', { class: 'tv-fix', style: { left: mid + 'px' } },
+      h('div', { class: 'tv-line spk' }, hear('spk', d), h('span', { class: 'tv-ph' }, tvPhones(d.p))),
+      h('div', { class: 'tv-line you' }, hear('you', d), h('span', { class: 'tv-ph' }, tvPhones(d.you))));
   };
 
-  const cols = h('div', { class: 'tv-cols' }, DEMO_TEXT.map(col));
-  const track = h('div', { class: 'tv-track', style: { width: trackW + 'px' } }, svg, cols);
+  const track = h('div', { class: 'tv-track', style: { width: trackW + 'px', backgroundSize: TEXT_PPS + 'px 100%' } }, svg,
+    DEMO_TEXT.map(tile), DEMO_TEXT.filter((d) => d.you).map(fixCard));
   const view = h('div', { class: 'tv-view' }, track, h('div', { class: 'tv-head', style: { left: TEXT_HEAD * 100 + '%' } }));
-  const lab = (txt, cls, i) => h('div', { class: 'tv-lab ' + cls, style: { top: 92 + rowTop[i] + 'px', height: TEXT_ROWS[i] + 'px' } }, txt);
-  const gutter = h('div', { class: 'tv-gutter' },
-    lab(wordsTop ? 'Words' : 'Speaker', wordsTop ? 'wd' : 'spk', 0),
-    lab(wordsTop ? 'Speaker' : 'Words', wordsTop ? 'spk' : 'wd', 1),
-    lab('You', 'you', 2),
-    h('div', { class: 'tv-lab pitch', style: { top: '8px', height: '20px' } }, 'Pitch'));
-  const box = h('div', { class: 'tv-box' }, gutter, view);
+  const box = h('div', { class: 'tv-box' }, view);
   Panel.canvas = box;
   Panel.refs.track = track; Panel.refs.box = view; Panel.refs.dur = dur;
 
@@ -102,10 +90,9 @@ function buildTextView(clip) {
   const diffs = DEMO_TEXT.filter((d) => d.you).length;
   return [box,
     h('div', { class: 'row tv-legend small muted' },
-      h('span', { class: 'tv-key diff' }), diffs + ' differences from the speaker in take 3',
-      h('span', null, 'Underlined symbols are where you differ'),
+      h('span', { class: 'tv-key' }), diffs + ' differences from the speaker in take 3',
       h('span', { class: 'spacer' }),
-      'Word width = how long it was said · Drag to scrub')];
+      'Each word is as wide as it was said · Drag to scrub')];
 }
 
 Panel.drawText = function (now) {
