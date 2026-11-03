@@ -58,7 +58,7 @@ function pvMsg(title, body, ...actions) {
 function buildPronView(clip) {
   const root = h('div', { class: 'pv' });
   const stop = PronSource.onStatus(() => { if (root.isConnected) fill(); else stop(); });
-  let failed = null, cancelled = false, stopped = false, loadAsked = false, ctl = null;
+  let failed = null, failedMsg = '', cancelled = false, stopped = false, loadAsked = false, ctl = null;
   const since = {};
   let stallShown = false;
   /* "12 s so far": shows that something is still going on. The timer below keeps the number moving */
@@ -101,7 +101,7 @@ function buildPronView(clip) {
     const take = PronTab.take(clip);
     const key = `${clip.id}:${take ? take.id || 'review' : 'none'}`;
     const res = PronTab.cache.get(key);
-    if (failed === key) return mount(root, pvMsg(cancelled ? t('Stopped') : t('The comparison didn’t work'), cancelled ? t('You stopped the comparison.') : t('Something went wrong while comparing. Try again.'), btn(t('Try again'), () => { failed = null; cancelled = false; fill(); }, { kind: 'primary' })));
+    if (failed === key) return mount(root, pvMsg(cancelled ? t('Stopped') : t('The comparison didn’t work'), cancelled ? t('You stopped the comparison.') : (failedMsg || t('Something went wrong while comparing. Try again.')), btn(t('Try again'), () => { failed = null; failedMsg = ''; cancelled = false; fill(); }, { kind: 'primary' })));
     if (!res) {
       mount(root, pvMsg(take ? t('Comparing your take with the speaker…') : t('Reading the speaker…'), t('The model is ready; this is the analysis itself. It runs on your device and takes a while on a slow one.'),
         h('span', { class: 'pv-spin', 'aria-hidden': 'true' }), elapsed('analyse'),
@@ -112,7 +112,7 @@ function buildPronView(clip) {
         const mine = ctl;
         PronSource.analyse(clip, take, mine.signal)
           .then((r) => { PronTab.cache.set(key, r); })
-          .catch((e) => { failed = key; cancelled = mine.signal.aborted; if (!cancelled) console.warn('pronunciation comparison failed', e); })
+          .catch((e) => { failed = key; cancelled = mine.signal.aborted; failedMsg = !cancelled && e && e.message && !(e instanceof HeavyError) ? String(e.message).slice(0, 300) : ''; if (!cancelled) console.warn('pronunciation comparison failed', e); })
           .finally(() => { PronTab.asked.delete(key); if (root.isConnected) fill(); });
       }
       return;

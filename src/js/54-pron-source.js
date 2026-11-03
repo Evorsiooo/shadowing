@@ -133,6 +133,21 @@ const PronSource = (() => {
   };
 
   // ---- the engine: samples for the clip and the take, then Phones.analyse ----
+  // The speaker's sound is read from the video on demand (a YouTube/hosted video or a local file), so it may not be decoded yet when a take is compared: fetch it here, with one more try, and say why when it can't be read.
+  async function speakerSamples(clip, signal) {
+    const get = () => VideoAudio.slice(clip.videoId, clip.start, clip.end);
+    let spk = get();
+    for (let attempt = 0; !spk && attempt < 2; attempt++) {
+      const video = Store.get('videos', clip.videoId);
+      if (!video) throw new Error(t('This clip’s video isn’t in your library any more.'));
+      const e = await VideoAudio.ensure(video, clip.start, clip.end);
+      if (signal && signal.aborted) throw new DOMException('Stopped', 'AbortError');
+      spk = get();
+      if (!spk && e && e.status === 'error' && attempt) throw new Error(e.error || t('The video’s sound couldn’t be read.'));
+    }
+    if (!spk) throw new Error(t('The speaker’s sound couldn’t be read from the video. Load the video again (a local file works best) and try again.'));
+    return spk;
+  }
   const real = {
     supported: () => Phones.supported(),
     status: () => Phones.status(),
@@ -142,8 +157,7 @@ const PronSource = (() => {
     stop: () => Phones.stop(),
     async analyse(clip, take, signal) {
       clip = Store.get('clips', clip.id) || clip; // words may have arrived or been fixed since the tab opened
-      const spk = VideoAudio.slice(clip.videoId, clip.start, clip.end);
-      if (!spk) throw new Error('The speaker’s sound isn’t ready.');
+      const spk = await speakerSamples(clip, signal);
       // words, when the clip has them (clip.words = [{w, s, e}], automatic or fixed by the learner, seconds from the clip start); sounds alone otherwise.
       // Attached after the engine, never passed in: its cached results must not freeze an older version of the words.
       const external = clip.words && clip.words.length ? { source: 'asr', words: clip.words.map((x) => ({ text: x.w, t0: x.s, t1: x.e })) } : undefined;
