@@ -256,6 +256,7 @@ const make = ({ SITE, L, host }) => ({
     <p>Estas funciones opcionales están desactivadas hasta que las actives en los ajustes.</p>
     <ul>
       <li><strong>Comprobación de pronunciación en inglés (beta).</strong> Compara tu grabación con el audio del hablante dentro de tu navegador. Al activarla se descarga una vez un modelo de voz de unos 71 MB desde Hugging Face, un alojamiento de terceros. Hugging Face recibe la solicitud de ese archivo, como cualquier sitio web (por ejemplo tu dirección IP), pero no tus grabaciones ni tus datos de práctica. Tu audio no se sube para la comprobación. Sus resultados escritos (los sonidos que difirieron, palabras de ejemplo y recuentos a lo largo del tiempo) se guardan con tus datos de práctica en nuestro servidor, y las apps de IA que conectes mediante el enlace MCP de Euno pueden leerlos.</li>
+      <li><strong>Palabras en la pestaña Pronunciación (beta, opcional).</strong> Un segundo ajuste independiente, en Ajustes → Análisis, descarga un modelo de reconocimiento de voz (Whisper) de unos 80 MB, una sola vez, desde Hugging Face, con las mismas condiciones de privacidad que arriba. Se ejecuta en tu navegador para mostrar las palabras sobre los sonidos, porque los clips no tienen transcripción. Tu audio no se sube para esto.</li>
       <li><strong>Comprobación por reconocimiento de voz (solo Chrome).</strong> Usa el reconocimiento de voz integrado en tu navegador. En Chrome, eso envía tu voz a Google mientras se ejecuta, según la política de privacidad de Google.</li>
     </ul>
 
