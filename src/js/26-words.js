@@ -72,7 +72,8 @@ const Words = (() => {
     if (!Heavy.isOn('words')) return Promise.resolve(null);
     if (running.has(clip.id)) return running.get(clip.id);
     const p = (async () => {
-      const samples = VideoAudio.slice(clip.videoId, clip.start, clip.end);
+      let samples = VideoAudio.slice(clip.videoId, clip.start, clip.end);
+      if (!samples) { const v = Store.get('videos', clip.videoId); if (v) { await VideoAudio.ensure(v, clip.start, clip.end); samples = VideoAudio.slice(clip.videoId, clip.start, clip.end); } }
       if (!samples) return null;
       const res = await Heavy.run('words', ({ signal }) => transcribe(samples, signal), { timeoutMs: state.state === 'downloaded' || state.state === 'ready' ? Math.max(180000, 12 * (clip.end - clip.start) * 1000) : 900000 } /* the first run also downloads the model */);
       const now = Store.get('clips', clip.id);

@@ -402,5 +402,17 @@
   "Move a suggested sound to “Gone quiet” once it has stopped coming back (it returns if it does)": {
     "fr": "Ranger un son suggéré dans « Devenus discrets » quand il ne revient plus (il revient s’il réapparaît)",
     "es": "Mover un sonido sugerido a «Se han calmado» cuando deja de repetirse (vuelve si reaparece)"
+  },
+  "This clip’s video isn’t in your library any more.": {
+    "fr": "La vidéo de ce passage n’est plus dans ta bibliothèque.",
+    "es": "El vídeo de este fragmento ya no está en tu biblioteca."
+  },
+  "The video’s sound couldn’t be read.": {
+    "fr": "Le son de la vidéo n’a pas pu être lu.",
+    "es": "No se pudo leer el sonido del vídeo."
+  },
+  "The speaker’s sound couldn’t be read from the video. Load the video again (a local file works best) and try again.": {
+    "fr": "Le son du locuteur n’a pas pu être lu depuis la vidéo. Recharge la vidéo (un fichier local marche le mieux) et réessaie.",
+    "es": "No se pudo leer el sonido del hablante desde el vídeo. Vuelve a cargar el vídeo (un archivo local funciona mejor) y prueba de nuevo."
   }
 }
