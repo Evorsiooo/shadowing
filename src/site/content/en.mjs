@@ -256,6 +256,7 @@ const make = ({ SITE, L, host }) => ({
     <h2>Analysis on your device</h2>
     <p>These optional features are off until you turn them on in Settings.</p>
     <ul>
+      <li><strong>Word labels for the Pronunciation tab (beta, optional).</strong> A second, separate switch in Settings → Analysis downloads a speech model (Whisper) of about 80 MB, once, from Hugging Face, with the same privacy terms as above. It runs in your browser to put words above the sounds, because clips have no transcripts. Your audio is not uploaded for it.</li>
       <li><strong>English pronunciation check (beta).</strong> It compares your recording with the speaker’s audio inside your browser. Turning it on downloads a speech model of about 71 MB, once, from Hugging Face, a third-party host. Hugging Face receives the request for that file, as any website does (for example your IP address), but not your recordings or your practice data. Your audio is not uploaded for the check. Its written results (the sounds that differed, example words and counts over time) are saved with your practice data on our server, and AI apps you connect through Euno’s MCP link can read them.</li>
       <li><strong>Speech-recognition check (Chrome only).</strong> It uses your browser’s built-in speech recognition. In Chrome, that sends your voice to Google while the check runs, under Google’s own privacy policy.</li>
     </ul>
