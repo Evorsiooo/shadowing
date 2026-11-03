@@ -15,8 +15,10 @@
    PronSource.supported()        -> { ok, reason? }
    PronSource.status()           -> ModelStatus  (state: unsupported|not-downloaded|downloading|downloaded|loading|ready|error)
    PronSource.onStatus(fn)       -> unsubscribe
-   PronSource.download()         -> Promise<void>
-   PronSource.analyse(clip, take)-> Promise<PronResult>  take = { id, blob, url, ref, analysis } or null (speaker only) */
+   PronSource.download()         -> Promise<void>   (normally started by the Settings → Analysis switch; this is the fallback)
+   PronSource.load()             -> Promise<void>   (download if needed, then load into memory)
+   PronSource.stop()             -> stop loading the model
+   PronSource.analyse(clip, take, signal?)-> Promise<PronResult>  take = { id, blob, url, ref, analysis } or null (speaker only) */
 
 /* engine words (PhoneWord, no text) + the differences to show -> PronWord[] */
 function pronWords(S, shown, ext) {
@@ -120,7 +122,9 @@ const PronSource = (() => {
       while (M.progress < 1) { await wait(160); M.progress = Math.min(1, M.progress + 0.08); tell(); }
       M.state = 'ready'; tell();
     },
-    async analyse(clip, take) {
+    async load() { await this.download(); },
+    stop() {},
+    async analyse(clip, take, signal) {
       if (forced === 'analysing') await new Promise(() => {});
       await wait(take ? 900 : 150);
       const res = mockResult(clip, !!take);
@@ -134,7 +138,9 @@ const PronSource = (() => {
     status: () => Phones.status(),
     onStatus: (fn) => Phones.onStatus(fn),
     download: () => Phones.download(),
-    async analyse(clip, take) {
+    load: () => Phones.load(),
+    stop: () => Phones.stop(),
+    async analyse(clip, take, signal) {
       clip = Store.get('clips', clip.id) || clip; // words may have arrived or been fixed since the tab opened
       const spk = VideoAudio.slice(clip.videoId, clip.start, clip.end);
       if (!spk) throw new Error('The speaker’s sound isn’t ready.');
@@ -142,10 +148,10 @@ const PronSource = (() => {
       // Attached after the engine, never passed in: its cached results must not freeze an older version of the words.
       const external = clip.words && clip.words.length ? { source: 'asr', words: clip.words.map((x) => ({ text: x.w, t0: x.s, t1: x.e })) } : undefined;
       const withWords = (seq) => (external ? Phones.attachExternalWords(seq, external) : { ...seq, external: undefined });
-      if (!take) return pronFromSequence(withWords(await Heavy.run('pronunciation', () => Phones.transcribe(spk, { originSec: 0 }), { timeoutMs: 90000 })));
+      if (!take) return pronFromSequence(withWords(await Heavy.run('pronunciation', () => Phones.transcribe(spk, { originSec: 0 }), { timeoutMs: 90000, signal })));
       const blob = take.blob || (await (await fetch(await Store.blobUrl(take.ref))).blob());
       const you = await AudioEng.decodeBlob(blob);
-      const res = await Heavy.run('pronunciation', () => Phones.analyse(spk, you, { speakerOriginSec: 0 }), { timeoutMs: 90000 });
+      const res = await Heavy.run('pronunciation', () => Phones.analyse(spk, you, { speakerOriginSec: 0 }), { timeoutMs: 90000, signal });
       return pronFromClipResult({ ...res, speaker: withWords(res.speaker) });
     },
   };

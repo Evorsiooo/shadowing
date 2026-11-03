@@ -370,13 +370,16 @@ const Pron = {
 /* the two switches in Settings → Analysis (src/js/21-heavy.js). Both are off until the learner turns them on, on this device. */
 Heavy.register('pronunciation', {
   name: N_('Pronunciation analysis'),
-  about: N_('Compares the sounds in your recording with the speaker’s, on this device. English only. It can be wrong.'),
+  about: N_('The main feature: compares the sounds in your recording with the speaker’s, on this device, and shows where they differ (for example “th” said as “s”). English only. It can be wrong.'),
   sizeMB: 71, minMemGB: 4, minCores: 4,
   cacheNames: ['euno-phones-model-v1'],
+  prefetch: ({ signal }) => Phones.download({ signal }),
+  status: () => Phones.status(),
+  onStatus: (fn) => Phones.onStatus(fn),
   remove: () => Phones.remove(),
 });
 Heavy.register('prosody', {
   name: N_('Timing, pitch and stress history'),
-  about: N_('Keeps a count on this device of how often your timing, pitch or stress differed from the speaker, so Progress can show a trend. No download.'),
+  about: N_('Counts how often your timing, pitch or stress differed from the speaker, so Progress can show a trend. No download. The counts are saved with your account like your sessions and notes, so they follow you to your other devices; this switch only decides whether this device adds to them.'),
   sizeMB: 0, minMemGB: 0.25, minCores: 1,
 });

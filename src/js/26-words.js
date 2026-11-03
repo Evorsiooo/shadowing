@@ -19,7 +19,7 @@ const Words = (() => {
   const CREDIT = 'Word labels: Whisper (OpenAI, MIT) as ONNX files by Xenova, run on your device with transformers.js (Apache-2.0).';
   const state = { state: 'not-downloaded', progress: 0, bytes: 0, slow: false, credit: CREDIT, error: undefined };
   const listeners = new Set();
-  const emit = (patch) => { Object.assign(state, patch); const s = { ...state }; listeners.forEach((f) => { try { f(s); } catch { /* a listener must not break the engine */ } }); };
+  const emit = (patch) => { Object.assign(state, patch, { at: Date.now() }); const s = { ...state }; listeners.forEach((f) => { try { f(s); } catch { /* a listener must not break the engine */ } }); };
   const worker = Heavy.worker(WORKER_URL, {
     module: true, idleMs: 60000,
     onProgress: (v) => { if (state.state === 'downloading') emit({ bytes: v.loaded, progress: Math.min(0.99, v.loaded / Math.max(EXPECTED_BYTES, v.total || 0)) }); },
@@ -108,9 +108,12 @@ const Words = (() => {
 })();
 
 Heavy.register('words', {
-  name: N_('Word labels'),
-  about: N_('Reads the words of a clip so the Pronunciation tab can show them. Speech recognition runs on this device; nothing is sent anywhere. It can mishear, and you can fix a word.'),
-  sizeMB: 80, minMemGB: 4, minCores: 4,
+  name: N_('Word labels (add-on)'),
+  about: N_('An add-on to Pronunciation analysis. It writes the words of the clip above the sounds, so you see “think” and not just a row of symbols. It does not find any differences itself and does nothing without Pronunciation analysis. Speech recognition runs on this device, it can mishear, and you can fix a word.'),
+  sizeMB: 80, minMemGB: 4, minCores: 4, parent: 'pronunciation',
   cacheNames: ['euno-words-model-v1'],
+  prefetch: ({ signal }) => Heavy.run('words', () => Words.load(signal), { signal, timeoutMs: 1800000 }),
+  status: () => Words.status(),
+  onStatus: (fn) => Words.onStatus(fn),
   remove: () => Words.remove(),
 });

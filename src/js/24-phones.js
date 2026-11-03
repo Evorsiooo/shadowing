@@ -17,7 +17,7 @@ const Phones = (() => {
   let worker = null, loading = null, seq = 0;
   const pending = new Map();
 
-  const emit = (patch) => { Object.assign(state, patch); const s = { ...state }; listeners.forEach((f) => { try { f(s); } catch { /* a listener must not break the engine */ } }); };
+  const emit = (patch) => { Object.assign(state, patch, { at: Date.now() }); /* `at`: when the state last changed, so the UI can tell a stalled download */ const s = { ...state }; listeners.forEach((f) => { try { f(s); } catch { /* a listener must not break the engine */ } }); };
   const fail = (code, message) => Object.assign(new Error(message), { code });
 
   function supported() {
@@ -60,16 +60,19 @@ const Phones = (() => {
   }
 
   let downloading = null;
-  function download() {
+  /* opts.signal stops the download: a stop by the learner goes back to 'not-downloaded', a stop with reason.code 'stalled' is an error */
+  function download(opts = {}) {
     if (state.state === 'unsupported') return Promise.reject(fail('unsupported', state.error.message));
     if (downloading) return downloading;
+    const signal = opts.signal;
     downloading = (async () => {
       await ready;
       if (await cacheHas()) { emit({ state: state.state === 'ready' ? 'ready' : 'downloaded', progress: 1 }); return; }
       emit({ state: 'downloading', progress: 0, bytes: 0, error: undefined });
       try {
         const m = await resolveModel();
-        const resp = await fetch(m.url, { credentials: 'omit' });
+        if (signal && signal.aborted) throw fail('cancelled', 'Stopped.');
+        const resp = await fetch(m.url, { credentials: 'omit', signal });
         if (!resp.ok || !resp.body) throw fail('download-failed', `Model download failed (HTTP ${resp.status}).`);
         const total = +resp.headers.get('content-length') || m.size || 0;
         const reader = resp.body.getReader();
@@ -87,6 +90,11 @@ const Phones = (() => {
         await c.put('model', new Response(buf, { headers: { 'content-type': 'application/octet-stream', 'x-source': m.url, 'x-sha256': m.sha256 || '' } }));
         emit({ state: 'downloaded', progress: 1, bytes: got });
       } catch (e) {
+        if (signal && signal.aborted) {
+          const why = signal.reason;
+          if (!(why && why.code === 'stalled')) { emit({ state: 'not-downloaded', progress: 0, bytes: 0, error: undefined }); throw fail('cancelled', 'Stopped.'); }
+          e = fail('stalled', why.message);
+        }
         emit({ state: 'error', error: { code: e.code || 'download-failed', message: e.message } });
         throw e;
       } finally { downloading = null; }
@@ -118,6 +126,8 @@ const Phones = (() => {
     pending.clear();
     if (state.state === 'ready' || state.state === 'loading') emit({ state: 'downloaded' });
   }
+  /* the learner stopped the model while it was loading into memory: it stays downloaded */
+  function stop() { stopWorker(fail('cancelled', 'Stopped.')); }
 
   function load() {
     if (loading) return loading;
@@ -134,6 +144,7 @@ const Phones = (() => {
         const code = e.code === 'out-of-memory' ? 'out-of-memory' : 'load-failed';
         if (worker) worker.terminate();
         worker = null; loading = null;
+        if (e.code === 'cancelled') { emit({ state: 'downloaded', error: undefined }); throw e; }
         emit({ state: 'error', error: { code, message: e.message } });
         throw fail(code, e.message);
       }
@@ -233,6 +244,6 @@ const Phones = (() => {
     MODEL_ID, CREDIT, supported,
     status: () => ({ ...state }),
     onStatus(fn) { listeners.add(fn); return () => listeners.delete(fn); },
-    ready, download, load, remove, transcribe, compare, analyse, attachExternalWords, fingerprint,
+    ready, download, load, stop, remove, transcribe, compare, analyse, attachExternalWords, fingerprint,
   };
 })();

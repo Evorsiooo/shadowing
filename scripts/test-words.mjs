@@ -22,7 +22,7 @@ function FakeWorker() {
 }
 const cacheStore = { keys: async () => [{}], delete: async () => true };
 const ctx = {
-  console, setTimeout, clearTimeout, AbortController, Promise, Date, URL, performance, Float32Array,
+  console, setTimeout, clearTimeout, setInterval, clearInterval, AbortController, Promise, Date, URL, performance, Float32Array,
   location: { href: 'https://x.test/app/', search: '' },
   localStorage: { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)) },
   navigator: { deviceMemory: 8, hardwareConcurrency: 8, userAgent: 'Desktop' },
@@ -40,6 +40,8 @@ vm.createContext(ctx);
 vm.runInContext(read('21-heavy.js') + '\n' + read('26-words.js').replaceAll('__WORDS_WORKER_URL__', '/w.js').replaceAll('__WORDS_WASM_BASE__', '/w/') + '\nthis.Heavy = Heavy; this.Words = Words; this.HeavyError = HeavyError;', ctx);
 const { Heavy, Words } = ctx;
 const clip = () => ({ id: 'c1', videoId: 'v', start: 10, end: 12 });
+/* turning the switch on starts the model download; wait for it so each test begins from a quiet worker */
+const on = async () => { Heavy.enable('words'); await Heavy.download('words'); workerCalls = []; };
 let n = 0;
 const test = async (name, fn) => { store.clear(); clips.clear(); workerCalls = []; workerImpl = async (type) => (type === 'load' ? true : { words: [{ w: 'hello', s: 0.1, e: 0.5 }], timing: 'word', model: 'whisper-base.en-q8' }); await fn(); n++; console.log('ok  ' + name); };
 
@@ -52,7 +54,7 @@ await test('registered as its own feature, off by default, 80 MB consent', async
 });
 await test('on: loads, transcribes once, stores words + wordsFor on the clip, never twice', async () => {
   clips.set('c1', clip());
-  assert.equal(Heavy.enable('words'), true);
+  await on();
   const [a, b] = await Promise.all([Words.ensure(clip()), Words.ensure(clip())]);
   eq(a, [{ w: 'hello', s: 0.1, e: 0.5 }]); assert.equal(a, b);
   eq(workerCalls, ['load', 'transcribe'], 'concurrent calls share one run');
@@ -62,21 +64,27 @@ await test('on: loads, transcribes once, stores words + wordsFor on the clip, ne
   workerCalls = [];
   eq(await Words.ensure(c), c.words); eq(workerCalls, [], 'a clip that has words is not read again');
 });
+await test('turning it on downloads the model at once, with no clip involved', async () => {
+  assert.equal(Heavy.enable('words'), true);
+  await Heavy.download('words');
+  eq(workerCalls, ['load']); assert.equal(Words.status().state, 'ready');
+  assert.equal(Heavy.downloadError('words'), null);
+});
 await test('empty result is stored (so the tab does not retry forever)', async () => {
-  clips.set('c1', clip()); Heavy.enable('words');
+  clips.set('c1', clip()); await on();
   workerImpl = async (type) => (type === 'load' ? true : { words: [], timing: 'word', model: 'm' });
   eq(await Words.ensure(clip()), []);
   assert.ok(clips.get('c1').wordsFor);
   workerCalls = []; await Words.ensure(clips.get('c1')); eq(workerCalls, []);
 });
 await test('a clip moved while the words were being read does not get stale words', async () => {
-  clips.set('c1', clip()); Heavy.enable('words');
+  clips.set('c1', clip()); await on();
   workerImpl = async (type) => { if (type === 'transcribe') clips.set('c1', { ...clip(), start: 11 }); return type === 'load' ? true : { words: [{ w: 'x', s: 0, e: 1 }], timing: 'word', model: 'm' }; };
   assert.equal(await Words.ensure(clip()), null);
   assert.equal(clips.get('c1').words, undefined);
 });
 await test('failures are reported, counted by the guard, and switch the feature off after two', async () => {
-  clips.set('c1', clip()); Heavy.enable('words');
+  clips.set('c1', clip()); await on();
   workerImpl = async () => { throw new Error('boom'); };
   await assert.rejects(Words.ensure(clip()), { code: 'failed' });
   assert.equal(Words.status().state, 'error');
@@ -85,7 +93,7 @@ await test('failures are reported, counted by the guard, and switch the feature 
   assert.equal(Heavy.isOn('words'), false); assert.equal(Heavy.state('words').off, 'failures');
 });
 await test('out of memory switches it off at once', async () => {
-  clips.set('c1', clip()); Heavy.enable('words');
+  clips.set('c1', clip()); await on();
   workerImpl = async () => { throw new Error('std::bad_alloc: out of memory'); };
   await assert.rejects(Words.ensure(clip()), { code: 'out-of-memory' });
   assert.equal(Heavy.state('words').off, 'memory');

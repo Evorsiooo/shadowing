@@ -3,10 +3,6 @@
     "fr": "Étiquettes de mots",
     "es": "Etiquetas de palabras"
   },
-  "Reads the words of a clip so the Pronunciation tab can show them. Speech recognition runs on this device; nothing is sent anywhere. It can mishear, and you can fix a word.": {
-    "fr": "Lit les mots d’un extrait pour que l’onglet Prononciation puisse les afficher. La reconnaissance vocale s’exécute sur cet appareil ; rien n’est envoyé nulle part. Elle peut se tromper, et tu peux corriger un mot.",
-    "es": "Lee las palabras de un clip para que la pestaña Pronunciación pueda mostrarlas. El reconocimiento de voz se ejecuta en este dispositivo; no se envía nada a ningún sitio. Puede oír mal, y puedes corregir una palabra."
-  },
   "The words are placed roughly: this device couldn’t time each word.": {
     "fr": "Les mots sont placés approximativement : cet appareil n’a pas pu dater chaque mot.",
     "es": "Las palabras están colocadas de forma aproximada: este dispositivo no pudo medir el momento de cada palabra."

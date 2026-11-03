@@ -58,34 +58,61 @@ function pvMsg(title, body, ...actions) {
 function buildPronView(clip) {
   const root = h('div', { class: 'pv' });
   const stop = PronSource.onStatus(() => { if (root.isConnected) fill(); else stop(); });
-  let failed = null;
+  let failed = null, cancelled = false, stopped = false, loadAsked = false, ctl = null;
+  const since = {};
+  let stallShown = false;
+  /* "12 s so far": shows that something is still going on. The timer below keeps the number moving */
+  const elapsed = (what) => { since[what] = since[what] || Date.now(); return h('span', { class: 'small muted pv-elapsed', 'data-what': what }, t('{n} s so far', { n: Math.round((Date.now() - since[what]) / 1000) })); };
+  const tick = setInterval(() => {
+    if (!root.isConnected) return clearInterval(tick);
+    const el = root.querySelector('.pv-elapsed');
+    if (el) el.textContent = t('{n} s so far', { n: Math.round((Date.now() - since[el.dataset.what]) / 1000) });
+    else for (const k of Object.keys(since)) delete since[k];
+    if (dlStalled(PronSource.status()) !== stallShown) fill(); // the "no data" warning needs time to pass, not an event
+  }, 1000);
 
   function fill() {
     Panel.canvas = null;
     Panel.refs = {};
+    stallShown = false;
     const sup = PronSource.supported();
     if (!sup.ok) return mount(root, pvMsg(t('This browser can’t run the pronunciation check'), t('It needs a recent Chrome, Edge, Firefox or Safari on a computer. Pitch and Waveform still work here.')));
     const m = PronSource.status(), mb = Math.round(m.bytes / 1e6) || 71, pct = Math.round(m.progress * 100);
     if (m.state === 'unsupported') return mount(root, pvMsg(t('This browser can’t run the pronunciation check'), t('It needs a recent Chrome, Edge, Firefox or Safari on a computer. Pitch and Waveform still work here.')));
-    if (m.state === 'not-downloaded') return mount(root, pvMsg(t('Pronunciation check (beta)'),
+    // The download starts when the learner turns the switch on (Settings → Analysis). This prompt is only for a download that was interrupted, or a build without the switch.
+    if (m.state === 'not-downloaded') return mount(root, pvMsg(t('The pronunciation model isn’t on this device yet'),
       t('It compares your take with the speaker, sound by sound, and runs on this device: your voice isn’t sent anywhere. It needs a one-time download of {mb} MB.', { mb }),
-      btn(t('Download the model ({mb} MB)', { mb }), () => PronSource.download().catch(() => {}), { kind: 'primary', icon: 'download' })));
-    if (m.state === 'downloading') return mount(root, pvMsg(t('Downloading the model…'), null,
-      h('div', { class: 'pv-prog', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': pct }, h('i', { style: { width: pct + '%' } })),
-      h('span', { class: 'small muted' }, t('{pct}% of {mb} MB', { pct, mb }))));
-    if (m.state === 'downloaded' || m.state === 'loading') return mount(root, pvMsg(t('Starting the pronunciation check…'), null, h('span', { class: 'pv-spin', 'aria-hidden': 'true' })));
-    if (m.state === 'error') return mount(root, pvMsg(t('The pronunciation check couldn’t start'), (m.error && m.error.message) || null, btn(t('Try again'), () => PronSource.download().catch(() => {}), { kind: 'primary' })));
+      btn(t('Download the model ({mb} MB)', { mb }), () => { stopped = false; PronSource.download().catch(() => {}); }, { kind: 'primary', icon: 'download' })));
+    if (m.state === 'downloading') {
+      const p = dlParts(m, mb), stalled = dlStalled(m);
+      stallShown = stalled;
+      return mount(root, pvMsg(t('Downloading the model…'), null,
+        h('div', { class: 'pv-prog', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': p.pct }, h('i', { style: { width: p.pct + '%' } })),
+        h('span', { class: 'small muted' }, p.text),
+        stalled ? h('span', { class: 'small pv-stall' }, t('No data for a while. Check your connection; if it doesn’t pick up, the download stops by itself.')) : h('span', { class: 'small muted' }, t('You can leave this tab; it keeps going. The progress is also in Settings → Analysis.')),
+        btn(t('Cancel download'), () => { Heavy.disable('pronunciation'); renderPanel(); }, { size: 'sm', kind: 'ghost' })));
+    }
+    if (m.state === 'downloaded' && !stopped && !loadAsked) { loadAsked = true; PronSource.load().catch(() => {}).finally(() => { loadAsked = false; }); } // downloaded means "on the device"; it still has to be loaded into memory
+    if (m.state === 'downloaded' && stopped) return mount(root, pvMsg(t('Stopped'), t('The model is downloaded but not started.'), btn(t('Start it'), () => { stopped = false; fill(); }, { kind: 'primary' })));
+    if (m.state === 'downloaded' || m.state === 'loading') return mount(root, pvMsg(t('Loading the model into memory…'), t('The download is done. This takes a few seconds, longer on a slow device.'),
+      h('span', { class: 'pv-spin', 'aria-hidden': 'true' }), elapsed('load'),
+      btn(t('Cancel'), () => { stopped = true; PronSource.stop(); fill(); }, { size: 'sm', kind: 'ghost' })));
+    if (m.state === 'error') return mount(root, pvMsg(t('The pronunciation check couldn’t start'), (m.error && m.error.message) || null, btn(t('Try again'), () => { stopped = false; PronSource.load().catch(() => {}); }, { kind: 'primary' })));
     const take = PronTab.take(clip);
     const key = `${clip.id}:${take ? take.id || 'review' : 'none'}`;
     const res = PronTab.cache.get(key);
-    if (failed === key) return mount(root, pvMsg(t('The comparison didn’t work'), t('Something went wrong while comparing. Try again.'), btn(t('Try again'), () => { failed = null; fill(); }, { kind: 'primary' })));
+    if (failed === key) return mount(root, pvMsg(cancelled ? t('Stopped') : t('The comparison didn’t work'), cancelled ? t('You stopped the comparison.') : t('Something went wrong while comparing. Try again.'), btn(t('Try again'), () => { failed = null; cancelled = false; fill(); }, { kind: 'primary' })));
     if (!res) {
-      mount(root, pvMsg(take ? t('Comparing your take with the speaker…') : t('Reading the speaker…'), null, h('span', { class: 'pv-spin', 'aria-hidden': 'true' })));
+      mount(root, pvMsg(take ? t('Comparing your take with the speaker…') : t('Reading the speaker…'), t('The model is ready; this is the analysis itself. It runs on your device and takes a while on a slow one.'),
+        h('span', { class: 'pv-spin', 'aria-hidden': 'true' }), elapsed('analyse'),
+        btn(t('Cancel'), () => { cancelled = true; failed = key; ctl && ctl.abort(); fill(); }, { size: 'sm', kind: 'ghost' })));
       if (!PronTab.asked.has(key)) {
         PronTab.asked.add(key);
-        PronSource.analyse(clip, take)
+        ctl = new AbortController();
+        const mine = ctl;
+        PronSource.analyse(clip, take, mine.signal)
           .then((r) => { PronTab.cache.set(key, r); })
-          .catch(() => { failed = key; })
+          .catch((e) => { failed = key; cancelled = mine.signal.aborted; if (!cancelled) console.warn('pronunciation comparison failed', e); })
           .finally(() => { PronTab.asked.delete(key); if (root.isConnected) fill(); });
       }
       return;
