@@ -219,10 +219,6 @@
     "fr": "Il faut un Chrome, Edge, Firefox ou Safari récent sur ordinateur. Hauteur et Forme d’onde fonctionnent quand même ici.",
     "es": "Necesita un Chrome, Edge, Firefox o Safari reciente en un ordenador. Tono y Forma de onda siguen funcionando aquí."
   },
-  "Pronunciation check (beta)": {
-    "fr": "Vérification de prononciation (bêta)",
-    "es": "Comprobación de pronunciación (beta)"
-  },
   "It compares your take with the speaker, sound by sound, and runs on this device: your voice isn’t sent anywhere. It needs a one-time download of {mb} MB.": {
     "fr": "Elle compare ta prise avec le locuteur, son par son, et tourne sur cet appareil : ta voix n’est envoyée nulle part. Il faut télécharger {mb} Mo une seule fois.",
     "es": "Compara tu toma con el hablante, sonido a sonido, y funciona en este dispositivo: tu voz no se envía a ningún sitio. Hay que descargar {mb} MB una sola vez."
@@ -314,10 +310,6 @@
   "The speaker’s sound is hard to analyse here (music, noise or overlapping voices), so no differences are shown.": {
     "fr": "Le son du locuteur est difficile à analyser ici (musique, bruit ou voix qui se chevauchent), donc aucune différence n’est affichée.",
     "es": "El sonido del hablante es difícil de analizar aquí (música, ruido o voces superpuestas), así que no se muestran diferencias."
-  },
-  "Starting the pronunciation check…": {
-    "fr": "Démarrage de la vérification de prononciation…",
-    "es": "Iniciando la comprobación de pronunciación…"
   },
   "The pronunciation check couldn’t start": {
     "fr": "La vérification de prononciation n’a pas pu démarrer",

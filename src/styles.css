@@ -645,3 +645,10 @@ b.x { font-weight: 800; text-decoration: underline 2px; text-underline-offset: 3
 .pv-beta { margin-left: auto; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; border: 1.5px solid var(--line); border-radius: 999px; padding: 1px 7px; }
 .panel.rec-blur .pv { filter: blur(12px); pointer-events: none; }
 .pv-word.ph { font-family: "Nunito", "DejaVu Sans", system-ui, sans-serif; font-weight: 700; }
+
+/* Settings → Analysis and the first-run step: an add-on sits inside its parent's group */
+.nest { margin-left: 16px; padding-left: 12px; border-left: 3px solid var(--line); }
+label.check.nest { display: flex; align-items: flex-start; }
+.wiz-body label.check { align-items: flex-start; font-weight: 400; }
+.small.warn, .pv-stall { color: var(--amber-ink, var(--wattle-dark)); }
+.ok-text { color: var(--green); }

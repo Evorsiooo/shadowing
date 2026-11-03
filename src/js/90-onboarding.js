@@ -28,6 +28,7 @@ const ONBOARDING_STEPS = [
     next: (W) => {
       if (!splitLanguages(W.draft.nativeLanguages).length) { toast(t('Add at least one language you speak.'), 'bad'); return false; }
       saveProfile({ nativeLanguages: W.draft.nativeLanguages, targetLanguage: W.draft.targetLanguage });
+      W.steps = ONBOARDING_STEPS.filter((s) => !s.when || s.when()); // the analysis step depends on the language just chosen
       return true;
     },
   },
@@ -87,6 +88,18 @@ const ONBOARDING_STEPS = [
     body: (W) => onboardingAiStep(W),
   },
   {
+    // optional and off unless ticked; English only, and only on a device that could run it
+    id: 'analysis', label: N_('Analysis'),
+    when: () => targetLang() === 'en' && Pron.available() && Heavy.list().includes('pronunciation') && Heavy.check('pronunciation').level !== 'no',
+    title: () => t('Pronunciation check (optional, beta)'),
+    sub: () => t('After a recorded pass, Euno can show where your sounds differ from the speaker’s. It runs on your device and nothing is sent anywhere. Both switches are off unless you turn them on here.'),
+    body: (W) => onboardingAnalysisStep(W),
+    next: (W) => {
+      if (W.pron && Heavy.enable('pronunciation')) { if (W.words) Heavy.enable('words'); toast(t('Downloading the pronunciation model in the background. Progress is in Settings → Analysis.'), '', 6000); }
+      return true;
+    },
+  },
+  {
     id: 'baseline', label: N_('Baseline'),
     when: () => !checkinHasAll(checkinFor(0)),
     title: () => t('Your starting point'),
@@ -109,6 +122,19 @@ function onboardingAiStep() {
   return [
     aiPanel({ onboarding: true }),
     h('p', { class: 'small muted' }, t('No key? Skip this step: notes give you a prompt to paste into any AI chat instead. You can add a key later in Settings → AI.')),
+  ];
+}
+
+function onboardingAnalysisStep(W) {
+  const P = Heavy.spec('pronunciation'), Wd = Heavy.spec('words');
+  const chk = Heavy.check('pronunciation');
+  const wordsBox = h('input', { type: 'checkbox', id: 'obWords', checked: !!W.words, disabled: !W.pron || null, onchange: (e) => { W.words = e.target.checked; } });
+  const pronBox = h('input', { type: 'checkbox', id: 'obPron', checked: !!W.pron, onchange: (e) => { W.pron = e.target.checked; if (!W.pron) { W.words = false; wordsBox.checked = false; } wordsBox.disabled = !W.pron; } });
+  return [
+    h('label', { class: 'check', for: 'obPron' }, pronBox, h('span', null, h('strong', null, t('Pronunciation analysis')), ' ', t('(downloads about {mb} MB)', { mb: P.sizeMB }), h('br'), h('span', { class: 'small muted' }, t(P.about)))),
+    h('label', { class: 'check nest', for: 'obWords' }, wordsBox, h('span', null, h('strong', null, t('Word labels')), ' ', t('(a second download of about {mb} MB)', { mb: Wd.sizeMB }), h('br'), h('span', { class: 'small muted' }, t('Optional add-on: writes the words above the sounds. Needs pronunciation analysis.')))),
+    chk.reasons.length ? h('ul', { class: 'small' }, chk.reasons.map((r) => h('li', null, r))) : null,
+    h('p', { class: 'small muted' }, t('The download starts when you continue and carries on in the background. Skip this and nothing is downloaded. You can turn it on or off any time in Settings → Analysis.')),
   ];
 }
 

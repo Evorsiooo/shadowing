@@ -7,7 +7,7 @@ const store = new Map();
 const events = {};
 const make = (nav = {}) => {
   const ctx = {
-    console, setTimeout, clearTimeout, AbortController, Promise, Date,
+    console, setTimeout, clearTimeout, setInterval, clearInterval, AbortController, Promise, Date,
     localStorage: { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)) },
     navigator: { deviceMemory: 8, hardwareConcurrency: 8, userAgent: 'Desktop', ...nav },
     performance: { memory: null },
@@ -100,5 +100,23 @@ await test('consent is tied to the download size; delete data resets everything'
   const w = make(); w.Heavy.register('p', { ...def, remove: async () => { removed = true; } }); w.Heavy.enable('p');
   const w2 = make(); w2.Heavy.register('p', { ...def, sizeMB: 300 }); assert.equal(w2.Heavy.isOn('p'), false, 'bigger model needs fresh consent');
   await w.Heavy.removeData('p'); assert.ok(removed); assert.equal(w.Heavy.isOn('p'), false); assert.equal(w.Heavy.state('p').consentMB, 0);
+});
+await test('turning it on starts the download at once; turning it off (cancel) stops it', async () => {
+  const w = make(); let started = 0, signal = null;
+  w.Heavy.register('p', { ...def, prefetch: ({ signal: s }) => { started++; signal = s; return new Promise((_, rej) => s.addEventListener('abort', () => rej(new Error('aborted')))); } });
+  assert.equal(w.Heavy.enable('p'), true);
+  await new Promise((r) => setTimeout(r, 5));
+  assert.equal(started, 1); assert.equal(w.Heavy.downloading('p'), true);
+  assert.equal(w.Heavy.enable('p'), true); assert.equal(started, 1, 'a second call joins the running download');
+  w.Heavy.disable('p'); await new Promise((r) => setTimeout(r, 5));
+  assert.equal(signal.aborted, true); assert.equal(w.Heavy.downloading('p'), false);
+  assert.equal(w.Heavy.downloadError('p'), null, 'a stop by the learner is not an error');
+  assert.equal(w.Heavy.isOn('p'), false);
+});
+await test('a failed download is reported, not swallowed; features without a download are unaffected', async () => {
+  const w = make(); w.Heavy.register('p', { ...def, prefetch: async () => { throw new Error('HTTP 503'); } }); w.Heavy.register('q', { ...def, sizeMB: 0 });
+  w.Heavy.enable('p'); w.Heavy.enable('q'); await new Promise((r) => setTimeout(r, 5));
+  assert.equal(w.Heavy.downloadError('p'), 'HTTP 503'); assert.equal(w.Heavy.isOn('p'), true); assert.equal(w.Heavy.downloading('q'), false);
+  assert.equal(w.Heavy.downloadError('q'), null);
 });
 console.log(`${n} tests passed`);

@@ -97,9 +97,48 @@ const Heavy = (() => {
     const s = spec(id);
     if (!s || check(id).level === 'no') return false;
     put(id, { on: true, consentMB: s.sizeMB || 0, off: null, fails: 0, pending: 0 });
+    download(id);
     return true;
   }
-  function disable(id, reason = null) { put(id, { on: false, off: reason, pending: 0 }); }
+  function disable(id, reason = null) { cancelDownload(id); put(id, { on: false, off: reason, pending: 0 }); }
+
+  /* ---- the model download starts as soon as the switch is turned on ----
+     A feature that downloads a model registers prefetch({ signal }) (download it, loading it is optional) and status() / onStatus(fn)
+     (the engine's state: state 'downloading' | 'downloaded' | …, progress 0..1, bytes, at = when it last changed). The Settings card and the
+     Pronunciation tab show that status. A download that sends no data for STALL_MS is stopped and reported as an error, never left spinning. */
+  const STALL_MS = 60000;
+  const downloads = new Map(); // id -> { ctl, promise }
+  const dlErrors = new Map(); // id -> message of the last failed download
+  const notify = (id) => { for (const f of listeners) { try { f(id); } catch { /* a listener must not break the guard */ } } };
+  function download(id) {
+    const s = spec(id);
+    if (!s || !s.prefetch || !isOn(id)) return Promise.resolve(false);
+    if (downloads.has(id)) return downloads.get(id).promise;
+    const ctl = new AbortController();
+    dlErrors.delete(id);
+    const watch = setInterval(() => {
+      const st = s.status && s.status();
+      if (st && st.state === 'downloading' && st.at && Date.now() - st.at > STALL_MS && !ctl.signal.aborted) {
+        ctl.abort(Object.assign(new HeavyError('stalled', 'The download stopped getting data. Check your connection and try again.'), { code: 'stalled' }));
+      }
+    }, 5000);
+    const promise = Promise.resolve().then(() => s.prefetch({ signal: ctl.signal })).then(() => true).catch((e) => {
+      const stalled = ctl.signal.aborted && ctl.signal.reason instanceof HeavyError;
+      if (stalled) dlErrors.set(id, ctl.signal.reason.message);
+      else if (!ctl.signal.aborted) dlErrors.set(id, String((e && e.message) || 'The download failed.')); // a stop by the learner is not an error
+      return false;
+    }).finally(() => { clearInterval(watch); downloads.delete(id); notify(id); });
+    downloads.set(id, { ctl, promise });
+    notify(id);
+    return promise;
+  }
+  /* the learner stopped the download: it is turned off again, as before it was started */
+  function cancelDownload(id) {
+    const d = downloads.get(id);
+    if (!d) return false;
+    d.ctl.abort();
+    return true;
+  }
 
   function memoryPressure() {
     const m = performance.memory; // Chrome only
@@ -189,6 +228,7 @@ const Heavy = (() => {
 
   /* delete everything the feature downloaded and forget the learner's consent */
   async function removeData(id) {
+    cancelDownload(id);
     const s = spec(id);
     if (s && s.remove) { try { await s.remove(); } catch { /* keep going: the caches below are the part that frees space */ } }
     if (s && s.cacheNames && typeof caches === 'object') for (const n of s.cacheNames) { try { await caches.delete(n); } catch { /* ignore */ } }
@@ -196,11 +236,11 @@ const Heavy = (() => {
   }
 
   return {
-    register, check, isOn, enable, disable, run, worker, removeData, device, refreshDevice, blockers,
+    register, check, isOn, enable, disable, download, cancelDownload, downloading: (id) => downloads.has(id), downloadError: (id) => dlErrors.get(id) || null, run, worker, removeData, device, refreshDevice, blockers,
     state: get, spec, markNoticed(id) { const a = all(); if (a[id]) { a[id].noticed = true; lsSet(KEY, a); } },
      list: () => [...features.keys()],
     onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     /* testing hooks */
-    _reset() { features.clear(); queue = Promise.resolve(); },
+    _reset() { features.clear(); downloads.clear(); dlErrors.clear(); queue = Promise.resolve(); },
   };
 })();
