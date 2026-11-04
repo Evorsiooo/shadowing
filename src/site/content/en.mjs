@@ -15,7 +15,6 @@ const make = ({ SITE, L, host }) => ({
     langNow: 'Language: English',
     navWhat: 'What is shadowing?',
     navRoutine: 'Daily routine',
-    footRoutine: 'Accent shadowing routine',
     contact: 'Contact',
     privacy: 'Privacy',
     terms: 'Terms',

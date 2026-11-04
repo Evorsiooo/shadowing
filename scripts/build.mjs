@@ -146,24 +146,20 @@ const siteCss = minify(fontCss + '\n' + readFileSync(join(src, 'site', 'site.css
 // Same as the app's first-paint theme script (src/index.html), so the saved theme choice applies here too (light when none is saved).
 const themeJs = `try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === 'dark' || t === 'system') document.documentElement.setAttribute('data-theme', t); } catch { /* storage blocked */ }`;
 const year = SITE.updated.slice(0, 4);
-// Euno on the site: drawn once as SVG for the logo and the home page's first paint; on the home page the engine then takes
-// over and lets him listen, think and smile along with the demo (not with reduced motion, where he stays as drawn).
+// Euno on the site: drawn once as SVG for the logo and for the home page's first paint. On the home page the engine then
+// takes over in place: the still is drawn in the engine's own frame and pose, so the swap can't be seen, and he simply
+// watches the demo card below him and blinks. With reduced motion he stays as drawn.
 const SITE_LOGO = eunoSvg('attentive-left', { label: null, idSuffix: '-site' });
-const HERO_EUNO = eunoSvg('attentive-left', { label: null, idSuffix: '-hero' });
+const HERO_EUNO = eunoSvg('downward-gaze', { label: null, idSuffix: '-hero', fit: false });
 const eunoSiteJs = fingerprint('euno-site', 'js', minify(eunoJs + `
 (function () {
   var el = document.querySelector('[data-euno-hero]');
   if (!el || !window.EunoEngine || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
-  var steps = [['listening', 5200], ['pondering', 3200], ['pleased', 3600], ['listening', 5200], ['playful', 3200], ['happy', 3400]];
-  var i = 0, a = null, timer = null;
-  function tick() { a.play(steps[i % steps.length][0]); timer = setTimeout(tick, steps[i++ % steps.length][1]); }
-  // he starts once he has risen from behind the card (site.css), and rests while the tab is hidden
-  setTimeout(function () {
-    el.textContent = '';
-    a = window.EunoEngine.create(el, { defaultExpression: 'attentive-left', autoplay: false });
-    tick();
-    document.addEventListener('visibilitychange', function () { clearTimeout(timer); if (document.hidden) a.pause(); else tick(); });
-  }, 1100);
+  var still = el.firstElementChild;
+  var a = window.EunoEngine.create(el, { defaultExpression: 'downward-gaze', autoplay: false });
+  a.play('watching');
+  if (still && still.parentNode === el) el.removeChild(still);
+  document.addEventListener('visibilitychange', function () { if (document.hidden) a.pause(); else a.play('watching'); });
 })();`, 'js'));
 
 const LANG_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>';
@@ -198,11 +194,7 @@ function footer(page) {
   const u = c.ui;
   const L = (p) => langPath(c.code, p);
   return `<footer class="site-foot"><div class="wrap">
-  <a class="brand" href="${L('/')}">Euno <small>Shadowing</small></a>
   <nav aria-label="${esc(u.footerNav)}">
-    <a href="${L('/guides/')}">${c.guides.page.crumb}</a>
-    <a href="${L('/what-is-shadowing/')}">${u.navWhat}</a>
-    <a href="${L('/accent-shadowing/')}">${u.footRoutine}</a>
     <a href="${L('/contact/')}">${u.contact}</a>
     <a href="${L('/privacy/')}">${u.privacy}</a>
     <a href="${L('/terms/')}">${u.terms}</a>

@@ -14,7 +14,6 @@ const make = ({ SITE, L, host }) => ({
     langNow: 'Idioma: español',
     navWhat: '¿Qué es el shadowing?',
     navRoutine: 'Rutina diaria',
-    footRoutine: 'Rutina de shadowing para el acento',
     contact: 'Contacto',
     privacy: 'Privacidad',
     terms: 'Condiciones',

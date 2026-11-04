@@ -102,8 +102,9 @@ img, svg { max-width: 100%; height: auto; }
 .hero .fine { font-size: 0.9rem; color: var(--muted); }
 .demo { background: var(--tint); border-radius: var(--r-xl); padding: 18px; margin: 0; }
 /* Euno looks over the top of the demo card on the home page */
-.hero .stage { position: relative; padding-top: 170px; }
-.hero .stage .euno { position: absolute; right: 8%; top: -40px; width: 300px; height: 300px; z-index: 0; display: block; }
+.hero .stage { position: relative; padding-top: 150px; }
+/* the box is the full frame the engine draws in, so Euno sits a little inside it */
+.hero .stage .euno { position: absolute; right: 6%; top: -104px; width: 340px; height: 340px; z-index: 0; display: block; }
 .hero .stage .euno svg { width: 100%; height: 100%; display: block; }
 .hero .stage .demo { position: relative; z-index: 1; }
 .demo figcaption { font-size: 0.9rem; color: var(--muted); margin: 12px 6px 0; }
@@ -229,8 +230,8 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
   .faq-wrap { grid-template-columns: 1fr; gap: 8px; }
   .faq-intro { position: static; }
   .hero .wrap { grid-template-columns: 1fr; gap: 24px; }
-  .hero .stage { padding-top: 130px; }
-  .hero .stage .euno { width: 220px; height: 220px; top: -30px; }
+  .hero .stage { padding-top: 110px; }
+  .hero .stage .euno { width: 250px; height: 250px; top: -78px; }
   .steps { grid-template-columns: repeat(2, 1fr); }
   .cards { grid-template-columns: 1fr 1fr; }
 }
@@ -255,22 +256,13 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
 @keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes grow { from { transform: scaleY(0.15); opacity: 0; } }
 @keyframes pop-in { from { opacity: 0; transform: scale(0.85); } }
-@keyframes peek { from { transform: translateY(90px); } }
 @media (prefers-reduced-motion: no-preference) {
   @view-transition { navigation: auto; }
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.18s; }
   html { scroll-behavior: smooth; }
 
-  /* landing hero: the text rises in line by line, then the demo draws the two pitch lines */
-  .hero .wrap > div > * { animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-  .hero .wrap > div > :nth-child(2) { animation-delay: 0.06s; }
-  .hero .wrap > div > :nth-child(3) { animation-delay: 0.12s; }
-  .hero .wrap > div > :nth-child(4) { animation-delay: 0.18s; }
-  .hero .demo { animation: rise 0.6s 0.12s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-  .demo .wave { transform-box: fill-box; transform-origin: 50% 100%; animation: grow 0.6s 0.3s ease-out both; }
-  .demo .speaker, .demo .you { stroke-dasharray: 1; animation: draw 1.3s 0.45s ease-in-out both; }
-  .demo .you { animation-delay: 0.7s; }
-  .demo .chip, .demo .chip-t { transform-box: fill-box; transform-origin: center; animation: pop-in 0.35s 1.7s cubic-bezier(0.3, 1.5, 0.5, 1) both; }
+  /* landing hero: one short fade for the whole hero; nothing slides, grows or draws */
+  .hero .wrap { animation: fade 0.35s ease-out both; }
 
   /* articles, legal and contact pages: a short rise on arrival */
   .page .wrap { animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
@@ -290,8 +282,6 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
   .card .ic { transition: transform 0.2s cubic-bezier(0.3, 1.5, 0.5, 1); }
   .card:hover .ic { transform: scale(1.08) rotate(-4deg); }
   .site-nav a, .site-foot a { transition: color 0.15s; }
-  /* Euno rises from behind the demo card once the page has loaded */
-  .hero .stage .euno { animation: peek 0.7s 0.35s cubic-bezier(0.2, 0.8, 0.25, 1.15) both; }
 
   /* things that open */
   .faq details[open] .a { animation: drop 0.22s ease-out; }
