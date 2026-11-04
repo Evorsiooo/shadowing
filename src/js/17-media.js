@@ -409,7 +409,7 @@ function showMissingVideo(vid) {
     h('p', null, inDrive
       ? t('“{name}” is in your Google Drive, but Drive isn’t connected here. Connect it to download the video, or pick the same file from this device.', { name: (d && d.name) || vid.title })
       : Store.mode === 'cloud'
-        ? t('“{name}” was added on another device and isn’t synced. Pick the same file from this device to keep practising here, and turn on Google Drive sync in Settings → Storage so your devices share files.', { name: (d && d.name) || vid.title })
+        ? t('“{name}” was added on another device and isn’t synced. Pick the same file from this device to keep practising here, and turn on Google Drive sync in Settings → Data so your devices share files.', { name: (d && d.name) || vid.title })
         : t('“{name}” was added on another device and isn’t synced. Pick the same file from this device to keep practising here.', { name: (d && d.name) || vid.title })),
     h('div', { class: 'row', style: { justifyContent: 'center' } },
       inDrive && Store.mode === 'cloud' ? btn(t('Connect Google Drive'), async () => { if (await Drive.connect()) attachVideoFile(vid); }, { kind: 'primary' }) : null,
@@ -429,7 +429,7 @@ function setDeviceOnly(on) {
   Bus.emit('sync');
 }
 
-/* where one file is, in a few words: for the library and Settings → Storage */
+/* where one file is, in a few words: for the library and Settings → Data */
 function mediaStatus(ref) {
   const id = Media.idOf(ref);
   const d = id && Media.doc(id);
@@ -473,7 +473,7 @@ function storageStepBody() {
         h('p', { class: 'small muted' }, t('Your videos and recordings go into a “Euno Shadowing” folder in your own Drive, so they’re safe and on every device you sign in on. The app can only see files it puts there, and our server never stores them.')),
         on ? h('p', { class: 'small' }, icon('check'), ' ', Drive.status.email ? t('Connected as {email}.', { email: Drive.status.email }) : t('Connected.'))
           : Store.mode === 'cloud' ? h('div', { class: 'row' }, btn(t('Connect Google Drive'), async () => { await Drive.connect(); draw(); }, { kind: 'primary' })) : null),
-      h('p', { class: 'small muted' }, on ? t('You can disconnect it any time in Settings → Storage.') : t('Not now? Press Continue. You can connect Google Drive later in Settings → Storage. Until then, files stay in this browser only.')));
+      h('p', { class: 'small muted' }, on ? t('You can disconnect it any time in Settings → Data.') : t('Not now? Press Continue. You can connect Google Drive later in Settings → Data. Until then, files stay in this browser only.')));
   };
   draw();
   return wrap;
@@ -519,7 +519,7 @@ function storageView() {
   return root;
 }
 
-/* after Store.init(): Drive status, background sync, and redrawing Settings → Storage as uploads progress */
+/* after Store.init(): Drive status, background sync, and redrawing Settings → Data as uploads progress */
 function initMedia() {
   Drive.status = Api.drive || { connected: false };
   Drive.available = !!Api.driveAvailable;
@@ -543,7 +543,7 @@ function handleDriveReturn() {
   const r = q.get('drive');
   if (!r) return;
   if (r === 'connected') { toast(t('Google Drive connected. Your files will sync to it.'), 'good', 5000); Sync.kick(); }
-  else if (r === 'cancelled') toast(t('Google Drive wasn’t connected. You can connect it any time in Settings → Storage.'), '', 6000);
+  else if (r === 'cancelled') toast(t('Google Drive wasn’t connected. You can connect it any time in Settings → Data.'), '', 6000);
   else toast(q.get('reason') || t('Google Drive couldn’t be connected.'), 'bad', 8000);
   q.delete('drive'); q.delete('reason');
   history.replaceState(null, '', location.pathname + (q.toString() ? `?${q}` : '') + location.hash);

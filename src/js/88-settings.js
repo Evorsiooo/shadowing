@@ -1,40 +1,11 @@
 /* ---------- settings, data and device checks ---------- */
-const SETTING_GROUPS = [
-  { title: N_('Daily session'), fields: [
-    ['fitPassesToClip', N_('Fit the number of passes to the clip length, so each step lasts about its minutes (the pass counts below are then ignored)'), 'bool'],
-    ['listenPasses', N_('Listen: passes'), 1, 10, 1], ['listenMinutes', N_('Listen: minutes'), 1, 10, 1],
-    ['shadowPasses', N_('Shadow: passes'), 1, 40, 1], ['shadowMinutes', N_('Shadow: minutes'), 1, 20, 1],
-    ['recordMinutes', N_('Record & compare: minutes'), 1, 10, 1],
-    ['againPasses', N_('Shadow again: passes (before the final recorded pass)'), 0, 30, 1], ['againMinutes', N_('Shadow again: minutes'), 1, 15, 1],
-    ['loopGap', N_('Gap between loops (seconds)'), 0, 5, 0.1], ['shortenHintAfter', N_('Offer the “can’t keep up” button after this many shadow passes'), 1, 20, 1],
-    ['slowStartRate', N_('Speed of the first shadow passes'), 'select', [['0.75', N_('Slower (0.75x)')], ['0.5', N_('Much slower (0.5x)')], ['1', N_('Normal speed (1x)')]]],
-    ['slowStartPasses', N_('Slow shadow passes at the start'), 0, 15, 1],
-    ['weeklyTarget', N_('Sessions per week target'), 1, 7, 1],
-  ] },
-  { title: N_('Bad-day mode'), fields: [['badListenPasses', N_('Listen: passes'), 1, 10, 1], ['badShadowPasses', N_('Shadow: passes'), 1, 20, 1], ['badMinutes', N_('Minutes'), 2, 15, 1]] },
-  { title: N_('Clips'), fields: [['clipMin', N_('Target length: shortest (seconds)'), 2, 60, 1], ['clipMax', N_('Target length: longest (seconds)'), 3, 90, 1]] },
-  { title: N_('Review runs'), fields: [['review', N_('Bring finished clips back for a shorter review run'), 'bool'], ['reviewAfterDays', N_('Review after (days)'), 1, 7, 1], ['reviewShadowPasses', N_('Review: shadow passes'), 1, 20, 1]] },
-  { title: N_('Pronunciation (beta)'), when: () => Pron.on(), fields: [
-    ['pronAutoNotes', N_('Suggest a note when the same sound keeps differing on different days (shown in Progress → Issues, never sent to an AI unless you ask)'), 'bool'],
-    ['pronAutoArchive', N_('Move a suggested sound to “Gone quiet” once it has stopped coming back (it returns if it does)'), 'bool'],
-  ] },
-  { title: N_('Sync and microphone'), fields: [
-    ['alignMode', N_('Line up your recording'), 'select', [['auto', N_('Automatically (match loudness patterns)')], ['manual', N_('With my manual offset')]]],
-    ['manualOffsetMs', N_('Manual offset (ms); used when auto-alignment fails or is off'), -500, 2000, 10],
-    ['latencyMs', N_('Device delay correction (ms); subtracted from every lag'), -500, 1000, 5],
-    ['livePitchAllPasses', N_('Show my live pitch line on every shadow pass (not just recorded ones)'), 'bool'],
-    ['speechCheck', N_('Mark words that may have been unclear after a recorded pass, using the browser’s speech recognition (Chrome only; your voice is sent to Google while it runs)'), 'bool'],
-    ['keepAllPassRecordings', N_('Keep every pass recording (uses more storage)'), 'bool'],
-    ['micAuto', N_('Automatic microphone volume (recommended)'), 'bool'],
-    ['micGain', N_('Microphone boost when automatic volume is off (×)'), 0.5, 12, 0.5],
-    ['noiseSuppression', N_('Noise suppression'), 'bool'],
-    ['pitchSmoothing', N_('Pitch line smoothing (frames)'), 1, 15, 2],
-  ] },
-];
+/* Five tabs (plus Analysis when a heavy feature exists). Practice settings save as you change them. */
+const SETTINGS_TAB_ALIAS = { profile: 'you', look: 'you', storage: 'data', ai: 'connections', apps: 'connections', reminders: 'practice', checks: 'advanced' };
 
 function openSettings(tab = 'practice') {
-  const tabs = [['practice', t('Practice'), 'mic'], ['profile', t('Profile'), 'user'], ['storage', t('Storage'), 'folder'], ['ai', t('AI'), 'sparkle'], ['reminders', t('Reminders'), 'bell'], ['apps', t('Connected apps'), 'link'], ['data', t('Data'), 'database'], ['checks', t('Device checks'), 'headphones'], ...(Heavy.list().length ? [['analysis', t('Analysis'), 'flask']] : []), ['look', t('Language and theme'), 'palette']];
-  const body = tab === 'practice' ? settingsForm() : tab === 'profile' ? profileView() : tab === 'storage' ? storageView() : tab === 'ai' ? aiPanel() : tab === 'reminders' ? remindersView() : tab === 'apps' ? connectedAppsView() : tab === 'data' ? dataView() : tab === 'checks' ? checksView() : tab === 'analysis' ? analysisView() : lookView();
+  tab = SETTINGS_TAB_ALIAS[tab] || tab;
+  const tabs = [['practice', t('Practice'), 'mic'], ['you', t('You'), 'user'], ['data', t('Data'), 'database'], ['connections', t('Connections'), 'link'], ...(Heavy.list().length ? [['analysis', t('Analysis'), 'flask']] : []), ['advanced', t('Advanced'), 'headphones']];
+  const body = tab === 'you' ? youView() : tab === 'data' ? dataTabView() : tab === 'connections' ? connectionsView() : tab === 'analysis' ? analysisView() : tab === 'advanced' ? advancedView() : settingsForm();
   openModal([
     modalHead(t('Settings')),
     h('div', { class: 'tabs' }, tabs.map(([k, l, ic]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab, icon: ic }))),
@@ -42,30 +13,133 @@ function openSettings(tab = 'practice') {
   ], { onClose: () => renderAll() });
 }
 
+/* a titled block with a one-line description */
+function setSection(title, desc, children) {
+  return h('div', { class: 'card stack' }, h('h3', null, title), desc ? h('p', { class: 'small muted' }, desc) : null, children);
+}
+/* a collapsed block for options most people never touch */
+function setMore(title, children) {
+  return h('details', { class: 'card' }, h('summary', null, h('strong', null, title)), h('div', { class: 'stack', style: { marginTop: '.6rem' } }, children));
+}
+const setGrid = (kids) => h('div', { class: 'cards', style: { gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' } }, kids);
+function setNum(key, label, min, max, step, opts = {}) {
+  const id = `set-${key}`;
+  return h('label', { class: 'field', for: id }, label, h('input', { type: 'number', id, min, max, step, value: settings()[key], disabled: !!opts.disabled, onchange: (e) => {
+    const v = parseFloat(e.target.value);
+    if (!isFinite(v)) { e.target.value = settings()[key]; return; }
+    const c = clamp(v, min, max);
+    e.target.value = c;
+    const s = settings(), lo = key === 'clipMin' ? c : s.clipMin, hi = key === 'clipMax' ? c : s.clipMax;
+    if (lo >= hi) { toast(t('The shortest clip length must be less than the longest.'), 'bad'); e.target.value = s[key]; return; }
+    saveSettings({ [key]: c });
+  } }));
+}
+function setBool(key, label, redraw) {
+  const id = `set-${key}`;
+  return h('label', { class: 'check', for: id }, h('input', { type: 'checkbox', id, checked: !!settings()[key], onchange: (e) => { saveSettings({ [key]: e.target.checked }); if (redraw) redraw(); } }), label);
+}
+function setSelect(key, label, options) {
+  const id = `set-${key}`;
+  return h('label', { class: 'field', for: id }, label, h('select', { id, onchange: (e) => saveSettings({ [key]: e.target.value }) }, options.map(([v, l]) => h('option', { value: v, selected: String(settings()[key]) === v }, l))));
+}
+
 function settingsForm() {
-  const s = settings();
-  const draft = { ...s };
-  const groups = SETTING_GROUPS.filter((g) => !g.when || g.when()).map((g) => h('div', { class: 'card' }, h('h3', null, t(g.title)),
-    h('div', { class: 'cards', style: { gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))' } }, g.fields.map(([key, label, a, b, step]) => {
-      const id = `set-${key}`;
-      if (a === 'bool') return h('label', { class: 'check', for: id }, h('input', { type: 'checkbox', id, checked: !!draft[key], onchange: (e) => { draft[key] = e.target.checked; } }), t(label));
-      if (a === 'select') return h('label', { class: 'field', for: id }, t(label), h('select', { id, onchange: (e) => { draft[key] = e.target.value; } }, b.map(([v, l]) => h('option', { value: v, selected: String(draft[key]) === v }, t(l)))));
-      return h('label', { class: 'field', for: id }, t(label), h('input', { type: 'number', id, min: a, max: b, step, value: draft[key], oninput: (e) => { const v = parseFloat(e.target.value); if (isFinite(v)) draft[key] = clamp(v, a, b); } }));
-    }))));
-  let startDraft = savedProgrammeStart();
-  const start = h('div', { class: 'card' }, h('h3', null, Object.keys(LANGUAGES).length > 1 ? t('{lang} programme', { lang: t(langContent().name) }) : t('Programme')),
-    h('label', { class: 'field', for: 'set-programmeStart' }, t('Programme start date (week 0)'), h('input', { type: 'date', id: 'set-programmeStart', value: programmeStart(), onchange: (e) => { startDraft = e.target.value || null; } })),
-    h('p', { class: 'small muted' }, t('Check-ins fall due 4, 8 and 12 weeks after this date.')));
-  return h('form', { class: 'stack', onsubmit: (e) => {
-    e.preventDefault();
-    if (draft.clipMin >= draft.clipMax) { toast(t('The shortest clip length must be less than the longest.'), 'bad'); return; }
-    saveSettings({ ...draft, ...programmeStartPatch(startDraft) });
-    toast(t('Settings saved.'), 'good');
-    closeModal();
-  } },
-  groups, start,
-  h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary big' }, h('span', null, t('Save settings'))),
-    btn(t('Reset to defaults'), () => { saveSettings({ ...DEFAULT_SETTINGS, programmeStart: s.programmeStart, programmeStarts: s.programmeStarts }); toast(t('Defaults restored.')); openSettings('practice'); }, { kind: 'ghost' })));
+  const box = h('div', { class: 'stack' });
+  const draw = () => {
+    const s = settings();
+    const fit = !!s.fitPassesToClip;
+    let startDraft = savedProgrammeStart();
+    const step = (name, passes, minutes) => [
+      h('strong', null, name),
+      passes ? setNum(passes[0], t('Passes'), passes[1], passes[2], 1, { disabled: fit }) : h('span', { class: 'small muted' }, '—'),
+      setNum(minutes[0], t('Minutes'), minutes[1], minutes[2], 1),
+    ];
+    const table = h('div', { style: { display: 'grid', gridTemplateColumns: 'minmax(7rem, auto) 1fr 1fr', gap: '.5rem .8rem', alignItems: 'end' } }, [
+      step(t('Listen'), ['listenPasses', 1, 10], ['listenMinutes', 1, 10]),
+      step(t('Shadow'), ['shadowPasses', 1, 40], ['shadowMinutes', 1, 20]),
+      step(t('Record & compare'), null, ['recordMinutes', 1, 10]),
+      step(t('Shadow again'), ['againPasses', 0, 30], ['againMinutes', 1, 15]),
+    ]);
+    mount(box,
+      setSection(t('Your routine'), t('How often you practise and when your check-ins fall due.'), [
+        setGrid([
+          setNum('weeklyTarget', t('Sessions per week target'), 1, 7, 1),
+          h('label', { class: 'field', for: 'set-programmeStart' }, Object.keys(LANGUAGES).length > 1 ? t('{lang} programme start date (week 0)', { lang: t(langContent().name) }) : t('Programme start date (week 0)'),
+            h('input', { type: 'date', id: 'set-programmeStart', value: programmeStart(), onchange: (e) => { startDraft = e.target.value || null; saveSettings(programmeStartPatch(startDraft)); } })),
+        ]),
+        h('p', { class: 'small muted' }, t('Check-ins fall due 4, 8 and 12 weeks after the start date.')),
+      ]),
+      setSection(t('Session length'), t('Each step lasts about its minutes. Turn this on to let the clip length decide how many passes fit.'), [
+        setBool('fitPassesToClip', t('Fit the number of passes to the clip length'), draw),
+        setMore(t('Fine-tune passes and minutes'), [
+          fit ? h('p', { class: 'small muted' }, t('Pass counts are set by the clip length while the option above is on.')) : null,
+          table,
+          setGrid([
+            setNum('loopGap', t('Gap between loops (seconds)'), 0, 5, 0.1),
+            setNum('shortenHintAfter', t('Offer the “can’t keep up” button after this many shadow passes'), 1, 20, 1),
+            setSelect('slowStartRate', t('Speed of the first shadow passes'), [['0.75', t('Slower (0.75x)')], ['0.5', t('Much slower (0.5x)')], ['1', t('Normal speed (1x)')]]),
+            setNum('slowStartPasses', t('Slow shadow passes at the start'), 0, 15, 1),
+          ]),
+        ]),
+        setMore(t('Bad-day mode'), [
+          h('p', { class: 'small muted' }, t('A shorter session for days when you have little energy.')),
+          setGrid([setNum('badListenPasses', t('Listen: passes'), 1, 10, 1), setNum('badShadowPasses', t('Shadow: passes'), 1, 20, 1), setNum('badMinutes', t('Minutes'), 2, 15, 1)]),
+        ]),
+      ]),
+      setSection(t('Clips and review'), t('How long clips should be, and whether finished clips come back.'), [
+        setGrid([setNum('clipMin', t('Target length: shortest (seconds)'), 2, 60, 1), setNum('clipMax', t('Target length: longest (seconds)'), 3, 90, 1)]),
+        setBool('review', t('Bring finished clips back for a shorter review run'), draw),
+        s.review ? setGrid([setNum('reviewAfterDays', t('Review after (days)'), 1, 7, 1), setNum('reviewShadowPasses', t('Review: shadow passes'), 1, 20, 1)]) : null,
+      ]),
+      setSection(t('Recording'), t('How your microphone is set up. More options are under Advanced.'), [
+        setBool('micAuto', t('Automatic microphone volume (recommended)'), draw),
+        s.micAuto ? null : setNum('micGain', t('Microphone boost (×)'), 0.5, 12, 0.5),
+        setBool('noiseSuppression', t('Noise suppression')),
+        setBool('keepAllPassRecordings', t('Keep every pass recording (uses more storage)')),
+      ]),
+      Pron.on() ? setSection(t('Pronunciation (beta)'), t('Notes that build from the sounds that keep differing from the speaker.'), [
+        setBool('pronAutoNotes', t('Suggest a note when the same sound keeps differing on different days (shown in Progress → Issues, never sent to an AI unless you ask)')),
+        setBool('pronAutoArchive', t('Move a suggested sound to “Gone quiet” once it has stopped coming back (it returns if it does)')),
+      ]) : null,
+      setSection(t('Reminders'), null, remindersView()),
+      h('div', { class: 'row' }, btn(t('Reset practice settings to defaults'), () => { saveSettings({ ...DEFAULT_SETTINGS, programmeStart: s.programmeStart, programmeStarts: s.programmeStarts }); toast(t('Defaults restored.')); draw(); }, { kind: 'ghost' })));
+  };
+  draw();
+  return box;
+}
+
+function advancedView() {
+  const box = h('div', { class: 'stack' });
+  const draw = () => {
+    const s = settings();
+    mount(box,
+      setSection(t('Line up your recording'), t('How your recording is matched to the speaker. The automatic setting works for most people.'), [
+        h('label', { class: 'field', for: 'set-alignMode' }, t('Line up your recording'), h('select', { id: 'set-alignMode', onchange: (e) => { saveSettings({ alignMode: e.target.value }); draw(); } },
+          [['auto', t('Automatically (match loudness patterns)')], ['manual', t('With my manual offset')]].map(([v, l]) => h('option', { value: v, selected: s.alignMode === v }, l)))),
+        s.alignMode === 'manual' ? setNum('manualOffsetMs', t('Manual offset (ms)'), -500, 2000, 10) : null,
+        setNum('latencyMs', t('Device delay correction (ms); subtracted from every lag'), -500, 1000, 5),
+      ]),
+      setSection(t('Pitch and speech'), null, [
+        setNum('pitchSmoothing', t('Pitch line smoothing (frames)'), 1, 15, 2),
+        setBool('livePitchAllPasses', t('Show my live pitch line on every shadow pass (not just recorded ones)')),
+        setBool('speechCheck', t('Mark words that may have been unclear after a recorded pass, using the browser’s speech recognition (Chrome only; your voice is sent to Google while it runs)')),
+      ]),
+      setSection(t('Device checks'), null, checksView()));
+  };
+  draw();
+  return box;
+}
+
+function youView() {
+  return h('div', { class: 'stack' }, profileView(), lookView());
+}
+function dataTabView() {
+  return h('div', { class: 'stack' }, storageView(), dataView());
+}
+function connectionsView() {
+  return h('div', { class: 'stack' },
+    setSection(t('AI feedback'), t('Your own key, kept encrypted on the server. Used only when you ask for feedback.'), aiPanel()),
+    setSection(t('Connected apps'), null, connectedAppsView()));
 }
 
 function dataView() {
@@ -131,11 +205,11 @@ async function saveText(name, text) {
 
 function lookView() {
   const cur = lsGet('theme', Caps.inArtifact ? 'system' : 'light');
-  const set = (theme) => { lsSet('theme', theme); applyTheme(); openSettings('look'); };
+  const set = (theme) => { lsSet('theme', theme); applyTheme(); openSettings('you'); };
   return h('div', { class: 'stack' },
     h('div', { class: 'card' }, h('h3', null, t('Interface language')),
-      uiLangPicker(() => openSettings('look')), // 90-onboarding.js; re-open this tab so it shows in the new language
-      h('p', { class: 'small muted' }, t('The language of the app’s buttons, messages and AI feedback. Your practice language is set in Settings → Profile.'))),
+      uiLangPicker(() => openSettings('you')), // 90-onboarding.js; re-open this tab so it shows in the new language
+      h('p', { class: 'small muted' }, t('The language of the app’s buttons, messages and AI feedback. Your practice language is set in Settings → You.'))),
     h('div', { class: 'card' }, h('h3', null, t('Theme')),
       h('div', { class: 'seg' }, [['system', t('Match device')], ['light', t('Light')], ['dark', t('Dark')]].map(([k, l]) => h('button', { type: 'button', class: cur === k ? 'on' : '', onclick: () => set(k) }, l))),
       h('p', { class: 'small muted' }, t('Inside Claude, the viewer’s own theme setting can also switch this.'))));
@@ -210,7 +284,7 @@ async function checkFiles() {
     const free = q ? ` ${t('About {gb} GB free for this browser.', { gb: fmtNum((q.quota - q.usage) / 1073741824, 1) })}` : '';
     return Drive.connected()
       ? { state: 'ok', msg: t('Recordings and videos go into your Google Drive, with a copy in this browser for quick playback.') + free }
-      : { state: 'warn', msg: t('Recordings and videos are only in this browser. Connect Google Drive in Settings → Storage to keep them safe and on your other devices.') + free };
+      : { state: 'warn', msg: t('Recordings and videos are only in this browser. Connect Google Drive in Settings → Data to keep them safe and on your other devices.') + free };
   }
   if (Store.blobMode === 'assets') {
     const blob = new Blob([new Uint8Array(2048)], { type: 'video/webm' });
@@ -255,9 +329,9 @@ async function checkVideoSound() {
 }
 async function checkClaude() {
   if (Store.mode === 'cloud') {
-    if (!Api.ai) return { state: 'warn', msg: t('No AI key saved, so notes offer “Copy prompt for AI”. Add a key in Settings → AI to get answers in the app.') };
+    if (!Api.ai) return { state: 'warn', msg: t('No AI key saved, so notes offer “Copy prompt for AI”. Add a key in Settings → Connections to get answers in the app.') };
     const r = await Api.req('POST', '/api/ai/test', { profile: profileForAI() });
-    return r.ok ? { state: 'ok', msg: t('{provider} answered with {model} in {secs} s.', { provider: Api.ai.providerName, model: r.model, secs: (r.ms / 1000).toFixed(1) }) } : { state: 'warn', msg: t('The model answered in an unexpected format. Try another model in Settings → AI.') };
+    return r.ok ? { state: 'ok', msg: t('{provider} answered with {model} in {secs} s.', { provider: Api.ai.providerName, model: r.model, secs: (r.ms / 1000).toFixed(1) }) } : { state: 'warn', msg: t('The model answered in an unexpected format. Try another model in Settings → Connections.') };
   }
   if (!Caps.sample) return { state: 'fail', msg: Caps.inArtifact ? t('Claude access isn’t available in this view.') : t('This standalone version can’t reach Claude. Notes offer “Copy prompt for Claude” instead.') };
   const r = await Caps.sample('Reply with just the word OK.', { modelTier: 'quick', cache: false });

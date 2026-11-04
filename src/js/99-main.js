@@ -23,6 +23,7 @@ function applyLayout() {
    - the library or session card beside the player matches its height;
    - the full-width panel underneath fills down to the bottom of the window. */
 const BELOW_ALLOWANCE = 250;
+const MAX_WIDTH_LIMITED_H = 540;
 let fitQueued = false;
 function scheduleFit() {
   if (fitQueued) return;
@@ -45,8 +46,13 @@ function fitLayout() {
   const gapY = parseFloat(css.rowGap) || 14, gapX = parseFloat(css.columnGap) || 16;
   const top = L.getBoundingClientRect().top + window.scrollY;
   const avail = Math.max(360, window.innerHeight - top - padT - padB);
-  const vh = Math.max(avail * 0.5, avail - BELOW_ALLOWANCE - gapY - 6);
   const totalW = L.clientWidth - padX - gapX;
+  /* On short windows the panel allowance would squash the video, so there width is the limit instead:
+     the video may be as tall as its width allows (right column at its widest), up to MAX_WIDTH_LIMITED_H,
+     and the page scrolls to reach the panel. Tall windows keep the window-derived height. */
+  const sideMax = Math.max(360, Math.min(600, totalW * 0.36));
+  const widthVh = (totalW - sideMax - 6) / ar;
+  const vh = Math.max(avail * 0.5, avail - BELOW_ALLOWANCE - gapY - 6, Math.min(widthVh, MAX_WIDTH_LIMITED_H));
   const sideW = clamp(Math.round(totalW - vh * ar - 6), 360, Math.max(360, Math.min(600, totalW * 0.36)));
   L.style.setProperty('--side-w', `${sideW}px`);
   L.style.setProperty('--video-h', `${Math.floor(vh)}px`);

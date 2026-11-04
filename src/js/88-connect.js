@@ -13,7 +13,7 @@ function connectedAppsView() {
   const draw = () => {
     mount(wrap,
       h('p', { class: 'muted' }, t('Let Claude, ChatGPT or Gemini read your practice: your sessions, notes, issues and progress. They can ask things like “what did I struggle with this week?” They can’t change anything, and they never see your recordings, AI keys or Discord webhook.')),
-      h('p', { class: 'small muted' }, t('This includes your pronunciation history: which sounds keep differing, how often, and whether they’ve gone quiet.')),
+      h('p', { class: 'small muted' }, t('This includes your pronunciation: the sounds of each clip’s speaker and of each of your takes, the differences found, and your history of which sounds keep differing and whether they’ve gone quiet.')),
       h('div', { class: 'card' }, h('h3', null, t('Server address')),
         h('div', { class: 'row' }, h('code', { style: { wordBreak: 'break-all' } }, url), btn(t('Copy'), copy, { size: 'sm' })),
         h('ul', { class: 'small', style: { margin: '6px 0 0', paddingLeft: '20px' } },

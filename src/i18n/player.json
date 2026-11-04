@@ -119,9 +119,9 @@
     "fr": "« {name} » est dans ton Google Drive, mais Drive n’est pas connecté ici. Connecte-le pour télécharger la vidéo, ou choisis le même fichier sur cet appareil.",
     "es": "“{name}” está en tu Google Drive, pero Drive no está conectado aquí. Conéctalo para descargar el video o elige el mismo archivo en este dispositivo."
   },
-  "“{name}” was added on another device and isn’t synced. Pick the same file from this device to keep practising here, and turn on Google Drive sync in Settings → Storage so your devices share files.": {
-    "fr": "« {name} » a été ajouté sur un autre appareil et n’est pas synchronisé. Choisis le même fichier sur cet appareil pour t’entraîner ici, et active la synchronisation Google Drive dans Réglages → Stockage pour que tes appareils partagent leurs fichiers.",
-    "es": "“{name}” se agregó en otro dispositivo y no está sincronizado. Elige el mismo archivo en este dispositivo para seguir practicando aquí y activa la sincronización con Google Drive en Ajustes → Almacenamiento para que tus dispositivos compartan archivos."
+  "“{name}” was added on another device and isn’t synced. Pick the same file from this device to keep practising here, and turn on Google Drive sync in Settings → Data so your devices share files.": {
+    "fr": "« {name} » a été ajouté sur un autre appareil et n’est pas synchronisé. Choisis le même fichier sur cet appareil pour t’entraîner ici, et active la synchronisation Google Drive dans Réglages → Données pour que tes appareils partagent leurs fichiers.",
+    "es": "“{name}” se agregó en otro dispositivo y no está sincronizado. Elige el mismo archivo en este dispositivo para seguir practicando aquí y activa la sincronización con Google Drive en Ajustes → Datos para que tus dispositivos compartan archivos."
   },
   "“{name}” was added on another device and isn’t synced. Pick the same file from this device to keep practising here.": {
     "fr": "« {name} » a été ajouté sur un autre appareil et n’est pas synchronisé. Choisis le même fichier sur cet appareil pour t’entraîner ici.",
@@ -199,13 +199,13 @@
     "fr": "Tes vidéos et enregistrements vont dans un dossier « Euno Shadowing » de ton propre Drive : ils sont en sécurité et sur tous les appareils où tu te connectes. L’appli ne voit que les fichiers qu’elle y dépose, et notre serveur ne les stocke jamais.",
     "es": "Tus videos y grabaciones van a una carpeta “Euno Shadowing” en tu propio Drive, así que están seguros y en todos los dispositivos donde inicies sesión. La app solo ve los archivos que pone ahí y nuestro servidor nunca los guarda."
   },
-  "You can disconnect it any time in Settings → Storage.": {
-    "fr": "Tu peux le déconnecter quand tu veux dans Réglages → Stockage.",
-    "es": "Puedes desconectarlo cuando quieras en Ajustes → Almacenamiento."
+  "You can disconnect it any time in Settings → Data.": {
+    "fr": "Tu peux le déconnecter quand tu veux dans Réglages → Données.",
+    "es": "Puedes desconectarlo cuando quieras en Ajustes → Datos."
   },
-  "Not now? Press Continue. You can connect Google Drive later in Settings → Storage. Until then, files stay in this browser only.": {
-    "fr": "Pas maintenant ? Appuie sur Continuer. Tu pourras connecter Google Drive plus tard dans Réglages → Stockage. D’ici là, les fichiers restent uniquement dans ce navigateur.",
-    "es": "¿Ahora no? Pulsa Continuar. Puedes conectar Google Drive más tarde en Ajustes → Almacenamiento. Mientras tanto, los archivos se quedan solo en este navegador."
+  "Not now? Press Continue. You can connect Google Drive later in Settings → Data. Until then, files stay in this browser only.": {
+    "fr": "Pas maintenant ? Appuie sur Continuer. Tu pourras connecter Google Drive plus tard dans Réglages → Données. D’ici là, les fichiers restent uniquement dans ce navigateur.",
+    "es": "¿Ahora no? Pulsa Continuar. Puedes conectar Google Drive más tarde en Ajustes → Datos. Mientras tanto, los archivos se quedan solo en este navegador."
   },
   "Your videos and recordings live in a “Euno Shadowing” folder in your own Drive, so they’re on every device you sign in on. The app can only see files it puts there, and our server never stores them. Dropbox and OneDrive are coming later.": {
     "fr": "Tes vidéos et enregistrements sont rangés dans un dossier « Euno Shadowing » de ton propre Drive, donc sur tous les appareils où tu te connectes. L’appli ne voit que les fichiers qu’elle y dépose, et notre serveur ne les stocke jamais. Dropbox et OneDrive arriveront plus tard.",
@@ -263,9 +263,9 @@
     "fr": "Les fichiers sont uniquement sur cet appareil, et le navigateur peut les effacer si l’appareil manque vraiment de place. Exporte une sauvegarde depuis Réglages → Données de temps en temps, et garde tes fichiers vidéo d’origine.",
     "es": "Los archivos solo están en este dispositivo y el navegador puede borrarlos si se queda casi sin espacio. Exporta una copia de seguridad desde Ajustes → Datos de vez en cuando y conserva tus archivos de video originales."
   },
-  "Google Drive wasn’t connected. You can connect it any time in Settings → Storage.": {
-    "fr": "Google Drive n’a pas été connecté. Tu peux le connecter quand tu veux dans Réglages → Stockage.",
-    "es": "Google Drive no se conectó. Puedes conectarlo cuando quieras en Ajustes → Almacenamiento."
+  "Google Drive wasn’t connected. You can connect it any time in Settings → Data.": {
+    "fr": "Google Drive n’a pas été connecté. Tu peux le connecter quand tu veux dans Réglages → Données.",
+    "es": "Google Drive no se conectó. Puedes conectarlo cuando quieras en Ajustes → Datos."
   },
   "Google Drive couldn’t be connected.": {
     "fr": "Impossible de connecter Google Drive.",

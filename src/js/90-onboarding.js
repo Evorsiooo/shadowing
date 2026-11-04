@@ -10,7 +10,7 @@ const ONBOARDING_STEPS = [
   {
     id: 'name', label: N_('You'),
     title: () => t('Welcome to Euno Shadowing'),
-    sub: () => t('A few quick questions to set things up. You can change any answer later in Settings → Profile.'),
+    sub: () => t('A few quick questions to set things up. You can change any answer later in Settings → You.'),
     // the interface language first, so the rest of the wizard reads in it; switching redraws this step (the draft keeps what was typed)
     body: (W) => [h('div', { class: 'field' }, h('span', { class: 'flabel', id: 'obUiLangLbl' }, t('Interface language')), uiLangPicker(() => renderOnboarding(W), 'obUiLangLbl')), nameField(W.draft)],
     next: (W) => {
@@ -121,7 +121,7 @@ function onboardingStorageStep() { return storageStepBody(); } // 17-media.js
 function onboardingAiStep() {
   return [
     aiPanel({ onboarding: true }),
-    h('p', { class: 'small muted' }, t('No key? Skip this step: notes give you a prompt to paste into any AI chat instead. You can add a key later in Settings → AI.')),
+    h('p', { class: 'small muted' }, t('No key? Skip this step: notes give you a prompt to paste into any AI chat instead. You can add a key later in Settings → Connections.')),
   ];
 }
 
@@ -178,7 +178,7 @@ function renderOnboarding(W) {
   openModal(form, { narrow: true, onClose: () => finishOnboarding(W, true) });
 }
 
-/* closing early keeps whatever was saved so far; everything can be changed later in Settings → Profile */
+/* closing early keeps whatever was saved so far; everything can be changed later in Settings → You */
 function finishOnboarding(W, closed) {
   saveProfile({ onboarded: new Date().toISOString() });
   lsSet('welcomed', true);
@@ -193,7 +193,7 @@ function finishOnboarding(W, closed) {
   if (W.baseline && W.steps.some((s) => s.id === 'baseline')) openCheckins(0);
 }
 
-/* ---------- profile fields, shared by onboarding and Settings → Profile; edits go into draft ---------- */
+/* ---------- profile fields, shared by onboarding and Settings → You; edits go into draft ---------- */
 function nameField(draft) {
   return h('label', { class: 'field', for: 'pfName' }, t('What should we call you?'),
     h('input', { type: 'text', id: 'pfName', maxlength: 40, autocomplete: 'given-name', placeholder: t('Your first name'), value: draft.name, oninput: (e) => { draft.name = e.target.value; } }));

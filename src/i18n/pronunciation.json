@@ -414,5 +414,9 @@
   "The speaker’s sound couldn’t be read from the video. Load the video again (a local file works best) and try again.": {
     "fr": "Le son du locuteur n’a pas pu être lu depuis la vidéo. Recharge la vidéo (un fichier local marche le mieux) et réessaie.",
     "es": "No se pudo leer el sonido del hablante desde el vídeo. Vuelve a cargar el vídeo (un archivo local funciona mejor) y prueba de nuevo."
+  },
+  "Wait until the pass is over, then play it.": {
+    "fr": "Attends la fin de la passe, puis écoute.",
+    "es": "Espera a que termine la pasada y luego escúchalo."
   }
 }

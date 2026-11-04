@@ -135,8 +135,8 @@
     "fr": "{name} est déconnectée.",
     "es": "{name} se desconectó."
   },
-  "This includes your pronunciation history: which sounds keep differing, how often, and whether they’ve gone quiet.": {
-    "fr": "Cela inclut ton historique de prononciation : quels sons continuent de différer, à quelle fréquence, et s’ils sont devenus discrets.",
-    "es": "Esto incluye tu historial de pronunciación: qué sonidos siguen difiriendo, con qué frecuencia y si se han calmado."
+  "This includes your pronunciation: the sounds of each clip’s speaker and of each of your takes, the differences found, and your history of which sounds keep differing and whether they’ve gone quiet.": {
+    "fr": "Cela inclut ta prononciation : les sons du locuteur de chaque extrait et de chacune de tes prises, les différences trouvées, et ton historique des sons qui continuent de différer ou qui sont devenus discrets.",
+    "es": "Esto incluye tu pronunciación: los sonidos del hablante de cada fragmento y de cada una de tus tomas, las diferencias encontradas y tu historial de qué sonidos siguen difiriendo y si se han calmado."
   }
 }

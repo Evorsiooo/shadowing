@@ -167,7 +167,7 @@ function openCopyPrompt(D, issueNames, onDone, ctx) {
   const ta = h('textarea', { rows: 8, readonly: true, value: text, id: 'promptText' });
   const reply = h('textarea', { rows: 6, id: 'replyPaste', placeholder: t('Paste the reply here') });
   openModal([
-    modalHead(t('Ask an AI'), t('Copy the prompt into any AI chat (Claude, ChatGPT, Gemini…), then paste the reply back here so it’s saved with the note.') + (Store.mode === 'cloud' ? ' ' + t('To get answers right here instead, add your own API key in Settings → AI.') : '')),
+    modalHead(t('Ask an AI'), t('Copy the prompt into any AI chat (Claude, ChatGPT, Gemini…), then paste the reply back here so it’s saved with the note.') + (Store.mode === 'cloud' ? ' ' + t('To get answers right here instead, add your own API key in Settings → Connections.') : '')),
     ta,
     h('div', { class: 'row' }, btn(t('Copy prompt'), async () => {
       try { await navigator.clipboard.writeText(text); toast(t('Prompt copied.')); } catch { ta.select(); toast(t('Select-all done; press Ctrl+C to copy.')); }
