@@ -123,7 +123,7 @@ const make = ({ SITE, L, host }) => ({
     ],
     cmpH2: 'Mira cómo se compara tu grabación',
     cmpIntro: 'Esta es la vista de comparación. Cada grabación se dibuja sobre la del hablante, para que veas qué cambió entre tu primer intento y el último.',
-    cmpCaption: 'La melodía del hablante (verde) y la tuya (azul) tras la grabación del paso 3 y tras la final: más cercana en ritmo y en forma.',
+    cmpCaption: 'La melodía del hablante (negro) y la tuya (verde) tras la grabación del paso 3 y tras la final: más cercana en ritmo y en forma.',
     cmpPoints: [
       '<strong>Tu melodía junto a la suya.</strong> Las dos líneas se miden respecto a la voz de cada uno, así que una voz más aguda o más grave no importa.',
       '<strong>Tu retraso.</strong> Euno alinea las grabaciones y te dice cuánto ibas por detrás o por delante del hablante.',

@@ -6,11 +6,11 @@ function openSettings(tab = 'practice') {
   tab = SETTINGS_TAB_ALIAS[tab] || tab;
   const tabs = [['practice', t('Practice'), 'mic'], ['you', t('You'), 'user'], ['data', t('Data'), 'database'], ['connections', t('Connections'), 'link'], ...(Heavy.list().length ? [['analysis', t('Analysis'), 'flask']] : []), ['advanced', t('Advanced'), 'headphones']];
   const body = tab === 'you' ? youView() : tab === 'data' ? dataTabView() : tab === 'connections' ? connectionsView() : tab === 'analysis' ? analysisView() : tab === 'advanced' ? advancedView() : settingsForm();
-  openModal([
+  openView([
     modalHead(t('Settings')),
-    h('div', { class: 'tabs' }, tabs.map(([k, l, ic]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab, icon: ic }))),
+    h('div', { class: 'tabs', role: 'tablist' }, tabs.map(([k, l, ic]) => btn(l, () => openSettings(k), { size: 'sm', on: k === tab, icon: ic }))),
     body,
-  ], { onClose: () => renderAll() });
+  ], { page: 'settings', sub: tab === 'practice' ? null : tab, onClose: () => renderAll() });
 }
 
 /* a titled block with a one-line description */
@@ -138,7 +138,7 @@ function dataTabView() {
 }
 function connectionsView() {
   return h('div', { class: 'stack' },
-    setSection(t('AI feedback'), t('Your own key, kept encrypted on the server. Used only when you ask for feedback.'), aiPanel()),
+    setSection(t('Ask Euno'), null, aiPanel()),
     setSection(t('Connected apps'), null, connectedAppsView()));
 }
 
@@ -209,7 +209,7 @@ function lookView() {
   return h('div', { class: 'stack' },
     h('div', { class: 'card' }, h('h3', null, t('Interface language')),
       uiLangPicker(() => openSettings('you')), // 90-onboarding.js; re-open this tab so it shows in the new language
-      h('p', { class: 'small muted' }, t('The language of the app’s buttons, messages and AI feedback. Your practice language is set in Settings → You.'))),
+      h('p', { class: 'small muted' }, t('The language of the app’s buttons, messages and Euno’s answers. Your practice language is set in Settings → You.'))),
     h('div', { class: 'card' }, h('h3', null, t('Theme')),
       h('div', { class: 'seg' }, [['system', t('Match device')], ['light', t('Light')], ['dark', t('Dark')]].map(([k, l]) => h('button', { type: 'button', class: cur === k ? 'on' : '', onclick: () => set(k) }, l))),
       h('p', { class: 'small muted' }, t('Inside Claude, the viewer’s own theme setting can also switch this.'))));
@@ -222,7 +222,7 @@ function applyTheme() {
   // the browser's address bar / the installed app's title bar follows the theme (light is the default)
   const dark = t === 'dark' || (t === 'system' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', dark ? '#111710' : '#f4f8f1');
+  if (meta) meta.setAttribute('content', dark ? '#111316' : '#f6f7f3');
 }
 
 /* ---------- device checks: the spec's "test first" list, runnable on any device ---------- */
@@ -232,7 +232,7 @@ const CHECKS = [
   { key: 'mic', name: N_('Microphone'), run: checkMic },
   { key: 'video', name: N_('Video link plays'), run: checkVideoPlays },
   { key: 'sound', name: N_('Reading the video’s sound (for pitch and waveform)'), run: checkVideoSound },
-  { key: 'claude', name: N_('AI feedback from the app'), run: checkClaude },
+  { key: 'claude', name: N_('Euno’s answers (your AI key)'), run: checkClaude },
   { key: 'pitch', name: N_('Pitch tracking on your clips'), run: checkPitch },
   { key: 'align', name: N_('Auto-alignment on your passes'), run: checkAlign },
 ];

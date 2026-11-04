@@ -11,6 +11,7 @@
 import { randomToken, sha256Hex, bytesToB64url, requireUser, sameOrigin } from './auth.js';
 import { requestLang, tr } from './i18n.js';
 import { uuid, safeEqual } from './util.js';
+import { EUNO_MARK } from './euno-mark.js';
 
 export const SCOPE = 'practice:read';
 const CODE_TTL = 5 * 60_000;
@@ -420,7 +421,7 @@ function consentPage(requestId, client, redirectUri, auth, env, lang = 'en') {
       <li>${esc(T('Read only: it can’t change or delete anything'))}</li>
       <li>${esc(T('Not your recordings, AI keys or Discord webhook'))}</li>
     </ul>
-    <p class="small">${T('Signed in as {email}. After you choose, you’ll go back to {host}.', { email: `<!--email_off-->${esc(auth.email)}<!--/email_off-->`, host: `<strong>${esc(app.host)}</strong>` })}${app.loopback ? ` ${esc(T('Only allow this if you just started connecting an app on this computer.'))}` : ''} ${esc(T('You can disconnect it any time in Settings → Connected apps.'))}</p>
+    <p class="small">${T('Signed in as {email}. After you choose, you’ll go back to {host}.', { email: `<!--email_off-->${esc(auth.email)}<!--/email_off-->`, host: `<strong>${esc(app.host)}</strong>` })}${app.loopback ? ` ${esc(T('Only allow this if you just started connecting an app on this computer.'))}` : ''} ${esc(T('You can disconnect it any time in Settings → Connections.'))}</p>
     <form method="post" action="/oauth/authorize" class="row">
       <input type="hidden" name="request" value="${esc(requestId)}">
       <button class="btn" type="submit" name="decision" value="allow">${esc(T('Allow'))}</button>
@@ -434,14 +435,18 @@ function page(title, body, status = 200) {
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>${esc(title)} · Euno Shadowing</title>
 <style>
-:root{color-scheme:light;--bg:#fafaf7;--fg:#1d1d1b;--muted:#6b6b66;--accent:#58cc02;--line:#d9d9d2}
-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;place-items:center;min-height:100vh;padding:16px;box-sizing:border-box}
-main{max-width:440px;width:100%}h1{font-size:1.4rem;margin:0 0 .5rem}a{color:inherit}ul{padding-left:1.2rem}
-.row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem}
-.btn{display:inline-block;background:var(--accent);color:#fff;border:0;border-radius:10px;padding:.6rem 1.1rem;font:inherit;font-weight:600;cursor:pointer}
-.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
-.small{font-size:.9rem;color:var(--muted)}
-</style></head><body><main><h1>${esc(title)}</h1>${body}</main></body></html>`;
+:root{color-scheme:light;--bg:#f6f7f3;--card:#fff;--fg:#111316;--muted:#5f645b;--green:#45b52a;--sunk:#eceee9;--ctl:#8a9085;--bad:#b3261e}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#111316;--card:#1b1e1a;--fg:#eceee9;--muted:#9da296;--sunk:#252923;--ctl:#7d8378;--bad:#ff8a80}}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 Rubik,system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;place-items:center;min-height:100vh;padding:16px;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+main{max-width:440px;width:100%;position:relative;padding-top:64px}
+.mark{position:absolute;top:0;left:28px;width:96px;height:96px}.mark svg{width:100%;height:100%;display:block}
+.card{position:relative;background:var(--card);border-radius:36px;padding:32px 28px 28px}
+h1{font-size:1.5rem;font-weight:600;letter-spacing:-.015em;line-height:1.2;margin:0 0 .6rem}a{color:inherit;text-decoration-color:var(--green);text-decoration-thickness:2px;text-underline-offset:3px}ul{padding-left:1.2rem}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1.25rem}
+.btn{display:inline-flex;align-items:center;min-height:44px;background:var(--green);color:#111316;border:0;border-radius:999px;padding:0 1.3rem;font:inherit;font-weight:500;text-decoration:none;cursor:pointer}
+.btn.ghost{background:var(--sunk);color:var(--fg)}
+.small{font-size:.9rem;color:var(--muted)}.bad{color:var(--bad)}
+</style></head><body><main><span class="mark" aria-hidden="true">${EUNO_MARK}</span><div class="card"><h1>${esc(title)}</h1>${body}</div></main></body></html>`;
   return new Response(html, {
     status,
     headers: {

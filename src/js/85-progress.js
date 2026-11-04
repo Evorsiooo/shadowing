@@ -56,24 +56,6 @@ function moveSessionDay(sessionId, date, movedFrom = null) {
   for (const n of Store.all('notes')) if (n.sessionId === sessionId) Store.patch('notes', n.id, { date });
 }
 
-/* ---------- top bar ---------- */
-function renderChips() {
-  const s = streakInfo();
-  const target = settings().weeklyTarget;
-  enterOnChange($('#chips'), `${s.streak}:${s.weekCount}`, 'bump'); // the streak and week count bump when they go up
-  mount($('#chips'),
-    h('span', { class: `chip streak ${s.practisedToday ? '' : 'cold'}`, title: t('Day streak (one rest day in a row is allowed)') }, icon('flame'), tp(s.streak, '{n} day', '{n} days')),
-    h('span', { class: 'chip', title: t('Days practised this week') }, icon('calendar'), t('{done}/{target} this week', { done: s.weekCount, target })),
-    h('button', { type: 'button', class: 'chip mode', title: storageTitle(), onclick: () => toast(storageTitle(), '', 6000) }, icon(Store.mode === 'cloud' || Store.mode === 'artifact' ? 'check' : 'folder'), Store.mode === 'cloud' || Store.mode === 'artifact' ? t('Synced') : Store.mode === 'local' ? t('This browser') : t('Not saved')));
-  mount($('#topnav'),
-    btn(t('Library'), () => openDrawer(), { icon: 'menu', size: 'sm', kind: 'ghost', aria: t('Library'), title: t('Video library') }),
-    btn(t('Progress'), () => openProgress('habit'), { icon: 'chart', size: 'sm', aria: t('Progress'), title: t('Progress') }),
-    btn(t('Check-ins'), () => openCheckins(), { icon: 'mic', size: 'sm', aria: t('Check-ins'), title: t('Check-ins') }),
-    isAdmin() ? btn(Admin.open ? t('Admin ({n})', { n: Admin.open }) : t('Admin'), () => openAdmin(), { icon: 'shield', size: 'sm', kind: 'ghost', aria: t('Admin'), title: Admin.open ? tp(Admin.open, 'Admin: {n} message to handle', 'Admin: {n} messages to handle') : t('Admin') }) : null,
-    btn(t('Settings'), () => openSettings(), { icon: 'settings', size: 'sm', kind: 'ghost', aria: t('Settings'), title: t('Settings') }));
-  const lib = $('#topnav').firstChild;
-  lib.classList.add('only-phone');
-}
 function storageTitle() {
   return Store.mode === 'cloud' ? `${Api.email ? t('Your practice history is saved to your account ({email}).', { email: Api.email }) : t('Your practice history is saved to your account.')} ${Drive.connected() ? t('Videos and recordings are in your Google Drive.') : t('Videos and recordings are only in this browser until you connect Google Drive (Settings → Data).')}`
     : Store.mode === 'artifact' ? t('Saved in the artifact’s database; available on every device.')
@@ -81,42 +63,14 @@ function storageTitle() {
       : t('Storage is blocked here; nothing will be kept after you close the page.');
 }
 
+/* notices that apply on every screen; the ones about today's practice (baseline, check-ins, a missed day, headphones)
+   are boxes on Today (84-today.js) */
 function renderBanners() {
   const out = [];
-  const info = streakInfo();
   const dismissed = lsGet('dismissed', {});
   const dismiss = (k) => () => { dismissed[k] = true; lsSet('dismissed', dismissed); renderBanners(); };
-  const base = checkinFor(0);
-  const anySession = Store.all('sessions').some((s) => !s.empty);
-  if (!checkinHasAll(base) && !dismissed.baseline) {
-    out.push(h('div', { class: 'banner info' },
-      h('p', null, anySession ? t('Your week 0 baseline isn’t finished yet. Record it soon so later check-ins have something to compare with.') : t('Before your first practice, record your week 0 baseline (about 3 minutes). Every later check-in is compared with it.')),
-      btn(t('Record baseline'), () => openCheckins(0), { kind: 'primary', size: 'sm', icon: 'mic' }),
-      btn(t('Later'), dismiss('baseline'), { kind: 'ghost', size: 'sm' })));
-  }
-  if (!dismissed.headphones) {
-    out.push(h('div', { class: 'banner info' },
-      h('p', { class: 'row' }, icon('headphones'), t('Practise with headphones (wired is best). Without them, the microphone picks up the video and your recordings and scores are off.')),
-      btn(t('Got it'), dismiss('headphones'), { kind: 'ghost', size: 'sm' })));
-  }
-  if (info.missedYesterday && !info.practisedToday) {
-    out.push(h('div', { class: 'banner' },
-      h('p', null, t('You missed yesterday. Don’t skip two days in a row: even a 5-minute bad-day session keeps the streak alive.'),
-        new Date().getHours() < LATE_SESSION_HOUR ? [' ', h('strong', null, t('It’s not 10am yet, so a session you do now can still count for yesterday: you’ll get the option when you finish.'))] : null),
-      btn(t('Bad-day session'), () => Session.start(UI.queue.length ? UI.queue : [UI.clipId || lastClipId()].filter(Boolean), 'badday'), { kind: 'wattle', size: 'sm', icon: 'bad' })));
-  }
-  const fw = firstWeekDay(info);
-  if (fw > 1 && !info.practisedToday && !info.missedYesterday) {
-    out.push(h('div', { class: 'banner info' },
-      h('p', null, t('Day {n} of your first week. Short and regular beats long and rare: even 5 minutes counts today.', { n: fw })),
-      btn(t('Bad-day session'), () => Session.start(UI.queue.length ? UI.queue : [UI.clipId || lastClipId()].filter(Boolean), 'badday'), { kind: 'wattle', size: 'sm', icon: 'bad' })));
-  }
-  const due = dueCheckin();
-  if (due != null && due !== 0) {
-    out.push(h('div', { class: 'banner info' }, h('p', null, t('Week {n} check-in is due. It takes about 3 minutes.', { n: due })), btn(t('Start check-in'), () => openCheckins(due), { kind: 'primary', size: 'sm' })));
-  }
   if (Api.signedOut && Store.mode === 'cloud') {
-    out.unshift(h('div', { class: 'banner' }, h('p', null, t('You’re signed out, so changes can’t be saved right now. Sign in again to keep saving.')), btn(t('Sign in'), () => signIn(), { kind: 'primary', size: 'sm' })));
+    out.push(h('div', { class: 'banner' }, h('p', null, t('You’re signed out, so changes can’t be saved right now. Sign in again to keep saving.')), btn(t('Sign in'), () => signIn(), { kind: 'primary', size: 'sm' })));
   }
   if (Store.mode === 'cloud') { /* nothing to explain */ } else if (Caps.inArtifact && !dismissed.artifactNote) {
     out.push(h('div', { class: 'banner info' },
@@ -129,7 +83,8 @@ function renderBanners() {
       btn(t('Got it'), dismiss('localNote'), { kind: 'ghost', size: 'sm' })));
   }
   if (Store.mode === 'memory') out.push(h('div', { class: 'banner' }, h('p', null, t('Storage is blocked in this view, so nothing will be kept. Open the app in a normal browser window.'))));
-  // a banner that wasn't there on the last draw slides in
+  if (Session.active) out.length = Api.signedOut ? 1 : 0; // focus mode: only what stops your work being saved
+  // a notice that wasn't there on the last draw slides in
   const seen = renderBanners.seen;
   renderBanners.seen = new Set(out.map((b) => b.textContent));
   if (seen) out.forEach((b) => { if (!seen.has(b.textContent)) b.classList.add('enter'); });
@@ -141,15 +96,17 @@ function lastClipId() {
   return s && s.clipId;
 }
 
-/* ---------- progress modal ---------- */
+/* ---------- Progress page ---------- */
+const PROGRESS_TABS = ['habit', 'issues', 'measures', 'checkins', 'clips'];
 function openProgress(tab = 'habit') {
-  const tabs = [['habit', t('Habit')], ['issues', t('Issues')], ['measures', t('Measures')], ['clips', t('Clips')]];
-  const body = tab === 'habit' ? habitView() : tab === 'issues' ? issuesView() : tab === 'measures' ? measuresView() : clipsOverview();
-  openModal([
+  if (!PROGRESS_TABS.includes(tab)) tab = 'habit';
+  const tabs = [['habit', t('Habit')], ['issues', t('Issues')], ['measures', t('Measures')], ['checkins', t('Check-ins')], ['clips', t('Clips')]];
+  const body = tab === 'habit' ? habitView() : tab === 'issues' ? issuesView() : tab === 'measures' ? measuresView() : tab === 'checkins' ? checkinsView() : clipsOverview();
+  openView([
     modalHead(t('Progress')),
-    h('div', { class: 'tabs' }, tabs.map(([k, l]) => btn(l, () => openProgress(k), { size: 'sm', on: k === tab }))),
+    h('div', { class: 'tabs', role: 'tablist' }, tabs.map(([k, l]) => btn(l, () => openProgress(k), { size: 'sm', on: k === tab }))),
     body,
-  ]);
+  ], { page: 'progress', sub: tab === 'habit' ? null : tab });
 }
 
 function habitView() {
@@ -174,7 +131,7 @@ function habitView() {
           const k = s.days.get(d);
           return h('span', { class: `d ${k || ''} ${d === today ? 'today' : ''} ${d > today ? 'future' : ''}`, title: fmtDayLong(d) + (k ? ' · ' + (k === 'bad' ? t('bad-day session') : t('full session')) : '') }, k === 'full' ? '✓' : k === 'bad' ? '·' : '');
         })])),
-      h('div', { class: 'legend' }, h('span', null, h('i', { style: { background: 'var(--green)' } }), t('Full session')), h('span', null, h('i', { style: { background: 'var(--wattle)' } }), t('Bad-day session')), h('span', null, h('i', { style: { background: 'var(--surface-2)' } }), t('Not practised')))),
+      h('div', { class: 'legend' }, h('span', null, h('i', { style: { background: 'var(--ink)' } }), t('Full session')), h('span', null, h('i', { style: { background: 'var(--green)' } }), t('Bad-day session')), h('span', null, h('i', { style: { background: 'var(--surface-2)' } }), t('Not practised')))),
     weeklyMinutes(weeks).some((m) => m > 0) ? h('div', { class: 'card' }, h('h3', null, t('Minutes per week')), minutesChart(weeks, weeklyMinutes(weeks))) : null,
     lags.length > 1 ? h('div', { class: 'card trend' }, h('h3', null, t('Average lag behind the speaker, by week')), h('p', { class: 'small muted' }, t('How far behind the speaker your voice is, on average, across your passes. Beginners echo the speaker; with practice you start to anticipate, so the lag shrinks towards zero. Clips and speeds differ, so read the trend over several weeks, not the single values.')), trendChart(lags.map((l) => ({ x: fmtDay(l.week), y: l.lag })), { unit: ' s', dec: 2 })) : null);
 }
@@ -241,12 +198,12 @@ function trendChart(points, { unit = '', dec = 1, ref = null, refLabel = t('spea
     el('text', { x: L - 6, y: Y(t) + 4, 'text-anchor': 'end' }, fmtNum(t, dec) + unit);
   }
   if (ref != null) {
-    el('line', { x1: L, x2: W - R, y1: Y(ref), y2: Y(ref), stroke: 'var(--green)', 'stroke-width': 2, 'stroke-dasharray': '6 5' });
-    el('text', { x: W - R, y: Y(ref) - 5, 'text-anchor': 'end', fill: 'var(--green)' }, refLabel);
+    el('line', { x1: L, x2: W - R, y1: Y(ref), y2: Y(ref), stroke: 'var(--speaker)', 'stroke-width': 2, 'stroke-dasharray': '6 5' });
+    el('text', { x: W - R, y: Y(ref) - 5, 'text-anchor': 'end', fill: 'var(--ink)' }, refLabel);
   }
   const valid = points.map((p, i) => [i, p.y]).filter(([, y]) => y != null && isFinite(y));
-  if (valid.length > 1) el('polyline', { points: valid.map(([i, y]) => `${X(i)},${Y(y)}`).join(' '), fill: 'none', stroke: 'var(--sky)', 'stroke-width': 3, 'stroke-linejoin': 'round' });
-  valid.forEach(([i, y], k) => el('circle', { cx: X(i), cy: Y(y), r: k === valid.length - 1 ? 6 : 4, fill: 'var(--sky)', stroke: 'var(--surface)', 'stroke-width': 2 }));
+  if (valid.length > 1) el('polyline', { points: valid.map(([i, y]) => `${X(i)},${Y(y)}`).join(' '), fill: 'none', stroke: 'var(--you)', 'stroke-width': 4, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' });
+  valid.forEach(([i, y], k) => el('circle', { cx: X(i), cy: Y(y), r: k === valid.length - 1 ? 6 : 4, fill: 'var(--you)', stroke: 'var(--card)', 'stroke-width': 2 }));
   points.forEach((p, i) => el('text', { x: X(i), y: H - 8, 'text-anchor': 'middle' }, p.x));
   return h('div', { class: 'trend' }, svg);
 }
@@ -285,7 +242,12 @@ function dueCheckin() {
   return null;
 }
 
+/* the check-ins are a tab of Progress; a week passed in opens its recorder straight away */
 function openCheckins(focusWeek) {
+  if (focusWeek != null) { openCheckinRecorder(focusWeek); return; }
+  openProgress('checkins');
+}
+function checkinsView() {
   const start = programmeStart();
   const items = CHECKIN_WEEKS.map((w) => {
     const c = checkinFor(w);
@@ -301,15 +263,13 @@ function openCheckins(focusWeek) {
         btn(done ? t('Open') : count ? t('Continue') : t('Start'), () => openCheckinRecorder(w), { size: 'sm', kind: done ? '' : 'primary' }),
         done && w !== 0 && checkinHasAll(checkinFor(0)) ? btn(t('Compare with baseline'), () => openCheckinCompare(w), { size: 'sm', kind: 'blue' }) : null));
   });
-  openModal([
-    modalHead(t('Check-ins'), t('Weeks 0, 4, 8 and 12. Recordings are never overwritten.')),
+  return h('div', { class: 'stack' },
+    h('p', { class: 'muted' }, t('Weeks 0, 4, 8 and 12. Recordings are never overwritten.')),
     h('div', { class: 'cards' }, items),
     h('div', { class: 'card' },
       h('h3', null, t('Blind listener pack')),
       h('p', { class: 'small muted' }, t('Export shuffled, unlabelled check-in samples plus clips of real {accent} speakers from your library, with a rating sheet (1 = no foreign accent, 9 = very strong accent). Enter the ratings back here to see the average per check-in.', { accent: t(targetAccent().short) })),
-      h('div', { class: 'row' }, btn(t('Build and export pack'), () => exportListenerPack(), { kind: 'primary', size: 'sm', icon: 'download' }), btn(t('Enter ratings'), () => openRatings(), { size: 'sm' }))),
-  ]);
-  if (focusWeek != null) openCheckinRecorder(focusWeek);
+      h('div', { class: 'row' }, btn(t('Build and export pack'), () => exportListenerPack(), { kind: 'primary', size: 'sm', icon: 'download' }), btn(t('Enter ratings'), () => openRatings(), { size: 'sm' }))));
 }
 
 function ensureCheckin(week) {
@@ -329,12 +289,12 @@ function openCheckinRecorder(week) {
         const r = Store.get('recordings', id);
         const row = h('div', { class: 'audio-row' });
         const normal = async () => mount(row,
-          h('span', { class: 'small', style: { fontWeight: 800 } }, t('Take {n}', { n: i + 1 })),
+          h('span', { class: 'small', style: { fontWeight: 600 } }, t('Take {n}', { n: i + 1 })),
           await recAudio(r),
           r && r.durationSec ? h('span', { class: 'small muted num' }, fmtTime(r.durationSec)) : null,
           btn(t('Delete'), () => confirmRow(), { size: 'sm', kind: 'ghost', title: t('Delete take {n}', { n: i + 1 }) }));
         const confirmRow = () => mount(row,
-          h('span', { class: 'small', style: { fontWeight: 800 } }, t('Delete take {n}? This can’t be undone.', { n: i + 1 })),
+          h('span', { class: 'small', style: { fontWeight: 600 } }, t('Delete take {n}? This can’t be undone.', { n: i + 1 })),
           btn(t('Delete'), async () => { await deleteCheckinTake(week, task.key, id); draw(); }, { size: 'sm', kind: 'danger' }),
           btn(t('Keep it'), () => normal(), { size: 'sm', kind: 'ghost' }));
         await normal();
@@ -398,7 +358,7 @@ function checkinRecordControls(week, task, redraw) {
       // the target is soft: going over is fine, so finish the sentence; a hard stop only at 3x the target
       if (!task.secs) status.textContent = t('{time} recording', { time: fmtTime(s) });
       else if (s < task.secs) status.textContent = t('{n} s left', { n: Math.ceil(task.secs - s) });
-      else { status.textContent = t('Time’s up: finish your sentence, then stop (+{time})', { time: fmtTime(s - task.secs) }); status.style.color = 'var(--ochre)'; status.style.fontWeight = '800'; }
+      else { status.textContent = t('Time’s up: finish your sentence, then stop (+{time})', { time: fmtTime(s - task.secs) }); status.style.color = 'var(--diff-ink)'; status.style.fontWeight = '800'; }
       if (task.secs && s >= task.secs * 3) stop();
     }, 250);
   };
@@ -481,7 +441,7 @@ async function openCheckinCompare(week) {
         h('div', { class: 'stack' }, h('span', { class: 'label' }, t('Baseline')), await recAudio(ra)),
         h('div', { class: 'stack' }, h('span', { class: 'label' }, t('Week {n}', { n: week })), await recAudio(rb))));
   }));
-  openModal([modalHead(t('Week {n} vs baseline', { n: week })), rows, measuresTable([A, B]), btn(t('Back'), () => openCheckins(), { kind: 'ghost' })]);
+  openView([modalHead(t('Week {n} vs baseline', { n: week })), rows, measuresTable([A, B]), btn(t('Back to check-ins'), () => openCheckins(), { kind: 'ghost', icon: 'back', cls: 'self-start' })], { page: 'progress', sub: 'checkins' });
 }
 
 function modelReference() {

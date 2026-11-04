@@ -331,10 +331,6 @@
     "fr": "Pratique",
     "es": "Práctica"
   },
-  "AI": {
-    "fr": "IA",
-    "es": "IA"
-  },
   "Reminders": {
     "fr": "Rappels",
     "es": "Recordatorios"
@@ -479,10 +475,6 @@
     "fr": "Langue de l’interface",
     "es": "Idioma de la interfaz"
   },
-  "The language of the app’s buttons, messages and AI feedback. Your practice language is set in Settings → You.": {
-    "fr": "La langue des boutons, des messages et des retours de l’IA. La langue que tu pratiques se règle dans Réglages → Toi.",
-    "es": "El idioma de los botones, los mensajes y los comentarios de la IA. El idioma que practicas se elige en Ajustes → Tú."
-  },
   "Theme": {
     "fr": "Thème",
     "es": "Tema"
@@ -522,10 +514,6 @@
   "Reading the video’s sound (for pitch and waveform)": {
     "fr": "Lecture du son de la vidéo (pour la mélodie et la forme d’onde)",
     "es": "Lectura del sonido del video (para la entonación y la forma de onda)"
-  },
-  "AI feedback from the app": {
-    "fr": "Retours de l’IA dans l’appli",
-    "es": "Comentarios de la IA en la app"
   },
   "Pitch tracking on your clips": {
     "fr": "Suivi de la mélodie sur tes extraits",
@@ -1243,10 +1231,6 @@
     "fr": "Ouvrir le formulaire « Ajouter une vidéo » à la fin",
     "es": "Abrir el formulario “Añadir un video” al terminar"
   },
-  "AI feedback (optional)": {
-    "fr": "Retours de l’IA (facultatif)",
-    "es": "Comentarios de la IA (opcional)"
-  },
   "After a recorded pass you can write down what sounded off and get advice on it.": {
     "fr": "Après un passage enregistré, tu peux noter ce qui sonnait faux et recevoir des conseils.",
     "es": "Después de una pasada grabada puedes anotar lo que no sonó bien y recibir consejos."
@@ -1371,10 +1355,6 @@
     "fr": "Décris-le avec tes mots.",
     "es": "Descríbelo con tus palabras."
   },
-  "Anything the AI feedback should know": {
-    "fr": "Quelque chose que l’IA devrait savoir pour ses retours",
-    "es": "Algo que la IA deba saber para sus comentarios"
-  },
   "(optional)": {
     "fr": "(facultatif)",
     "es": "(opcional)"
@@ -1398,10 +1378,6 @@
   "About you": {
     "fr": "À propos de toi",
     "es": "Sobre ti"
-  },
-  "Used for AI feedback, the listener pack and your check-ins.": {
-    "fr": "Utilisé pour les retours de l’IA, le pack d’écoute à l’aveugle et tes bilans.",
-    "es": "Se usa para los comentarios de la IA, el paquete de escucha a ciegas y tus evaluaciones."
   },
   "Your target accent": {
     "fr": "Ton accent visé",
@@ -1670,13 +1646,5 @@
   "Pitch and speech": {
     "fr": "Hauteur et parole",
     "es": "Tono y habla"
-  },
-  "AI feedback": {
-    "fr": "Retour de l’IA",
-    "es": "Comentarios de la IA"
-  },
-  "Your own key, kept encrypted on the server. Used only when you ask for feedback.": {
-    "fr": "Ta propre clé, chiffrée sur le serveur. Utilisée seulement quand tu demandes un retour.",
-    "es": "Tu propia clave, cifrada en el servidor. Solo se usa cuando pides comentarios."
   }
 }

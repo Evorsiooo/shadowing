@@ -12,14 +12,16 @@ if (location.protocol !== 'file:') for (const p of ['/api/health', '/api/docs'])
 <link rel="stylesheet" href="@STYLES@">
 <script src="@SCRIPTS@" defer></script>
 
-<header class="topbar">
-  <div class="brand">Euno <small>Shadowing</small></div>
-  <div class="chips" id="chips"></div>
-  <nav class="topnav" id="topnav"></nav>
+<header class="topbar" id="topbar">
+  <a class="brand" href="#today" id="brand"><span class="logo" id="logo"></span><span class="txt">Euno</span></a>
+  <nav class="tabnav" id="tabnav" aria-label="Main"></nav>
+  <div class="acct" id="acct"></div>
 </header>
+<header class="focusbar" id="focusbar" hidden></header>
 <div class="banners" id="banners"></div>
-
-<main class="layout">
+<main class="todayv" id="todayView" hidden></main>
+<main class="pagev" id="pageView" hidden></main>
+<main class="layout" id="work">
   <div class="player" id="player">
     <video id="video" playsinline preload="auto"></video>
     <div class="player-empty" id="playerEmpty"></div>

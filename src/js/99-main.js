@@ -8,6 +8,7 @@ function applyLayout() {
   const layout = $('.layout'), sess = $('#session'), panel = $('#panel');
   layout.classList.toggle('in-session', mode === 'session');
   layout.classList.toggle('cutting', mode === 'cut');
+  layout.classList.toggle('reviewing', mode === 'session' && Session.phase === 'review');
   if (mode === 'session' && wideLayout.matches) { if (sess.parentElement !== $('#sideSlot')) $('#sideSlot').appendChild(sess); }
   else if (sess.parentElement !== $('#below')) $('#below').insertBefore(sess, panel);
   sess.hidden = mode === 'cut';
@@ -70,9 +71,12 @@ function renderStaticLabels() {
 
 function renderAll() {
   renderStaticLabels();
+  applyView();
   applyLayout();
-  renderChips();
+  renderTopbar();
+  renderFocusbar();
   renderBanners();
+  renderToday();
   renderControls();
   renderScrubber();
   renderSession();
@@ -87,6 +91,8 @@ function onKey(e) {
   if (/INPUT|TEXTAREA|SELECT/.test(tag) || e.target.isContentEditable) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (isModalOpen()) { if (e.key === 'Escape') closeModal(); return; }
+  if (UI.menuOpen && e.key === 'Escape') { closeMenu(); return; }
+  if (!Session.active && UI.tab !== 'library') return; // the player's keys only work where the player is
   const k = e.key;
   if (k === ' ' || k === 'Spacebar') {
     if (tag === 'BUTTON') return; // let the focused button act
@@ -102,7 +108,7 @@ function onKey(e) {
   else if (k === 'Enter' && Session.active && (Session.phase === 'intro' || Session.phase === 'armed')) Session.go();
   else if (k === 'c' || k === 'C') { if (Player.current() && !Session.active) setCutMode(!UI.cutMode); }
   else if ((k === 'n' || k === 'N' || k === 'p' || k === 'P') && Player.current() && !Session.active) stepClip(k === 'n' || k === 'N' ? 1 : -1);
-  else if (k === 'Escape') { if (UI.drawer) closeDrawer(); else if ((UI.sel || UI.cutMode) && !Session.active) cancelCut(); else zoomOut(); }
+  else if (k === 'Escape') { if ((UI.sel || UI.cutMode) && !Session.active) cancelCut(); else zoomOut(); }
   else if (k === '?') openShortcuts();
 }
 
@@ -116,6 +122,8 @@ function stepClip(dir) {
 
 async function boot() {
   renderStaticLabels();
+  renderTopbar();
+  applyView();
   Player.init();
   renderControls();
   mount($('#panel'), h('div', { class: 'panel-msg' }, t('Loading your practice data…')));
@@ -134,6 +142,7 @@ async function boot() {
     }
     mount($('#panel'), h('div', { class: 'panel-msg' }, t('Not connected.')));
     openModal([
+      Euno.el('offline', Api.signedOut ? 'drowsy' : 'confused', { cls: 'modal-euno' }),
       modalHead(Api.signedOut ? t('Please sign in') : Api.unreachable ? t('You’re offline') : /disabled/i.test(Api.problem || '') ? t('Account disabled') : t('The server isn’t ready')),
       h('p', null, Api.signedOut ? t('Sign in with your Google account to open your practice.') : Api.unreachable ? t('Euno needs a connection to load your practice. Reconnect, then reload.') : t('The app’s server answered with a problem: {problem}', { problem: Api.problem })),
       Api.signedOut ? btn(t('Sign in with Google'), () => signIn(), { kind: 'primary', size: 'big' }) : btn(t('Reload'), () => location.reload(), { kind: 'primary', size: 'big' }),
@@ -152,8 +161,13 @@ async function boot() {
   }
   Player.load(UI.videoId);
   const last = lastClipId();
-  if (last && Store.get('clips', last) && Store.get('clips', last).videoId === UI.videoId) { UI.clipId = last; renderAll(); }
+  if (last && Store.get('clips', last) && Store.get('clips', last).videoId === UI.videoId) UI.clipId = last;
+  const start = parseHash();
+  if (start.tab && start.tab !== 'today') go(start.tab, start.sub); else { UI.tab = 'today'; history.replaceState(null, '', '#today'); renderAll(); }
   document.addEventListener('keydown', onKey);
+  document.addEventListener('click', () => closeMenu());
+  window.addEventListener('hashchange', onHashChange);
+  window.addEventListener('popstate', onHashChange);
   $('#drawerBack').addEventListener('click', closeDrawer);
   Bus.on('videoaudio', () => { Panel.editor = null; renderPanel(); });
   Bus.on('signedout', () => renderBanners());

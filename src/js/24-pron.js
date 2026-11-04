@@ -277,7 +277,7 @@ const Pron = {
   },
   share(d, pair) { const e = d.tally[pair]; const occ = d.occ[pair.split('→')[0]] || 0; return { flagged: e ? Math.min(e.f, occ) : 0, occurred: occ }; },
 
-  /* an automatic note: "possible", never sent to the AI until the learner taps Ask AI on it */
+  /* an automatic note: "possible", never sent to the AI until the learner taps Ask Euno on it */
   makeAutoNote(d, pair) {
     const e = d.tally[pair];
     const [from, to] = pair.split('→');

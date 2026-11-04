@@ -37,9 +37,9 @@ export async function aiStatus(env, userId) {
 }
 async function keyFor(env, userId) {
   const c = await loadConfig(env, userId);
-  if (!c) throw httpError(400, 'Add your AI key in Settings → AI first.');
+  if (!c) throw httpError(400, 'Add your AI key in Settings → Connections first.');
   try { return { ...c, key: await decrypt(env, userId, c) }; } catch {
-    throw httpError(409, 'Your saved AI key can’t be read any more. Remove it in Settings → AI and add it again.');
+    throw httpError(409, 'Your saved AI key can’t be read any more. Remove it in Settings → Connections and add it again.');
   }
 }
 
@@ -193,16 +193,52 @@ ${HISTORY_NOTE}` : ''}` : ''}`;
   return { reply: parseReply(text), model: c.model, provider: c.provider };
 }
 
-async function askAnthropic(c, system, user, structured) {
+const asMessages = (user) => (typeof user === 'string' ? [{ role: 'user', content: user }] : user);
+/* ---------- Ask Euno: a short conversation about the learner's own practice ----------
+   The app sends the conversation so far (the history itself is kept in the learner's own data) and a few lines of
+   context it worked out on the device: streak, open issues, sounds flagged lately, the clip they're on. */
+function chatSystemPrompt(profile = {}, context = []) {
+  const clean = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
+  const lang = clean(profile.targetLanguage, 40) || 'English';
+  const accent = clean(profile.accent, 80) || `a native ${lang} accent`;
+  const native = clean(profile.nativeLanguages, 120);
+  const notes = clean(profile.notes, 500);
+  const reply = ['English', 'French', 'Spanish'].includes(profile.replyLanguage) ? profile.replyLanguage : 'English';
+  const lines = (Array.isArray(context) ? context : []).slice(0, 30).map((l) => `- ${clean(l, 240)}`).filter((l) => l.length > 2);
+  return `You are Euno, the small green character in Euno Shadowing, a free app where people improve their accent by shadowing: speaking along with a clip of a speaker they want to sound like. The learner is moving their ${lang} accent towards ${accent}.${native ? ` Their native language: ${native}.` : ''}${notes ? ` About them: ${notes}` : ''}
+
+Answer their question about pronunciation, accent, shadowing or their own practice. Reply in ${reply}, plainly and warmly, in at most about 120 words unless they ask for more, with no linguistics jargon: describe sounds with everyday ${lang} example words. Plain text only, no Markdown headings or tables; a short list is fine.
+
+You have not heard their voice. All you know is the context below, measured by software on their device, which can be wrong, so say "may" about any difference and never state one as fact. Don't invent recordings, scores or history that aren't in the context. If they ask about something unrelated to speaking or learning languages, say briefly that you can only help with their practice.${lines.length ? `
+
+Context from the app:
+${lines.join('\n')}` : ''}`;
+}
+export async function chatReply(env, userId, { messages = [], context = [], profile = {} }) {
+  const c = await keyFor(env, userId);
+  await rateLimit(env, userId);
+  const turns = (Array.isArray(messages) ? messages : []).slice(-12)
+    .map((m) => ({ role: m && m.role === 'assistant' ? 'assistant' : 'user', content: String((m && m.text) || '').slice(0, 2000) }))
+    .filter((m) => m.content.trim());
+  while (turns.length && turns[0].role !== 'user') turns.shift(); // a conversation starts with the learner
+  if (!turns.length || turns[turns.length - 1].role !== 'user') throw httpError(400, 'Ask a question first.');
+  const system = chatSystemPrompt(profile && typeof profile === 'object' ? profile : {}, context);
+  const ask = c.provider === 'anthropic' ? askAnthropic : askOpenAICompatible;
+  const text = (await ask(c, system, turns, false, 1500)).trim();
+  if (!text) throw httpError(502, 'The model sent back an empty answer.');
+  return { text, model: c.model, provider: c.provider };
+}
+
+async function askAnthropic(c, system, user, structured, maxTokens = 4000) {
   const client = new Anthropic({ apiKey: c.key, maxRetries: 1 });
   let res;
   try {
     res = await client.messages.create({
       model: c.model,
-      max_tokens: 4000,
+      max_tokens: maxTokens,
       ...(structured ? { output_config: { format: { type: 'json_schema', schema: NOTE_SCHEMA } } } : {}),
       system,
-      messages: [{ role: 'user', content: user }],
+      messages: asMessages(user),
     });
   } catch (e) {
     const err = anthropicError(e);
@@ -213,15 +249,15 @@ async function askAnthropic(c, system, user, structured) {
   return res.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
 }
 
-async function askOpenAICompatible(c, system, user, structured) {
+async function askOpenAICompatible(c, system, user, structured, maxTokens = 4000) {
   const openrouter = c.provider === 'openrouter';
   const label = PROVIDERS[c.provider].name;
   const url = openrouter ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
   const body = {
     model: c.model,
-    messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+    messages: [{ role: 'system', content: system }, ...asMessages(user)],
     // OpenAI's reasoning models count thinking against this limit, so leave room
-    ...(openrouter ? { max_tokens: 4000 } : { max_completion_tokens: 4000 }),
+    ...(openrouter ? { max_tokens: maxTokens } : { max_completion_tokens: maxTokens }),
     ...(structured ? { response_format: { type: 'json_schema', json_schema: { name: 'note_feedback', strict: true, schema: NOTE_SCHEMA } } } : {}),
   };
   let d;
@@ -259,12 +295,12 @@ async function callJSON(label, url, init) {
   if (resp.status === 401 || resp.status === 403) throw httpError(400, `${label} rejected the key. Check you copied all of it.`);
   if (resp.status === 402) throw httpError(402, `Your ${label} account is out of credit.`);
   if (resp.status === 429) throw httpError(429, `${label} is rate limiting this key or it’s out of credit. Try again later.`);
-  if (resp.status === 404) throw httpError(400, `${label} doesn’t know that model. Pick another one in Settings → AI.`);
+  if (resp.status === 404) throw httpError(400, `${label} doesn’t know that model. Pick another one in Settings → Connections.`);
   throw httpError(resp.status === 400 ? 400 : 502, `${label} error ${resp.status}: ${String(msg).slice(0, 300)}`);
 }
 function anthropicError(e) {
   if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) return httpError(400, 'Anthropic rejected the key. Check you copied all of it.');
-  if (e instanceof Anthropic.NotFoundError) return httpError(400, 'Anthropic doesn’t know that model. Pick another one in Settings → AI.');
+  if (e instanceof Anthropic.NotFoundError) return httpError(400, 'Anthropic doesn’t know that model. Pick another one in Settings → Connections.');
   if (e instanceof Anthropic.RateLimitError) return httpError(429, 'Anthropic is rate limiting this key or it’s out of credit. Try again later.');
   if (e instanceof Anthropic.BadRequestError) return httpError(400, `Anthropic error: ${e.message}`);
   if (e instanceof Anthropic.APIError) return httpError(502, `Anthropic error ${e.status}: ${e.message}`);

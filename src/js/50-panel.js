@@ -134,7 +134,7 @@ function pitchHints(g, W, dpr, lanes, color) {
   g.save();
   g.fillStyle = color;
   g.globalAlpha = 0.75;
-  g.font = `700 ${9.5 * dpr}px Nunito, system-ui, sans-serif`;
+  g.font = `500 ${9.5 * dpr}px Rubik, system-ui, sans-serif`;
   g.textAlign = 'right';
   for (const L of lanes) {
     g.fillText(t('▲ higher'), W - 8 * dpr, L.top + 13 * dpr);
@@ -163,12 +163,12 @@ Panel.drawAnalysis = function (now) {
   const dur = clip.end - clip.start;
   const x = (ct) => (ct / dur) * W;
   const ov = !!UI.overlay;
-  const green = cssVar('--green'), sky = cssVar('--sky');
+  const spk = cssVar('--speaker'), you = cssVar('--you');
   const lanes = ov
-    ? [{ top: 0, h: H, name: t('Speaker'), color: green }, { top: 0, h: H, name: t('You'), color: sky }]
-    : [{ top: 0, h: H / 2 - 2 * dpr, name: t('Speaker'), color: green }, { top: H / 2 + 2 * dpr, h: H / 2 - 2 * dpr, name: t('You'), color: sky }];
-  const muted = cssVar('--muted'), line = cssVar('--line');
-  g.font = `800 ${11 * dpr}px Nunito, system-ui, sans-serif`;
+    ? [{ top: 0, h: H, name: t('Speaker'), color: spk }, { top: 0, h: H, name: t('You'), color: you }]
+    : [{ top: 0, h: H / 2 - 2 * dpr, name: t('Speaker'), color: spk }, { top: H / 2 + 2 * dpr, h: H / 2 - 2 * dpr, name: t('You'), color: you }];
+  const muted = cssVar('--muted'), line = cssVar('--sunk-2');
+  g.font = `500 ${11 * dpr}px Rubik, system-ui, sans-serif`;
   for (const L of ov ? lanes.slice(0, 1) : lanes) {
     g.fillStyle = line;
     g.globalAlpha = 0.6;
@@ -235,7 +235,7 @@ Panel.drawAnalysis = function (now) {
       g.globalAlpha = 1;
     }
   };
-  drawSeries(lanes[0], m, m.hop, 0, lanes[0].color, (faded ? 0.45 : 1) * (ov ? 0.6 : 1), ov ? 5 : 3);
+  drawSeries(lanes[0], m, m.hop, 0, lanes[0].color, faded ? 0.45 : 1, 3);
 
   // you: live trace during a pass, otherwise the last analysed pass for this clip
   if (this.live && this.live.clipId === clip.id && this.live.points.length) {
@@ -244,7 +244,7 @@ Panel.drawAnalysis = function (now) {
     const series = { st: pts.map((p) => p.st), db: pts.map((p) => p.db) };
     // live points are irregular in time; draw as polyline
     if (UI.view === 'pitch') {
-      g.strokeStyle = lanes[1].color; g.lineWidth = 3 * dpr; g.lineJoin = 'round'; g.beginPath();
+      g.strokeStyle = lanes[1].color; g.lineWidth = (ov ? 5.5 : 4) * dpr; g.lineJoin = 'round'; g.lineCap = 'round'; g.beginPath();
       let pen = false, prevT = -1, prevV = null;
       for (const p of pts) {
         if (p.st == null || p.t < 0 || p.t > dur || p.t - prevT > 0.08 || (prevV != null && Math.abs(p.st - prevV) > 4)) pen = false;
@@ -270,7 +270,7 @@ Panel.drawAnalysis = function (now) {
     }
   } else if (this.lastPass && this.lastPass.clipId === clip.id) {
     const p = this.lastPass;
-    drawSeries(lanes[1], p, p.hop, p.offset, lanes[1].color);
+    drawSeries(lanes[1], p, p.hop, p.offset, lanes[1].color, ov ? 0.9 : 1, ov ? 5.5 : 4);
   } else {
     g.fillStyle = muted;
     g.textAlign = 'center';
@@ -280,7 +280,7 @@ Panel.drawAnalysis = function (now) {
 
   // playhead
   if (now >= clip.start - 0.5 && now <= clip.end + 0.5) {
-    g.fillStyle = cssVar('--ochre');
+    g.fillStyle = cssVar('--playhead');
     g.fillRect(x(clamp(now - clip.start, 0, dur)) - dpr, 0, 2 * dpr, H);
   }
 };
@@ -444,11 +444,11 @@ Panel.drawEditor = function (now) {
   const X = (tt) => ((tt - v0) / (v1 - v0)) * W;
   const E = editorData(vid);
   // selection backdrop
-  g.fillStyle = cssVar('--wattle-soft');
+  g.fillStyle = cssVar('--tint');
   g.fillRect(X(sel.start), 0, X(sel.end) - X(sel.start), H);
   if (E.ready) {
     // pauses
-    g.fillStyle = cssVar('--green-soft');
+    g.fillStyle = cssVar('--tint-2');
     for (const p of E.pauses) {
       const a = E.w0 + p.a * HOP_S, b = E.w0 + p.b * HOP_S;
       if (b < v0 || a > v1) continue;
@@ -467,13 +467,13 @@ Panel.drawEditor = function (now) {
     g.globalAlpha = 1;
   } else {
     g.fillStyle = cssVar('--muted');
-    g.font = `800 ${12 * dpr}px Nunito, system-ui, sans-serif`;
+    g.font = `500 ${12 * dpr}px Rubik, system-ui, sans-serif`;
     g.textAlign = 'center';
     g.fillText(t('Waveform unavailable'), W / 2, H / 2);
     g.textAlign = 'left';
   }
   // edges as brackets
-  const wat = cssVar('--wattle');
+  const wat = cssVar('--green');
   g.fillStyle = wat;
   for (const [tt, dir] of [[sel.start, 1], [sel.end, -1]]) {
     const xx = X(tt);
@@ -482,7 +482,7 @@ Panel.drawEditor = function (now) {
     g.fillRect(dir > 0 ? xx : xx - 12 * dpr, H - 4 * dpr, 12 * dpr, 4 * dpr);
   }
   // playhead
-  if (now >= v0 && now <= v1) { g.fillStyle = cssVar('--ochre'); g.fillRect(X(now) - dpr, 0, 2 * dpr, H); }
+  if (now >= v0 && now <= v1) { g.fillStyle = cssVar('--playhead'); g.fillRect(X(now) - dpr, 0, 2 * dpr, H); }
 };
 
 function bindEditorCanvas(c) {

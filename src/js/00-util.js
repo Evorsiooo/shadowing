@@ -79,6 +79,8 @@ const ICONS = {
   user: '<circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>',
   database: '<ellipse cx="12" cy="5.5" rx="7.5" ry="2.5"/><path d="M4.5 5.5v13c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5v-13"/><path d="M4.5 12c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5"/>',
   palette: '<path d="M12 3a9 9 0 0 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.4-.5-.8-.5-1.3 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2" fill="currentColor"/><circle cx="10.5" cy="7" r="1.2" fill="currentColor"/><circle cx="15.5" cy="7.5" r="1.2" fill="currentColor"/>',
+  'arrow-up': '<path d="M12 20V5.5M5.5 11.5l6.5-6.5 6.5 6.5"/>',
+  chat: '<path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H11l-4.5 3.5V16.5h0a2 2 0 0 1-2-2z"/>',
   folder: '<path d="M3.5 6.5a1.5 1.5 0 0 1 1.5-1.5h4.5l2 2.5H19a1.5 1.5 0 0 1 1.5 1.5v8.5A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z"/>',
 };
 function icon(name, extra = '') {
@@ -219,7 +221,7 @@ function trapModalFocus(e) {
 function modalHead(title, sub) {
   return h('div', { class: 'modal-head' },
     h('div', { class: 'grow' }, h('h2', null, title), sub ? h('p', { class: 'muted small' }, sub) : null),
-    btn('', () => closeModal(), { icon: 'close', kind: 'ghost', title: t('Close'), aria: t('Close') }));
+    btn('', () => closeModal(), { icon: 'close', kind: 'ghost', title: t('Close'), aria: t('Close'), cls: 'mh-close' }));
 }
 function isModalOpen() { return !!$('#modalRoot').firstChild; }
 

@@ -13,7 +13,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { transformSync, buildSync } from 'esbuild';
-import { SITE, LOGO, LANGS, DEFAULT_LANG, langPath, pages, signInButton } from '../src/site/pages.mjs';
+import { SITE, LANGS, DEFAULT_LANG, langPath, pages, signInButton } from '../src/site/pages.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const src = join(root, 'src');
@@ -30,20 +30,21 @@ function fingerprint(name, ext, content) {
   return `/${path}`;
 }
 
-/* ---------- fonts: Fredoka and Nunito (SIL OFL, src/fonts/), served from this site ---------- */
+/* ---------- fonts: Rubik and Nunito (SIL OFL, src/fonts/), served from this site ---------- */
+// Rubik is the interface's font. Nunito is kept only for sound symbols (IPA), which Rubik doesn't cover.
 // Variable fonts, Latin and Latin Extended subsets as Google Fonts cuts them; browsers fetch the
 // extended file only when a page uses one of its characters.
 const SUBSETS = {
   latin: 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD',
   'latin-ext': 'U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF',
 };
-const FAMILIES = [['Fredoka', 'fredoka', '500 700'], ['Nunito', 'nunito', '400 800']];
+const FAMILIES = [['Rubik', 'rubik', '300 900'], ['Nunito', 'nunito', '400 800']];
 const fontFiles = {};
 for (const [, file] of FAMILIES) for (const sub of Object.keys(SUBSETS)) fontFiles[`${file}-${sub}`] = fingerprint(`${file}-${sub}`, 'woff2', readFileSync(join(src, 'fonts', `${file}-${sub}.woff2`)));
 const fontCss = FAMILIES.flatMap(([family, file, weight]) => Object.entries(SUBSETS).map(([sub, range]) =>
   `@font-face{font-family:'${family}';font-style:normal;font-weight:${weight};font-display:swap;src:url(${fontFiles[`${file}-${sub}`]}) format('woff2');unicode-range:${range}}`)).join('\n');
 // the Latin files are needed for the first paint of every page, so fetch them straight away
-const FONT_PRELOADS = ['fredoka-latin', 'nunito-latin'].map((k) => `<link rel="preload" href="${fontFiles[k]}" as="font" type="font/woff2" crossorigin>`).join('\n');
+const FONT_PRELOADS = ['rubik-latin'].map((k) => `<link rel="preload" href="${fontFiles[k]}" as="font" type="font/woff2" crossorigin>`).join('\n');
 const minify = (code, loader) => transformSync(code, { loader, minify: true, legalComments: 'none' }).code;
 
 /* ---------- the app, at /app/ ---------- */
@@ -82,7 +83,15 @@ out(`${wordsDir}/worker.js`, wordsWorker);
 for (const f of WORDS_ORT) copyFileSync(join(wordsDist, f), join(dist, wordsDir, f));
 const withWords = (code) => code.replace('__WORDS_WORKER_URL__', `/${wordsDir}/worker.js`).replace('__WORDS_WASM_BASE__', `/${wordsDir}/`);
 
-const js = `const I18N_STRINGS = ${JSON.stringify(i18n).replace(/</g, '\\u003c')};\n` + readdirSync(join(src, 'js'))
+/* ---------- Euno, the mascot (src/euno/): the avatar engine bundled with his definition ---------- */
+// The engine is the Bible Strong avatar lab's (AGPL-3.0, src/euno/engine/LICENSE). It draws Euno live in the app and on the
+// home page; eunoSvg() draws him once, as plain SVG, for the logo, the icons and the server's pages.
+const EUNO_BUILD = { bundle: true, write: false, platform: 'browser', target: 'es2020', minify: true, legalComments: 'none', alias: { 'ajv/dist/2020.js': join(src, 'euno', 'ajv-stub.js') } };
+const eunoJs = buildSync({ ...EUNO_BUILD, entryPoints: [join(src, 'euno', 'entry.mjs')], format: 'iife' }).outputFiles[0].text;
+const eunoStatic = await import('data:text/javascript;base64,' + Buffer.from(buildSync({ ...EUNO_BUILD, entryPoints: [join(src, 'euno', 'static.mjs')], format: 'esm', platform: 'node', minify: false }).outputFiles[0].text).toString('base64'));
+const eunoSvg = eunoStatic.eunoSvg;
+
+const js = eunoJs + '\n' + `const EUNO_LOGO = ${JSON.stringify(eunoSvg('attentive-left', { label: null, idSuffix: '-logo' }))};\n` + `const I18N_STRINGS = ${JSON.stringify(i18n).replace(/</g, '\\u003c')};\n` + readdirSync(join(src, 'js'))
   .filter((f) => f.endsWith('.js'))
   .sort()
   .map((f) => `/* ---- ${f} ---- */\n` + withWords(withPhones(readFileSync(join(src, 'js', f), 'utf8'))))
@@ -99,7 +108,7 @@ const body = readFileSync(join(src, 'index.html'), 'utf8')
 
 // Google's search results want a PNG/ICO whose size is a multiple of 48px, so the 48 and 96 are not optional.
 const ICON_LINKS = `<link rel="icon" href="/favicon.ico" sizes="48x48">\n<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">\n<link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">\n<link rel="icon" href="/assets/favicon-48.png" sizes="48x48" type="image/png">\n<link rel="icon" href="/assets/favicon-96.png" sizes="96x96" type="image/png">\n<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">\n<link rel="manifest" href="/site.webmanifest">`;
-const APP_THEME_COLOR = '<meta name="theme-color" content="#f4f8f1">'; // light is the default; applyTheme (88-settings.js) switches it for dark
+const APP_THEME_COLOR = '<meta name="theme-color" content="#f6f7f3">'; // light is the default; applyTheme (88-settings.js) switches it for dark
 
 // The app's CSP is a <meta> tag so it can pin the page's own inline scripts by hash. Scripts are
 // only these and this site's own files; everything else the app loads is data: video links on any https site, Google Drive,
@@ -137,6 +146,25 @@ const siteCss = minify(fontCss + '\n' + readFileSync(join(src, 'site', 'site.css
 // Same as the app's first-paint theme script (src/index.html), so the saved theme choice applies here too (light when none is saved).
 const themeJs = `try { const t = JSON.parse(localStorage.getItem('shadowing:theme')); if (t === 'dark' || t === 'system') document.documentElement.setAttribute('data-theme', t); } catch { /* storage blocked */ }`;
 const year = SITE.updated.slice(0, 4);
+// Euno on the site: drawn once as SVG for the logo and the home page's first paint; on the home page the engine then takes
+// over and lets him listen, think and smile along with the demo (not with reduced motion, where he stays as drawn).
+const SITE_LOGO = eunoSvg('attentive-left', { label: null, idSuffix: '-site' });
+const HERO_EUNO = eunoSvg('attentive-left', { label: null, idSuffix: '-hero' });
+const eunoSiteJs = fingerprint('euno-site', 'js', minify(eunoJs + `
+(function () {
+  var el = document.querySelector('[data-euno-hero]');
+  if (!el || !window.EunoEngine || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  var steps = [['listening', 5200], ['pondering', 3200], ['pleased', 3600], ['listening', 5200], ['playful', 3200], ['happy', 3400]];
+  var i = 0, a = null, timer = null;
+  function tick() { a.play(steps[i % steps.length][0]); timer = setTimeout(tick, steps[i++ % steps.length][1]); }
+  // he starts once he has risen from behind the card (site.css), and rests while the tab is hidden
+  setTimeout(function () {
+    el.textContent = '';
+    a = window.EunoEngine.create(el, { defaultExpression: 'attentive-left', autoplay: false });
+    tick();
+    document.addEventListener('visibilitychange', function () { clearTimeout(timer); if (document.hidden) a.pause(); else tick(); });
+  }, 1100);
+})();`, 'js'));
 
 const LANG_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>';
 
@@ -152,7 +180,7 @@ function header(page) {
   const L = (p) => langPath(c.code, p);
   return `<a class="skip" href="#main">${u.skip}</a>
 <header class="site-head"><div class="wrap">
-  <a class="brand" href="${L('/')}" aria-label="${esc(u.homeAria)}">${LOGO}<span>Euno <small>Shadowing</small></span></a>
+  <a class="brand" href="${L('/')}" aria-label="${esc(u.homeAria)}">${SITE_LOGO}<span>Euno <small>Shadowing</small></span></a>
   <nav class="site-nav" aria-label="${esc(u.mainNav)}">
     <a class="hide-sm" href="${L('/what-is-shadowing/')}">${u.navWhat}</a>
     <a class="hide-sm" href="${L('/accent-shadowing/')}">${u.navRoutine}</a>
@@ -200,7 +228,7 @@ function render(page) {
     // Indexable pages allow full-length snippets and large image previews in search and AI answers.
     page.noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${url}">\n<meta name="robots" content="max-snippet:-1, max-image-preview:large">`,
     ...alternates,
-    '<meta name="theme-color" content="#45b52a">',
+    '<meta name="theme-color" content="#f6f7f3">',
     `<meta property="og:site_name" content="${SITE.name}">`,
     `<meta property="og:type" content="${isArticle ? 'article' : 'website'}">`,
     `<meta property="og:title" content="${esc(page.title.replace(/ \| Euno Shadowing$/, ''))}">`,
@@ -229,7 +257,7 @@ ${FONT_PRELOADS}
 <body>
 ${header(page)}
 <main id="main">
-${page.body().trim()}
+${page.body().trim().replace('@EUNO_HERO@', () => HERO_EUNO)}${page.key === 'home' ? `\n<script src="${eunoSiteJs}" defer></script>` : ''}
 </main>
 ${footer(page)}
 </body>
@@ -337,8 +365,8 @@ out(
     scope: '/',
     display: 'standalone',
     orientation: 'any',
-    background_color: '#f4f8f1',
-    theme_color: '#f4f8f1', // the app is light by default (--bg in styles.css)
+    background_color: '#f6f7f3',
+    theme_color: '#f6f7f3', // the app is light by default (--bg in styles.css)
     icons: [
       { src: '/assets/icon-192.png', sizes: '192x192', type: 'image/png' },
       { src: '/assets/icon-512.png', sizes: '512x512', type: 'image/png' },

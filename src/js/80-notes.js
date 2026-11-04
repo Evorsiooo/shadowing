@@ -71,8 +71,8 @@ function noteForm(ctx, D, key, num, onSaved) {
     } finally { askBtn.disabled = false; }
   };
 
-  const askLabel = Store.mode === 'cloud' ? (Api.ai ? t('Ask AI') : t('Copy prompt for AI')) : Caps.sample ? t('Ask Claude') : t('Copy prompt for Claude');
-  const askBtn = btn(askLabel, () => ask(askBtn), { kind: 'blue', size: 'sm', icon: 'sparkle' });
+  const askLabel = Store.mode === 'cloud' ? (Api.ai ? t('Ask Euno') : t('Copy prompt for an AI')) : Caps.sample ? t('Ask Euno') : t('Copy prompt for Claude');
+  const askBtn = btn(askLabel, () => ask(askBtn), { kind: 'blue', size: 'sm', icon: Api.ai || Caps.sample ? 'chat' : 'note' });
   const body = h('div', { class: 'stack' },
     h('label', { class: 'field', for: `off-${key}` }, t('What sounded off?'),
       h('textarea', { id: `off-${key}`, rows: 2, placeholder: t(langContent().examples.off), value: D.off, oninput: (e) => { D.off = e.target.value; } })),
@@ -90,7 +90,7 @@ function noteForm(ctx, D, key, num, onSaved) {
     status, replyBox);
   drawReply();
   const details = h('details', { class: 'card', open: D.open, ontoggle: (e) => { D.open = e.target.open; } },
-    h('summary', { style: { cursor: 'pointer', fontWeight: 800 } }, D.saved ? t('Note saved · edit') : t('What sounded off? Add a note'), num ? ` (${num})` : ''),
+    h('summary', { style: { cursor: 'pointer', fontWeight: 600 } }, D.saved ? t('Note saved · edit') : t('What sounded off? Add a note'), num ? ` (${num})` : ''),
     body);
   const sugg = D.saved ? null : pronSuggestions(ctx, D, key, details);
   return sugg ? h('div', { class: 'stack' }, sugg, details) : details;
@@ -105,10 +105,13 @@ function normaliseReply(r) {
   };
 }
 
+/* Euno's answer to a note: the one other place he talks, and only because you asked */
+function replyHead(title) { return h('div', { class: 'reply-head' }, eunoLogo('logo'), h('h4', null, title)); }
 function replyView(r) {
-  if (r.text) return h('div', { class: 'reply' }, h('h4', null, t('Feedback')), h('p', { style: { whiteSpace: 'pre-wrap' } }, r.text));
-  if (r.unsure) return h('div', { class: 'reply' }, h('h4', null, t('Not sure what you meant')), h('p', null, r.question || t('I don’t know what you meant. Can you describe it differently?')));
-  return h('div', { class: 'reply' },
+  if (typeof r === 'string') r = { text: r }; // replies saved as plain text
+  if (r.text) return h('div', { class: 'reply' }, replyHead(t('Euno says')), h('p', { style: { whiteSpace: 'pre-wrap' } }, r.text));
+  if (r.unsure) return h('div', { class: 'reply' }, replyHead(t('Euno isn’t sure what you meant')), h('p', null, r.question || t('I don’t know what you meant. Can you describe it differently?')));
+  return h('div', { class: 'reply' }, replyHead(t('Euno says')),
     r.feature ? [h('h4', null, t('Likely feature')), h('p', null, r.feature)] : null,
     r.change ? [h('h4', null, t('What to change')), h('p', null, r.change)] : null,
     r.listenFor ? [h('h4', null, t('Listen for this in the clip')), h('p', null, r.listenFor)] : null,
@@ -258,7 +261,7 @@ function mergeIssue(i, after) {
 }
 function openIssueNotes(i) {
   const notes = (i.noteIds || []).map((id) => Store.get('notes', id)).filter(Boolean).sort((a, b) => (a.created < b.created ? 1 : -1));
-  openModal([modalHead(i.name, tp(notes.length, '{n} note', '{n} notes')), notes.map(noteCard), btn(t('Back to issues'), () => openProgress('issues'), { kind: 'ghost' })]);
+  openView([modalHead(i.name, tp(notes.length, '{n} note', '{n} notes')), notes.map(noteCard), btn(t('Back to issues'), () => openProgress('issues'), { kind: 'ghost', icon: 'back', cls: 'self-start' })], { page: 'progress', sub: 'issues' });
 }
 function noteCard(n) {
   const c = Store.get('clips', n.clipId);
@@ -273,7 +276,7 @@ function noteCard(n) {
 /* ---------- compare & history ---------- */
 /* one chart with several voices overlaid on the clip's time axis (pitch or loudness) */
 function overlayChart(clip, layers, view = 'pitch') {
-  const c = h('canvas', { style: { height: '220px', width: '100%', display: 'block', borderRadius: '11px', background: 'var(--surface-2)' }, 'aria-label': view === 'pitch' ? t('Pitch of {voices} on one chart', { voices: layers.map((l) => l.label).join(', ') }) : t('Loudness of {voices} on one chart', { voices: layers.map((l) => l.label).join(', ') }) });
+  const c = h('canvas', { style: { height: '220px', width: '100%', display: 'block', borderRadius: '20px', background: 'var(--page)' }, 'aria-label': view === 'pitch' ? t('Pitch of {voices} on one chart', { voices: layers.map((l) => l.label).join(', ') }) : t('Loudness of {voices} on one chart', { voices: layers.map((l) => l.label).join(', ') }) });
   const draw = () => {
     if (!c.isConnected) return;
     const { W, H, dpr } = sizeCanvas(c);
@@ -338,9 +341,9 @@ async function openCompare(idA, idB, urlB) {
   if (!clip) return;
   const css = (v) => cssVar(v);
   const layers = [
-    { key: 'speaker', label: t('Speaker'), color: css('--green'), width: 5, alpha: 0.55, series: clip.model ? { st: clip.model.st, db: clip.model.db, hop: clip.model.hop, offset: 0 } : null },
-    { key: 'step3', label: t('Step 3'), color: css('--ochre'), width: 2.5, series: A && A.analysis, rec: A },
-    { key: 'final', label: t('Final'), color: css('--sky'), width: 3, series: B && B.analysis, rec: B, url: urlB },
+    { key: 'speaker', label: t('Speaker'), color: css('--speaker'), width: 3, alpha: 1, series: clip.model ? { st: clip.model.st, db: clip.model.db, hop: clip.model.hop, offset: 0 } : null },
+    { key: 'step3', label: t('Step 3'), color: css('--ctl'), width: 3, series: A && A.analysis, rec: A },
+    { key: 'final', label: t('Final'), color: css('--you'), width: 4.5, series: B && B.analysis, rec: B, url: urlB },
   ];
   let view = 'pitch';
   const holder = h('div');
@@ -373,7 +376,7 @@ function deleteSessionButton(sessionId, after) {
   const wrap = h('span', { class: 'row' });
   const normal = () => mount(wrap, btn(t('Delete session'), () => ask(), { size: 'sm', kind: 'ghost' }));
   const ask = () => mount(wrap,
-    h('span', { class: 'small', style: { fontWeight: 800 } }, t('Delete this session, its recordings and notes?')),
+    h('span', { class: 'small', style: { fontWeight: 600 } }, t('Delete this session, its recordings and notes?')),
     btn(t('Delete'), async () => { await deleteSession(sessionId); after && after(); }, { size: 'sm', kind: 'danger' }),
     btn(t('Keep it'), normal, { size: 'sm', kind: 'ghost' }));
   normal();
@@ -423,7 +426,7 @@ async function openHistory(clipId) {
         h('span', { class: 'small muted' }, [s.mode === 'badday' ? t('bad-day') : s.mode === 'review' ? t('review') : s.mode === 'full' ? t('full') : s.mode, t('{n} min', { n: s.minutes }), tp(s.passes.length, '{n} pass', '{n} passes'), lags.length ? t('avg {lag}', { lag: fmtLag(mean(lags)) }) : null].filter(Boolean).join(' · ')),
         s.complete ? h('span', { class: 'tick done' }, icon('check', 'stroke-width="3.4"')) : null),
       rs.length ? h('div', { class: 'stack' }, await Promise.all(rs.map(async (r) => h('div', { class: 'audio-row' },
-        h('span', { class: 'small', style: { minWidth: '120px', fontWeight: 800 } }, r.slot === 'step3' ? t('Step 3') : r.slot === 'final' ? t('Final') : t('Pass {n}', { n: r.pass })),
+        h('span', { class: 'small', style: { minWidth: '120px', fontWeight: 600 } }, r.slot === 'step3' ? t('Step 3') : r.slot === 'final' ? t('Final') : t('Pass {n}', { n: r.pass })),
         await recAudio(r),
         h('span', { class: 'small muted' }, fmtLag(r.lag)))))) : null,
       h('div', { class: 'row' },

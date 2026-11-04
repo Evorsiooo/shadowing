@@ -142,7 +142,7 @@ export const CHANNELS = {
         } catch (e) { firstError = firstError || e; }
       }
       if (gone.length) await removePushSubs(env.DB, userId, gone);
-      if (!ok) throw firstError || new Error('None of your devices accept notifications any more. Turn them on again in Settings → Reminders.');
+      if (!ok) throw firstError || new Error('None of your devices accept notifications any more. Turn them on again in Settings → Practice.');
     },
   },
 };

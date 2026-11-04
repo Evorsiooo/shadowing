@@ -4,7 +4,7 @@ import { requireUser, sameOrigin, deleteUser, sha256Hex } from '../../server/aut
 import { json, error, validCol, validId, uuid } from '../../server/util.js';
 import { allDocs, putDoc, deleteDoc } from '../../server/store.js';
 import { driveStatus, driveAccessToken, disconnectDrive } from '../../server/drive.js';
-import { noteFeedback, aiAvailable, aiStatus, saveKey, setModel, removeKey, userModels, PROVIDERS } from '../../server/ai.js';
+import { noteFeedback, chatReply, aiAvailable, aiStatus, saveKey, setModel, removeKey, userModels, PROVIDERS } from '../../server/ai.js';
 import { adminRoute } from '../../server/admin.js';
 import { listGrants, removeGrant } from '../../server/oauth.js';
 import { limit } from '../../server/limits.js';
@@ -104,6 +104,10 @@ async function aiRoute(env, user, method, rest, request) {
   if (!action && method === 'DELETE') { await removeKey(env, user.id); return json({ ok: true, configured: false }); }
   if (action === 'models' && method === 'GET') return json(await userModels(env, user.id));
   if (action === 'feedback' && method === 'POST') return feedbackRoute(env, user, request);
+  if (action === 'chat' && method === 'POST') {
+    const body = await request.json().catch(() => ({}));
+    return json(await chatReply(env, user.id, body));
+  }
   if (action === 'test' && method === 'POST') {
     const t0 = Date.now();
     const r = await noteFeedback(env, user.id, { sentence: 'Go and grab the car.', off: 'the vowel in “go” sounds too flat', profile: (await request.json().catch(() => ({}))).profile });

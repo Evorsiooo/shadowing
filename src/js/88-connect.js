@@ -1,4 +1,4 @@
-/* ---------- Settings → Connected apps: the MCP server for Claude, ChatGPT and Gemini ---------- */
+/* ---------- Settings → Connections: the MCP server for Claude, ChatGPT and Gemini ---------- */
 function connectedAppsView() {
   const wrap = h('div', { class: 'stack' });
   if (Store.mode !== 'cloud') {
@@ -19,7 +19,7 @@ function connectedAppsView() {
         h('ul', { class: 'small', style: { margin: '6px 0 0', paddingLeft: '20px' } },
           h('li', null, h('strong', null, 'Claude: '), t('Settings → Connectors → Add (top right). Give it a name, paste the address, then Continue. Leave everything as it is, then Add and Connect.')),
           h('li', null, h('strong', null, 'ChatGPT: '), t('Plugins (sidebar) → Add (top right) → Add Custom MCP Server. Give it a name, paste the address, then Authenticate.')),
-          h('li', null, h('strong', null, 'Gemini: '), t('Settings → Connected apps → Custom (top right). Paste the address, then Connect.'))),
+          h('li', null, h('strong', null, 'Gemini: '), t('Settings → Connections → Custom (top right). Paste the address, then Connect.'))),
         h('p', { class: 'small muted' }, t('You’ll be asked to sign in here and allow the app.'))),
       h('div', { class: 'card' }, h('h3', null, t('Connected')),
         !list ? h('p', { class: 'small muted' }, t('Checking…'))

@@ -95,6 +95,7 @@ const Session = {
     $('#player').classList.remove('cutting');
     if (clip.videoId !== UI.videoId) Player.load(clip.videoId, { keepClip: true });
     UI.clipId = clip.id;
+    if (!this.active) UI.tabBefore = UI.tab === 'library' ? 'library' : 'today'; // where to go back to afterwards
     this.active = true;
     this.clipId = clip.id;
     this.mode = mode;
@@ -122,8 +123,13 @@ const Session = {
       if (this.phase !== 'paused' && this.phase !== 'intro' && this.phase !== 'review') this.elapsed += (now - this.lastWall) / 1000;
       this.lastWall = now;
       const el = $('#sessTimer');
-      if (el) el.textContent = this.timerText();
+      if (el) el.textContent = this.clockText();
     }, 500);
+  },
+  /* the focus bar's clock: time left, then time over */
+  clockText() {
+    const left = this.totalMinutes() * 60 - this.elapsed;
+    return left >= 0 ? fmtTime(left) : `+${fmtTime(-left)}`;
   },
   timerText() {
     const total = this.totalMinutes() * 60;
@@ -465,6 +471,9 @@ const Session = {
     const summary = { minutes: this.doc.minutes, passes: this.doc.passes.length, mode: this.mode, complete: this.doc.complete, tickNew, recs: { ...this.doc.recs }, clipId: this.clipId, sessionId: this.doc.id };
     this.active = false;
     this.phase = 'idle';
+    UI.tab = UI.tabBefore || 'today';
+    UI.todayAgain = false;
+    setHash(UI.tab);
     UI.unzoomed = true; // back to the whole video once the session is over
     this.review = null;
     const next = this.queue.shift();
@@ -517,89 +526,108 @@ function analysePass(res, clip, clipZero, rate, live) {
   };
 }
 
-/* ---------- session strip ---------- */
+/* ---------- session card ----------
+   Beside the video in focus mode (under it on phones), with Euno peeking over it. The steps and the clock are in the
+   focus bar; the card says what's happening now, in words, and holds the few controls that apply to it. */
+const SESSION_EUNO = { intro: 'waiting', armed: 'waiting', 'armed-go': 'listening', recording: 'listening', gap: 'idle', paused: 'drowsy' };
+function sessionMood(S) {
+  const st = S.step();
+  if (S.phase === 'review') {
+    const R = S.review;
+    if (R && Pron.on() && R.phones === undefined) return ['pondering'];
+    const lag = R && R.analysis ? Math.abs(R.analysis.lag) : 1;
+    return lag < 0.3 ? ['pleased', ['reading', 5200]] : ['curious', ['reading', 4200]];
+  }
+  if (S.phase === 'armed' && Mic.error) return ['confused'];
+  if (S.phase === 'playing') return [st && st.speak ? 'shadowing' : 'listening'];
+  return [SESSION_EUNO[S.phase] || 'waiting'];
+}
+
 function renderSession() {
   applyLayout();
+  renderFocusbar();
   const el = $('#session');
-  el.classList.toggle('active', Session.active);
-  enterOnChange(el, Session.active); // the card swaps between "start a session" and the session itself
   // the pitch view is blurred while you record yourself: eyes on the video
   const blur = Session.active && Session.phase === 'recording';
   const panel = $('#panel');
-  if (panel) { panel.classList.toggle('rec-blur', blur); if (blur) panel.dataset.blurText = t('Eyes on the video!'); }
-  if (!Session.active) { renderSession.bars = null; mount(el, idleSession()); return; }
+  if (panel) { panel.classList.toggle('rec-blur', blur); if (blur) panel.dataset.blurText = t('Eyes on the video'); }
+  if (!Session.active) {
+    el.className = 'session';
+    enterOnChange(el, false);
+    mount(el, idleSession());
+    return;
+  }
+  el.className = 'peek sess-wrap';
+  enterOnChange(el, true); // Euno comes up from behind the card when the session starts
   const S = Session;
   const clip = S.clip();
   const st = S.step();
-  // a new step, a recorded pass or its review slides in; the pass counter bumps when it moves on
   enterOnChange(el, `${S.stepIdx}:${['intro', 'armed', 'review'].includes(S.phase) ? S.phase : 'run'}`, 'step-in');
-  enterOnChange(el, `${S.stepIdx}:${S.pass}`, 'counted'); // not 'tick': that class styles the clip list's done marks
-  // the progress bars start from where they were last drawn, so their fill slides along (styles.css .bar > i)
-  const before = renderSession.bars || [];
-  const pcts = S.plan.map((p, i) => (i < S.stepIdx ? 100 : i === S.stepIdx ? (S.pass / p.passes) * 100 : 0));
-  renderSession.bars = pcts;
-  const fills = [];
-  const steps = h('div', { class: 'steps', style: { '--n': S.plan.length } }, S.plan.map((p, i) => {
-    const done = i < S.stepIdx;
-    const cur = i === S.stepIdx;
-    const fill = h('i', { style: { width: (before[i] ?? pcts[i]) + '%' } });
-    fills.push(fill);
-    return h('div', { class: `step ${done ? 'done' : ''} ${cur ? 'cur' : ''}` },
-      h('span', { class: 'step-name' }, `${i + 1}. ${t(p.name)}`),
-      h('div', { class: 'bar' }, fill));
-  }));
-  if (before.length) requestAnimationFrame(() => fills.forEach((f, i) => { f.style.width = pcts[i] + '%'; }));
-  const counter = st ? h('div', { class: 'counter' }, t('{step}: {n}', { step: t(st.name), n: Math.min(S.pass + (S.phase === 'playing' || S.phase === 'recording' || (S.phase === 'paused' && ['playing', 'recording'].includes(S.pausedFrom)) ? 1 : 0), st.passes) }), h('small', null, ` / ${st.passes}`)) : null;
-  const left = st ? Math.max(0, st.passes - S.pass) : 0;
+  const [mood, then] = sessionMood(S);
+  const card = h('div', { class: 'session active' });
+  const vid = clip && Store.get('videos', clip.videoId);
+  const top = h('div', { class: 'row small muted', style: { marginBottom: '6px' } },
+    h('span', { class: 'grow', style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, [clip ? clipName(clip) : '', vid && vid.speaker].filter(Boolean).join(' · ')),
+    S.mode === 'badday' ? h('span', { class: 'queue-pill' }, t('5-minute version')) : S.mode === 'review' ? h('span', { class: 'queue-pill' }, t('Review run')) : null,
+    S.queue.length ? h('span', { class: 'queue-pill' }, tp(S.queue.length, '{n} more queued', '{n} more queued')) : null);
   let main;
-  if (S.phase === 'intro') {
+  if (S.phase === 'review') {
+    main = passReviewCard();
+  } else if (S.phase === 'intro') {
     main = [
-      h('div', { class: 'grow' }, h('h3', null, t('Step {n}: {step}', { n: S.stepIdx + 1, step: t(st.name) })), h('p', { class: 'session-hint' }, `${t(STEP_HELP[st.key])} ${tp(st.passes, '{n} pass, about {min} min.', '{n} passes, about {min} min.', { min: st.minutes })}${slowHint(S)}`), st.key === 'again' ? focusLine() : null),
-      btn(t(STEP_START[st.key]), () => S.go(), { kind: 'primary', size: 'big', icon: 'play' }),
+      h('h2', { class: 'sess-title' }, t('Step {n}: {step}', { n: S.stepIdx + 1, step: t(st.name) })),
+      h('p', { class: 'session-hint' }, `${t(STEP_HELP[st.key])} ${tp(st.passes, '{n} pass, about {min} min.', '{n} passes, about {min} min.', { min: st.minutes })}${slowHint(S)}`),
+      st.key === 'again' ? focusLine() : null,
+      h('div', { class: 'session-main' }, btn(t(STEP_START[st.key]), () => S.go(), { kind: 'primary', size: 'big', icon: 'play' })),
     ];
   } else if (S.phase === 'armed') {
     if (!Mic.stream && !Mic.error) Mic.open().then((ok) => { if (!ok) renderSession(); });
     main = [
-      h('div', { class: 'grow stack' },
-        h('h3', null, st.recordLast === 'final' ? t('Final recorded pass') : t('Recorded pass')),
-        h('p', { class: 'row session-hint' }, icon('headphones'), t('Headphones on (wired is best), or the microphone will pick up the clip.')),
-        micControl(),
-        Mic.error ? h('p', { class: 'warnline' }, Mic.error) : null),
-      Mic.error ? h('div', { class: 'row' },
-        filePickButton(t('Upload a recording'), 'audio/*,video/*', (f) => uploadPassRecording(f), { icon: 'upload' }),
-        btn(t('Skip recording'), () => S.skipRecording(), { kind: 'ghost' })) : null,
-      btn(t('Record this pass'), () => S.go(), { kind: 'blue', size: 'big', icon: 'mic' }),
+      h('h2', { class: 'sess-title' }, st.recordLast === 'final' ? t('Last pass: Euno records you') : t('Euno records this pass')),
+      h('p', { class: 'session-hint' }, t('Shadow like before. When the clip ends, Euno puts your voice next to the speaker’s.')),
+      h('p', { class: 'row small' }, icon('headphones'), t('Headphones on (wired is best), or the microphone picks up the clip.')),
+      micControl(),
+      Mic.error ? h('p', { class: 'warnline' }, Mic.error) : null,
+      h('div', { class: 'session-main' },
+        btn(Mic.error ? t('Try the microphone again') : t('Record this pass'), () => S.go(), { kind: 'primary', size: 'big', icon: 'mic' }),
+        Mic.error ? [filePickButton(t('Upload a recording'), 'audio/*,video/*', (f) => uploadPassRecording(f), { icon: 'upload' }), btn(t('Skip recording'), () => S.skipRecording(), { kind: 'ghost' })] : null),
     ];
-  } else if (S.phase === 'review') {
-    main = [h('div', { class: 'grow' }, passReviewCard())];
   } else {
     const paused = S.phase === 'paused';
+    const runningNow = S.phase === 'playing' || S.phase === 'recording' || (paused && ['playing', 'recording'].includes(S.pausedFrom));
+    const n = Math.min(S.pass + (runningNow ? 1 : 0), st.passes);
+    const title = paused ? t('Paused') : S.phase === 'recording' ? t('Recording you') : S.phase === 'gap' ? t('Next pass in a moment') : st.speak ? t('Shadowing') : t('Listening');
+    const hint = paused ? t('Press play (or Space) to restart this pass.') : S.phase === 'recording' ? t('Shadow along now. Your line is hidden until the clip ends.') : S.phase === 'gap' ? tp(Math.max(0, st.passes - S.pass), '{n} to go.', '{n} to go.') : st.speak ? t('Speak along with the speaker, a fraction of a second behind.') : t('Listen only. Take in the rhythm and the melody.');
     main = [
-      counter,
-      h('div', { class: 'grow' },
-        h('p', { class: 'session-hint' }, paused ? t('Paused. Press play (or Space) to restart this pass.') : S.phase === 'recording' ? t('Recording… shadow along now.') : S.phase === 'gap' ? t('Next pass in a moment · {n} to go', { n: left }) : st.speak ? t('Speak along with the speaker.') : t('Listen only.')),
-        S.liveThisPass || S.phase === 'recording' ? [h('p', { class: 'small muted' }, t('Your pitch line is drawing in the panel below.')), micControl()] : null),
-      btn('', () => S.togglePause(), { icon: paused ? 'play' : 'pause', title: paused ? t('Resume (Space)') : t('Pause (Space)'), kind: paused ? 'primary' : '' }),
-      btn('', () => S.repeatPass(), { icon: 'replay', title: t('Repeat this pass without counting it (R)') }),
-      S.slowed ? btn(t('Go to 1x'), () => S.fullSpeed(), { size: 'sm', title: t('Play the rest of this session at normal speed') }) : null,
+      h('h2', { class: 'sess-title' }, title),
+      h('p', { class: 'session-hint' }, hint),
+      passPills(st, n, runningNow),
+      S.liveThisPass || S.phase === 'recording' ? micControl({ compact: true }) : null,
+      h('div', { class: 'session-main' },
+        btn('', () => S.togglePause(), { icon: paused ? 'play' : 'pause', title: paused ? t('Resume (Space)') : t('Pause (Space)'), kind: paused ? 'primary' : '', size: 'big' }),
+        btn(t('Start again'), () => S.repeatPass(), { icon: 'replay', title: t('Repeat this pass without counting it (R)') }),
+        S.slowed ? btn(t('Go to 1x'), () => S.fullSpeed(), { size: 'sm', title: t('Play the rest of this session at normal speed') }) : null),
     ];
   }
   const showCant = st && st.key === 'shadow' && S.pass >= settings().shortenHintAfter && S.phase !== 'review';
-  mount(el,
-    h('div', { class: 'row', style: { marginBottom: '10px' } },
-      h('span', { class: 'label' }, S.mode === 'badday' ? t('Bad-day session') : S.mode === 'review' ? t('Review run') : t('Today’s session')),
-      h('strong', { class: 'grow', style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, clip ? clipName(clip) : ''),
-      S.queue.length ? h('span', { class: 'queue-pill' }, tp(S.queue.length, '{n} more queued', '{n} more queued')) : null,
-      h('span', { class: 'timer row' }, icon('clock', 'width="18" height="18"'), h('span', { id: 'sessTimer' }, S.timerText()))),
-    steps,
-    h('div', { class: 'session-main' }, main),
-    h('div', { class: 'row', style: { marginTop: '12px' } },
-      showCant ? btn(t('I can’t keep up'), () => S.flagCantKeepUp(), { size: 'sm', kind: 'wattle' }) : null,
-      S.mode === 'full' && S.stepIdx <= 1 ? btn(t('Bad day? Switch to 5 min'), () => S.switchToBadDay(), { size: 'sm', icon: 'bad' }) : null,
-      h('span', { class: 'spacer' }),
-      S.canExtend() ? btn(t('Keep going (+{min} min)', { min: EXTEND_MINUTES }), () => S.extend(), { size: 'sm', icon: 'plus', title: t('Add more passes to this step') }) : null,
-      btn(t('Skip step'), () => S.skipStep(), { size: 'sm', icon: 'skip' }),
-      btn(t('End session'), () => S.finish(true), { size: 'sm', kind: 'danger', icon: 'stop', title: t('End now; progress so far is saved') })));
+  const foot = S.phase === 'review' ? null : h('div', { class: 'sess-foot' },
+    showCant ? btn(t('I can’t keep up'), () => S.flagCantKeepUp(), { size: 'sm', kind: 'wattle' }) : null,
+    S.mode === 'full' && S.stepIdx <= 1 ? btn(t('Switch to 5 min'), () => S.switchToBadDay(), { size: 'sm', kind: 'ghost', title: t('Bad day? The 5-minute version still counts') }) : null,
+    h('span', { class: 'spacer' }),
+    S.canExtend() ? btn(t('+{min} min', { min: EXTEND_MINUTES }), () => S.extend(), { size: 'sm', kind: 'ghost', icon: 'plus', title: t('Add more passes to this step') }) : null,
+    btn(t('Skip step'), () => S.skipStep(), { size: 'sm', kind: 'ghost', icon: 'skip' }));
+  mount(card, top, h('div', { class: 'stack' }, main), foot);
+  mount(el, Euno.el('session', mood, { then }), card);
+}
+
+/* the passes of a step as eye pills: done, this one, still to come (a bar when there are too many to count) */
+function passPills(st, n, running) {
+  const label = t('Pass {n} of {total}', { n: Math.max(1, n), total: st.passes });
+  if (st.passes > 16) return h('div', { class: 'stack', style: { gap: '6px' } }, h('div', { class: 'bar', 'aria-hidden': 'true' }, h('i', { style: { width: `${(n / st.passes) * 100}%` } })), h('span', { class: 'small muted num' }, label));
+  return h('div', { class: 'row', style: { gap: '12px' } },
+    h('div', { class: 'pills', 'aria-hidden': 'true', style: { gap: '5px' } }, Array.from({ length: st.passes }, (_, i) =>
+      h('span', { class: `pill ${i < n - (running ? 1 : 0) ? 'done' : i === n - 1 && running ? 'now' : 'short'}`, style: { width: '9px', height: i < n || (i === n - 1 && running) ? '20px' : '11px' } }))),
+    h('span', { class: 'small muted num' }, label));
 }
 
 /* intro of the shadow step: say that the first passes are slowed */
@@ -717,56 +745,143 @@ function mineVolumeControl() {
       t('Match the original’s loudness')));
 }
 
+/* the review after a recorded pass: your line next to the speaker's in the panel, playback, and at most three
+   things to try in the next step. Everything else the comparison found is one click away. */
 function passReviewCard() {
   const S = Session;
   const R = S.review;
   const clip = S.clip();
   const an = R.analysis;
+  const vid = Store.get('videos', clip.videoId);
+  const name = speakerName(vid);
   const step3 = R.slot === 'final' ? Store.get('recordings', S.doc.recs.step3) : null;
+  const nextStep = S.plan[S.stepIdx + (S.pass >= S.step().passes ? 1 : 0)];
+  const play = (mode) => {
+    R.mode = mode;
+    if (mode === 'spk') playOriginal(clip);
+    else if (mode === 'you') playMine(clip, R.url, an);
+    else if (mode === 'then') playOriginal(clip, () => setTimeout(() => playMine(clip, R.url, an, null, clip.start), 300), clip.start);
+    else playBoth(clip, R.url, an);
+    $$('.review-seg button').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
+  };
+  const modes = [['spk', name], ['you', t('You')], ['then', t('{name}, then you', { name })], ['both', t('Together')]];
+  const tries = h('div', { class: 'stack', style: { gap: '8px' } });
+  const drawTries = () => {
+    const items = tryItems(clip, R);
+    const pending = Pron.on() && R.phones === undefined;
+    R.tryOpen = clamp(R.tryOpen || 0, 0, Math.max(0, items.shown.length - 1));
+    mount(tries,
+      items.shown.length ? items.shown.map((it, i) => tryItem(it, i === R.tryOpen, () => { R.tryOpen = i; drawTries(); }, clip, R))
+        : pending ? null : h('p', { class: 'session-hint' }, t('No clear differences this time. Shadow it again and listen for the rhythm.')),
+      pending ? pronWaiting(R, () => { drawTries(); renderSessionEuno(); }) : null,
+      h('p', { class: 'fine' }, t('Computer listening, so it can be wrong. Play both and decide by ear.'), ' ',
+        items.total > items.shown.length || items.extra ? h('button', { type: 'button', class: 'linkbtn', onclick: () => openAllDifferences(clip, R) }, tp(items.total, 'See it in full', 'All {n} differences')) : null));
+  };
+  drawTries();
   return h('div', { class: 'stack' },
     h('div', { class: 'row' },
-      h('h3', { class: 'grow' }, R.slot === 'final' ? t('Final pass recorded') : t('Pass recorded')),
-      an ? h('span', { class: 'lag' }, fmtLag(an.lag)) : null,
-      an && an.manual ? h('span', { class: 'small muted' }, settings().alignMode === 'manual' ? t('(manual offset)') : t('(auto-alignment unsure; manual offset used)')) : null),
-    h('div', { class: 'row' },
-      btn(t('Original'), () => playOriginal(clip), { size: 'sm', icon: 'play' }),
-      btn(t('Mine'), () => playMine(clip, R.url, an), { size: 'sm', icon: 'mic' }),
-      btn(t('Original then mine'), () => playOriginal(clip, () => setTimeout(() => playMine(clip, R.url, an, null, clip.start), 300), clip.start), { size: 'sm' }),
-      btn(t('Both together'), () => playBoth(clip, R.url, an), { size: 'sm' }),
-      btn('', () => stopReviewPlayback(), { size: 'sm', icon: 'stop', title: t('Stop playback') })),
-    mineVolumeControl(),
-    prosodyCard(clip, an, R.heard, Pron.on()),
-    pronCard(clip, R),
+      h('h2', { class: 'sess-title grow' }, R.slot === 'final' ? t('Your last pass next to {name}', { name }) : t('Your pass next to {name}', { name })),
+      an ? h('span', { class: 'lag', title: an.manual ? (settings().alignMode === 'manual' ? t('(manual offset)') : t('(auto-alignment unsure; manual offset used)')) : null }, fmtLag(an.lag)) : null),
+    h('div', { class: 'transport' },
+      h('div', { class: 'seg review-seg', role: 'group', 'aria-label': t('Play') }, modes.map(([k, l]) => h('button', { type: 'button', class: R.mode === k ? 'on' : null, 'data-mode': k, onclick: () => play(k) }, l))),
+      btn('', () => { stopReviewPlayback(); R.mode = null; $$('.review-seg button').forEach((b) => b.classList.remove('on')); }, { size: 'sm', icon: 'stop', title: t('Stop playback') })),
+    h('h3', { style: { marginTop: '6px' } }, nextStep && nextStep.key === 'again' ? t('Try these in step 4') : t('Listen for these next time')),
+    tries,
     step3 ? h('div', { class: 'row' }, h('span', { class: 'small muted grow' }, t('Compare with your step 3 recording from this session:')),
-      btn(t('Compare overlaid'), () => openCompare(step3.id, R.recId, R.url), { size: 'sm', kind: 'blue' })) : null,
-    noteForms({ clipId: clip.id, sessionId: S.doc.id, recId: R.recId, pass: S.pass, step: S.step().key }),
-    h('div', { class: 'row' },
-      btn(t('Redo this pass'), () => S.repeatPass(), { kind: 'ghost', icon: 'replay', title: t('Record this pass again, starting now') }),
-      h('span', { class: 'spacer' }),
-      btn(t('Continue'), () => S.continueAfterReview(), { kind: 'primary', size: 'big', icon: 'play' })));
+      btn(t('Compare'), () => openCompare(step3.id, R.recId, R.url), { size: 'sm' })) : null,
+    h('details', { class: 'card' }, h('summary', null, h('strong', null, t('Volume and notes'))),
+      mineVolumeControl(),
+      noteForms({ clipId: clip.id, sessionId: S.doc.id, recId: R.recId, pass: S.pass, step: S.step().key })),
+    h('div', { class: 'row', style: { marginTop: '4px' } },
+      btn(t('Redo'), () => S.repeatPass(), { size: 'big', title: t('Record this pass again, starting now') }),
+      btn(nextStep && nextStep.key === 'again' && S.pass >= S.step().passes ? t('Continue to step 4') : t('Continue'), () => S.continueAfterReview(), { kind: 'primary', size: 'big', cls: 'grow' })));
+}
+function speakerName(vid) {
+  const n = vid && vid.speaker ? vid.speaker.trim().split(/\s+/)[0] : '';
+  return n || t('Speaker');
+}
+/* only Euno's mood changes, without redrawing the card */
+function renderSessionEuno() { if (Session.active) { const [m, th] = sessionMood(Session); Euno.el('session', m, { then: th }); } }
+function pronWaiting(R, done) {
+  const txt = h('span', null), bar = h('i', { style: { width: '0%' } });
+  const show = (p) => { txt.textContent = p ? `${t('Checking the sounds…')} ${t('step {n} of {m}', { n: p.step, m: p.steps })}` : t('Checking the sounds…'); bar.style.width = (p ? Math.round(p.fraction * 100) : 0) + '%'; };
+  show(R.phonesProgress);
+  const wrap = h('div', { role: 'status', class: 'stack', style: { gap: '6px' } }, h('p', { class: 'small muted' }, txt), h('div', { class: 'pv-prog', 'aria-hidden': 'true' }, bar));
+  R.onPhonesProgress = (p) => { if (wrap.isConnected) show(p); };
+  if (R.phonesPromise && !R.waitHooked) { R.waitHooked = true; R.phonesPromise.then(() => { if (Session.review === R) done(); }); }
+  return wrap;
+}
+/* sounds first (they're what an accent is mostly made of), then timing, melody and stress; three at most */
+function tryItems(clip, R) {
+  const out = [];
+  let total = 0, extra = false;
+  if (Pron.on() && R.phones) {
+    const other = R.slot === 'final' && Session.doc ? Pron.phonesFor(Session.doc.recs.step3) : null;
+    const res = Pron.shown(R.phones, other);
+    total += res.total;
+    for (const d of res.items) out.push({ type: 'sound', d, repeated: res.repeated(d) });
+  }
+  let pro = null;
+  try { pro = Prosody.compare(clip, R.analysis); } catch { pro = null; }
+  if (pro) { total += pro.findings.length; for (const f of pro.findings) out.push({ type: f.kind === 'pitch' ? 'melody' : f.kind === 'stress' ? 'stress' : 'timing', f }); }
+  if (R.heard && Speech.unclear(clip.sentence, R.heard)) extra = true;
+  return { shown: out.slice(0, 3), total, extra };
+}
+const TRY_KINDS = { sound: N_('sound'), timing: N_('timing'), melody: N_('melody'), stress: N_('stress') };
+function tryItem(it, open, onOpen, clip, R) {
+  const name = speakerName(Store.get('videos', clip.videoId));
+  let word, text, play;
+  if (it.type === 'sound') {
+    const d = it.d;
+    word = d.words || t('At {when}', { when: fmtSec(d.a) });
+    text = soundWord(d.from)
+      ? t('{a} as in “{aw}”; you may have said {b}{bw}.', { a: soundName(d.from), aw: soundWord(d.from), b: soundName(d.to), bw: soundWord(d.to) ? ` (“${soundWord(d.to)}”)` : '' })
+      : t('The speaker has {a} here; you may have said {b}.', { a: soundName(d.from), b: soundName(d.to) });
+    if (it.repeated) text += ` ${t('Also in your step 3 take.')}`;
+    play = [
+      btn(name, () => pronPlay(clip, d, 'speaker', R), { size: 'sm', icon: 'play', cls: 'spk' }),
+      btn(t('You'), () => pronPlay(clip, d, 'you', R), { size: 'sm', icon: 'play', cls: 'mine' }),
+      btn(t('Drill'), () => openDrill(clip, d), { size: 'sm', icon: 'replay' }),
+      btn(t('Sounds the same to me'), () => { Pron.dismiss(Pron.pairOf(d)); toast(t('Okay. {a} → {b} won’t be flagged again.', { a: soundName(d.from), b: soundName(d.to) })); renderSession(); }, { size: 'sm', kind: 'ghost' }),
+    ];
+  } else {
+    const f = it.f;
+    word = f.words || prosodyWhen(f);
+    text = prosodyLine(f);
+    const a = Math.max(0, f.a - 0.25), b = Math.min(clip.end - clip.start, f.b + 0.25);
+    play = [
+      btn(name, () => playSnippetOriginal(clip, a, b), { size: 'sm', icon: 'play', cls: 'spk' }),
+      btn(t('You'), () => playSynced(clip, R.url, R.analysis, { from: clip.start + a, stopAt: clip.start + b }), { size: 'sm', icon: 'play', cls: 'mine' }),
+    ];
+  }
+  const head = h('div', { class: 'try-head' }, h('b', null, word), h('span', { class: 'kind' }, t(TRY_KINDS[it.type])));
+  if (!open) return h('button', { type: 'button', class: 'try-item', onclick: onOpen, 'aria-expanded': 'false' }, head, h('p', null, text));
+  return h('div', { class: 'try-item' }, head, h('p', null, text), h('div', { class: 'pair' }, play));
+}
+/* everything the comparison found, as a window over the session */
+function openAllDifferences(clip, R) {
+  openModal([
+    modalHead(t('Differences from the speaker'), clipName(clip)),
+    pronCard(clip, R),
+    prosodyCard(clip, R.analysis, R.heard, Pron.on()),
+  ]);
 }
 
 /* ---------- idle strip: what to practise today ---------- */
 function idleSession() {
   const clip = Store.get('clips', UI.clipId);
-  const sugg = rotationSuggestion();
   const s = settings();
   const queued = UI.queue.filter((id) => Store.get('clips', id));
   const reviewDue = s.review ? reviewDueClips() : [];
-  const firstTime = !Store.all('sessions').some((x) => !x.empty);
-  return h('div', { class: 'stack' },
-    firstTime ? h('p', { class: 'small muted' }, t('New here? Start with the short session. It counts as a practice day, and you can do the full one tomorrow.')) : null,
-    h('div', { class: 'idle-cta' },
-      h('div', { class: 'grow' },
-        h('span', { class: 'label' }, `${dayName(new Date().getDay())} · ${sugg.title}`),
-        h('p', null, sugg.text)),
-      sugg.clipId && sugg.clipId !== UI.clipId ? btn(t('Select it'), () => selectClip(sugg.clipId), { size: 'sm' }) : null),
-    h('div', { class: 'row' },
-      btn(queued.length > 1 ? t('Start queue ({n} clips)', { n: queued.length }) : t('Start 15-minute session'), () => Session.start(queued.length ? queued : [UI.clipId], 'full'),
-        { kind: firstTime ? undefined : 'primary', size: 'big', icon: 'play', disabled: !clip && !queued.length }),
-      btn(t('Bad-day session ({n} min)', { n: s.badMinutes }), () => Session.start(queued.length ? queued : [UI.clipId], 'badday'), { kind: firstTime ? 'primary' : undefined, size: firstTime ? 'big' : undefined, icon: 'bad', disabled: !clip && !queued.length }),
-      reviewDue.length ? btn(t('Review run ({n} due)', { n: reviewDue.length }), () => Session.start(reviewDue.map((c) => c.id), 'review'), { kind: 'blue', icon: 'history' }) : null,
-      clip ? h('span', { class: 'small muted' }, clip.done ? t('“{clip}” is done. Practise it again any time.', { clip: clipName(clip) }) : t('Clip: {clip} · {len}', { clip: clipName(clip), len: fmtSec(clip.end - clip.start) })) : h('span', { class: 'small muted' }, t('Select a clip on the timeline or in the library.'))));
+  const ids = queued.length ? queued : [UI.clipId];
+  const none = !clip && !queued.length;
+  return h('div', { class: 'idle-cta' },
+    h('div', { class: 'grow' },
+      h('h3', null, clip ? clipName(clip) : t('No clip selected')),
+      h('p', { class: 'small muted' }, clip ? `${fmtSec(clip.end - clip.start)}${clip.done ? ` · ${t('done, practise it again any time')}` : ''}` : t('Select a clip on the timeline or in the list, or cut a new one.'))),
+    btn(queued.length > 1 ? t('Start {n} clips', { n: queued.length }) : t('Shadow this clip'), () => Session.start(ids, 'full'), { kind: 'primary', icon: 'play', disabled: none }),
+    btn(t('{n} min', { n: s.badMinutes }), () => Session.start(ids, 'badday'), { title: t('The 5-minute version'), disabled: none }),
+    reviewDue.length ? btn(t('Review run ({n} due)', { n: reviewDue.length }), () => Session.start(reviewDue.map((c) => c.id), 'review'), { kind: 'ghost', icon: 'history' }) : null);
 }
 
 function rotationSuggestion() {
@@ -794,7 +909,6 @@ function showSessionSummary(sum, streakBefore, nextClipId, redraw = false) {
   const milestone = grew ? streakMilestone(streakBefore, info.streak) : 0;
   const target = settings().weeklyTarget;
   const weekGoal = grew && info.weekCount === target; // this session is the one that reached the week's target
-  if (!redraw && (sum.tickNew || grew)) celebrate(milestone ? 1.6 : sum.tickNew ? 1.2 : 0.8);
   const sess = Store.get('sessions', sum.sessionId);
   const moveDay = async (date, from) => {
     moveSessionDay(sum.sessionId, date, from);
@@ -815,6 +929,7 @@ function showSessionSummary(sum, streakBefore, nextClipId, redraw = false) {
   openModal([
     modalHead(sum.complete ? t('Session complete!') : t('Session saved')),
     h('div', { class: 'card celebrate' },
+      Euno.el('summary', sum.tickNew || grew ? 'celebrate' : 'pleased', { then: sum.tickNew || grew ? ['pleased', 4600] : null }),
       h('div', { class: 'big-num' }, `${info.streak}`),
       h('p', null, h('strong', null, grew ? tp(info.streak, 'day streak · it grew!', 'day streak · it grew!') : tp(info.streak, 'day streak', 'day streak'))),
       h('p', { class: 'muted' }, tp(sum.passes, '{n} pass · {min} min · {week}/{target} sessions this week', '{n} passes · {min} min · {week}/{target} sessions this week', { min: sum.minutes, week: info.weekCount, target: settings().weeklyTarget })),
@@ -830,5 +945,5 @@ function showSessionSummary(sum, streakBefore, nextClipId, redraw = false) {
       btn(t('Clip history'), () => openHistory(sum.clipId), { icon: 'history' }),
       h('span', { class: 'spacer' }),
       deleteSessionButton(sum.sessionId, () => closeModal())),
-  ], { narrow: true });
+  ], { narrow: true, onClose: () => Euno.drop('summary') });
 }

@@ -27,18 +27,6 @@
     "fr": "Claude n’a pas répondu ({code}).",
     "es": "Claude no respondió ({code})."
   },
-  "Ask AI": {
-    "fr": "Demander à l’IA",
-    "es": "Preguntar a la IA"
-  },
-  "Copy prompt for AI": {
-    "fr": "Copier le prompt pour l’IA",
-    "es": "Copiar prompt para la IA"
-  },
-  "Ask Claude": {
-    "fr": "Demander à Claude",
-    "es": "Preguntar a Claude"
-  },
   "Copy prompt for Claude": {
     "fr": "Copier le prompt pour Claude",
     "es": "Copiar prompt para Claude"
@@ -86,14 +74,6 @@
   "What sounded off? Add a note": {
     "fr": "Qu’est-ce qui sonnait faux ? Ajoute une note",
     "es": "¿Qué sonó raro? Añade una nota"
-  },
-  "Feedback": {
-    "fr": "Retour",
-    "es": "Comentarios"
-  },
-  "Not sure what you meant": {
-    "fr": "Pas sûr de ce que tu voulais dire",
-    "es": "No sé bien qué quisiste decir"
   },
   "I don’t know what you meant. Can you describe it differently?": {
     "fr": "Je ne sais pas ce que tu voulais dire. Tu peux le décrire autrement ?",
@@ -331,25 +311,9 @@
     "fr": "Aucune séance sur cet extrait pour l’instant.",
     "es": "Aún no hay sesiones con este fragmento."
   },
-  "Day streak (one rest day in a row is allowed)": {
-    "fr": "Série de jours (un jour de repos d’affilée est permis)",
-    "es": "Racha de días (se permite un día de descanso seguido)"
-  },
   "{n} day|{n} days": {
     "fr": "{n} jour|{n} jours",
     "es": "{n} día|{n} días"
-  },
-  "Days practised this week": {
-    "fr": "Jours de pratique cette semaine",
-    "es": "Días de práctica esta semana"
-  },
-  "{done}/{target} this week": {
-    "fr": "{done}/{target} cette semaine",
-    "es": "{done}/{target} esta semana"
-  },
-  "Synced": {
-    "fr": "Synchronisé",
-    "es": "Sincronizado"
   },
   "This browser": {
     "fr": "Ce navigateur",
@@ -375,17 +339,9 @@
     "fr": "Bilans",
     "es": "Evaluaciones"
   },
-  "Admin ({n})": {
-    "fr": "Admin ({n})",
-    "es": "Admin ({n})"
-  },
   "Admin": {
     "fr": "Admin",
     "es": "Administración"
-  },
-  "Admin: {n} message to handle|Admin: {n} messages to handle": {
-    "fr": "Admin : {n} message à traiter|Admin : {n} messages à traiter",
-    "es": "Admin: {n} mensaje por atender|Admin: {n} mensajes por atender"
   },
   "Settings": {
     "fr": "Réglages",
@@ -419,33 +375,13 @@
     "fr": "Le stockage est bloqué ici ; rien ne sera conservé quand tu fermeras la page.",
     "es": "El almacenamiento está bloqueado aquí; no se guardará nada al cerrar la página."
   },
-  "Your week 0 baseline isn’t finished yet. Record it soon so later check-ins have something to compare with.": {
-    "fr": "Ton point de départ (semaine 0) n’est pas encore terminé. Enregistre-le vite pour que les prochains bilans aient une base de comparaison.",
-    "es": "Tu punto de partida (semana 0) aún no está terminado. Grábalo pronto para que las próximas evaluaciones tengan con qué compararse."
-  },
-  "Before your first practice, record your week 0 baseline (about 3 minutes). Every later check-in is compared with it.": {
-    "fr": "Avant ta première pratique, enregistre ton point de départ de la semaine 0 (environ 3 minutes). Chaque bilan suivant sera comparé avec lui.",
-    "es": "Antes de tu primera práctica, graba tu punto de partida de la semana 0 (unos 3 minutos). Cada evaluación posterior se compara con él."
-  },
-  "Record baseline": {
-    "fr": "Enregistrer le point de départ",
-    "es": "Grabar punto de partida"
-  },
   "Later": {
     "fr": "Plus tard",
     "es": "Más tarde"
   },
-  "You missed yesterday. Don’t skip two days in a row: even a 5-minute bad-day session keeps the streak alive.": {
-    "fr": "Tu as sauté hier. Ne saute pas deux jours d’affilée : même une séance « jour sans » de 5 minutes garde ta série en vie.",
-    "es": "Ayer no practicaste. No te saltes dos días seguidos: incluso una sesión de día malo de 5 minutos mantiene viva la racha."
-  },
   "Bad-day session": {
     "fr": "Séance jour sans",
     "es": "Sesión de día malo"
-  },
-  "Week {n} check-in is due. It takes about 3 minutes.": {
-    "fr": "C’est l’heure du bilan de la semaine {n}. Ça prend environ 3 minutes.",
-    "es": "Toca la evaluación de la semana {n}. Lleva unos 3 minutos."
   },
   "Start check-in": {
     "fr": "Commencer le bilan",
@@ -911,10 +847,6 @@
     "fr": "Obtiens-en une sur {link}.",
     "es": "Consigue una en {link}."
   },
-  "It’s stored encrypted on our server, only used for your feedback, and never shown again. You pay your provider directly; one answer on the default model costs a tiny fraction of a cent.": {
-    "fr": "Elle est stockée chiffrée sur notre serveur, utilisée uniquement pour tes retours, et plus jamais affichée. Tu paies ton fournisseur directement ; une réponse avec le modèle par défaut coûte une infime fraction de centime.",
-    "es": "Se guarda cifrada en nuestro servidor, solo se usa para tus comentarios y nunca se vuelve a mostrar. Pagas directamente a tu proveedor; una respuesta con el modelo predeterminado cuesta una mínima fracción de céntimo."
-  },
   "Cancel": {
     "fr": "Annuler",
     "es": "Cancelar"
@@ -947,10 +879,6 @@
     "fr": "Modèle utilisé : {model}.",
     "es": "Ahora usando {model}."
   },
-  "Short feedback like this doesn’t need a big model.": {
-    "fr": "Des retours courts comme ceux-ci n’ont pas besoin d’un gros modèle.",
-    "es": "Comentarios cortos como estos no necesitan un modelo grande."
-  },
   "Use {model}": {
     "fr": "Utiliser {model}",
     "es": "Usar {model}"
@@ -962,10 +890,6 @@
   "AI keys aren’t switched on for this site yet. Notes still offer a prompt you can copy into any AI chat.": {
     "fr": "Les clés d’IA ne sont pas encore activées sur ce site. Les notes proposent quand même un prompt à copier dans n’importe quel chat d’IA.",
     "es": "Las claves de IA aún no están activadas en este sitio. Las notas siguen ofreciendo un prompt que puedes copiar en cualquier chat de IA."
-  },
-  "Get feedback on your notes right inside the app, using your own key from Anthropic, OpenAI or OpenRouter. This is optional: without a key, notes give you a prompt to copy into any AI chat.": {
-    "fr": "Reçois des retours sur tes notes directement dans l’appli, avec ta propre clé Anthropic, OpenAI ou OpenRouter. C’est facultatif : sans clé, les notes te donnent un prompt à copier dans n’importe quel chat d’IA.",
-    "es": "Recibe comentarios sobre tus notas dentro de la app, con tu propia clave de Anthropic, OpenAI u OpenRouter. Es opcional: sin clave, las notas te dan un prompt para copiar en cualquier chat de IA."
   },
   "Test key": {
     "fr": "Tester la clé",
@@ -995,10 +919,6 @@
     "fr": "Supprimer la clé",
     "es": "Eliminar clave"
   },
-  "Key removed. Notes will offer “Copy prompt for AI”.": {
-    "fr": "Clé supprimée. Les notes proposeront « Copier le prompt pour l’IA ».",
-    "es": "Clave eliminada. Las notas ofrecerán “Copiar prompt para la IA”."
-  },
   "Done@@column": {
     "fr": "Terminé",
     "es": "Hecho"
@@ -1006,14 +926,6 @@
   "How far behind the speaker your voice is, on average, across your passes. Beginners echo the speaker; with practice you start to anticipate, so the lag shrinks towards zero. Clips and speeds differ, so read the trend over several weeks, not the single values.": {
     "fr": "Le retard moyen de ta voix sur celle de l’orateur, sur l’ensemble de tes passages. Au début on répète en écho ; avec la pratique on anticipe, et le retard se rapproche de zéro. Les extraits et les vitesses varient, alors regarde la tendance sur plusieurs semaines plutôt que chaque valeur.",
     "es": "Cuánto va tu voz por detrás de la del hablante, de media, en tus pasadas. Al principio repites como un eco; con la práctica empiezas a anticiparte y el retraso se acerca a cero. Los fragmentos y las velocidades varían, así que fíjate en la tendencia de varias semanas, no en cada valor."
-  },
-  "It’s not 10am yet, so a session you do now can still count for yesterday: you’ll get the option when you finish.": {
-    "fr": "Il n’est pas encore 10 h, donc une séance faite maintenant peut encore compter pour hier : tu auras le choix à la fin.",
-    "es": "Aún no son las 10, así que una sesión que hagas ahora todavía puede contar para ayer: tendrás la opción al terminar."
-  },
-  "Day {n} of your first week. Short and regular beats long and rare: even 5 minutes counts today.": {
-    "fr": "Jour {n} de ta première semaine. Court et régulier vaut mieux que long et rare : même 5 minutes comptent aujourd’hui.",
-    "es": "Día {n} de tu primera semana. Corto y constante es mejor que largo y raro: hoy cuentan incluso 5 minutos."
   },
   "{n}-day streak. Well done for coming back every day.": {
     "fr": "Série de {n} jours. Bravo d’être revenu chaque jour.",

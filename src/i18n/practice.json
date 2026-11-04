@@ -307,10 +307,6 @@
     "fr": "Ajouter une vidéo",
     "es": "Añadir video"
   },
-  "Close library": {
-    "fr": "Fermer la bibliothèque",
-    "es": "Cerrar la biblioteca"
-  },
   "No videos yet. Add a video file or a direct link to an .mp4 file to get started.": {
     "fr": "Pas encore de vidéo. Ajoute un fichier vidéo ou un lien direct vers un fichier .mp4 pour commencer.",
     "es": "Aún no hay videos. Añade un archivo de video o un enlace directo a un archivo .mp4 para empezar."
@@ -715,10 +711,6 @@
     "fr": "Continuer",
     "es": "Seguir"
   },
-  "{step}: {n}": {
-    "fr": "{step} : {n}",
-    "es": "{step}: {n}"
-  },
   "Step {n}: {step}": {
     "fr": "Étape {n} : {step}",
     "es": "Paso {n}: {step}"
@@ -726,18 +718,6 @@
   "{n} pass, about {min} min.|{n} passes, about {min} min.": {
     "fr": "{n} passage, environ {min} min.|{n} passages, environ {min} min.",
     "es": "{n} pasada, unos {min} min.|{n} pasadas, unos {min} min."
-  },
-  "Final recorded pass": {
-    "fr": "Dernier passage enregistré",
-    "es": "Última pasada grabada"
-  },
-  "Recorded pass": {
-    "fr": "Passage enregistré",
-    "es": "Pasada grabada"
-  },
-  "Headphones on (wired is best), or the microphone will pick up the clip.": {
-    "fr": "Mets ton casque (filaire de préférence), sinon le micro captera l’extrait.",
-    "es": "Ponte los auriculares (mejor con cable), o el micrófono captará el fragmento."
   },
   "Upload a recording": {
     "fr": "Importer un enregistrement",
@@ -750,34 +730,6 @@
   "Record this pass": {
     "fr": "Enregistrer ce passage",
     "es": "Grabar esta pasada"
-  },
-  "Paused. Press play (or Space) to restart this pass.": {
-    "fr": "En pause. Appuie sur lecture (ou Espace) pour reprendre ce passage.",
-    "es": "En pausa. Pulsa reproducir (o Espacio) para reiniciar esta pasada."
-  },
-  "Eyes on the video!": {
-    "fr": "Les yeux sur la vidéo !",
-    "es": "¡Ojos en el vídeo!"
-  },
-  "Recording… shadow along now.": {
-    "fr": "Enregistrement… fais du shadowing maintenant.",
-    "es": "Grabando… haz shadowing ahora."
-  },
-  "Next pass in a moment · {n} to go": {
-    "fr": "Prochain passage dans un instant · encore {n}",
-    "es": "Siguiente pasada en un momento · faltan {n}"
-  },
-  "Speak along with the speaker.": {
-    "fr": "Parle en même temps que le locuteur.",
-    "es": "Habla a la vez que el hablante."
-  },
-  "Listen only.": {
-    "fr": "Écoute seulement.",
-    "es": "Solo escucha."
-  },
-  "Your pitch line is drawing in the panel below.": {
-    "fr": "Ta courbe de mélodie se dessine dans le panneau ci-dessous.",
-    "es": "Tu línea de entonación se dibuja en el panel de abajo."
   },
   "Resume (Space)": {
     "fr": "Reprendre (Espace)",
@@ -799,10 +751,6 @@
     "fr": "Révision",
     "es": "Repaso"
   },
-  "Today’s session": {
-    "fr": "Séance du jour",
-    "es": "Sesión de hoy"
-  },
   "{n} more queued|{n} more queued": {
     "fr": "encore {n} en file|encore {n} en file",
     "es": "{n} más en cola|{n} más en cola"
@@ -811,17 +759,9 @@
     "fr": "Je n’arrive pas à suivre",
     "es": "No puedo seguir el ritmo"
   },
-  "Bad day? Switch to 5 min": {
-    "fr": "Jour sans ? Passe à 5 min",
-    "es": "¿Día malo? Cambia a 5 min"
-  },
   "Skip step": {
     "fr": "Passer l’étape",
     "es": "Saltar paso"
-  },
-  "End session": {
-    "fr": "Terminer la séance",
-    "es": "Terminar sesión"
   },
   "End now; progress so far is saved": {
     "fr": "Terminer maintenant ; la progression est enregistrée",
@@ -835,14 +775,6 @@
     "fr": "L’enregistrement n’a pas pu être lu.",
     "es": "No se pudo reproducir la grabación."
   },
-  "Final pass recorded": {
-    "fr": "Dernier passage enregistré",
-    "es": "Última pasada grabada"
-  },
-  "Pass recorded": {
-    "fr": "Passage enregistré",
-    "es": "Pasada grabada"
-  },
   "(manual offset)": {
     "fr": "(décalage manuel)",
     "es": "(desfase manual)"
@@ -851,21 +783,9 @@
     "fr": "(alignement auto incertain ; décalage manuel utilisé)",
     "es": "(alineación automática dudosa; se usó el desfase manual)"
   },
-  "Original": {
-    "fr": "Original",
-    "es": "Original"
-  },
   "Mine": {
     "fr": "Le mien",
     "es": "El mío"
-  },
-  "Original then mine": {
-    "fr": "L’original puis le mien",
-    "es": "El original y luego el mío"
-  },
-  "Both together": {
-    "fr": "Les deux ensemble",
-    "es": "Los dos a la vez"
   },
   "Stop playback": {
     "fr": "Arrêter la lecture",
@@ -875,49 +795,13 @@
     "fr": "Compare avec ton enregistrement de l’étape 3 de cette séance :",
     "es": "Compara con tu grabación del paso 3 de esta sesión:"
   },
-  "Compare overlaid": {
-    "fr": "Comparer en superposé",
-    "es": "Comparar superpuestas"
-  },
-  "Redo this pass": {
-    "fr": "Refaire ce passage",
-    "es": "Repetir esta pasada"
-  },
   "Continue": {
     "fr": "Continuer",
     "es": "Continuar"
   },
-  "Select it": {
-    "fr": "Le sélectionner",
-    "es": "Seleccionarlo"
-  },
-  "Start queue ({n} clips)": {
-    "fr": "Lancer la file ({n} extraits)",
-    "es": "Empezar la cola ({n} fragmentos)"
-  },
-  "Start 15-minute session": {
-    "fr": "Commencer une séance de 15 minutes",
-    "es": "Empezar sesión de 15 minutos"
-  },
-  "Bad-day session ({n} min)": {
-    "fr": "Séance jour sans ({n} min)",
-    "es": "Sesión de día malo ({n} min)"
-  },
   "Review run ({n} due)": {
     "fr": "Révision ({n} à revoir)",
     "es": "Repaso ({n} pendientes)"
-  },
-  "“{clip}” is done. Practise it again any time.": {
-    "fr": "« {clip} » est terminé. Tu peux le retravailler quand tu veux.",
-    "es": "«{clip}» está terminado. Practícalo de nuevo cuando quieras."
-  },
-  "Clip: {clip} · {len}": {
-    "fr": "Extrait : {clip} · {len}",
-    "es": "Fragmento: {clip} · {len}"
-  },
-  "Select a clip on the timeline or in the library.": {
-    "fr": "Sélectionne un extrait sur la frise ou dans la bibliothèque.",
-    "es": "Selecciona un fragmento en la línea de tiempo o en la biblioteca."
   },
   "Rest day": {
     "fr": "Jour de repos",
@@ -1035,10 +919,6 @@
     "fr": "Ajouter à la file, pour le travailler juste après les autres",
     "es": "Añadir a la cola, para practicarlo justo después de los demás"
   },
-  "Practise with headphones (wired is best). Without them, the microphone picks up the video and your recordings and scores are off.": {
-    "fr": "Entraîne-toi avec un casque (filaire de préférence). Sans casque, le micro capte la vidéo et tes enregistrements et tes scores sont faussés.",
-    "es": "Practica con auriculares (mejor con cable). Sin ellos, el micrófono capta el vídeo y tus grabaciones y puntuaciones salen mal."
-  },
   "Counted for yesterday ({date}).": {
     "fr": "Comptée pour hier ({date}).",
     "es": "Contada para ayer ({date})."
@@ -1054,14 +934,6 @@
   "Undo": {
     "fr": "Annuler",
     "es": "Deshacer"
-  },
-  "New here? Start with the short session. It counts as a practice day, and you can do the full one tomorrow.": {
-    "fr": "Nouveau ici ? Commence par la séance courte. Elle compte comme un jour de pratique, et tu feras la complète demain.",
-    "es": "¿Eres nuevo? Empieza con la sesión corta. Cuenta como día de práctica y mañana podrás hacer la completa."
-  },
-  "Keep going (+{min} min)": {
-    "fr": "Prolonger (+{min} min)",
-    "es": "Alargar (+{min} min)"
   },
   "Add more passes to this step": {
     "fr": "Ajouter des passages à cette étape",
