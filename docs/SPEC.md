@@ -91,7 +91,7 @@ The guided session controls sit next to the player. On phone width the sidebar c
 ## "What sounded off" notes and AI feedback
 
 * **Note box on each recorded pass:** what sounded off, plus optional sentence and what you were aiming for.
-* **Ask AI (optional, bring your own key):** in Settings → AI, a user adds an Anthropic, OpenAI or OpenRouter key, picks a model from the provider's own list (a cheap, fast model is the default) and can test it. The server keeps the key encrypted with `KEY_ENCRYPTION_KEY` and never sends it back to the browser, which only sees the last four characters. The reply gives the likely accent feature, what to change, what to listen for, and a short issue name; if the note is too vague the model says so and asks a question. Text only; no audio is sent.
+* **Ask AI (optional, bring your own key):** in Settings → Connections, a user adds an Anthropic, OpenAI or OpenRouter key, picks a model from the provider's own list (a cheap, fast model is the default) and can test it. The server keeps the key encrypted with `KEY_ENCRYPTION_KEY` and never sends it back to the browser, which only sees the last four characters. The reply gives the likely accent feature, what to change, what to listen for, and a short issue name; if the note is too vague the model says so and asks a question. Text only; no audio is sent.
 * **Without a key:** "Copy prompt" puts the same prompt on the clipboard for any AI chat, and the reply can be pasted back.
 * **Issues list:** recurring problems from the notes, which can be ticked, renamed and merged.
 
@@ -107,7 +107,7 @@ The guided session controls sit next to the player. On phone width the sidebar c
 
 ## Reminders
 
-Per user, in Settings → Reminders, on two channels that share one schedule: a Discord webhook (with an optional Discord user id so the message pings that person) and push notifications on any device the user turns them on for, up to 10 devices ([PUSH.md](PUSH.md)). On iPhone and iPad, push works once the site is added to the Home Screen. Each user picks the time, an optional second "still time" nudge, the days, and whether to skip days already practised; reminders mention a due check-in. "Send a test" sends straight away. The reminders Worker runs every 15 minutes. Channels sit behind one interface (`server/reminders.js`), so more can be added.
+Per user, in Settings → Practice → Reminders, on two channels that share one schedule: a Discord webhook (with an optional Discord user id so the message pings that person) and push notifications on any device the user turns them on for, up to 10 devices ([PUSH.md](PUSH.md)). On iPhone and iPad, push works once the site is added to the Home Screen. Each user picks the time, an optional second "still time" nudge, the days, and whether to skip days already practised; reminders mention a due check-in. "Send a test" sends straight away. The reminders Worker runs every 15 minutes. Channels sit behind one interface (`server/reminders.js`), so more can be added.
 
 ## Accounts and admin
 

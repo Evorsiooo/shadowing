@@ -123,7 +123,7 @@ npm run dev        # http://localhost:8788
 | `src/js/00-util.js` | DOM helpers, icons, dates, toasts, modal, confetti, zip writer |
 | `src/js/10-store.js` | Storage: the server API (D1), or IndexedDB fallback; settings |
 | `src/js/15-profile.js` | Learner profile and per-language content (accents, check-in sentences and questions) |
-| `src/js/17-media.js` | Video and recording files: device storage, Google Drive sync, Settings → Storage |
+| `src/js/17-media.js` | Video and recording files: device storage, Google Drive sync, Settings → Data |
 | `src/js/20-dsp.js` | Pitch (YIN), loudness, pauses, alignment, rough measures, WAV encoder |
 | `src/js/25-mp4audio.js` | Reads the sound out of long MP4 files without loading the whole video |
 | `src/js/30-audio.js` | Decoding video sound, microphone, recording |
@@ -133,7 +133,7 @@ npm run dev        # http://localhost:8788
 | `src/js/70-session.js` | Guided session engine, pass analysis, review card |
 | `src/js/80-notes.js` | Notes, AI feedback, issues, compare, history |
 | `src/js/85-progress.js` | Streak, calendar, check-ins, measures, listener pack |
-| `src/js/87-ai.js` | Settings → AI: provider, key, model, test |
+| `src/js/87-ai.js` | Settings → Connections: provider, key, model, test |
 | `src/js/88-settings.js` | Settings, backup, account, device checks, shortcuts |
 | `src/js/89-admin.js` | Admin page |
 | `src/js/90-onboarding.js` | First-launch wizard |

@@ -127,9 +127,9 @@
     "fr": "Copie le prompt dans n’importe quel chat d’IA (Claude, ChatGPT, Gemini…), puis colle la réponse ici pour qu’elle soit enregistrée avec la note.",
     "es": "Copia el prompt en cualquier chat de IA (Claude, ChatGPT, Gemini…) y luego pega aquí la respuesta para que se guarde con la nota."
   },
-  "To get answers right here instead, add your own API key in Settings → AI.": {
-    "fr": "Pour avoir les réponses directement ici, ajoute ta propre clé API dans Réglages → IA.",
-    "es": "Para recibir las respuestas aquí mismo, añade tu propia clave de API en Ajustes → IA."
+  "To get answers right here instead, add your own API key in Settings → Connections.": {
+    "fr": "Pour avoir les réponses directement ici, ajoute ta propre clé API dans Réglages → Connexions.",
+    "es": "Para recibir las respuestas aquí mismo, añade tu propia clave de API en Ajustes → Conexiones."
   },
   "Copy prompt": {
     "fr": "Copier le prompt",
@@ -403,9 +403,9 @@
     "fr": "Les vidéos et les enregistrements sont dans ton Google Drive.",
     "es": "Los videos y las grabaciones están en tu Google Drive."
   },
-  "Videos and recordings are only in this browser until you connect Google Drive (Settings → Storage).": {
-    "fr": "Les vidéos et les enregistrements restent dans ce navigateur tant que tu n’as pas connecté Google Drive (Réglages → Stockage).",
-    "es": "Los videos y las grabaciones solo están en este navegador hasta que conectes Google Drive (Ajustes → Almacenamiento)."
+  "Videos and recordings are only in this browser until you connect Google Drive (Settings → Data).": {
+    "fr": "Les vidéos et les enregistrements restent dans ce navigateur tant que tu n’as pas connecté Google Drive (Réglages → Données).",
+    "es": "Los videos y las grabaciones solo están en este navegador hasta que conectes Google Drive (Ajustes → Datos)."
   },
   "Saved in the artifact’s database; available on every device.": {
     "fr": "Enregistré dans la base de données de l’artifact ; disponible sur tous tes appareils.",

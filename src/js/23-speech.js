@@ -1,6 +1,6 @@
 /* ---------- "words that may have been unclear": the browser's speech recognition, opt-in ----------
    Chrome's Web Speech API only listens live to the microphone and sends the audio to Google, so it runs only when the
-   learner switches it on (Settings → Sync and microphone), only during a recorded pass, and only keeps the text. */
+   learner switches it on (Settings → Advanced), only during a recorded pass, and only keeps the text. */
 const SPEECH_LANGS = { en: 'en-AU', fr: 'fr-FR', es: 'es-ES' };
 
 const Speech = {

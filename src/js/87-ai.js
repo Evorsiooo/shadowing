@@ -1,4 +1,4 @@
-/* ---------- AI feedback with your own key (Settings → AI, and the onboarding 'ai' step) ---------- */
+/* ---------- AI feedback with your own key (Settings → Connections, and the onboarding 'ai' step) ---------- */
 /* The key goes to the server once and is stored encrypted; the app only ever sees its last 4
    characters. Without a key, notes fall back to "Copy prompt for AI". */
 function aiPanel({ onboarding = false } = {}) {

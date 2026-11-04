@@ -1,6 +1,6 @@
 # Push notification reminders
 
-Reminders can go out as a notification on any device a user turns them on for (Settings → Reminders),
+Reminders can go out as a notification on any device a user turns them on for (Settings → Practice → Reminders),
 as well as, or instead of, Discord. Each channel is used when it is set up; the schedule is shared.
 
 ## How it works

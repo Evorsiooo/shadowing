@@ -239,37 +239,13 @@
     "fr": "natif",
     "es": "nativo"
   },
-  "Daily session": {
-    "fr": "Séance du jour",
-    "es": "Sesión diaria"
-  },
   "Listen: passes": {
     "fr": "Écoute : passages",
     "es": "Escucha: pasadas"
   },
-  "Listen: minutes": {
-    "fr": "Écoute : minutes",
-    "es": "Escucha: minutos"
-  },
   "Shadow: passes": {
     "fr": "Shadowing : passages",
     "es": "Shadowing: pasadas"
-  },
-  "Shadow: minutes": {
-    "fr": "Shadowing : minutes",
-    "es": "Shadowing: minutos"
-  },
-  "Record & compare: minutes": {
-    "fr": "Enregistrer et comparer : minutes",
-    "es": "Grabar y comparar: minutos"
-  },
-  "Shadow again: passes (before the final recorded pass)": {
-    "fr": "Nouveau shadowing : passages (avant le dernier passage enregistré)",
-    "es": "Shadowing de nuevo: pasadas (antes de la última pasada grabada)"
-  },
-  "Shadow again: minutes": {
-    "fr": "Nouveau shadowing : minutes",
-    "es": "Shadowing de nuevo: minutos"
   },
   "Gap between loops (seconds)": {
     "fr": "Pause entre les boucles (secondes)",
@@ -303,10 +279,6 @@
     "fr": "Durée visée : maximum (secondes)",
     "es": "Duración objetivo: máxima (segundos)"
   },
-  "Review runs": {
-    "fr": "Révisions",
-    "es": "Repasos"
-  },
   "Bring finished clips back for a shorter review run": {
     "fr": "Faire revenir les extraits terminés pour une révision plus courte",
     "es": "Volver a traer los fragmentos terminados para un repaso más corto"
@@ -319,10 +291,6 @@
     "fr": "Révision : passages de shadowing",
     "es": "Repaso: pasadas de shadowing"
   },
-  "Sync and microphone": {
-    "fr": "Synchro et micro",
-    "es": "Sincronización y micrófono"
-  },
   "Line up your recording": {
     "fr": "Caler ton enregistrement",
     "es": "Alinear tu grabación"
@@ -334,10 +302,6 @@
   "With my manual offset": {
     "fr": "Avec mon décalage manuel",
     "es": "Con mi desfase manual"
-  },
-  "Manual offset (ms); used when auto-alignment fails or is off": {
-    "fr": "Décalage manuel (ms) ; utilisé si l’alignement auto échoue ou est désactivé",
-    "es": "Desfase manual (ms); se usa si la alineación automática falla o está desactivada"
   },
   "Device delay correction (ms); subtracted from every lag": {
     "fr": "Correction du délai de l’appareil (ms) ; soustraite de chaque décalage",
@@ -355,10 +319,6 @@
     "fr": "Volume du micro automatique (recommandé)",
     "es": "Volumen automático del micrófono (recomendado)"
   },
-  "Microphone boost when automatic volume is off (×)": {
-    "fr": "Amplification du micro quand le volume auto est désactivé (×)",
-    "es": "Amplificación del micrófono con el volumen automático desactivado (×)"
-  },
   "Noise suppression": {
     "fr": "Réduction du bruit",
     "es": "Supresión de ruido"
@@ -370,14 +330,6 @@
   "Practice": {
     "fr": "Pratique",
     "es": "Práctica"
-  },
-  "Profile": {
-    "fr": "Profil",
-    "es": "Perfil"
-  },
-  "Storage": {
-    "fr": "Stockage",
-    "es": "Almacenamiento"
   },
   "AI": {
     "fr": "IA",
@@ -395,45 +347,17 @@
     "fr": "Tests de l’appareil",
     "es": "Pruebas del dispositivo"
   },
-  "Language and theme": {
-    "fr": "Langue et thème",
-    "es": "Idioma y tema"
-  },
   "Settings": {
     "fr": "Réglages",
     "es": "Ajustes"
-  },
-  "{lang} programme": {
-    "fr": "Programme de {lang}",
-    "es": "Programa de {lang}"
-  },
-  "Programme": {
-    "fr": "Programme",
-    "es": "Programa"
   },
   "Programme start date (week 0)": {
     "fr": "Date de début du programme (semaine 0)",
     "es": "Fecha de inicio del programa (semana 0)"
   },
-  "Check-ins fall due 4, 8 and 12 weeks after this date.": {
-    "fr": "Les bilans tombent 4, 8 et 12 semaines après cette date.",
-    "es": "Las evaluaciones tocan 4, 8 y 12 semanas después de esta fecha."
-  },
   "The shortest clip length must be less than the longest.": {
     "fr": "La durée minimale d’un extrait doit être inférieure à la maximale.",
     "es": "La duración mínima del fragmento debe ser menor que la máxima."
-  },
-  "Settings saved.": {
-    "fr": "Réglages enregistrés.",
-    "es": "Ajustes guardados."
-  },
-  "Save settings": {
-    "fr": "Enregistrer les réglages",
-    "es": "Guardar ajustes"
-  },
-  "Reset to defaults": {
-    "fr": "Rétablir les valeurs par défaut",
-    "es": "Restablecer valores predeterminados"
   },
   "Defaults restored.": {
     "fr": "Valeurs par défaut rétablies.",
@@ -555,9 +479,9 @@
     "fr": "Langue de l’interface",
     "es": "Idioma de la interfaz"
   },
-  "The language of the app’s buttons, messages and AI feedback. Your practice language is set in Settings → Profile.": {
-    "fr": "La langue des boutons, des messages et des retours de l’IA. La langue que tu pratiques se règle dans Réglages → Profil.",
-    "es": "El idioma de los botones, los mensajes y los comentarios de la IA. El idioma que practicas se elige en Ajustes → Perfil."
+  "The language of the app’s buttons, messages and AI feedback. Your practice language is set in Settings → You.": {
+    "fr": "La langue des boutons, des messages et des retours de l’IA. La langue que tu pratiques se règle dans Réglages → Toi.",
+    "es": "El idioma de los botones, los mensajes y los comentarios de la IA. El idioma que practicas se elige en Ajustes → Tú."
   },
   "Theme": {
     "fr": "Thème",
@@ -679,9 +603,9 @@
     "fr": "Les enregistrements et les vidéos vont dans ton Google Drive, avec une copie dans ce navigateur pour une lecture rapide.",
     "es": "Las grabaciones y los videos se guardan en tu Google Drive, con una copia en este navegador para reproducirlos rápido."
   },
-  "Recordings and videos are only in this browser. Connect Google Drive in Settings → Storage to keep them safe and on your other devices.": {
-    "fr": "Les enregistrements et les vidéos sont seulement dans ce navigateur. Connecte Google Drive dans Réglages → Stockage pour les mettre à l’abri et les retrouver sur tes autres appareils.",
-    "es": "Las grabaciones y los videos solo están en este navegador. Conecta Google Drive en Ajustes → Almacenamiento para tenerlos a salvo y en tus otros dispositivos."
+  "Recordings and videos are only in this browser. Connect Google Drive in Settings → Data to keep them safe and on your other devices.": {
+    "fr": "Les enregistrements et les vidéos sont seulement dans ce navigateur. Connecte Google Drive dans Réglages → Données pour les mettre à l’abri et les retrouver sur tes autres appareils.",
+    "es": "Las grabaciones y los videos solo están en este navegador. Conecta Google Drive en Ajustes → Datos para tenerlos a salvo y en tus otros dispositivos."
   },
   "File storage works. {used} of {max} MB used, {files}/{maxFiles} files; 20 MB per recording maximum (about {mins} more minutes of recordings at typical quality).": {
     "fr": "Le stockage de fichiers fonctionne. {used} Mo utilisés sur {max}, {files}/{maxFiles} fichiers ; 20 Mo maximum par enregistrement (environ {mins} minutes d’enregistrement en plus en qualité normale).",
@@ -723,17 +647,17 @@
     "fr": "L’appli peut lire le son de « {title} », mais doit télécharger tout le fichier à chaque visite ({secs} s ici){why}.",
     "es": "La app puede leer el sonido de “{title}”, pero tiene que descargar el archivo completo en cada visita ({secs} s aquí){why}."
   },
-  "No AI key saved, so notes offer “Copy prompt for AI”. Add a key in Settings → AI to get answers in the app.": {
-    "fr": "Aucune clé d’IA enregistrée, donc les notes proposent « Copier le prompt pour l’IA ». Ajoute une clé dans Réglages → IA pour avoir les réponses dans l’appli.",
-    "es": "No hay ninguna clave de IA guardada, así que las notas ofrecen “Copiar prompt para la IA”. Añade una clave en Ajustes → IA para recibir las respuestas en la app."
+  "No AI key saved, so notes offer “Copy prompt for AI”. Add a key in Settings → Connections to get answers in the app.": {
+    "fr": "Aucune clé d’IA enregistrée, donc les notes proposent « Copier le prompt pour l’IA ». Ajoute une clé dans Réglages → Connexions pour avoir les réponses dans l’appli.",
+    "es": "No hay ninguna clave de IA guardada, así que las notas ofrecen “Copiar prompt para la IA”. Añade una clave en Ajustes → Conexiones para recibir las respuestas en la app."
   },
   "{provider} answered with {model} in {secs} s.": {
     "fr": "{provider} a répondu avec {model} en {secs} s.",
     "es": "{provider} respondió con {model} en {secs} s."
   },
-  "The model answered in an unexpected format. Try another model in Settings → AI.": {
-    "fr": "Le modèle a répondu dans un format inattendu. Essaie un autre modèle dans Réglages → IA.",
-    "es": "El modelo respondió con un formato inesperado. Prueba otro modelo en Ajustes → IA."
+  "The model answered in an unexpected format. Try another model in Settings → Connections.": {
+    "fr": "Le modèle a répondu dans un format inattendu. Essaie un autre modèle dans Réglages → Connexions.",
+    "es": "El modelo respondió con un formato inesperado. Prueba otro modelo en Ajustes → Conexiones."
   },
   "Claude access isn’t available in this view.": {
     "fr": "L’accès à Claude n’est pas disponible dans cette vue.",
@@ -1223,9 +1147,9 @@
     "fr": "Bienvenue sur Euno Shadowing",
     "es": "Te damos la bienvenida a Euno Shadowing"
   },
-  "A few quick questions to set things up. You can change any answer later in Settings → Profile.": {
-    "fr": "Quelques questions rapides pour tout préparer. Tu pourras changer tes réponses plus tard dans Réglages → Profil.",
-    "es": "Unas preguntas rápidas para prepararlo todo. Puedes cambiar cualquier respuesta más tarde en Ajustes → Perfil."
+  "A few quick questions to set things up. You can change any answer later in Settings → You.": {
+    "fr": "Quelques questions rapides pour tout préparer. Tu pourras changer tes réponses plus tard dans Réglages → Toi.",
+    "es": "Unas preguntas rápidas para prepararlo todo. Puedes cambiar cualquier respuesta más tarde en Ajustes → Tú."
   },
   "Tell us what to call you.": {
     "fr": "Dis-nous comment t’appeler.",
@@ -1363,9 +1287,9 @@
     "fr": "Lance-le quand tu veux depuis Bilans dans la barre du haut.",
     "es": "Empiézalo cuando quieras desde Evaluaciones en la barra superior."
   },
-  "No key? Skip this step: notes give you a prompt to paste into any AI chat instead. You can add a key later in Settings → AI.": {
-    "fr": "Pas de clé ? Passe cette étape : les notes te donnent à la place un prompt à coller dans n’importe quel chat d’IA. Tu pourras ajouter une clé plus tard dans Réglages → IA.",
-    "es": "¿No tienes clave? Sáltate este paso: las notas te darán un prompt para pegar en cualquier chat de IA. Puedes añadir una clave más tarde en Ajustes → IA."
+  "No key? Skip this step: notes give you a prompt to paste into any AI chat instead. You can add a key later in Settings → Connections.": {
+    "fr": "Pas de clé ? Passe cette étape : les notes te donnent à la place un prompt à coller dans n’importe quel chat d’IA. Tu pourras ajouter une clé plus tard dans Réglages → Connexions.",
+    "es": "¿No tienes clave? Sáltate este paso: las notas te darán un prompt para pegar en cualquier chat de IA. Puedes añadir una clave más tarde en Ajustes → Conexiones."
   },
   "Step {i} of {n}": {
     "fr": "Étape {i} sur {n}",
@@ -1599,10 +1523,6 @@
     "fr": "Non",
     "es": "No"
   },
-  "Fit the number of passes to the clip length, so each step lasts about its minutes (the pass counts below are then ignored)": {
-    "fr": "Adapter le nombre de passages à la longueur de l’extrait, pour que chaque étape dure à peu près ses minutes (les nombres de passages ci-dessous sont alors ignorés)",
-    "es": "Ajustar el número de pasadas a la duración del fragmento, para que cada paso dure más o menos sus minutos (los números de pasadas de abajo se ignoran)"
-  },
   "Speed of the first shadow passes": {
     "fr": "Vitesse des premiers passages de shadowing",
     "es": "Velocidad de las primeras pasadas de shadowing"
@@ -1658,5 +1578,105 @@
   "Mark words that may have been unclear after a recorded pass, using the browser’s speech recognition (Chrome only; your voice is sent to Google while it runs)": {
     "fr": "Marquer les mots peut-être peu clairs après une passe enregistrée, avec la reconnaissance vocale du navigateur (Chrome seulement ; ta voix est envoyée à Google pendant son fonctionnement)",
     "es": "Marcar las palabras que quizá no se entendieron tras una pasada grabada, con el reconocimiento de voz del navegador (solo Chrome; tu voz se envía a Google mientras funciona)"
+  },
+  "Connections": {
+    "fr": "Connexions",
+    "es": "Conexiones"
+  },
+  "Advanced": {
+    "fr": "Avancé",
+    "es": "Avanzado"
+  },
+  "Passes": {
+    "fr": "Passes",
+    "es": "Pasadas"
+  },
+  "Your routine": {
+    "fr": "Ta routine",
+    "es": "Tu rutina"
+  },
+  "How often you practise and when your check-ins fall due.": {
+    "fr": "À quelle fréquence tu t’entraînes et quand tes bilans arrivent.",
+    "es": "Con qué frecuencia practicas y cuándo toca cada revisión."
+  },
+  "{lang} programme start date (week 0)": {
+    "fr": "Date de début du programme {lang} (semaine 0)",
+    "es": "Fecha de inicio del programa de {lang} (semana 0)"
+  },
+  "Check-ins fall due 4, 8 and 12 weeks after the start date.": {
+    "fr": "Les bilans arrivent 4, 8 et 12 semaines après la date de début.",
+    "es": "Las revisiones tocan 4, 8 y 12 semanas después de la fecha de inicio."
+  },
+  "Session length": {
+    "fr": "Durée de la séance",
+    "es": "Duración de la sesión"
+  },
+  "Each step lasts about its minutes. Turn this on to let the clip length decide how many passes fit.": {
+    "fr": "Chaque étape dure à peu près son nombre de minutes. Active cette option pour que la longueur de l’extrait décide du nombre de passes.",
+    "es": "Cada paso dura más o menos sus minutos. Actívalo para que la duración del fragmento decida cuántas pasadas caben."
+  },
+  "Fit the number of passes to the clip length": {
+    "fr": "Adapter le nombre de passes à la longueur de l’extrait",
+    "es": "Ajustar el número de pasadas a la duración del fragmento"
+  },
+  "Fine-tune passes and minutes": {
+    "fr": "Régler les passes et les minutes",
+    "es": "Ajustar pasadas y minutos"
+  },
+  "Pass counts are set by the clip length while the option above is on.": {
+    "fr": "Le nombre de passes dépend de la longueur de l’extrait tant que l’option ci-dessus est activée.",
+    "es": "El número de pasadas depende de la duración del fragmento mientras la opción de arriba esté activa."
+  },
+  "A shorter session for days when you have little energy.": {
+    "fr": "Une séance plus courte pour les jours où tu as peu d’énergie.",
+    "es": "Una sesión más corta para los días con poca energía."
+  },
+  "Clips and review": {
+    "fr": "Extraits et révision",
+    "es": "Fragmentos y repaso"
+  },
+  "How long clips should be, and whether finished clips come back.": {
+    "fr": "La longueur visée des extraits, et si les extraits terminés reviennent.",
+    "es": "Cuánto deben durar los fragmentos y si los terminados vuelven."
+  },
+  "Recording": {
+    "fr": "Enregistrement",
+    "es": "Grabación"
+  },
+  "How your microphone is set up. More options are under Advanced.": {
+    "fr": "Réglage de ton micro. D’autres options sont dans Avancé.",
+    "es": "Cómo se configura tu micrófono. Hay más opciones en Avanzado."
+  },
+  "Microphone boost (×)": {
+    "fr": "Amplification du micro (×)",
+    "es": "Refuerzo del micrófono (×)"
+  },
+  "Notes that build from the sounds that keep differing from the speaker.": {
+    "fr": "Des notes qui se construisent à partir des sons qui diffèrent encore du locuteur.",
+    "es": "Notas que se crean a partir de los sonidos que siguen difiriendo del hablante."
+  },
+  "Reset practice settings to defaults": {
+    "fr": "Rétablir les réglages d’entraînement par défaut",
+    "es": "Restablecer los ajustes de práctica"
+  },
+  "How your recording is matched to the speaker. The automatic setting works for most people.": {
+    "fr": "Comment ton enregistrement est aligné sur le locuteur. Le réglage automatique convient à la plupart des gens.",
+    "es": "Cómo se alinea tu grabación con el hablante. El ajuste automático sirve para la mayoría."
+  },
+  "Manual offset (ms)": {
+    "fr": "Décalage manuel (ms)",
+    "es": "Desfase manual (ms)"
+  },
+  "Pitch and speech": {
+    "fr": "Hauteur et parole",
+    "es": "Tono y habla"
+  },
+  "AI feedback": {
+    "fr": "Retour de l’IA",
+    "es": "Comentarios de la IA"
+  },
+  "Your own key, kept encrypted on the server. Used only when you ask for feedback.": {
+    "fr": "Ta propre clé, chiffrée sur le serveur. Utilisée seulement quand tu demandes un retour.",
+    "es": "Tu propia clave, cifrada en el servidor. Solo se usa cuando pides comentarios."
   }
 }
