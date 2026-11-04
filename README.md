@@ -114,7 +114,7 @@ npm run dev        # http://localhost:8788
 | `workers/reminders/` | The reminders Worker (Durable Object alarm scheduler) |
 | `scripts/setup.mjs` | One-shot Cloudflare setup (database, migrations, secrets) |
 | `scripts/build.mjs` | Builds the app (`dist/app/index.html` plus its hashed script and styles in `dist/assets/h/`), the public site pages, `robots.txt`, `sitemap.xml`, `llms.txt`, the web manifest and `_headers` |
-| `src/euno/` | Euno, the mascot: his definition (`euno.avatar.json`) and the animation engine he runs on (`engine/`, AGPL-3.0, see `engine/NOTICE.md`) |
+| `src/euno/` | Euno, the mascot: his definition (`euno.avatar.json`) and the animation engine he runs on (`engine/`, copied from the Bible Strong avatar lab with its own `LICENSE`) |
 | `scripts/make-icons.mjs` | Redraws the favicons, app icons and the server pages' Euno from his definition |
 | `src/fonts/` | Rubik and Nunito (Latin subsets, woff2) and their SIL Open Font Licences |
 | `src/site/` | Public site: page content and SEO data (`pages.mjs`), styles, the sign-in/contact script and icons. The canonical URL and sign-in link are in `SITE` at the top of `pages.mjs`. |
