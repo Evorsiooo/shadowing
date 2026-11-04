@@ -65,15 +65,15 @@ async function handle(m, ctx) {
 const INSTRUCTIONS = `Euno Shadowing: the user's accent practice by shadowing (repeating a speaker a fraction of a second behind).
 This server is read-only and shows only the signed-in user's own data, stored as JSON records in collections: ${COLLECTIONS.join(', ')}.
 - videos {title, url, speaker, archived, added}
-- clips {videoId, start, end, label, sentence?, done, doneAt, archived, noisy, model{...pitch and timing measures}}
+- clips {videoId, start, end, label, sentence?, done, doneAt, archived, noisy, model{...pitch and timing measures}, words? [{w, s, e}] (the speaker's words, seconds from the clip start), speakerPhones? (the speaker's sounds)}
 - sessions {date, clipId, videoId, mode: full|badday|review, stepsCompleted[], passes[{step, n, lag, recorded, recId}], minutes, complete}
-- recordings {kind: pass|checkin, sessionId?, clipId?, step?, slot?, week?, task?, lag, score, analysis, measures} (the audio itself stays on the user's device and Google Drive)
+- recordings {kind: pass|checkin, sessionId?, clipId?, step?, slot?, week?, task?, lag, score, analysis, measures, phones? (sound differences found right after the pass), takeAnalysis? (the learner's sounds and every difference from the speaker)} (the audio itself stays on the user's device and Google Drive)
 - notes {clipId, sessionId, sentence, off (what sounded off), aim, reply (AI feedback), issueId, date}
 - issues {name, noteIds[], status: open|fixed, lastSeen, mergedInto?}
 - checkins {week: 0|4|8|12, date, recs, questions[], measures}
 - meta: settings (routine settings and target accent profile), app, voice; pron (sound-level history) and prosody (timing/pitch/stress history), best read through get_pronunciation_progress
 Lag is in seconds (positive = behind the speaker). Pitch lines ("st") are semitones relative to the speaker's own median, at 10 ms hops.
-Start with get_overview. Use get_pronunciation_progress for how the learner's pronunciation differences are changing over time. Use search to find notes, issues, clips and videos by text.`;
+Start with get_overview. Use get_clip_pronunciation for the speaker's and the learner's sounds and words per clip and per take. Use get_pronunciation_progress for how the learner's pronunciation differences are changing over time. Use search to find notes, issues, clips and videos by text.`;
 
 const colProp = { type: 'string', enum: COLLECTIONS, description: 'Collection name' };
 
@@ -93,6 +93,20 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     annotations: { title: 'Pronunciation progress', ...READ_ONLY },
     run: async (_a, { env, user }) => pronunciationProgress(await allDocs(env.DB, user.userId)),
+  },
+  {
+    name: 'get_clip_pronunciation',
+    title: 'Clip pronunciation (speaker and takes)',
+    description: 'Everything saved about how one clip sounds: the speaker’s sounds (IPA, with times) and words, and for each of the learner’s recorded takes the sounds a speech recogniser heard, the differences from the speaker and the old summary. English only; always compared with the speaker’s audio, never a transcript. Without clipId it lists the clips and what is saved for each. Pass detail=true for every sound with its time and confidence.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        clipId: { type: 'string', description: 'A clip id from get_overview, list_records or this tool’s own listing. Leave out to list clips.' },
+        detail: { type: 'boolean', default: false, description: 'Include each sound with start/end seconds and confidence (long).' },
+      },
+    },
+    annotations: { title: 'Clip pronunciation', ...READ_ONLY },
+    run: async (a, { env, user }) => clipPronunciation(await allDocs(env.DB, user.userId), a.clipId, !!a.detail),
   },
   {
     name: 'list_records',
@@ -264,7 +278,11 @@ function pronunciationSummary(data, today = dayKey()) {
   if (!pron || !pron.tally) return { enabled: false };
   const states = { active: 0, easing: 0, archived: 0 };
   for (const [pair, e] of Object.entries(pron.tally)) if (!(pron.blocked || []).includes(pair)) states[e.state || 'active']++;
-  return { enabled: true, trackedSounds: states.active + states.easing + states.archived, ...states, details: 'get_pronunciation_progress' };
+  const clips = Object.values(data.clips).filter((c) => !c.archived), recs = Object.values(data.recordings);
+  return {
+    enabled: true, trackedSounds: states.active + states.easing + states.archived, ...states, details: 'get_pronunciation_progress',
+    clipsWithSpeakerSounds: clips.filter((c) => c.speakerPhones && c.speakerPhones.seq).length, takesCompared: recs.filter((r) => r.takeAnalysis || (r.phones && r.phones.diffs)).length, perClip: 'get_clip_pronunciation',
+  };
 }
 export function pronunciationProgress(data, today = dayKey()) {
   const pron = data.meta.pron, prosody = data.meta.prosody;
@@ -294,5 +312,65 @@ export function pronunciationProgress(data, today = dayKey()) {
     pairs,
     timingPitchStress: timing,
     dismissedByLearner: blocked,
+  };
+}
+
+/* ---- per clip: the speaker's sounds and words, and every take's sounds and differences (saved by src/js/27-prepare.js and 24-pron.js) ---- */
+const r2 = (x) => Math.round(x * 100) / 100;
+const ipa = (phones) => phones.map((p) => p.sym).join(' ');
+function phoneRows(phones, detail) { return detail ? phones.map((p) => ({ sound: p.sym, from: r2(p.t0), to: r2(p.t1), confidence: r2(p.conf) })) : undefined; }
+function wordOfTime(clip, t) { const w = (clip.words || []).find((x) => t >= x.s && t < x.e); return w ? w.w : null; }
+function takeInfo(rec, clip, data, detail) {
+  const a = rec.takeAnalysis, session = data.sessions[rec.sessionId];
+  const out = { recordingId: rec.id, sessionId: rec.sessionId || null, date: (session && session.date) || (rec.created || '').slice(0, 10) || null, step: rec.step || null, slot: rec.slot || null, pass: rec.pass || null, lagSeconds: rec.lag != null ? rec.lag : null };
+  if (a) {
+    const shown = new Set(a.suggested || []);
+    const learner = a.learner || { phones: [] };
+    out.comparison = {
+      status: a.status, // ok | learner-low-quality | speaker-low-quality | nothing-found
+      stillMatchesClip: a.clipStart === clip.start && a.clipEnd === clip.end,
+      comparedAt: a.at, model: a.model,
+      learnerSounds: ipa(learner.phones), learnerSoundsDetail: phoneRows(learner.phones, detail),
+      overlap: a.stats ? { speakerSounds: a.stats.speakerPhones, learnerSounds: a.stats.learnerPhones, agreement: r2(a.stats.agreement), substituted: a.stats.subs, leftOut: a.stats.dels, added: a.stats.inss } : undefined,
+      differences: (a.diffs || []).map((d) => ({
+        kind: d.kind === 'sub' ? 'replaced' : d.kind === 'del' ? 'left out' : 'added', speakerSound: d.speaker ? d.speaker.sym : null, learnerSound: d.learner ? d.learner.sym : null,
+        atSeconds: r2(d.t0), word: wordOfTime(clip, d.t0), confidence: r2(d.confidence), likelyNoise: !!d.weak, shownToLearner: shown.has(d.id),
+      })),
+    };
+  } else if (rec.phones && Array.isArray(rec.phones.diffs)) {
+    out.comparison = { note: 'Older take: only the short summary of replaced sounds was saved, not the full sequences.', differences: rec.phones.diffs.map((d) => ({ kind: 'replaced', speakerSound: d.from, learnerSound: d.to, atSeconds: d.a, word: d.words || null, confidence: d.conf, speakerSoundsInWord: d.speaker, learnerSoundsInWord: d.you })) };
+  }
+  return out;
+}
+export function clipPronunciation(data, clipId, detail = false) {
+  const recs = Object.values(data.recordings).filter((r) => r.kind === 'pass' && r.clipId);
+  const byClip = new Map();
+  for (const r of recs) (byClip.get(r.clipId) || byClip.set(r.clipId, []).get(r.clipId)).push(r);
+  if (!clipId) {
+    return {
+      note: 'Pass clipId to get the sounds and differences. English only; compared with the speaker’s audio, never a transcript.',
+      clips: Object.values(data.clips).filter((c) => !c.archived).map((c) => {
+        const takes = byClip.get(c.id) || [];
+        return { id: c.id, label: c.label || c.sentence || null, speakerSoundsSaved: !!(c.speakerPhones && c.speakerPhones.seq), speakerWordsSaved: !!(c.words && c.words.length), takes: takes.length, takesCompared: takes.filter((r) => r.takeAnalysis || (r.phones && r.phones.diffs)).length };
+      }),
+    };
+  }
+  if (!validId(clipId) || !data.clips[clipId]) throw new Error('Unknown clip id.');
+  const clip = data.clips[clipId], sp = clip.speakerPhones, video = data.videos[clip.videoId];
+  const seq = sp && sp.seq;
+  const timing = clip.wordsFor && clip.wordsFor.timing;
+  const words = (clip.words || []).map((w) => {
+    const mine = seq && timing !== 'phrase' ? seq.phones.filter((p) => (p.t0 + p.t1) / 2 >= w.s && (p.t0 + p.t1) / 2 < w.e) : null;
+    return { text: w.w, from: r2(w.s), to: r2(w.e), speakerSounds: mine ? ipa(mine) : undefined };
+  });
+  const takes = (byClip.get(clipId) || []).sort((x, y) => (String(x.created || '') < String(y.created || '') ? -1 : 1)).map((r) => takeInfo(r, clip, data, detail));
+  return {
+    note: 'Sounds are IPA from a speech recogniser that is about 90% right per sound, so treat differences as evidence, not fact, and say "may". English only. Every take is compared with the speaker’s audio, never a transcript; there is no written text for the learner, only sounds. Word labels come from a separate speech recogniser (Whisper) and can be wrong or have been fixed by the learner. Times are seconds from the clip start.',
+    clip: { id: clip.id, label: clip.label || null, sentence: clip.sentence || null, videoTitle: video ? video.title : null, speaker: video ? video.speaker || null : null, startInVideo: clip.start, endInVideo: clip.end },
+    speaker: {
+      sounds: seq ? { saved: true, model: sp.model, preparedAt: sp.at, ipa: ipa(seq.phones), detail: phoneRows(seq.phones, detail), stillMatchesClip: sp.start === clip.start && sp.end === clip.end, quality: seq.quality ? seq.quality.level : undefined } : { saved: false },
+      words: words.length ? { saved: true, model: clip.wordsFor ? clip.wordsFor.model || null : null, timing: timing || null, items: words, text: words.map((w) => w.text).join(' ') } : { saved: false },
+    },
+    takes,
   };
 }

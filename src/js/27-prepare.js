@@ -19,6 +19,22 @@ const Prep = (() => {
   function compact(seq) {
     return { ...seq, frameSec: r3(seq.frameSec), durationSec: r3(seq.durationSec), phones: seq.phones.map((p) => ({ ...p, t0: r3(p.t0), t1: r3(p.t1), ...(p.conf != null ? { conf: Math.round(p.conf * 100) / 100 } : {}) })), words: seq.words.map((w) => ({ ...w, t0: r3(w.t0), t1: r3(w.t1) })) };
   }
+  /* the learner's side of one take, kept on its recording (a synced document) so nothing has to be read twice and an AI app can read it (server/mcp.js):
+     recording.takeAnalysis = { v, model, clipStart, clipEnd, speakerFp, status, learner: PhoneSequence, diffs: PhoneDiff[], stats, suggested, at }
+     speakerFp = fingerprint of the speaker's audio it was compared with; the take is only reused while the clip's range, the model and that fingerprint are unchanged. */
+  function takeSeq(seq) { const { timingsMs, external, ...rest } = seq; return compact(rest); }
+  function saveTake(recId, clip, r, speakerFp) {
+    if (!recId || !r || !r.learner || !r.comparison) return;
+    const d2 = (x) => Math.round(x * 100) / 100, side = (x) => (x ? { ...x, t0: r3(x.t0), t1: r3(x.t1), conf: d2(x.conf) } : x);
+    const diffs = r.comparison.diffs.map((d) => ({ ...d, speaker: side(d.speaker), learner: side(d.learner), t0: r3(d.t0), t1: r3(d.t1), learnerT0: r3(d.learnerT0), learnerT1: r3(d.learnerT1), distance: d2(d.distance), confidence: d2(d.confidence) }));
+    Store.patch('recordings', recId, { takeAnalysis: { v: 1, model: r.learner.model, clipStart: clip.start, clipEnd: clip.end, speakerFp: speakerFp || null, status: r.status, learner: takeSeq(r.learner), diffs, stats: r.comparison.stats, suggested: r.suggested || [], at: iso() } });
+  }
+  /* a saved comparison for this take, as the engine's ClipResult (without the alignment steps), or null when it no longer fits */
+  function savedTake(recId, clip, speakerSeqNow) {
+    const rec = recId && Store.get('recordings', recId), a = rec && rec.takeAnalysis;
+    if (!a || !speakerSeqNow || a.model !== Phones.MODEL_ID || a.clipStart !== clip.start || a.clipEnd !== clip.end || !a.speakerFp || a.speakerFp !== speakerSeqNow.fp) return null;
+    return { v: 1, key: 'saved', createdAt: Date.parse(a.at) || 0, speaker: speakerSeqNow.seq, learner: a.learner, comparison: { v: 1, ops: [], diffs: a.diffs, stats: a.stats }, status: a.status, suggested: a.suggested };
+  }
   const phonesOn = () => typeof Phones !== 'undefined' && Pron.on() && PhonesAdapter.ready();
   const wordsOn = (c) => typeof Words !== 'undefined' && Heavy.isOn('words') && Words.supported().ok && !c.wordsFor;
   const fresh = (c) => Store.get('clips', c.id) || c;
@@ -89,5 +105,5 @@ const Prep = (() => {
     setTimeout(() => { ensure(clip, { background: true }).catch((e) => console.info('preparing the clip skipped:', Pron.reason(e))); }, 2500);
   }
 
-  return { ensure, around, schedule, speakerSeq, compact };
+  return { ensure, around, schedule, speakerSeq, compact, saveTake, savedTake };
 })();

@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 
 const read = (f) => readFileSync(new URL('../src/js/' + f, import.meta.url), 'utf8');
 const store = new Map();
+const recordings = { r1: { id: 'r1' } };
 const clips = { c1: { id: 'c1', videoId: 'v1', start: 1, end: 5 } };
 const calls = { transcribe: 0, words: 0, load: 0 };
 const ctx = {
@@ -14,7 +15,7 @@ const ctx = {
   addEventListener() {}, t: (s) => s,
   lsGet: (k, d) => { const v = store.get('s:' + k); return v == null ? d : JSON.parse(v); }, lsSet: (k, v) => store.set('s:' + k, JSON.stringify(v)),
   targetLang: () => 'en',
-  Store: { get: (c, id) => ({ clips }[c] || {})[id], patch: (c, id, f) => Object.assign(clips[id], f) },
+  Store: { get: (c, id) => ({ clips, recordings }[c] || {})[id], patch: (c, id, f) => Object.assign(({ clips, recordings }[c])[id], f) },
   VideoAudio: { slice: () => new Float32Array(16000 * 4), ensure: async () => ({ status: 'ready' }) },
   Pron: { on: () => true, reason: (e) => String(e && e.message) },
   PhonesAdapter: { ready: () => true },
@@ -74,5 +75,17 @@ await test('background work waits for playback; an urgent request for the same c
   await Prep.ensure(clips.c1); // urgent: same run, no longer yields
   assert.equal(calls.transcribe, 1); await bg;
   playing = false;
+});
+await test('a take\'s comparison is saved on its recording and reused only while it fits', async () => {
+  const ph = (sym, t0) => ({ sym, t0, t1: t0 + 0.1234, conf: 0.9, word: 0 });
+  const res = { learner: { model: 'm1', phones: [ph('s', 0.12345)], words: [], frameSec: 0.04, durationSec: 4, timingsMs: {}, external: {} }, comparison: { diffs: [{ id: 'sub:0:0', kind: 'sub', pair: 'θ→s', speaker: { i: 0, sym: 'θ', t0: 0.1, t1: 0.2, conf: 0.912 }, learner: { i: 0, sym: 's', t0: 0.1, t1: 0.2, conf: 0.9 }, t0: 0.1, t1: 0.2, learnerT0: 0.1, learnerT1: 0.2, distance: 0.456, confidence: 0.8765, weak: false }], ops: [{ op: 'sub' }], stats: { subs: 1 } }, status: 'ok', suggested: ['sub:0:0'] };
+  Prep.saveTake('r1', clips.c1, res, 'fp1');
+  const a = recordings.r1.takeAnalysis;
+  assert.equal(a.learner.phones[0].t0, 0.123); assert.equal(a.learner.timingsMs, undefined); assert.equal(a.diffs[0].confidence, 0.88); assert.equal(a.speakerFp, 'fp1');
+  const given = { fp: 'fp1', seq: { phones: [] } };
+  assert.equal(Prep.savedTake('r1', clips.c1, given).suggested[0], 'sub:0:0');
+  assert.equal(Prep.savedTake('r1', clips.c1, { ...given, fp: 'other' }), null);
+  assert.equal(Prep.savedTake('r1', { ...clips.c1, end: 9 }, given), null);
+  assert.equal(Prep.savedTake('nope', clips.c1, given), null);
 });
 console.log(`${n} passed`);
