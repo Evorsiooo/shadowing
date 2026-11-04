@@ -129,6 +129,12 @@ function buildPronView(clip) {
       }
       return;
     }
+    // words are on but this clip has none yet: wait for them instead of showing the sounds twice (once without words, then again with)
+    const cw = Store.get('clips', clip.id) || clip;
+    if (Heavy.isOn('words') && Words.supported().ok && !cw.wordsFor && !wordsFailed.has(cw.id)) {
+      if (!Words.isRunning(cw.id)) setTimeout(() => { if (root.isConnected && !Words.isRunning(cw.id)) startWords(cw); });
+      return mount(root, pvMsg(t('Reading the words…'), t('The sounds are ready. The words come first so both line up.'), wordsProgress()));
+    }
     mount(root, renderResult(clip, res, take));
   }
 
@@ -150,7 +156,7 @@ function buildPronView(clip) {
     const has = clip.words && clip.words.length;
     if (has) {
       return h('div', { class: 'pv-words small muted' },
-        clip.wordsFor && clip.wordsFor.timing === 'phrase' ? h('span', null, t('The words are placed roughly: this device couldn’t time each word.')) : null,
+        clip.wordsFor && clip.wordsFor.timing === 'phrase' ? h('span', null, t('This device couldn’t time each word, so the words aren’t placed on the sounds.')) : null,
         h('span', null, t('Words are read automatically and can be wrong.')),
         btn(t('Fix words'), () => openWordsEditor(clip, () => { relabel(clip); if (root.isConnected) fill(); }), { size: 'sm', kind: 'ghost' }));
     }

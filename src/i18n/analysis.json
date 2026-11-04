@@ -342,5 +342,9 @@
   "Reading your recording…": {
     "fr": "Lecture de votre enregistrement…",
     "es": "Leyendo tu grabación…"
+  },
+  "The sounds are ready. The words come first so both line up.": {
+    "fr": "Les sons sont prêts. Les mots viennent d’abord pour que les deux s’alignent.",
+    "es": "Los sonidos están listos. Primero las palabras, para que ambos coincidan."
   }
 }
