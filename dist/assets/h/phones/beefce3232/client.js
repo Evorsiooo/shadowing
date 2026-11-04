@@ -7,14 +7,14 @@ const Phones = (() => {
   const MODEL_ID = 'zipa-small-crctc-300k-int8';
   const CREDIT = 'Pronunciation model: ZIPA (Jian Zhu et al., ACL 2025), CC BY 4.0, run on your device with ONNX Runtime Web (MIT).';
   const CACHE = 'euno-phones-model-v1';
-  const WORKER_URL = '/assets/h/phones/eea049d406/worker.js';
-  const WASM_BASE = '/assets/h/phones/eea049d406/';
+  const WORKER_URL = '/assets/h/phones/beefce3232/worker.js';
+  const WASM_BASE = '/assets/h/phones/beefce3232/';
   // used only if the file listing can't be read; the listing is the first choice
   const FALLBACK_FILES = ['exp/model.int8.onnx', 'model.int8.onnx', 'onnx/model.int8.onnx'];
   const SLOW = { minMs: 8000, perAudio: 1.5, hardMinMs: 120000, hardPerAudio: 8 };
   const state = { state: 'not-downloaded', progress: 0, bytes: 0, slow: false, credit: CREDIT, error: undefined };
   const listeners = new Set();
-  let worker = null, loading = null, seq = 0;
+  let worker = null, loading = null, seq = 0, lastRun = null;
   const pending = new Map();
 
   const emit = (patch) => { Object.assign(state, patch, { at: Date.now() }); /* `at`: when the state last changed, so the UI can tell a stalled download */ const s = { ...state }; listeners.forEach((f) => { try { f(s); } catch { /* a listener must not break the engine */ } }); };
@@ -102,10 +102,10 @@ const Phones = (() => {
     return downloading;
   }
 
-  function post(msg, transfer) {
+  function post(msg, transfer, onProgress) {
     return new Promise((resolve, reject) => {
       const id = ++seq;
-      pending.set(id, { resolve, reject });
+      pending.set(id, { resolve, reject, onProgress });
       worker.postMessage({ ...msg, id }, transfer || []);
     });
   }
@@ -114,6 +114,7 @@ const Phones = (() => {
     worker.onmessage = (ev) => {
       const p = pending.get(ev.data.id);
       if (!p) return;
+      if (ev.data.progress) { if (p.onProgress) p.onProgress(ev.data.done, ev.data.total); return; }
       pending.delete(ev.data.id);
       ev.data.ok ? p.resolve(ev.data) : p.reject(fail(ev.data.code || 'load-failed', ev.data.message));
     };
@@ -152,7 +153,10 @@ const Phones = (() => {
     return loading;
   }
 
+  /* opts: originSec, external, onProgress(doneSec, totalSec), cache (keep the speaker's sounds per clip: they never change) */
   async function transcribe(samples, opts = {}) {
+    const ckey = opts.cache && !opts.external ? `${MODEL_ID}|seq|${fingerprint(samples)}` : null;
+    if (ckey) { const hit = await getResult(ckey); if (hit && hit.seq) { if (opts.onProgress) opts.onProgress(1, 1); return hit.seq; } }
     await load();
     const dur = samples.length / 16000;
     const copy = samples.slice(); // the worker takes ownership of its copy; the caller keeps theirs
@@ -161,8 +165,9 @@ const Phones = (() => {
     let timer;
     const timeout = new Promise((_, rej) => { timer = setTimeout(() => { stopWorker(fail('too-slow', 'The pronunciation check took too long on this device.')); rej(fail('too-slow', 'The pronunciation check took too long on this device.')); }, hard); });
     try {
-      const r = await Promise.race([post({ type: 'transcribe', samples: copy, originSec: opts.originSec || 0, external: opts.external }, [copy.buffer]), timeout]);
+      const r = await Promise.race([post({ type: 'transcribe', samples: copy, originSec: opts.originSec || 0, external: opts.external }, [copy.buffer], opts.onProgress), timeout]);
       const ms = performance.now() - t0;
+      if (ckey) putResult(ckey, { v: 1, key: ckey, createdAt: Date.now(), seq: r.seq });
       if (ms > Math.max(SLOW.minMs, SLOW.perAudio * dur * 1000)) emit({ slow: true });
       return r.seq;
     } finally { clearTimeout(timer); }
@@ -204,13 +209,39 @@ const Phones = (() => {
     return `${samples.length}.${h.toString(36)}`;
   }
 
-  async function analyse(speaker, learner, opts = {}) {
+  /* opts.onProgress({ fraction 0..1, step, steps, stage: 'speaker'|'take'|'compare', cachedSpeaker }) counts the audio read so far (the model works in chunks of up to 20 s, so a short clip moves in one or two jumps).
+     The same take asked for twice (review card and tab) shares one run. */
+  const running = new Map();
+  function analyse(speaker, learner, opts = {}) {
     const key = `${MODEL_ID}|${fingerprint(speaker)}|${fingerprint(learner)}`;
+    let r = running.get(key);
+    if (!r) {
+      r = { subs: new Set(), last: null };
+      r.promise = analyseNow(key, speaker, learner, opts, (p) => { r.last = p; r.subs.forEach((f) => { try { f(p); } catch { /* a listener must not break the engine */ } }); }).finally(() => running.delete(key));
+      running.set(key, r);
+    }
+    if (opts.onProgress) { r.subs.add(opts.onProgress); if (r.last) opts.onProgress(r.last); }
+    return r.promise;
+  }
+  async function analyseNow(key, speaker, learner, opts, report) {
     const hit = await getResult(key);
     if (hit) return hit;
-    const sp = await transcribe(speaker, { originSec: opts.speakerOriginSec, external: opts.external });
-    const lr = await transcribe(learner);
+    const spKey = `${MODEL_ID}|seq|${fingerprint(speaker)}`;
+    const cachedSpeaker = !!(await getResult(spKey));
+    const spSec = cachedSpeaker ? 0 : speaker.length / 16000, lrSec = learner.length / 16000, cmpSec = 0.03 * (spSec + lrSec) + 0.1;
+    const total = spSec + lrSec + cmpSec, steps = cachedSpeaker ? 2 : 3;
+    const prog = (stage, step, doneSec) => report({ fraction: Math.min(1, doneSec / total), step, steps, stage, cachedSpeaker });
+    const t0 = performance.now();
+    prog(cachedSpeaker ? 'take' : 'speaker', 1, 0);
+    const sp = await transcribe(speaker, { originSec: opts.speakerOriginSec, external: opts.external, cache: !opts.external, onProgress: (d) => prog('speaker', 1, d) });
+    const t1 = performance.now();
+    const lr = await transcribe(learner, { onProgress: (d) => prog('take', steps - 1, spSec + d) });
+    const t2 = performance.now();
+    prog('compare', steps, spSec + lrSec);
     const w = await post({ type: 'compare', speaker: sp, learner: lr });
+    const t3 = performance.now();
+    lastRun = { speakerMs: Math.round(t1 - t0), cachedSpeaker, takeMs: Math.round(t2 - t1), compareMs: Math.round(t3 - t2), speakerSec: Math.round(speaker.length / 1600) / 10, takeSec: Math.round(learner.length / 1600) / 10, speakerTimings: sp.timingsMs, takeTimings: lr.timingsMs };
+    try { console.info('pronunciation analysis timings (ms)', lastRun); } catch { /* no console */ }
     const comparison = w.comparison;
     let status = 'ok', suggested = [];
     if (sp.quality.level !== 'good') status = 'speaker-low-quality';
@@ -244,6 +275,6 @@ const Phones = (() => {
     MODEL_ID, CREDIT, supported,
     status: () => ({ ...state }),
     onStatus(fn) { listeners.add(fn); return () => listeners.delete(fn); },
-    ready, download, load, stop, remove, transcribe, compare, analyse, attachExternalWords, fingerprint,
+    ready, download, load, stop, remove, lastRun: () => lastRun, transcribe, compare, analyse, attachExternalWords, fingerprint,
   };
 })();

@@ -61,10 +61,10 @@ function wordsAt(clip, a, b) {
    substitutions only (not extra or missing sounds yet), model noise (`weak`) left out, the engine's own pick first */
 const PhonesAdapter = {
   ready() { return !!(typeof Phones !== 'undefined' && typeof Phones.analyse === 'function' && Phones.supported().ok); },
-  async diff({ clip, samples }) {
+  async diff({ clip, samples, onProgress }) {
     const speaker = VideoAudio.slice(clip.videoId, clip.start, clip.end);
     if (!speaker || !samples) return null;
-    const r = await Heavy.run('pronunciation', () => Phones.analyse(speaker, samples, { speakerOriginSec: clip.start }), { timeoutMs: 90000 });
+    const r = await Heavy.run('pronunciation', () => Phones.analyse(speaker, samples, { speakerOriginSec: 0, onProgress }), { timeoutMs: 90000 });
     if (!r || r.status !== 'ok') return null;
     const syms = (seq, w) => (w == null || !seq.words[w] ? [] : seq.phones.slice(seq.words[w].first, seq.words[w].last + 1).map((p) => p.sym));
     const diffs = r.comparison.diffs.filter((d) => d.kind === 'sub' && !d.weak).map((d) => {
@@ -100,6 +100,28 @@ const Pron = {
   pairName(pair) { const [f, to] = pair.split('→'); return `${soundName(f)} → ${soundName(to)}`; },
   blocked(pair) { return this.doc().blocked.includes(pair); },
 
+  /* a plain sentence for why the engine stopped (Heavy and Phones errors carry a code; the message is the real reason) */
+  reason(e) {
+    const code = e && e.code, msg = String((e && e.message) || '').slice(0, 200);
+    const by = { timeout: t('It took too long on this device and was stopped.'), 'too-slow': t('It took too long on this device and was stopped.'), cancelled: t('It was stopped before it finished.'), 'low-memory': t('The page is using nearly all the memory the browser allows.'), 'out-of-memory': t('The device ran out of memory.'), off: t('Pronunciation analysis is off on this device.') };
+    return by[code] || msg || t('Something went wrong.');
+  },
+
+  /* get ready while the learner is listening (pass 1): load the model into memory and read the speaker's sounds, which are kept per clip.
+     Only started on a pass that is not recorded, and only once per clip. */
+  warm(clip) {
+    if (!clip || !PhonesAdapter.ready() || !this.on()) return;
+    this.warmed = this.warmed || new Set();
+    if (this.warmed.has(clip.id)) return;
+    this.warmed.add(clip.id);
+    Heavy.run('pronunciation', async () => {
+      await Phones.load();
+      const spk = VideoAudio.slice(clip.videoId, clip.start, clip.end);
+      if (!spk) { this.warmed.delete(clip.id); return; } // the video's sound isn't decoded yet: try again on the next pass
+      await Phones.transcribe(spk, { originSec: 0, cache: true });
+    }, { timeoutMs: 120000 }).catch((e) => { this.warmed.delete(clip.id); console.info('pronunciation warm-up skipped:', this.reason(e)); });
+  },
+
   /* tidy what the engine returned: bounded, only the fields we use */
   clean(res) {
     const arr = (x) => (Array.isArray(x) ? x.slice(0, 12).map(String) : []);
@@ -113,10 +135,10 @@ const Pron = {
   },
 
   /* run the engine on a finished pass, keep the result on the recording and add it to the tally. Resolves with the phones or null */
-  async process({ clip, samples, blob, analysis, recId, slot, sessionId, pass, step }) {
+  async process({ clip, samples, blob, analysis, recId, slot, sessionId, pass, step, onProgress, onError }) {
     if (!this.on() || !clip) return null;
     let res = null;
-    try { res = await this.engine().diff({ clip, samples, blob, analysis, slot }); } catch (e) { console.warn('pronunciation engine failed', e); return null; }
+    try { res = await this.engine().diff({ clip, samples, blob, analysis, slot, onProgress }); } catch (e) { const why = this.reason(e); console.warn('pronunciation engine failed:', why, e && e.code, e); if (onError) onError(why); return null; }
     if (!res || !Array.isArray(res.diffs)) return null;
     const phones = this.clean(res);
     if (recId) Store.patch('recordings', recId, { phones });

@@ -103,14 +103,17 @@ function buildPronView(clip) {
     const res = PronTab.cache.get(key);
     if (failed === key) return mount(root, pvMsg(cancelled ? t('Stopped') : t('The comparison didn’t work'), cancelled ? t('You stopped the comparison.') : (failedMsg || t('Something went wrong while comparing. Try again.')), btn(t('Try again'), () => { failed = null; failedMsg = ''; cancelled = false; fill(); }, { kind: 'primary' })));
     if (!res) {
-      mount(root, pvMsg(take ? t('Comparing your take with the speaker…') : t('Reading the speaker…'), t('The model is ready; this is the analysis itself. It runs on your device and takes a while on a slow one.'),
-        h('span', { class: 'pv-spin', 'aria-hidden': 'true' }), elapsed('analyse'),
+      const pbar = h('i', { style: { width: '0%' } }), plabel = h('span', { class: 'small muted' }, t('Starting…'));
+      const stageName = { speaker: t('reading the speaker'), take: t('reading your take'), compare: t('comparing the two') };
+      const showProg = (p) => { if (!pbar.isConnected) return; const pct = Math.round(p.fraction * 100); pbar.style.width = pct + '%'; pbar.parentNode.setAttribute('aria-valuenow', pct); plabel.textContent = t('Step {n} of {m}: {what} · {pct}%', { n: p.step, m: p.steps, what: stageName[p.stage] || '', pct }) + (p.cachedSpeaker ? ' · ' + t('speaker already read') : ''); };
+      mount(root, pvMsg(take ? t('Comparing your take with the speaker…') : t('Reading the speaker…'), t('It runs on your device. The bar counts the audio read so far; a short clip moves in a few steps.'),
+        h('div', { class: 'pv-prog', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': 0 }, pbar), plabel,
         btn(t('Cancel'), () => { cancelled = true; failed = key; ctl && ctl.abort(); fill(); }, { size: 'sm', kind: 'ghost' })));
       if (!PronTab.asked.has(key)) {
         PronTab.asked.add(key);
         ctl = new AbortController();
         const mine = ctl;
-        PronSource.analyse(clip, take, mine.signal)
+        PronSource.analyse(clip, take, mine.signal, showProg)
           .then((r) => { PronTab.cache.set(key, r); })
           .catch((e) => { failed = key; cancelled = mine.signal.aborted; failedMsg = !cancelled && e && e.message && !(e instanceof HeavyError) ? String(e.message).slice(0, 300) : ''; if (!cancelled) console.warn('pronunciation comparison failed', e); })
           .finally(() => { PronTab.asked.delete(key); if (root.isConnected) fill(); });

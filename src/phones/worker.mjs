@@ -49,7 +49,7 @@ self.onmessage = async (ev) => {
       self.postMessage({ id, ok: true, loadMs: Math.round(performance.now() - t), inputs: session.inputNames, outputs: session.outputNames });
     } else if (type === 'transcribe') {
       if (!session) throw Object.assign(new Error('model not loaded'), { code: 'load-failed' });
-      const seq = await transcribe(ev.data.samples, { runModel, originSec: ev.data.originSec || 0, external: ev.data.external });
+      const seq = await transcribe(ev.data.samples, { runModel, originSec: ev.data.originSec || 0, external: ev.data.external, onProgress: (done, total) => self.postMessage({ id, progress: true, done, total }) });
       self.postMessage({ id, ok: true, seq });
     } else if (type === 'compare') {
       const c = compare(ev.data.speaker, ev.data.learner);
