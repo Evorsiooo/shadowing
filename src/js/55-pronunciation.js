@@ -8,7 +8,17 @@ const PronTab = {
   top: lsGet('pronTop', 'words'), // which row is big: 'words' or 'phones'
   cache: new Map(), // `${clipId}:${recId}` -> PronResult
   asked: new Set(),
-  dismissed: new Set(lsGet('pronDismissed', [])), // "Sounds the same to me", kept on this device
+  /* "Sounds the same to me" for one word: saved in the synced pronunciation document (meta/pron), so every device and a reinstall keep it.
+     Older ones kept only in this browser are moved over the first time they are read. */
+  dismissed: {
+    list() {
+      const d = Pron.doc(), old = lsGet('pronDismissed', null);
+      if (old && old.length && Store.get('meta', 'pron')) { d.dismissedWords = [...new Set([...(d.dismissedWords || []), ...old])].slice(-500); Pron.save(d); lsSet('pronDismissed', null); }
+      return d.dismissedWords || [];
+    },
+    has(k) { return this.list().includes(k); },
+    add(k) { const d = Pron.doc(); d.dismissedWords = [...this.list().filter((x) => x !== k), k].slice(-500); Pron.save(d); },
+  },
   wordsFailed: new Set(), // clips whose words couldn't be read this time
   noWords: false, // the source gave sounds but no words: show sounds only
   MAX: 3, // at most this many differences are shown for a take
@@ -30,7 +40,6 @@ const PronTab = {
   },
   dismiss(clip, w) {
     this.dismissed.add(this.skey(clip, w));
-    lsSet('pronDismissed', [...this.dismissed].slice(-500));
   },
 };
 
@@ -58,16 +67,11 @@ function pvMsg(title, body, ...actions) {
 function buildPronView(clip) {
   const root = h('div', { class: 'pv' });
   const stop = PronSource.onStatus(() => { if (root.isConnected) fill(); else stop(); });
-  let failed = null, failedMsg = '', cancelled = false, stopped = false, loadAsked = false, ctl = null;
-  const since = {};
+  let failed = null, failedMsg = '', cancelled = false, stopped = false, ctl = null;
   let stallShown = false;
-  /* "12 s so far": shows that something is still going on. The timer below keeps the number moving */
-  const elapsed = (what) => { since[what] = since[what] || Date.now(); return h('span', { class: 'small muted pv-elapsed', 'data-what': what }, t('{n} s so far', { n: Math.round((Date.now() - since[what]) / 1000) })); };
   const tick = setInterval(() => {
     if (!root.isConnected) return clearInterval(tick);
-    const el = root.querySelector('.pv-elapsed');
-    if (el) el.textContent = t('{n} s so far', { n: Math.round((Date.now() - since[el.dataset.what]) / 1000) });
-    else for (const k of Object.keys(since)) delete since[k];
+    if (!prog.p) paintProg(); // the label changes with what it is waiting for
     if (dlStalled(PronSource.status()) !== stallShown) fill(); // the "no data" warning needs time to pass, not an event
   }, 1000);
 
@@ -92,51 +96,54 @@ function buildPronView(clip) {
         stalled ? h('span', { class: 'small pv-stall' }, t('No data for a while. Check your connection; if it doesn’t pick up, the download stops by itself.')) : h('span', { class: 'small muted' }, t('You can leave this tab; it keeps going. The progress is also in Settings → Analysis.')),
         btn(t('Cancel download'), () => { Heavy.disable('pronunciation'); renderPanel(); }, { size: 'sm', kind: 'ghost' })));
     }
-    if (m.state === 'downloaded' && !stopped && !loadAsked) { loadAsked = true; PronSource.load().catch(() => {}).finally(() => { loadAsked = false; }); } // downloaded means "on the device"; it still has to be loaded into memory
     if (m.state === 'downloaded' && stopped) return mount(root, pvMsg(t('Stopped'), t('The model is downloaded but not started.'), btn(t('Start it'), () => { stopped = false; fill(); }, { kind: 'primary' })));
-    if (m.state === 'downloaded' || m.state === 'loading') return mount(root, pvMsg(t('Loading the model into memory…'), t('The download is done. This takes a few seconds, longer on a slow device.'),
-      h('span', { class: 'pv-spin', 'aria-hidden': 'true' }), elapsed('load'),
-      btn(t('Cancel'), () => { stopped = true; PronSource.stop(); fill(); }, { size: 'sm', kind: 'ghost' })));
     if (m.state === 'error') return mount(root, pvMsg(t('The pronunciation check couldn’t start'), (m.error && m.error.message) || null, btn(t('Try again'), () => { stopped = false; PronSource.load().catch(() => {}); }, { kind: 'primary' })));
+    // from here on one screen covers everything: loading the model, the speaker's sounds and words (kept on the clip once, 27-prepare.js), your take, the comparison
     const take = PronTab.take(clip);
     const key = `${clip.id}:${take ? take.id || 'review' : 'none'}`;
     const res = PronTab.cache.get(key);
     if (failed === key) return mount(root, pvMsg(cancelled ? t('Stopped') : t('The comparison didn’t work'), cancelled ? t('You stopped the comparison.') : (failedMsg || t('Something went wrong while comparing. Try again.')), btn(t('Try again'), () => { failed = null; failedMsg = ''; cancelled = false; fill(); }, { kind: 'primary' })));
     if (!res) {
-      const pbar = h('i', { style: { width: '0%' } }), plabel = h('span', { class: 'small muted' }, t('Starting…'));
-      const stageName = { speaker: t('reading the speaker'), take: t('reading your take'), compare: t('comparing the two') };
-      let seen = false, phase = ''; // seen: first real progress arrived; phase: the step before the engine starts
-      const waitLabel = () => {
-        if (phase === 'speaker-audio') return t('Getting the speaker’s audio from the video…');
-        if (phase === 'take-audio') return t('Reading your recording…');
-        const cur = Heavy.running();
-        return cur && cur !== 'pronunciation' && Heavy.spec(cur) ? t('Waiting for “{name}” to finish first…', { name: t(Heavy.spec(cur).name) }) : t('Starting…');
-      };
-      const waitTick = setInterval(() => { if (seen || !plabel.isConnected) clearInterval(waitTick); else plabel.textContent = waitLabel(); }, 1000);
-      plabel.textContent = waitLabel();
-      const showProg = (p) => { if (p.phase) { phase = p.phase; if (plabel.isConnected) plabel.textContent = waitLabel(); return; } seen = true; if (!pbar.isConnected) return; const pct = Math.round(p.fraction * 100); pbar.style.width = pct + '%'; pbar.parentNode.setAttribute('aria-valuenow', pct); plabel.textContent = t('Step {n} of {m}: {what} · {pct}%', { n: p.step, m: p.steps, what: stageName[p.stage] || '', pct }) + (p.cachedSpeaker ? ' · ' + t('speaker already read') : ''); };
-      mount(root, pvMsg(take ? t('Comparing your take with the speaker…') : t('Reading the speaker…'), t('It runs on your device. The bar counts the audio read so far; a short clip moves in a few steps.'),
-        h('div', { class: 'pv-prog', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': 0 }, pbar), plabel,
-        btn(t('Cancel'), () => { cancelled = true; failed = key; ctl && ctl.abort(); fill(); }, { size: 'sm', kind: 'ghost' })));
+      mount(root, pvMsg(take ? t('Comparing your take with the speaker…') : t('Reading the speaker…'), t('It runs on your device. The speaker’s sounds and words are kept with the clip, so next time only your take is read.'),
+        h('div', { class: 'pv-prog pv-ana', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': 0 }, h('i', { class: 'pv-ana-bar', style: { width: '0%' } })), h('span', { class: 'small muted pv-ana-label' }, waitLabel()),
+        btn(t('Cancel'), () => { cancelled = true; failed = key; ctl && ctl.abort(); PronSource.stop(); fill(); }, { size: 'sm', kind: 'ghost' })));
+      paintProg();
       if (!PronTab.asked.has(key)) {
         PronTab.asked.add(key);
+        prog = { p: null, phase: '' };
         ctl = new AbortController();
         const mine = ctl;
         PronSource.analyse(clip, take, mine.signal, showProg)
           .then((r) => { PronTab.cache.set(key, r); })
-          .catch((e) => { failed = key; cancelled = mine.signal.aborted; failedMsg = !cancelled && e && e.message && !(e instanceof HeavyError) ? String(e.message).slice(0, 300) : ''; if (!cancelled) console.warn('pronunciation comparison failed', e); })
+          .catch((e) => { failed = key; cancelled = mine.signal.aborted; failedMsg = cancelled ? '' : Pron.reason(e); if (!cancelled) console.warn('pronunciation comparison failed:', failedMsg, e); })
           .finally(() => { PronTab.asked.delete(key); if (root.isConnected) fill(); });
       }
       return;
     }
-    // words are on but this clip has none yet: wait for them instead of showing the sounds twice (once without words, then again with)
-    const cw = Store.get('clips', clip.id) || clip;
-    if (Heavy.isOn('words') && Words.supported().ok && !cw.wordsFor && !wordsFailed.has(cw.id)) {
-      if (!Words.isRunning(cw.id)) setTimeout(() => { if (root.isConnected && !Words.isRunning(cw.id)) startWords(cw); });
-      return mount(root, pvMsg(t('Reading the words…'), t('The sounds are ready. The words come first so both line up.'), wordsProgress()));
-    }
     mount(root, renderResult(clip, res, take));
   }
+
+  /* the one progress screen: its state lives here, not in the elements, because the screen is redrawn whenever the model's status changes */
+  let prog = { p: null, phase: '' };
+  const STAGE_NAME = { speaker: N_('reading the speaker’s sounds'), words: N_('reading the speaker’s words'), take: N_('reading your take'), compare: N_('comparing the two') };
+  function waitLabel() {
+    const { p, phase } = prog;
+    if (p) return t('Step {n} of {m}: {what} · {pct}%', { n: p.step, m: p.steps, what: t(STAGE_NAME[p.stage] || ''), pct: Math.round(p.fraction * 100) });
+    if (phase === 'speaker-audio') return t('Getting the speaker’s audio from the video…');
+    if (phase === 'take-audio') return t('Reading your recording…');
+    if (PronSource.status().state === 'loading') return t('Loading the model into memory…');
+    const cur = Heavy.running();
+    return cur && cur !== 'pronunciation' && Heavy.spec(cur) ? t('Waiting for “{name}” to finish first…', { name: t(Heavy.spec(cur).name) }) : t('Starting…');
+  }
+  function paintProg() {
+    const bar = root.querySelector('.pv-ana-bar'), label = root.querySelector('.pv-ana-label');
+    if (!bar || !label) return;
+    const pct = prog.p ? Math.round(prog.p.fraction * 100) : 0;
+    bar.style.width = pct + '%';
+    bar.parentNode.setAttribute('aria-valuenow', pct);
+    label.textContent = waitLabel();
+  }
+  function showProg(p) { if (p.phase) prog.phase = p.phase; else prog.p = p; paintProg(); }
 
   /* ---- the word labels (src/js/26-words.js): off until the learner asks; sounds are shown either way ---- */
   const wordsFailed = PronTab.wordsFailed;

@@ -62,9 +62,15 @@ function wordsAt(clip, a, b) {
 const PhonesAdapter = {
   ready() { return !!(typeof Phones !== 'undefined' && typeof Phones.analyse === 'function' && Phones.supported().ok); },
   async diff({ clip, samples, onProgress }) {
-    const speaker = VideoAudio.slice(clip.videoId, clip.start, clip.end);
-    if (!speaker || !samples) return null;
-    const r = await Heavy.run('pronunciation', () => Phones.analyse(speaker, samples, { speakerOriginSec: 0, onProgress }), { timeoutMs: 90000 });
+    if (!samples) return null;
+    return Prep.around(clip, 2, onProgress, (onP) => this.compare(clip, samples, onP));
+  },
+  async compare(clip, samples, onProgress) {
+    clip = Store.get('clips', clip.id) || clip; // its words and sounds may have just been worked out
+    const given = Prep.speakerSeq(clip);
+    const speaker = given ? null : VideoAudio.slice(clip.videoId, clip.start, clip.end);
+    if (!given && !speaker) return null;
+    const r = await Heavy.run('pronunciation', () => Phones.analyse(speaker, samples, { speakerOriginSec: 0, speakerSeq: given, onProgress }), { timeoutMs: 90000 });
     if (!r || r.status !== 'ok') return null;
     const syms = (seq, w) => (w == null || !seq.words[w] ? [] : seq.phones.slice(seq.words[w].first, seq.words[w].last + 1).map((p) => p.sym));
     const diffs = r.comparison.diffs.filter((d) => d.kind === 'sub' && !d.weak).map((d) => {
@@ -107,19 +113,11 @@ const Pron = {
     return by[code] || msg || t('Something went wrong.');
   },
 
-  /* get ready while the learner is listening (pass 1): load the model into memory and read the speaker's sounds, which are kept per clip.
-     Only started on a pass that is not recorded, and only once per clip. */
+  /* get ready while the learner is listening (pass 1): the model, and the speaker's sounds and words if the clip doesn't have them yet (27-prepare.js).
+     Only started on a pass that is not recorded. */
   warm(clip) {
-    if (!clip || !PhonesAdapter.ready() || !this.on()) return;
-    this.warmed = this.warmed || new Set();
-    if (this.warmed.has(clip.id)) return;
-    this.warmed.add(clip.id);
-    Heavy.run('pronunciation', async () => {
-      await Phones.load();
-      const spk = VideoAudio.slice(clip.videoId, clip.start, clip.end);
-      if (!spk) { this.warmed.delete(clip.id); return; } // the video's sound isn't decoded yet: try again on the next pass
-      await Phones.transcribe(spk, { originSec: 0, cache: true });
-    }, { timeoutMs: 120000 }).catch((e) => { this.warmed.delete(clip.id); console.info('pronunciation warm-up skipped:', this.reason(e)); });
+    if (!clip || !this.on()) return;
+    Prep.ensure(clip).catch((e) => console.info('pronunciation warm-up skipped:', this.reason(e)));
   },
 
   /* tidy what the engine returned: bounded, only the fields we use */

@@ -523,13 +523,14 @@ function saveSelection(shadowNow) {
   if (!sel || !vid) return;
   let clip;
   if (sel.clipId) {
-    clip = Store.patch('clips', sel.clipId, { start: round(sel.start, 2), end: round(sel.end, 2), label: (sel.label || '').trim(), model: null, words: null, wordsFor: null });
+    clip = Store.patch('clips', sel.clipId, { start: round(sel.start, 2), end: round(sel.end, 2), label: (sel.label || '').trim(), model: null, words: null, wordsFor: null, speakerPhones: null });
     toast(t('Clip updated.'), 'good');
   } else {
     clip = Store.put('clips', { videoId: vid.id, start: round(sel.start, 2), end: round(sel.end, 2), label: (sel.label || '').trim(), done: false, archived: false, noisy: false, created: new Date().toISOString() });
     toast(t('Clip saved. Cut another, or shadow it now.'), 'good');
   }
   if (!computeModel(clip)) ensureModels(vid);
+  Prep.schedule(clip); // the speaker's sounds and words, in the background, if those features are on
   UI.sel = null;
   UI.clipId = clip.id;
   renderAll();
