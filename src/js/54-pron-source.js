@@ -158,14 +158,22 @@ const PronSource = (() => {
     stop: () => Phones.stop(),
     async analyse(clip, take, signal, onProgress) {
       clip = Store.get('clips', clip.id) || clip; // words may have arrived or been fixed since the tab opened
+      // before the engine reports progress, say which step this is (and log how long each took)
+      const say = (phase) => onProgress && onProgress({ phase, fraction: 0, step: 0, steps: 0 });
+      const T0 = performance.now(), lap = (what) => { try { console.info(`pronunciation: ${what} ${Math.round(performance.now() - T0)} ms after the tab asked`); } catch { /* no console */ } };
+      say('speaker-audio');
       const spk = await speakerSamples(clip, signal);
+      lap('speaker audio ready');
       // words, when the clip has them (clip.words = [{w, s, e}], automatic or fixed by the learner, seconds from the clip start); sounds alone otherwise.
       // Attached after the engine, never passed in: its cached results must not freeze an older version of the words.
       const external = clip.words && clip.words.length ? { source: 'asr', words: clip.words.map((x) => ({ text: x.w, t0: x.s, t1: x.e })) } : undefined;
       const withWords = (seq) => (external ? Phones.attachExternalWords(seq, external) : { ...seq, external: undefined });
       if (!take) return pronFromSequence(withWords(await Heavy.run('pronunciation', () => Phones.transcribe(spk, { originSec: 0, cache: true, onProgress: (d, tot) => onProgress && onProgress({ fraction: d / tot, step: 1, steps: 1, stage: 'speaker' }) }), { timeoutMs: 90000, signal })));
+      say('take-audio');
       const blob = take.blob || (await (await fetch(await Store.blobUrl(take.ref))).blob());
       const you = await AudioEng.decodeBlob(blob);
+      lap('take decoded');
+      say('queue');
       const res = await Heavy.run('pronunciation', () => Phones.analyse(spk, you, { speakerOriginSec: 0, onProgress }), { timeoutMs: 90000, signal });
       return pronFromClipResult({ ...res, speaker: withWords(res.speaker) });
     },

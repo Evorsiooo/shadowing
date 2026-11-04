@@ -39,7 +39,9 @@ const Words = (() => {
   })();
 
   /* load the model (downloads it the first time, then reads it from the device's cache). Call inside Heavy.run. */
-  async function load(signal) {
+  let loadP = null; // one load at a time: the Settings switch and the tab can both ask while it downloads
+  function load(signal) { if (!loadP) loadP = loadNow(signal).finally(() => { loadP = null; }); return loadP; }
+  async function loadNow(signal) {
     await init;
     if (state.state === 'unsupported') throw Object.assign(new Error(state.error.message), { code: 'unsupported' });
     const first = state.state === 'not-downloaded' || state.state === 'error';
@@ -75,7 +77,9 @@ const Words = (() => {
       let samples = VideoAudio.slice(clip.videoId, clip.start, clip.end);
       if (!samples) { const v = Store.get('videos', clip.videoId); if (v) { await VideoAudio.ensure(v, clip.start, clip.end); samples = VideoAudio.slice(clip.videoId, clip.start, clip.end); } }
       if (!samples) return null;
-      const res = await Heavy.run('words', ({ signal }) => transcribe(samples, signal), { timeoutMs: state.state === 'downloaded' || state.state === 'ready' ? Math.max(180000, 12 * (clip.end - clip.start) * 1000) : 900000 } /* the first run also downloads the model */);
+      // the first run downloads the model: do that apart from the queue, so a slow download never holds up a pronunciation analysis
+      if (state.state !== 'downloaded' && state.state !== 'ready') await Heavy.run('words', ({ signal }) => load(signal), { parallel: true, timeoutMs: 1800000 });
+      const res = await Heavy.run('words', ({ signal }) => transcribe(samples, signal), { timeoutMs: Math.max(180000, 12 * (clip.end - clip.start) * 1000) });
       const now = Store.get('clips', clip.id);
       if (!now || now.start !== clip.start || now.end !== clip.end) return null; // the learner moved the clip meanwhile: these times no longer fit
       Store.patch('clips', clip.id, { words: res.words, wordsFor: { start: clip.start, end: clip.end, model: res.model, timing: res.timing, at: new Date().toISOString() } });

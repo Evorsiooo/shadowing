@@ -334,5 +334,13 @@
   "Waiting for “{name}” to finish first…": {
     "fr": "En attente de la fin de « {name} »…",
     "es": "Esperando a que termine «{name}»…"
+  },
+  "Getting the speaker’s audio from the video…": {
+    "fr": "Récupération du son du locuteur dans la vidéo…",
+    "es": "Obteniendo el audio del hablante del vídeo…"
+  },
+  "Reading your recording…": {
+    "fr": "Lecture de votre enregistrement…",
+    "es": "Leyendo tu grabación…"
   }
 }

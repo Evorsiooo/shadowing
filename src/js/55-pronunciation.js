@@ -105,11 +105,16 @@ function buildPronView(clip) {
     if (!res) {
       const pbar = h('i', { style: { width: '0%' } }), plabel = h('span', { class: 'small muted' }, t('Starting…'));
       const stageName = { speaker: t('reading the speaker'), take: t('reading your take'), compare: t('comparing the two') };
-      let seen = false; // first real progress arrived
-      const waitLabel = () => { const cur = Heavy.running(); return cur && cur !== 'pronunciation' && Heavy.spec(cur) ? t('Waiting for “{name}” to finish first…', { name: t(Heavy.spec(cur).name) }) : t('Starting…'); };
+      let seen = false, phase = ''; // seen: first real progress arrived; phase: the step before the engine starts
+      const waitLabel = () => {
+        if (phase === 'speaker-audio') return t('Getting the speaker’s audio from the video…');
+        if (phase === 'take-audio') return t('Reading your recording…');
+        const cur = Heavy.running();
+        return cur && cur !== 'pronunciation' && Heavy.spec(cur) ? t('Waiting for “{name}” to finish first…', { name: t(Heavy.spec(cur).name) }) : t('Starting…');
+      };
       const waitTick = setInterval(() => { if (seen || !plabel.isConnected) clearInterval(waitTick); else plabel.textContent = waitLabel(); }, 1000);
       plabel.textContent = waitLabel();
-      const showProg = (p) => { seen = true; if (!pbar.isConnected) return; const pct = Math.round(p.fraction * 100); pbar.style.width = pct + '%'; pbar.parentNode.setAttribute('aria-valuenow', pct); plabel.textContent = t('Step {n} of {m}: {what} · {pct}%', { n: p.step, m: p.steps, what: stageName[p.stage] || '', pct }) + (p.cachedSpeaker ? ' · ' + t('speaker already read') : ''); };
+      const showProg = (p) => { if (p.phase) { phase = p.phase; if (plabel.isConnected) plabel.textContent = waitLabel(); return; } seen = true; if (!pbar.isConnected) return; const pct = Math.round(p.fraction * 100); pbar.style.width = pct + '%'; pbar.parentNode.setAttribute('aria-valuenow', pct); plabel.textContent = t('Step {n} of {m}: {what} · {pct}%', { n: p.step, m: p.steps, what: stageName[p.stage] || '', pct }) + (p.cachedSpeaker ? ' · ' + t('speaker already read') : ''); };
       mount(root, pvMsg(take ? t('Comparing your take with the speaker…') : t('Reading the speaker…'), t('It runs on your device. The bar counts the audio read so far; a short clip moves in a few steps.'),
         h('div', { class: 'pv-prog', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': 0 }, pbar), plabel,
         btn(t('Cancel'), () => { cancelled = true; failed = key; ctl && ctl.abort(); fill(); }, { size: 'sm', kind: 'ghost' })));
