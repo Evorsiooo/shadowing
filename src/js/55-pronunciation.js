@@ -55,9 +55,20 @@ function pvPhones(phones, who) {
 }
 const pvPlain = (phones, who) => phones.map((p) => p[who] || '').join('');
 
-/* shrink a word only if it wouldn't fit before the next word starts */
-function pvFit(text, widthPx, maxRem, minRem, em = 0.6) {
-  return Math.max(minRem, Math.min(maxRem, widthPx / ((String(text).length || 1) * em * 16))) + 'rem';
+/* time <-> pixel. Anchors are [seconds, px] pairs in increasing order; between them the line is straight. */
+function pvToX(map, sec) {
+  for (let i = 1; i < map.length; i++) if (sec <= map[i][0] || i === map.length - 1) {
+    const [t0, x0] = map[i - 1], [t1, x1] = map[i];
+    return t1 > t0 ? x0 + clamp((sec - t0) / (t1 - t0), 0, 1) * (x1 - x0) : x0;
+  }
+  return 0;
+}
+function pvToTime(map, x) {
+  for (let i = 1; i < map.length; i++) if (x <= map[i][1] || i === map.length - 1) {
+    const [t0, x0] = map[i - 1], [t1, x1] = map[i];
+    return x1 > x0 ? t0 + clamp((x - x0) / (x1 - x0), 0, 1) * (t1 - t0) : t0;
+  }
+  return 0;
 }
 
 function pvMsg(title, body, ...actions) {
@@ -212,27 +223,29 @@ function buildPronView(clip) {
       const sp = pvPhones(w.phones, 'spk');
       const big = h('div', { class: 'tv-big ' + (wordsTop && w.text ? 'wd' : 'ph') }, h('span', null, wordsTop && w.text ? w.text : sp));
       const sub = h('div', { class: 'tv-sub ' + (wordsTop ? 'ph' : 'wd') }, hasWords && w.text ? h('span', null, wordsTop ? sp : w.text) : null);
-      const el = h('div', { class: 'tv-w ' + st, style: { left: pct(w.start), width: pct(w.end - w.start) } }, big, h('div', { class: 'tv-bar' }), sub,
+      const el = h('div', { class: 'tv-w ' + st }, big, h('div', { class: 'tv-bar' }), sub,
         st === 'diff' ? h('div', { class: 'tv-you' }, h('span', { class: 'tv-tag' }, t('You')), h('span', { class: 'tv-yph' }, pvPhones(w.phones, 'you'))) : null);
       return { w, el, big, sub };
     });
 
     // one-second lines, as in the Pitch and Waveform views
     const ticks = [];
-    for (let s = 1; s < dur; s++) ticks.push(h('div', { class: 'tv-tick', style: { left: pct(s) } }));
+    for (let s = 1; s < dur; s++) ticks.push({ s, el: h('div', { class: 'tv-tick' }) });
     const head = h('div', { class: 'tv-head' });
-    const view = h('div', { class: 'tv-view', 'aria-label': t('Words of the clip on a time line; press or drag to move through it') }, ticks, words.map((x) => x.el), head);
+    const track = h('div', { class: 'tv-track' }, ticks.map((x) => x.el), words.map((x) => x.el), head);
+    const view = h('div', { class: 'tv-view', 'aria-label': t('Words of the clip on a time line; press or drag to move through it') }, track);
     Panel.canvas = view;
-    Panel.refs = { view, head, dur, words, w: 0 };
+    Panel.refs = { view, track, head, dur, words, ticks, map: null, w: 0 };
 
     // press or drag to move through the clip, as on the Pitch and Waveform charts
     let down = false;
     const seekTo = (e) => {
-      const r = view.getBoundingClientRect();
-      Player.seek(Math.min(clip.start + clamp((e.clientX - r.left) / r.width, 0, 1) * dur, clip.end - 0.05));
+      const r = view.getBoundingClientRect(), R = Panel.refs;
+      const x = e.clientX - r.left + view.scrollLeft;
+      Player.seek(Math.min(clip.start + (R.map ? pvToTime(R.map, x) : clamp(x / r.width, 0, 1) * dur), clip.end - 0.05));
       if (Session.previewRec && Session.previewRec.clip.id === clip.id) syncRecTo(Player.time());
     };
-    view.addEventListener('pointerdown', (e) => { if (!analysisCanScrub()) return; down = true; view.setPointerCapture(e.pointerId); seekTo(e); });
+    view.addEventListener('pointerdown', (e) => { if (!analysisCanScrub() || e.clientY - view.getBoundingClientRect().top > view.clientHeight) return; down = true; view.setPointerCapture(e.pointerId); seekTo(e); });
     view.addEventListener('pointermove', (e) => { if (down) seekTo(e); });
     view.addEventListener('pointerup', () => { down = false; });
     view.addEventListener('pointercancel', () => { down = false; });
@@ -290,7 +303,7 @@ function openWordsEditor(clip, done) {
 
 /* play one word: the speaker's, or yours lined up with the clip */
 async function pronPlay(clip, take, w, who) {
-  if (!analysisCanScrub()) return;
+  if (!analysisCanScrub()) { toast(t('Wait until the pass is over, then play it.')); return; } // it used to do nothing, silently
   const from = clip.start + Math.max(0, w.start - 0.12), stopAt = Math.min(clip.end, clip.start + w.end + 0.2);
   if (who === 'spk') {
     stopReviewPlayback();
@@ -305,20 +318,32 @@ async function pronPlay(clip, take, w, who) {
 }
 
 Panel.drawPron = function (now) {
-  const { view, head, dur, words } = this.refs;
+  const R = this.refs, { view, track, head, dur, words, ticks } = R;
   const clip = Store.get('clips', UI.clipId);
   if (!view || !clip) return;
   const W = view.clientWidth;
-  if (W && W !== this.refs.w) { // size each word to the room it has before the next one starts
-    this.refs.w = W;
-    const wordsTop = !PronTab.noWords && PronTab.top !== 'phones';
-    words.forEach(({ w, big, sub }, i) => {
-      const next = words[i + 1];
-      const room = ((next ? next.w.start : dur) - w.start) / dur * W - 8;
-      const sp = pvPlain(w.phones, 'spk');
-      big.style.fontSize = pvFit(wordsTop && w.text ? w.text : sp, room, 1.6, 0.85, wordsTop ? 0.56 : 0.62);
-      sub.style.fontSize = pvFit(wordsTop ? sp : (w.text || ''), room, 0.95, 0.72, wordsTop ? 0.62 : 0.56);
+  if (W && W !== R.w) { // every word keeps one readable size; a word that would touch the one before is moved right, and the line scrolls sideways
+    R.w = W;
+    const map = [[0, 0]];
+    let edge = 0, lastT = 0;
+    words.forEach(({ w, el }) => {
+      const x = Math.max(w.start / dur * W, edge);
+      el.style.left = x + 'px';
+      el.style.width = '';
+      const wd = Math.ceil(el.getBoundingClientRect().width) || 0;
+      const t0 = Math.max(w.start, lastT), t1 = Math.max(w.end, t0);
+      map.push([t0, x], [t1, x + wd]);
+      lastT = t1;
+      edge = x + wd + 10;
+      el.style.width = Math.max(wd, 1) + 'px';
     });
+    if (dur > lastT) map.push([dur, Math.max(W, edge)]);
+    R.map = map;
+    track.style.width = Math.max(W, edge) + 'px';
+    ticks.forEach(({ s, el }) => { el.style.left = pvToX(map, s) + 'px'; });
   }
-  head.style.left = clamp((now - clip.start) / dur, 0, 1) * W + 'px';
+  if (!R.map) return;
+  const x = pvToX(R.map, clamp(now - clip.start, 0, dur));
+  head.style.left = x + 'px';
+  if (x < view.scrollLeft + 24 || x > view.scrollLeft + W - 48) view.scrollLeft = Math.max(0, x - W * 0.3); // follow the playhead
 };
