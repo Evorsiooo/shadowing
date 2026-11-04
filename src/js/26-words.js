@@ -113,7 +113,7 @@ Heavy.register('words', {
   about: N_('An add-on to Pronunciation analysis. It writes the words of the clip above the sounds, so you see “think” and not just a row of symbols. It does not find any differences itself and does nothing without Pronunciation analysis. Speech recognition runs on this device, it can mishear, and you can fix a word.'),
   sizeMB: 80, minMemGB: 4, minCores: 4, parent: 'pronunciation',
   cacheNames: ['euno-words-model-v1'],
-  prefetch: ({ signal }) => Heavy.run('words', () => Words.load(signal), { signal, timeoutMs: 1800000 }),
+  prefetch: ({ signal }) => Heavy.run('words', () => Words.load(signal), { signal, timeoutMs: 1800000, parallel: true }),
   status: () => Words.status(),
   onStatus: (fn) => Words.onStatus(fn),
   remove: () => Words.remove(),

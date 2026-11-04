@@ -23,7 +23,7 @@ function renderPanel() {
   let key;
   if (UI.sel && vid) key = `editor:${UI.sel.clipId || 'new'}:${VideoAudio.state(vid.id).status}`;
   else if (UI.cutMode && !Session.active) key = 'empty-cut';
-  else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.view === 'pron' ? PronTab.top + ':' + PronTab.noWords + ':' + PronTab.takeKey(clip) : ''}:${UI.overlay}:${!!clip.model}:${VideoAudio.state(clip.videoId).status}`;
+  else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.view === 'pron' ? PronTab.top + ':' + PronTab.noWords + ':' + PronTab.takeKey(clip) : ''}:${UI.overlay}:${!!clip.model}:${Pron.enabled() ? 'p' : ''}:${VideoAudio.state(clip.videoId).status}`;
   else key = UI.cutMode ? 'empty-cut' : 'empty';
 
   // fade the panel in when it shows another clip or mode (not for a view toggle or an audio status change)

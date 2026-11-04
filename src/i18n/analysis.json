@@ -330,5 +330,9 @@
   "Couldn’t check the sounds: {why}": {
     "fr": "Impossible de vérifier les sons : {why}",
     "es": "No se pudieron comprobar los sonidos: {why}"
+  },
+  "Waiting for “{name}” to finish first…": {
+    "fr": "En attente de la fin de « {name} »…",
+    "es": "Esperando a que termine «{name}»…"
   }
 }

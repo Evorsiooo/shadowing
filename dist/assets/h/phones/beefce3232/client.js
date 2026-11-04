@@ -241,7 +241,7 @@ const Phones = (() => {
     const w = await post({ type: 'compare', speaker: sp, learner: lr });
     const t3 = performance.now();
     lastRun = { speakerMs: Math.round(t1 - t0), cachedSpeaker, takeMs: Math.round(t2 - t1), compareMs: Math.round(t3 - t2), speakerSec: Math.round(speaker.length / 1600) / 10, takeSec: Math.round(learner.length / 1600) / 10, speakerTimings: sp.timingsMs, takeTimings: lr.timingsMs };
-    try { console.info('pronunciation analysis timings (ms)', lastRun); } catch { /* no console */ }
+    try { console.info('pronunciation analysis timings (ms) ' + JSON.stringify(lastRun)); } catch { /* no console */ }
     const comparison = w.comparison;
     let status = 'ok', suggested = [];
     if (sp.quality.level !== 'good') status = 'speaker-low-quality';
