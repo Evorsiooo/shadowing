@@ -69,7 +69,7 @@ const Words = (() => {
   /* the clip's words, made now if the learner turned the feature on and the clip has none. Resolves to the stored list (empty if no speech was found), or null
      (feature off, no audio yet, or it failed: the tab then shows sounds only). Throws HeavyError when the run fails. */
   const running = new Map();
-  function ensure(clip) {
+  function ensure(clip, { background = false } = {}) {
     if (clip.words && clip.wordsFor) return Promise.resolve(clip.words);
     if (!Heavy.isOn('words')) return Promise.resolve(null);
     if (running.has(clip.id)) return running.get(clip.id);
@@ -78,8 +78,8 @@ const Words = (() => {
       if (!samples) { const v = Store.get('videos', clip.videoId); if (v) { await VideoAudio.ensure(v, clip.start, clip.end); samples = VideoAudio.slice(clip.videoId, clip.start, clip.end); } }
       if (!samples) return null;
       // the first run downloads the model: do that apart from the queue, so a slow download never holds up a pronunciation analysis
-      if (state.state !== 'downloaded' && state.state !== 'ready') await Heavy.run('words', ({ signal }) => load(signal), { parallel: true, timeoutMs: 1800000 });
-      const res = await Heavy.run('words', ({ signal }) => transcribe(samples, signal), { timeoutMs: Math.max(180000, 12 * (clip.end - clip.start) * 1000) });
+      if (state.state !== 'downloaded' && state.state !== 'ready') await Heavy.run('words', ({ signal }) => load(signal), { parallel: true, background, timeoutMs: 1800000 });
+      const res = await Heavy.run('words', ({ signal }) => transcribe(samples, signal), { background, timeoutMs: Math.max(180000, 12 * (clip.end - clip.start) * 1000) });
       const now = Store.get('clips', clip.id);
       if (!now || now.start !== clip.start || now.end !== clip.end) return null; // the learner moved the clip meanwhile: these times no longer fit
       Store.patch('clips', clip.id, { words: res.words, wordsFor: { start: clip.start, end: clip.end, model: res.model, timing: res.timing, at: new Date().toISOString() } });

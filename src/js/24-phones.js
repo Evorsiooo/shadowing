@@ -212,8 +212,9 @@ const Phones = (() => {
   /* opts.onProgress({ fraction 0..1, step, steps, stage: 'speaker'|'take'|'compare', cachedSpeaker }) counts the audio read so far (the model works in chunks of up to 20 s, so a short clip moves in one or two jumps).
      The same take asked for twice (review card and tab) shares one run. */
   const running = new Map();
+  /* opts.speakerSeq = { fp, seq }: the speaker's sounds read earlier (kept on the clip, so the speaker audio isn't needed here) */
   function analyse(speaker, learner, opts = {}) {
-    const key = `${MODEL_ID}|${fingerprint(speaker)}|${fingerprint(learner)}`;
+    const key = `${MODEL_ID}|${opts.speakerSeq ? opts.speakerSeq.fp : fingerprint(speaker)}|${fingerprint(learner)}`;
     let r = running.get(key);
     if (!r) {
       r = { subs: new Set(), last: null };
@@ -226,21 +227,22 @@ const Phones = (() => {
   async function analyseNow(key, speaker, learner, opts, report) {
     const hit = await getResult(key);
     if (hit) return hit;
-    const spKey = `${MODEL_ID}|seq|${fingerprint(speaker)}`;
-    const cachedSpeaker = !!(await getResult(spKey));
+    const given = opts.speakerSeq;
+    const spKey = given ? null : `${MODEL_ID}|seq|${fingerprint(speaker)}`;
+    const cachedSpeaker = !!given || !!(await getResult(spKey));
     const spSec = cachedSpeaker ? 0 : speaker.length / 16000, lrSec = learner.length / 16000, cmpSec = 0.03 * (spSec + lrSec) + 0.1;
     const total = spSec + lrSec + cmpSec, steps = cachedSpeaker ? 2 : 3;
     const prog = (stage, step, doneSec) => report({ fraction: Math.min(1, doneSec / total), step, steps, stage, cachedSpeaker });
     const t0 = performance.now();
     prog(cachedSpeaker ? 'take' : 'speaker', 1, 0);
-    const sp = await transcribe(speaker, { originSec: opts.speakerOriginSec, external: opts.external, cache: !opts.external, onProgress: (d) => prog('speaker', 1, d) });
+    const sp = given ? given.seq : await transcribe(speaker, { originSec: opts.speakerOriginSec, external: opts.external, cache: !opts.external, onProgress: (d) => prog('speaker', 1, d) });
     const t1 = performance.now();
     const lr = await transcribe(learner, { onProgress: (d) => prog('take', steps - 1, spSec + d) });
     const t2 = performance.now();
     prog('compare', steps, spSec + lrSec);
     const w = await post({ type: 'compare', speaker: sp, learner: lr });
     const t3 = performance.now();
-    lastRun = { speakerMs: Math.round(t1 - t0), cachedSpeaker, takeMs: Math.round(t2 - t1), compareMs: Math.round(t3 - t2), speakerSec: Math.round(speaker.length / 1600) / 10, takeSec: Math.round(learner.length / 1600) / 10, speakerTimings: sp.timingsMs, takeTimings: lr.timingsMs };
+    lastRun = { speakerMs: Math.round(t1 - t0), cachedSpeaker, takeMs: Math.round(t2 - t1), compareMs: Math.round(t3 - t2), speakerSec: given ? null : Math.round(speaker.length / 1600) / 10, takeSec: Math.round(learner.length / 1600) / 10, speakerTimings: sp.timingsMs, takeTimings: lr.timingsMs };
     try { console.info('pronunciation analysis timings (ms) ' + JSON.stringify(lastRun)); } catch { /* no console */ }
     const comparison = w.comparison;
     let status = 'ok', suggested = [];

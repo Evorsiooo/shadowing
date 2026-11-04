@@ -32,6 +32,7 @@ const Heavy = (() => {
   const features = new Map();
   const listeners = new Set();
   const blockers = []; // functions returning true while heavy work should wait (e.g. a recording is in progress)
+  const idleBlockers = []; // the same, but only for background work nobody is waiting for (prepared ahead of time): it also yields to playback, a hidden tab and a low battery
   let queue = Promise.resolve();
   let current = null; // the feature whose queued job is running now (not downloads started with `parallel`)
   let storageMB = null; // free storage estimate, filled in by refreshDevice()
@@ -146,7 +147,8 @@ const Heavy = (() => {
     const m = performance.memory; // Chrome only
     return !!(m && m.jsHeapSizeLimit && m.usedJSHeapSize / m.jsHeapSizeLimit > 0.75);
   }
-  const waitIdle = async (signal) => { while (blockers.some((f) => { try { return f(); } catch { return false; } })) { if (signal.aborted) throw new HeavyError('cancelled'); await new Promise((r) => setTimeout(r, 400)); } };
+  /* background: true, or a function returning it (a run first asked for in the background can be asked for urgently later) */
+  const waitIdle = async (signal, background) => { while ([...blockers, ...((typeof background === 'function' ? background() : background) ? idleBlockers : [])].some((f) => { try { return f(); } catch { return false; } })) { if (signal.aborted) throw new HeavyError('cancelled'); await new Promise((r) => setTimeout(r, 400)); } };
 
   /* run one job under the watchdog. job({ signal }) must stop when signal aborts (terminate its worker).
      opts: timeoutMs (default 60 s), signal (the caller's own cancel) */
@@ -157,14 +159,14 @@ const Heavy = (() => {
     queue = next.catch(() => {});
     return next;
   }
-  async function runNow(id, job, { timeoutMs = 60000, signal: outer, parallel = false } = {}) {
+  async function runNow(id, job, { timeoutMs = 60000, signal: outer, parallel = false, background = false } = {}) {
     if (!isOn(id)) throw new HeavyError('off', 'This feature is off on this device.');
     const ctl = new AbortController();
     const cancel = () => ctl.abort();
     if (outer) { if (outer.aborted) throw new HeavyError('cancelled'); outer.addEventListener('abort', cancel, { once: true }); }
     let timedOut = false, timer = 0;
     try {
-      await waitIdle(ctl.signal); // waiting for a recording to end is not the job's time: the clock starts when the job does
+      await waitIdle(ctl.signal, background); // waiting for a recording to end is not the job's time: the clock starts when the job does
       if (memoryPressure()) throw new HeavyError('low-memory', 'The page is using nearly all the memory the browser allows.');
       timer = setTimeout(() => { timedOut = true; ctl.abort(); }, timeoutMs);
       if (!parallel) current = id;
@@ -242,7 +244,7 @@ const Heavy = (() => {
   }
 
   return {
-    register, check, isOn, enable, disable, download, cancelDownload, downloading: (id) => downloads.has(id), downloadError: (id) => dlErrors.get(id) || null, run, running: () => current, worker, removeData, device, refreshDevice, blockers,
+    register, check, isOn, enable, disable, download, cancelDownload, downloading: (id) => downloads.has(id), downloadError: (id) => dlErrors.get(id) || null, run, running: () => current, worker, removeData, device, refreshDevice, blockers, idleBlockers,
     state: get, spec, markNoticed(id) { const a = all(); if (a[id]) { a[id].noticed = true; lsSet(KEY, a); } },
      list: () => [...features.keys()],
     onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); },

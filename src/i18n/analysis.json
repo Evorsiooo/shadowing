@@ -143,10 +143,6 @@
     "fr": "Un complément de l’analyse de prononciation. Il écrit les mots du clip au-dessus des sons, pour que vous voyiez « think » et pas seulement une suite de symboles. Il ne détecte aucune différence lui-même et ne sert à rien sans l’analyse de prononciation. La reconnaissance vocale s’exécute sur cet appareil, elle peut mal entendre, et vous pouvez corriger un mot.",
     "es": "Un complemento del análisis de pronunciación. Escribe las palabras del clip sobre los sonidos, para que veas «think» y no solo una fila de símbolos. No encuentra diferencias por sí mismo y no sirve sin el análisis de pronunciación. El reconocimiento de voz se ejecuta en este dispositivo, puede oír mal, y puedes corregir una palabra."
   },
-  "{n} s so far": {
-    "fr": "{n} s écoulées",
-    "es": "{n} s hasta ahora"
-  },
   "The pronunciation model isn’t on this device yet": {
     "fr": "Le modèle de prononciation n’est pas encore sur cet appareil",
     "es": "El modelo de pronunciación aún no está en este dispositivo"
@@ -178,10 +174,6 @@
   "Loading the model into memory…": {
     "fr": "Chargement du modèle en mémoire…",
     "es": "Cargando el modelo en la memoria…"
-  },
-  "The download is done. This takes a few seconds, longer on a slow device.": {
-    "fr": "Le téléchargement est terminé. Cela prend quelques secondes, plus sur un appareil lent.",
-    "es": "La descarga ha terminado. Tarda unos segundos, más en un dispositivo lento."
   },
   "You stopped the comparison.": {
     "fr": "Vous avez arrêté la comparaison.",
@@ -299,10 +291,6 @@
     "fr": "Démarrage…",
     "es": "Iniciando…"
   },
-  "reading the speaker": {
-    "fr": "lecture du locuteur",
-    "es": "leyendo al hablante"
-  },
   "reading your take": {
     "fr": "lecture de votre prise",
     "es": "leyendo tu toma"
@@ -314,14 +302,6 @@
   "Step {n} of {m}: {what} · {pct}%": {
     "fr": "Étape {n} sur {m} : {what} · {pct} %",
     "es": "Paso {n} de {m}: {what} · {pct} %"
-  },
-  "speaker already read": {
-    "fr": "locuteur déjà lu",
-    "es": "hablante ya leído"
-  },
-  "It runs on your device. The bar counts the audio read so far; a short clip moves in a few steps.": {
-    "fr": "Cela s’exécute sur votre appareil. La barre compte l’audio déjà lu ; un clip court avance en quelques étapes.",
-    "es": "Se ejecuta en tu dispositivo. La barra cuenta el audio ya leído; un clip corto avanza en pocos pasos."
   },
   "step {n} of {m}": {
     "fr": "étape {n} sur {m}",
@@ -343,8 +323,16 @@
     "fr": "Lecture de votre enregistrement…",
     "es": "Leyendo tu grabación…"
   },
-  "The sounds are ready. The words come first so both line up.": {
-    "fr": "Les sons sont prêts. Les mots viennent d’abord pour que les deux s’alignent.",
-    "es": "Los sonidos están listos. Primero las palabras, para que ambos coincidan."
+  "It runs on your device. The speaker’s sounds and words are kept with the clip, so next time only your take is read.": {
+    "fr": "Cela s’exécute sur votre appareil. Les sons et les mots du locuteur sont conservés avec le clip : la prochaine fois, seule votre prise est lue.",
+    "es": "Se ejecuta en tu dispositivo. Los sonidos y las palabras del hablante se guardan con el clip: la próxima vez solo se lee tu toma."
+  },
+  "reading the speaker’s sounds": {
+    "fr": "lecture des sons du locuteur",
+    "es": "leyendo los sonidos del hablante"
+  },
+  "reading the speaker’s words": {
+    "fr": "lecture des mots du locuteur",
+    "es": "leyendo las palabras del hablante"
   }
 }

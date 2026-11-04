@@ -104,3 +104,13 @@ Heavy.onChange(() => { try { renderPanel(); } catch { /* the panel isn't up yet 
 /* never load a model or run heavy analysis while a pass is being recorded: it could glitch the take */
 /* wait only while the microphone is actually recording (Session.rec); recordingThisPass stays true through the review screen and the gap, which made the analysis wait until its time ran out */
 Heavy.blockers.push(() => !!(Session.active && Session.rec));
+
+/* background preparation (27-prepare.js) also steps aside for playback anywhere in the app and for a battery that is low and not charging */
+let lowBattery = false;
+try {
+  if (navigator.getBattery) navigator.getBattery().then((b) => {
+    const f = () => { lowBattery = !b.charging && b.level < 0.2; };
+    f(); b.addEventListener('levelchange', f); b.addEventListener('chargingchange', f);
+  }).catch(() => {});
+} catch { /* no battery API */ }
+Heavy.idleBlockers.push(() => lowBattery || !!(Player.v && !Player.v.paused));
