@@ -114,9 +114,18 @@ await test('Delete downloaded data removes the cache, the flag and the consent',
 const ctx2 = { console, location: { search: '' }, Phones: undefined };
 vm.createContext(ctx2);
 vm.runInContext(read('54-pron-source.js') + '\nthis.pronWords = pronWords;', ctx2);
-await test('pronWords: text and its clip.words index come from the overlapping word; unlabelled sounds stay null', async () => {
-  const S = { phones: [{ sym: 'h', extWord: 0 }, { sym: 'i', extWord: 0 }, { sym: 'x' }], words: [{ first: 0, last: 1, t0: 0, t1: 0.4 }, { first: 2, last: 2, t0: 0.5, t1: 0.6 }] };
-  const out = ctx2.pronWords(S, [], { source: 'asr', words: [{ text: 'hi', t0: 0, t1: 0.4 }] });
-  assert.equal(out[0].text, 'hi'); assert.equal(out[0].ext, 0); assert.equal(out[1].text, null); assert.equal(out[1].ext, null);
+const ph = (sym, t0, t1, extWord, word) => ({ sym, t0, t1, extWord, word });
+await test('pronWords: each word gets only the sounds inside it (not a whole sentence); unlabelled sounds stay null', async () => {
+  // one engine group (no pause) holding three spoken words
+  const S = { phones: [ph('h', 0, 0.1, 0, 0), ph('i', 0.1, 0.2, 0, 0), ph('g', 0.2, 0.3, 1, 0), ph('o', 0.3, 0.4, 1, 0), ph('x', 0.4, 0.5, undefined, 0), ph('y', 0.5, 0.6, 2, 0)], words: [{ first: 0, last: 5, t0: 0, t1: 0.6 }] };
+  const ext = { source: 'asr', words: [{ text: 'hi', t0: 0, t1: 0.2 }, { text: 'go', t0: 0.2, t1: 0.4 }, { text: 'yes', t0: 0.5, t1: 0.6 }] };
+  const out = ctx2.pronWords(S, [], ext);
+  assert.equal(JSON.stringify(out.map((w) => [w.text, w.phones.length])), JSON.stringify([['hi', 2], ['go', 2], [null, 1], ['yes', 1]]));
+  assert.equal(out[0].ext, 0); assert.equal(out[2].ext, null); assert.equal(out[1].start, 0.2); assert.equal(out[1].end, 0.4);
+});
+await test('pronWords: phrase-timed words are not placed on the sounds', async () => {
+  const S = { phones: [ph('h', 0, 0.1, 0, 0), ph('i', 0.1, 0.2, 0, 0)], words: [{ first: 0, last: 1, t0: 0, t1: 0.2 }] };
+  const out = ctx2.pronWords(S, [], { source: 'asr', timing: 'phrase', words: [{ text: 'hi', t0: 0, t1: 0.2 }] });
+  assert.equal(out.length, 1); assert.equal(out[0].text, null);
 });
 console.log(`${n} passed`);

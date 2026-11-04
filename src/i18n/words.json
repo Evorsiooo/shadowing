@@ -3,10 +3,6 @@
     "fr": "Étiquettes de mots",
     "es": "Etiquetas de palabras"
   },
-  "The words are placed roughly: this device couldn’t time each word.": {
-    "fr": "Les mots sont placés approximativement : cet appareil n’a pas pu dater chaque mot.",
-    "es": "Las palabras están colocadas de forma aproximada: este dispositivo no pudo medir el momento de cada palabra."
-  },
   "Words are read automatically and can be wrong.": {
     "fr": "Les mots sont lus automatiquement et peuvent être faux.",
     "es": "Las palabras se leen automáticamente y pueden ser incorrectas."
@@ -58,5 +54,9 @@
   "Only the spelling changes; each word keeps its place in the clip. Clear a box to remove a word.": {
     "fr": "Seule l’orthographe change ; chaque mot garde sa place dans l’extrait. Vide une case pour supprimer un mot.",
     "es": "Solo cambia la ortografía; cada palabra conserva su lugar en el clip. Vacía una casilla para quitar una palabra."
+  },
+  "This device couldn’t time each word, so the words aren’t placed on the sounds.": {
+    "fr": "Cet appareil n’a pas pu situer chaque mot dans le temps : les mots ne sont donc pas placés sur les sons.",
+    "es": "Este dispositivo no pudo situar cada palabra en el tiempo, así que las palabras no se colocan sobre los sonidos."
   }
 }

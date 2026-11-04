@@ -86,6 +86,13 @@ await test('time spent waiting for a recording does not count against the job; a
   assert.equal(err.code, 'timeout'); assert.match(err.message, /longer than/);
   assert.match(new w.HeavyError('cancelled').message, /stopped/);
 });
+await test('a parallel download does not hold up the queue', async () => {
+  const w = make(); w.Heavy.register('p', def); w.Heavy.enable('p');
+  let release; const dl = w.Heavy.run('p', () => new Promise((r) => { release = r; }), { parallel: true, timeoutMs: 5000 });
+  assert.equal(w.Heavy.running(), null);
+  assert.equal(await w.Heavy.run('p', async () => 3), 3); // not stuck behind the download
+  release(); await dl;
+});
 await test('out of memory turns it off at once', async () => {
   const w = make(); w.Heavy.register('p', def); w.Heavy.enable('p');
   await assert.rejects(w.Heavy.run('p', async () => { throw new RangeError('Array buffer allocation failed'); }), { code: 'out-of-memory' });

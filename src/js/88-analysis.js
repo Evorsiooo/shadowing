@@ -99,6 +99,7 @@ function announceHeavyOff() {
   }
 }
 Heavy.onChange(announceHeavyOff);
+Heavy.onChange(() => { try { renderPanel(); } catch { /* the panel isn't up yet */ } }); // the Pronunciation tab appears or goes away with the switch (the panel only redraws when its key changes)
 
 /* never load a model or run heavy analysis while a pass is being recorded: it could glitch the take */
 /* wait only while the microphone is actually recording (Session.rec); recordingThisPass stays true through the review screen and the gap, which made the analysis wait until its time ran out */

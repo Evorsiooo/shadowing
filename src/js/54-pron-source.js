@@ -23,25 +23,28 @@
 
 /* engine words (PhoneWord, no text) + the differences to show -> PronWord[] */
 function pronWords(S, shown, ext) {
-  const exts = ext && ext.source !== 'none' ? ext.words : null;
-  return S.words.map((w, wi) => {
+  // Words the learner can see are the clip's words (clip.words) when their times can be trusted; each one gets exactly the sounds whose middle falls inside it.
+  // Without words, or when this device could only time whole phrases ('phrase'), the engine's own groups of sounds are shown with no text: never a word over the wrong sounds.
+  const exts = ext && ext.source !== 'none' && ext.timing !== 'phrase' ? ext.words : null;
+  const units = [];
+  if (exts) {
+    S.phones.forEach((p, i) => {
+      const k = p.extWord != null ? p.extWord : null, u = units[units.length - 1];
+      if (u && u.ext === k && (k != null || S.phones[i - 1].word === p.word)) u.last = i; // sounds without a word stay within one engine group
+      else units.push({ first: i, last: i, ext: k });
+    });
+  } else S.words.forEach((w) => units.push({ first: w.first, last: w.last, ext: null }));
+  return units.map((u) => {
     const phones = [];
-    const mine = shown.filter((d) => d.speaker && d.speaker.i >= w.first && d.speaker.i <= w.last);
-    for (let i = w.first; i <= w.last; i++) {
+    const mine = shown.filter((d) => d.speaker && d.speaker.i >= u.first && d.speaker.i <= u.last);
+    for (let i = u.first; i <= u.last; i++) {
       const p = S.phones[i], d = mine.find((x) => x.speaker.i === i);
       phones.push({ spk: p.sym, you: d ? (d.learner ? d.learner.sym : null) : p.sym });
     }
-    const ins = shown.filter((d) => d.kind === 'ins' && d.speakerWord === wi && d.learner);
+    const ins = shown.filter((d) => { const w = S.words[d.speakerWord]; return d.kind === 'ins' && d.learner && w && w.last >= u.first && w.last <= u.last; });
     ins.forEach((d) => phones.push({ spk: null, you: d.learner.sym }));
-    let text = null, ext = null;
-    if (exts) { // the external word most of this word's sounds fall in
-      const n = {};
-      for (let i = w.first; i <= w.last; i++) if (S.phones[i].extWord != null) n[S.phones[i].extWord] = (n[S.phones[i].extWord] || 0) + 1;
-      const best = Object.keys(n).sort((a, b) => n[b] - n[a])[0];
-      if (best != null && exts[best]) { text = exts[best].text; ext = +best; }
-    }
-    const used = mine.concat(ins);
-    return { text, ext, start: w.t0, end: w.t1, phones, differs: used.length > 0, confidence: used.length ? Math.max(...used.map((d) => d.confidence)) : 1 };
+    const used = mine.concat(ins), word = u.ext != null && exts[u.ext] ? exts[u.ext] : null;
+    return { text: word ? word.text : null, ext: word ? u.ext : null, start: S.phones[u.first].t0, end: S.phones[u.last].t1, phones, differs: used.length > 0, confidence: used.length ? Math.max(...used.map((d) => d.confidence)) : 1 };
   });
 }
 function pronFromClipResult(res) {
@@ -158,14 +161,22 @@ const PronSource = (() => {
     stop: () => Phones.stop(),
     async analyse(clip, take, signal, onProgress) {
       clip = Store.get('clips', clip.id) || clip; // words may have arrived or been fixed since the tab opened
+      // before the engine reports progress, say which step this is (and log how long each took)
+      const say = (phase) => onProgress && onProgress({ phase, fraction: 0, step: 0, steps: 0 });
+      const T0 = performance.now(), lap = (what) => { try { console.info(`pronunciation: ${what} ${Math.round(performance.now() - T0)} ms after the tab asked`); } catch { /* no console */ } };
+      say('speaker-audio');
       const spk = await speakerSamples(clip, signal);
+      lap('speaker audio ready');
       // words, when the clip has them (clip.words = [{w, s, e}], automatic or fixed by the learner, seconds from the clip start); sounds alone otherwise.
       // Attached after the engine, never passed in: its cached results must not freeze an older version of the words.
-      const external = clip.words && clip.words.length ? { source: 'asr', words: clip.words.map((x) => ({ text: x.w, t0: x.s, t1: x.e })) } : undefined;
+      const external = clip.words && clip.words.length ? { source: 'asr', timing: clip.wordsFor && clip.wordsFor.timing, words: clip.words.map((x) => ({ text: x.w, t0: x.s, t1: x.e })) } : undefined;
       const withWords = (seq) => (external ? Phones.attachExternalWords(seq, external) : { ...seq, external: undefined });
       if (!take) return pronFromSequence(withWords(await Heavy.run('pronunciation', () => Phones.transcribe(spk, { originSec: 0, cache: true, onProgress: (d, tot) => onProgress && onProgress({ fraction: d / tot, step: 1, steps: 1, stage: 'speaker' }) }), { timeoutMs: 90000, signal })));
+      say('take-audio');
       const blob = take.blob || (await (await fetch(await Store.blobUrl(take.ref))).blob());
       const you = await AudioEng.decodeBlob(blob);
+      lap('take decoded');
+      say('queue');
       const res = await Heavy.run('pronunciation', () => Phones.analyse(spk, you, { speakerOriginSec: 0, onProgress }), { timeoutMs: 90000, signal });
       return pronFromClipResult({ ...res, speaker: withWords(res.speaker) });
     },
