@@ -284,6 +284,11 @@ function pronunciationSummary(data, today = dayKey()) {
     clipsWithSpeakerSounds: clips.filter((c) => c.speakerPhones && c.speakerPhones.seq).length, takesCompared: recs.filter((r) => r.takeAnalysis || (r.phones && r.phones.diffs)).length, perClip: 'get_clip_pronunciation',
   };
 }
+/* "Drill this" tries (one short snippet each, judged by the same recogniser): not counted in chances or trends */
+function drillsOf(pron, pair) {
+  const L = ((pron && pron.drills) || []).filter((x) => x.pair === pair);
+  return L.length ? { tries: L.length, notFlagged: L.filter((x) => x.r === 'clear').length, flaggedAgain: L.filter((x) => x.r === 'still').length, couldNotCheck: L.filter((x) => x.r === 'unclear').length, last: L[L.length - 1].d } : null;
+}
 export function pronunciationProgress(data, today = dayKey()) {
   const pron = data.meta.pron, prosody = data.meta.prosody;
   if (!pron && !prosody) return { enabled: false, note: 'No pronunciation history yet (the learner has not turned on Settings → Pronunciation or recorded a pass).' };
@@ -299,6 +304,7 @@ export function pronunciationProgress(data, today = dayKey()) {
       daysFlaggedTotal: (e.days || []).length,
       examples: (e.ex || []).slice(-5).map((x) => ({ date: x.d, word: x.w || null, clipId: x.c || null })),
       noteId: e.noteId || null, confirmedByLearner: !!(note && note.confirmed),
+      drills: drillsOf(pron, pair),
     };
   }).sort((a, b) => (a.state === 'archived') - (b.state === 'archived') || b.flagged.last14d - a.flagged.last14d);
   const timing = {};

@@ -83,10 +83,6 @@
     "fr": "Encore",
     "es": "Otra vez"
   },
-  "The speaker’s snippet ({a}–{b} s) plays {n} times. Shadow it; the last time is recorded. Headphones on.": {
-    "fr": "L’extrait du locuteur ({a}–{b} s) passe {n} fois. Répète-le ; la dernière fois est enregistrée. Casque sur les oreilles.",
-    "es": "El fragmento del hablante ({a}–{b} s) suena {n} veces. Repítelo; la última vez se graba. Con auriculares."
-  },
   "I said {to} where the speaker says {from} in “{words}”.": {
     "fr": "J’ai dit {to} là où le locuteur dit {from} dans « {words} ».",
     "es": "Dije {to} donde el hablante dice {from} en «{words}»."
@@ -418,5 +414,65 @@
   "Wait until the pass is over, then play it.": {
     "fr": "Attends la fin de la passe, puis écoute.",
     "es": "Espera a que termine la pasada y luego escúchalo."
+  },
+  "Pronunciation analysis isn’t ready on this device.": {
+    "fr": "L’analyse de la prononciation n’est pas prête sur cet appareil.",
+    "es": "El análisis de pronunciación no está listo en este dispositivo."
+  },
+  "The speaker’s audio for this stretch isn’t loaded.": {
+    "fr": "L’audio du locuteur pour ce passage n’est pas chargé.",
+    "es": "El audio del hablante para este tramo no está cargado."
+  },
+  "Too little clear speech in the recording to compare.": {
+    "fr": "Pas assez de voix claire dans l’enregistrement pour comparer.",
+    "es": "No hay suficiente voz clara en la grabación para comparar."
+  },
+  "The snippet didn’t include that sound clearly enough to check it.": {
+    "fr": "L’extrait ne contenait pas ce son assez clairement pour le vérifier.",
+    "es": "El fragmento no incluía ese sonido con suficiente claridad para comprobarlo."
+  },
+  "Drills so far: {ok} not flagged, {bad} flagged again.": {
+    "fr": "Entraînements jusqu’ici : {ok} non signalés, {bad} signalés de nouveau.",
+    "es": "Prácticas hasta ahora: {ok} sin señalar, {bad} señalados otra vez."
+  },
+  "This time {a} wasn’t flagged: the computer didn’t hear it come out as another sound.": {
+    "fr": "Cette fois {a} n’a pas été signalé : l’ordinateur ne l’a pas entendu comme un autre son.",
+    "es": "Esta vez no se señaló {a}: el ordenador no lo oyó como otro sonido."
+  },
+  "{a} was flagged again: the computer still heard {b} where the speaker has {a}.": {
+    "fr": "{a} a été signalé de nouveau : l’ordinateur a encore entendu {b} là où le locuteur dit {a}.",
+    "es": "Se señaló {a} otra vez: el ordenador volvió a oír {b} donde el hablante dice {a}."
+  },
+  "Couldn’t check this one: {why}": {
+    "fr": "Impossible de vérifier celui-ci : {why}",
+    "es": "No se pudo comprobar este: {why}"
+  },
+  "Not flagged this time": {
+    "fr": "Non signalé cette fois",
+    "es": "Sin señalar esta vez"
+  },
+  "Flagged again": {
+    "fr": "Signalé de nouveau",
+    "es": "Señalado otra vez"
+  },
+  "Not checked": {
+    "fr": "Non vérifié",
+    "es": "Sin comprobar"
+  },
+  "Also flagged: {list}.": {
+    "fr": "Aussi signalé : {list}.",
+    "es": "También señalado: {list}."
+  },
+  "Not exact: one short try, judged by a computer that can be wrong. Play both and decide for yourself.": {
+    "fr": "Pas exact : un seul essai court, jugé par un ordinateur qui peut se tromper. Écoute les deux et décide toi-même.",
+    "es": "No es exacto: un solo intento corto, juzgado por un ordenador que puede equivocarse. Escucha ambos y decide tú."
+  },
+  "The speaker’s snippet ({a}–{b} s) plays {n} times. Shadow it; the last time is recorded and compared with the speaker. Headphones on.": {
+    "fr": "L’extrait du locuteur ({a}–{b} s) est lu {n} fois. Répète-le en décalé ; la dernière fois est enregistrée et comparée au locuteur. Casque sur les oreilles.",
+    "es": "El fragmento del hablante ({a}–{b} s) suena {n} veces. Repítelo en diferido; la última vez se graba y se compara con el hablante. Con auriculares."
+  },
+  "No recording was made (is the microphone allowed?).": {
+    "fr": "Aucun enregistrement n’a été fait (le micro est-il autorisé ?).",
+    "es": "No se hizo ninguna grabación (¿está permitido el micrófono?)."
   }
 }

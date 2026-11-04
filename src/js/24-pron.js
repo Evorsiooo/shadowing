@@ -342,6 +342,49 @@ const Pron = {
     return this.shown(this.phonesFor(recId, sessionId)).items;
   },
 
+  /* ---- "Drill this": the learner's recorded snippet against the SPEAKER's audio for the same stretch (never a transcript).
+     result: 'clear' = that sound was not flagged this time, 'still' = flagged again, 'unclear' = could not be checked.
+     'clear' is one short try judged by a recogniser that can be wrong, so it never counts as "fixed" or goes into the tally. ---- */
+  async drillCheck(clip, d, a, b, samples, onProgress) {
+    if (!this.on() || !samples || !samples.length || !PhonesAdapter.ready()) return { result: 'unclear', why: t('Pronunciation analysis isn’t ready on this device.') };
+    let spk = VideoAudio.slice(clip.videoId, clip.start + a, clip.start + b);
+    if (!spk) { const v = Store.get('videos', clip.videoId); if (v) { await VideoAudio.ensure(v, clip.start + a, clip.start + b); spk = VideoAudio.slice(clip.videoId, clip.start + a, clip.start + b); } }
+    if (!spk || !spk.length) return { result: 'unclear', why: t('The speaker’s audio for this stretch isn’t loaded.') };
+    let r = null;
+    try { r = await Heavy.run('pronunciation', () => Phones.analyse(spk, samples, { speakerOriginSec: 0, onProgress }), { timeoutMs: 90000 }); } catch (e) { return { result: 'unclear', why: this.reason(e) }; }
+    if (!r || r.status !== 'ok' || !r.comparison) return { result: 'unclear', why: t('Too little clear speech in the recording to compare.') };
+    const syms = (seq, w) => (w == null || !seq.words[w] ? [] : seq.phones.slice(seq.words[w].first, seq.words[w].last + 1).map((p) => p.sym));
+    const diffs = r.comparison.diffs.filter((x) => x.kind === 'sub' && !x.weak).slice(0, 12).map((x) => {
+      const [from, to] = x.pair.split('→');
+      return { a: round(x.t0, 2), b: round(Math.max(x.t1, x.t0 + 0.3), 2), words: '', speaker: syms(r.speaker, x.speakerWord), you: syms(r.learner, x.learnerWord), from, to, conf: round(x.confidence, 2) };
+    });
+    const sounds = {};
+    for (const p of r.speaker.phones) sounds[p.sym] = (sounds[p.sym] || 0) + 1;
+    if (!sounds[d.from]) return { result: 'unclear', why: t('The snippet didn’t include that sound clearly enough to check it.') };
+    const pair = this.pairOf(d);
+    const still = diffs.some((x) => this.pairOf(x) === pair);
+    return { result: still ? 'still' : 'clear', others: diffs.filter((x) => this.pairOf(x) !== pair && !this.doc().blocked.includes(this.pairOf(x))).slice(0, 2), phones: { v: 1, diffs, sounds } };
+  },
+  /* keep the drill (and the take, when there is one) on the account so it syncs; the 'pron' document holds a short list */
+  async recordDrill(clip, d, res, blob) {
+    let recId = null;
+    if (blob && blob.size) {
+      try {
+        const ref = await Store.putBlob(blob);
+        recId = Store.put('recordings', { kind: 'drill', clipId: clip.id, pair: this.pairOf(d), result: res.result, ref, mime: blob.type, created: new Date().toISOString(), phones: res.phones || null }).id;
+      } catch (e) { console.warn('drill take not saved', e); }
+    }
+    const doc = this.doc();
+    doc.drills = [...(doc.drills || []), { d: dayKey(), pair: this.pairOf(d), clipId: clip.id, r: res.result, rec: recId }].slice(-200);
+    this.save(doc);
+    return recId;
+  },
+  drillsFor(pair) { return (this.doc().drills || []).filter((x) => x.pair === pair); },
+  drillLine(pair) {
+    const L = this.drillsFor(pair), ok = L.filter((x) => x.r === 'clear').length, bad = L.filter((x) => x.r === 'still').length;
+    return L.length ? t('Drills so far: {ok} not flagged, {bad} flagged again.', { ok, bad }) : '';
+  },
+
   /* a 2-4 s stretch of the clip around a difference, as seconds from the clip's start */
   snippet(clip, d) {
     const dur = clip.end - clip.start;
