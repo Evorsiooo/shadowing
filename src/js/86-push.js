@@ -79,7 +79,7 @@ function deviceLabel() {
   return br ? `${os} · ${br}` : os;
 }
 
-/* The "Notifications" card in Settings → Reminders. `status.push` comes from GET /api/reminders. */
+/* The "Notifications" card in Settings → Practice. `status.push` comes from GET /api/reminders. */
 function pushCard(status, { onChange }) {
   const card = h('div', { class: 'card stack' }, h('h3', null, t('Notifications on this device')));
   card.add = (...nodes) => card.append(...nodes.filter(Boolean));

@@ -13,8 +13,8 @@ who turn on Drive sync, a sealed Google refresh token.
   IndexedDB where OPFS can't be written from the page (`DeviceFiles` in `src/js/17-media.js`).
   The app asks the browser for persistent storage (Chrome decides by itself and usually says no for
   new sites; nothing depends on it).
-- **Google Drive (the default home).** Onboarding recommends connecting it, and so does Settings → Storage.
-  Without it, files stay in the browser only. "Keep files only in this browser" in Settings → Storage
+- **Google Drive (the default home).** Onboarding recommends connecting it, and so does Settings → Data.
+  Without it, files stay in the browser only. "Keep files only in this browser" in Settings → Data
   is the opt-in for people who don't want Drive (`meta/storage.deviceOnly`); it hides the "connect Google Drive" prompts.
   With Drive on, the browser copy is only a cache. The app asks for the
   `drive.file` scope, which only covers files the app itself creates; Google lists it as

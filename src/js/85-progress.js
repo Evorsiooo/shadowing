@@ -75,7 +75,7 @@ function renderChips() {
   lib.classList.add('only-phone');
 }
 function storageTitle() {
-  return Store.mode === 'cloud' ? `${Api.email ? t('Your practice history is saved to your account ({email}).', { email: Api.email }) : t('Your practice history is saved to your account.')} ${Drive.connected() ? t('Videos and recordings are in your Google Drive.') : t('Videos and recordings are only in this browser until you connect Google Drive (Settings → Storage).')}`
+  return Store.mode === 'cloud' ? `${Api.email ? t('Your practice history is saved to your account ({email}).', { email: Api.email }) : t('Your practice history is saved to your account.')} ${Drive.connected() ? t('Videos and recordings are in your Google Drive.') : t('Videos and recordings are only in this browser until you connect Google Drive (Settings → Data).')}`
     : Store.mode === 'artifact' ? t('Saved in the artifact’s database; available on every device.')
     : Store.mode === 'local' ? t('Saved in this browser only. Back up from Settings → Data.')
       : t('Storage is blocked here; nothing will be kept after you close the page.');
