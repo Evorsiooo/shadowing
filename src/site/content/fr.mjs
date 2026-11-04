@@ -14,7 +14,6 @@ const make = ({ SITE, L, host }) => ({
     langNow: 'Langue : français',
     navWhat: 'C’est quoi le shadowing ?',
     navRoutine: 'Routine quotidienne',
-    footRoutine: 'Routine de shadowing pour l’accent',
     contact: 'Contact',
     privacy: 'Confidentialité',
     terms: 'Conditions',
@@ -123,7 +122,7 @@ const make = ({ SITE, L, host }) => ({
     ],
     cmpH2: 'Vois comment ton enregistrement se compare',
     cmpIntro: 'Voici la vue de comparaison. Chaque enregistrement est tracé sur celui du locuteur, pour voir ce qui a changé entre ta première tentative et la dernière.',
-    cmpCaption: 'La mélodie du locuteur (vert) et la tienne (bleu) après l’enregistrement de l’étape 3 puis après le dernier : plus proche en timing et en forme.',
+    cmpCaption: 'La mélodie du locuteur (noir) et la tienne (vert) après l’enregistrement de l’étape 3 puis après le dernier : plus proche en timing et en forme.',
     cmpPoints: [
       '<strong>Ta mélodie à côté de la sienne.</strong> Les deux courbes sont mesurées par rapport à la voix de chacun, donc une voix plus aiguë ou plus grave n’a pas d’importance.',
       '<strong>Ton décalage.</strong> Euno aligne les enregistrements et te dit de combien tu étais en retard ou en avance sur le locuteur.',

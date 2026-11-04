@@ -1,6 +1,7 @@
 /* ---------- video library sidebar ---------- */
-function openDrawer() { UI.drawer = true; $('#sidebar').classList.add('open'); $('#drawerBack').hidden = false; }
-function closeDrawer() { UI.drawer = false; $('#sidebar').classList.remove('open'); $('#drawerBack').hidden = true; }
+/* the library sits beside the player (under it on phones): "open the library" goes there and brings it into view */
+function openDrawer() { if (UI.tab !== 'library') go('library'); requestAnimationFrame(() => { const sb = $('#sidebar'); if (sb && !wideLayout.matches) sb.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); }
+function closeDrawer() { /* nothing to close any more */ }
 
 function videoProgress(v) {
   const clips = videoClips(v.id).filter((c) => !c.archived);
@@ -19,14 +20,10 @@ function renderSidebar() {
   mount(sb,
     h('div', { class: 'row' },
       h('h3', { class: 'grow' }, t('Videos')),
-      btn(UI.addOpen ? t('Close') : t('Add video'), () => { UI.addOpen = !UI.addOpen; renderSidebar(); if (UI.addOpen) setTimeout(() => $('#addUrl') && $('#addUrl').focus(), 30); }, { icon: UI.addOpen ? 'close' : 'plus', size: 'sm', kind: UI.addOpen ? '' : 'primary' }),
-      btn('', () => closeDrawer(), { icon: 'close', kind: 'ghost', title: t('Close library'), txtClass: 'txt' })),
+      btn(UI.addOpen ? t('Close') : t('Add video'), () => { UI.addOpen = !UI.addOpen; renderSidebar(); if (UI.addOpen) setTimeout(() => $('#addUrl') && $('#addUrl').focus(), 30); }, { icon: UI.addOpen ? 'close' : 'plus', size: 'sm', kind: UI.addOpen ? '' : 'primary' })),
     UI.addOpen ? addVideoForm() : null,
     active.length ? h('div', { class: 'vlist' }, active.map(videoItem)) : (!UI.addOpen ? h('p', { class: 'muted small' }, t('No videos yet. Add a video file or a direct link to an .mp4 file to get started.')) : null),
     archived.length ? h('details', { class: 'archived' }, h('summary', null, t('Archived ({n})', { n: archived.length })), h('div', { class: 'vlist' }, archived.map(videoItem))) : null);
-  // the close button only makes sense in the phone drawer
-  const closeBtn = sb.querySelector('.row .btn.ghost');
-  if (closeBtn) closeBtn.classList.add('only-phone');
 }
 
 function addVideoForm() {

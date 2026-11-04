@@ -1,0 +1,510 @@
+{
+  "Open a video from the list, then choose a clip, or press Cut clips to make a new one.": {
+    "fr": "Ouvre une vidéo dans la liste, puis choisis un extrait, ou appuie sur Découper pour en créer un.",
+    "es": "Abre un vídeo de la lista y elige un fragmento, o pulsa Cortar fragmentos para crear uno."
+  },
+  "Eyes on the video": {
+    "fr": "Les yeux sur la vidéo",
+    "es": "Mira el vídeo"
+  },
+  "5-minute version": {
+    "fr": "Version de 5 minutes",
+    "es": "Versión de 5 minutos"
+  },
+  "Last pass: Euno records you": {
+    "fr": "Dernier passage : Euno t’enregistre",
+    "es": "Última pasada: Euno te graba"
+  },
+  "Euno records this pass": {
+    "fr": "Euno enregistre ce passage",
+    "es": "Euno graba esta pasada"
+  },
+  "Shadow like before. When the clip ends, Euno puts your voice next to the speaker’s.": {
+    "fr": "Fais du shadowing comme avant. À la fin de l’extrait, Euno met ta voix à côté de celle du locuteur.",
+    "es": "Haz shadowing como antes. Cuando acabe el fragmento, Euno pone tu voz junto a la del hablante."
+  },
+  "Headphones on (wired is best), or the microphone picks up the clip.": {
+    "fr": "Mets un casque (filaire de préférence), sinon le micro capte l’extrait.",
+    "es": "Ponte auriculares (mejor con cable), o el micrófono capta el fragmento."
+  },
+  "Try the microphone again": {
+    "fr": "Réessayer le micro",
+    "es": "Probar el micrófono otra vez"
+  },
+  "Paused": {
+    "fr": "En pause",
+    "es": "En pausa"
+  },
+  "Recording you": {
+    "fr": "Enregistrement en cours",
+    "es": "Grabándote"
+  },
+  "Next pass in a moment": {
+    "fr": "Prochain passage dans un instant",
+    "es": "Siguiente pasada en un momento"
+  },
+  "Shadowing": {
+    "fr": "Shadowing",
+    "es": "Shadowing"
+  },
+  "Listening": {
+    "fr": "Écoute",
+    "es": "Escuchando"
+  },
+  "Press play (or Space) to restart this pass.": {
+    "fr": "Appuie sur lecture (ou Espace) pour reprendre ce passage.",
+    "es": "Pulsa reproducir (o Espacio) para retomar esta pasada."
+  },
+  "Shadow along now. Your line is hidden until the clip ends.": {
+    "fr": "Parle en même temps maintenant. Ta courbe reste cachée jusqu’à la fin de l’extrait.",
+    "es": "Habla a la vez ahora. Tu línea queda oculta hasta que acabe el fragmento."
+  },
+  "Speak along with the speaker, a fraction of a second behind.": {
+    "fr": "Parle en même temps que le locuteur, une fraction de seconde après lui.",
+    "es": "Habla a la vez que el hablante, una fracción de segundo por detrás."
+  },
+  "Listen only. Take in the rhythm and the melody.": {
+    "fr": "Écoute seulement. Imprègne-toi du rythme et de la mélodie.",
+    "es": "Solo escucha. Fíjate en el ritmo y la melodía."
+  },
+  "Start again": {
+    "fr": "Recommencer",
+    "es": "Empezar de nuevo"
+  },
+  "Switch to 5 min": {
+    "fr": "Passer à 5 min",
+    "es": "Cambiar a 5 min"
+  },
+  "Bad day? The 5-minute version still counts": {
+    "fr": "Mauvais jour ? La version de 5 minutes compte aussi",
+    "es": "¿Mal día? La versión de 5 minutos también cuenta"
+  },
+  "+{min} min": {
+    "fr": "+{min} min",
+    "es": "+{min} min"
+  },
+  "{name}, then you": {
+    "fr": "{name}, puis toi",
+    "es": "{name} y luego tú"
+  },
+  "Together": {
+    "fr": "Ensemble",
+    "es": "A la vez"
+  },
+  "No clear differences this time. Shadow it again and listen for the rhythm.": {
+    "fr": "Pas de différence nette cette fois. Refais-le et écoute bien le rythme.",
+    "es": "Esta vez no hay diferencias claras. Repítelo y fíjate en el ritmo."
+  },
+  "Computer listening, so it can be wrong. Play both and decide by ear.": {
+    "fr": "C’est l’ordinateur qui écoute, il peut se tromper. Écoute les deux et juge à l’oreille.",
+    "es": "Escucha un ordenador, así que puede equivocarse. Reproduce los dos y decide de oído."
+  },
+  "Your last pass next to {name}": {
+    "fr": "Ton dernier passage à côté de {name}",
+    "es": "Tu última pasada junto a {name}"
+  },
+  "Your pass next to {name}": {
+    "fr": "Ton passage à côté de {name}",
+    "es": "Tu pasada junto a {name}"
+  },
+  "Play": {
+    "fr": "Lire",
+    "es": "Reproducir"
+  },
+  "Try these in step 4": {
+    "fr": "À essayer à l’étape 4",
+    "es": "Prueba esto en el paso 4"
+  },
+  "Listen for these next time": {
+    "fr": "À écouter la prochaine fois",
+    "es": "Fíjate en esto la próxima vez"
+  },
+  "Compare": {
+    "fr": "Comparer",
+    "es": "Comparar"
+  },
+  "Volume and notes": {
+    "fr": "Volume et notes",
+    "es": "Volumen y notas"
+  },
+  "Redo": {
+    "fr": "Refaire",
+    "es": "Repetir"
+  },
+  "Continue to step 4": {
+    "fr": "Passer à l’étape 4",
+    "es": "Seguir al paso 4"
+  },
+  "sound": {
+    "fr": "son",
+    "es": "sonido"
+  },
+  "timing": {
+    "fr": "rythme",
+    "es": "ritmo"
+  },
+  "melody": {
+    "fr": "mélodie",
+    "es": "melodía"
+  },
+  "stress": {
+    "fr": "accent",
+    "es": "acento"
+  },
+  "The speaker has {a} here; you may have said {b}.": {
+    "fr": "Le locuteur a {a} ici ; tu as peut-être dit {b}.",
+    "es": "El hablante tiene {a} aquí; puede que tú dijeras {b}."
+  },
+  "Also in your step 3 take.": {
+    "fr": "Aussi dans ta prise de l’étape 3.",
+    "es": "También en tu toma del paso 3."
+  },
+  "Drill": {
+    "fr": "S’entraîner",
+    "es": "Practicar"
+  },
+  "No clip selected": {
+    "fr": "Aucun extrait choisi",
+    "es": "Ningún fragmento elegido"
+  },
+  "done, practise it again any time": {
+    "fr": "terminé, tu peux le refaire quand tu veux",
+    "es": "hecho, puedes repetirlo cuando quieras"
+  },
+  "Select a clip on the timeline or in the list, or cut a new one.": {
+    "fr": "Choisis un extrait sur la frise ou dans la liste, ou découpe-en un nouveau.",
+    "es": "Elige un fragmento en la línea de tiempo o en la lista, o corta uno nuevo."
+  },
+  "Start {n} clips": {
+    "fr": "Commencer {n} extraits",
+    "es": "Empezar {n} fragmentos"
+  },
+  "The 5-minute version": {
+    "fr": "La version de 5 minutes",
+    "es": "La versión de 5 minutos"
+  },
+  "See it in full|All {n} differences": {
+    "fr": "Tout voir|Les {n} différences",
+    "es": "Verlo entero|Las {n} diferencias"
+  },
+  "Ask Euno": {
+    "fr": "Demander à Euno",
+    "es": "Preguntar a Euno"
+  },
+  "Copy prompt for an AI": {
+    "fr": "Copier le prompt pour une IA",
+    "es": "Copiar prompt para una IA"
+  },
+  "Euno says": {
+    "fr": "Euno dit",
+    "es": "Euno dice"
+  },
+  "Euno isn’t sure what you meant": {
+    "fr": "Euno n’est pas sûr de ce que tu voulais dire",
+    "es": "Euno no está seguro de qué quisiste decir"
+  },
+  "Euno, Today": {
+    "fr": "Euno, Aujourd’hui",
+    "es": "Euno, Hoy"
+  },
+  "Today": {
+    "fr": "Aujourd’hui",
+    "es": "Hoy"
+  },
+  "Main": {
+    "fr": "Principal",
+    "es": "Principal"
+  },
+  "Account and settings": {
+    "fr": "Compte et réglages",
+    "es": "Cuenta y ajustes"
+  },
+  "Your practice": {
+    "fr": "Ta pratique",
+    "es": "Tu práctica"
+  },
+  "Guides": {
+    "fr": "Guides",
+    "es": "Guías"
+  },
+  "Saved to your account and Google Drive": {
+    "fr": "Enregistré dans ton compte et Google Drive",
+    "es": "Guardado en tu cuenta y Google Drive"
+  },
+  "Saved to your account": {
+    "fr": "Enregistré dans ton compte",
+    "es": "Guardado en tu cuenta"
+  },
+  "Saved in the artifact": {
+    "fr": "Enregistré dans l’artefact",
+    "es": "Guardado en el artefacto"
+  },
+  "Saved in this browser only": {
+    "fr": "Enregistré dans ce navigateur seulement",
+    "es": "Guardado solo en este navegador"
+  },
+  "Steps": {
+    "fr": "Étapes",
+    "es": "Pasos"
+  },
+  "Time left in this session": {
+    "fr": "Temps restant dans cette séance",
+    "es": "Tiempo que queda de esta sesión"
+  },
+  "No videos yet": {
+    "fr": "Pas encore de vidéo",
+    "es": "Todavía no hay vídeos"
+  },
+  "Add a video of someone whose accent you want: an interview or a talk where one person speaks clearly works best.": {
+    "fr": "Ajoute une vidéo de quelqu’un dont tu veux l’accent : une interview ou une conférence où une seule personne parle clairement, c’est l’idéal.",
+    "es": "Añade un vídeo de alguien cuyo acento quieras: lo mejor es una entrevista o una charla donde una persona hable con claridad."
+  },
+  "Cut your first clip": {
+    "fr": "Découpe ton premier extrait",
+    "es": "Corta tu primer fragmento"
+  },
+  "Pick one sentence of about 5 to 12 seconds from “{video}”. That is what you’ll shadow.": {
+    "fr": "Choisis une phrase d’environ 5 à 12 secondes dans « {video} ». C’est ce que tu vas répéter en shadowing.",
+    "es": "Elige una frase de unos 5 a 12 segundos de “{video}”. Eso es lo que harás en shadowing."
+  },
+  "Cut a clip": {
+    "fr": "Découper un extrait",
+    "es": "Cortar un fragmento"
+  },
+  "Tomorrow is a rest day.": {
+    "fr": "Demain, c’est repos.",
+    "es": "Mañana es día de descanso."
+  },
+  "Tomorrow is a repeat day: the same clip again.": {
+    "fr": "Demain, on répète : le même extrait.",
+    "es": "Mañana toca repetir: el mismo fragmento."
+  },
+  "Tomorrow is a new-clip day.": {
+    "fr": "Demain, nouvel extrait.",
+    "es": "Mañana toca fragmento nuevo."
+  },
+  "Done for today": {
+    "fr": "Fini pour aujourd’hui",
+    "es": "Hecho por hoy"
+  },
+  "{min} min.": {
+    "fr": "{min} min.",
+    "es": "{min} min."
+  },
+  "Practise again": {
+    "fr": "Refaire une séance",
+    "es": "Practicar otra vez"
+  },
+  "See your progress": {
+    "fr": "Voir tes progrès",
+    "es": "Ver tu progreso"
+  },
+  "Nothing planned for Sunday. You can still practise if you like; it counts.": {
+    "fr": "Rien de prévu le dimanche. Tu peux quand même t’entraîner si tu veux, ça compte.",
+    "es": "Nada previsto para el domingo. Puedes practicar si quieres; cuenta igual."
+  },
+  "Practise anyway": {
+    "fr": "S’entraîner quand même",
+    "es": "Practicar igualmente"
+  },
+  "Your first session": {
+    "fr": "Ta première séance",
+    "es": "Tu primera sesión"
+  },
+  "You missed yesterday. Even 5 minutes keeps the streak going.": {
+    "fr": "Tu as sauté hier. Même 5 minutes gardent ta série en vie.",
+    "es": "Ayer no practicaste. Con 5 minutos mantienes la racha."
+  },
+  "Day {n} of your first week": {
+    "fr": "Jour {n} de ta première semaine",
+    "es": "Día {n} de tu primera semana"
+  },
+  "Repeat day: yesterday’s clip": {
+    "fr": "Jour de répétition : l’extrait d’hier",
+    "es": "Día de repetición: el fragmento de ayer"
+  },
+  "New clip today": {
+    "fr": "Nouvel extrait aujourd’hui",
+    "es": "Fragmento nuevo hoy"
+  },
+  "A frame from {clip}": {
+    "fr": "Une image de {clip}",
+    "es": "Un fotograma de {clip}"
+  },
+  "Today’s steps": {
+    "fr": "Les étapes du jour",
+    "es": "Los pasos de hoy"
+  },
+  "Start, {n} min": {
+    "fr": "Commencer, {n} min",
+    "es": "Empezar, {n} min"
+  },
+  "{n}-minute version": {
+    "fr": "Version de {n} minutes",
+    "es": "Versión de {n} minutos"
+  },
+  "Choose another clip": {
+    "fr": "Choisir un autre extrait",
+    "es": "Elegir otro fragmento"
+  },
+  "{done} of {target}": {
+    "fr": "{done} sur {target}",
+    "es": "{done} de {target}"
+  },
+  "{done} of {target} practice days this week": {
+    "fr": "{done} jours de pratique sur {target} cette semaine",
+    "es": "{done} de {target} días de práctica esta semana"
+  },
+  "A short session today starts a streak.": {
+    "fr": "Une courte séance aujourd’hui lance une série.",
+    "es": "Una sesión corta hoy empieza una racha."
+  },
+  "Listen for": {
+    "fr": "À écouter",
+    "es": "Fíjate en"
+  },
+  "Your notes on it": {
+    "fr": "Tes notes à ce sujet",
+    "es": "Tus notas sobre esto"
+  },
+  "Headphones on": {
+    "fr": "Mets un casque",
+    "es": "Ponte auriculares"
+  },
+  "Wired is best. Without them, the microphone picks up the video and your recordings are off.": {
+    "fr": "Filaire de préférence. Sans casque, le micro capte la vidéo et tes enregistrements sont faussés.",
+    "es": "Mejor con cable. Sin ellos, el micrófono capta el vídeo y tus grabaciones salen mal."
+  },
+  "About a sound, your notes, or what to practise next.": {
+    "fr": "Sur un son, tes notes ou ce que tu devrais travailler ensuite.",
+    "es": "Sobre un sonido, tus notas o qué practicar después."
+  },
+  "Ask a question": {
+    "fr": "Poser une question",
+    "es": "Hacer una pregunta"
+  },
+  "About 3 minutes. Every later check-in is compared with it, so record it before you practise much.": {
+    "fr": "Environ 3 minutes. Chaque bilan suivant y est comparé, alors enregistre-le avant de trop t’entraîner.",
+    "es": "Unos 3 minutos. Cada evaluación posterior se compara con ella, así que grábala antes de practicar mucho."
+  },
+  "Record it": {
+    "fr": "L’enregistrer",
+    "es": "Grabarla"
+  },
+  "Due now, about 3 minutes.": {
+    "fr": "À faire maintenant, environ 3 minutes.",
+    "es": "Toca ahora, unos 3 minutos."
+  },
+  "All four done. Compare them in Progress.": {
+    "fr": "Les quatre sont faits. Compare-les dans Progrès.",
+    "es": "Las cuatro hechas. Compáralas en Progreso."
+  },
+  "{date}, about 3 minutes": {
+    "fr": "{date}, environ 3 minutes",
+    "es": "{date}, unos 3 minutos"
+  },
+  "{n} day in a row|{n} days in a row": {
+    "fr": "{n} jour d’affilée|{n} jours d’affilée",
+    "es": "{n} día seguido|{n} días seguidos"
+  },
+  "{min} min, {n} recorded pass.|{min} min, {n} recorded passes.": {
+    "fr": "{min} min, {n} passage enregistré.|{min} min, {n} passages enregistrés.",
+    "es": "{min} min, {n} pasada grabada.|{min} min, {n} pasadas grabadas."
+  },
+  "It’s stored encrypted on our server, only used when you ask Euno, and never shown again. You pay your provider directly; one answer on the default model costs a tiny fraction of a cent.": {
+    "fr": "Elle est stockée chiffrée sur notre serveur, utilisée seulement quand tu demandes à Euno, et plus jamais affichée. Tu paies ton fournisseur directement ; une réponse avec le modèle par défaut coûte une infime fraction de centime.",
+    "es": "Se guarda cifrada en nuestro servidor, solo se usa cuando preguntas a Euno y nunca se vuelve a mostrar. Pagas directamente a tu proveedor; una respuesta con el modelo predeterminado cuesta una mínima fracción de céntimo."
+  },
+  "Short answers like these don’t need a big model.": {
+    "fr": "Des réponses courtes comme celles-ci n’ont pas besoin d’un gros modèle.",
+    "es": "Respuestas cortas como estas no necesitan un modelo grande."
+  },
+  "Euno answers your questions and your notes right inside the app, using your own key from Anthropic, OpenAI or OpenRouter. This is optional: without a key, notes give you a prompt to copy into any AI chat.": {
+    "fr": "Euno répond à tes questions et à tes notes directement dans l’appli, avec ta propre clé Anthropic, OpenAI ou OpenRouter. C’est facultatif : sans clé, les notes te donnent un prompt à copier dans n’importe quel chat d’IA.",
+    "es": "Euno responde a tus preguntas y a tus notas dentro de la app, con tu propia clave de Anthropic, OpenAI u OpenRouter. Es opcional: sin clave, las notas te dan un prompt para copiar en cualquier chat de IA."
+  },
+  "Key removed. Notes will offer “Copy prompt for an AI”.": {
+    "fr": "Clé supprimée. Les notes proposeront « Copier le prompt pour une IA ».",
+    "es": "Clave eliminada. Las notas ofrecerán “Copiar prompt para una IA”."
+  },
+  "What should I focus on this week?": {
+    "fr": "Sur quoi je devrais me concentrer cette semaine ?",
+    "es": "¿En qué debería centrarme esta semana?"
+  },
+  "How do I make the “th” sound?": {
+    "fr": "Comment on fait le son « th » ?",
+    "es": "¿Cómo se hace el sonido “th”?"
+  },
+  "Why does shadowing help with an accent?": {
+    "fr": "Pourquoi le shadowing aide-t-il pour l’accent ?",
+    "es": "¿Por qué el shadowing ayuda con el acento?"
+  },
+  "Euno couldn’t answer: {error}": {
+    "fr": "Euno n’a pas pu répondre : {error}",
+    "es": "Euno no ha podido responder: {error}"
+  },
+  "Ask Euno about a sound, your notes or your practice": {
+    "fr": "Pose une question à Euno sur un son, tes notes ou ta pratique",
+    "es": "Pregunta a Euno sobre un sonido, tus notas o tu práctica"
+  },
+  "Your question": {
+    "fr": "Ta question",
+    "es": "Tu pregunta"
+  },
+  "Euno knows your notes, your issues and what the computer flagged lately. He hasn’t heard your voice, so he can be wrong.": {
+    "fr": "Euno connaît tes notes, tes points faibles et ce que l’ordinateur a relevé récemment. Il n’a pas entendu ta voix, donc il peut se tromper.",
+    "es": "Euno conoce tus notas, tus puntos débiles y lo que el ordenador ha marcado últimamente. No ha oído tu voz, así que puede equivocarse."
+  },
+  "Send": {
+    "fr": "Envoyer",
+    "es": "Enviar"
+  },
+  "Kept with your practice data, on every device.": {
+    "fr": "Conservé avec tes données de pratique, sur tous tes appareils.",
+    "es": "Se guarda con tus datos de práctica, en todos tus dispositivos."
+  },
+  "Clear the conversation": {
+    "fr": "Effacer la conversation",
+    "es": "Borrar la conversación"
+  },
+  "Euno answers with your own AI key": {
+    "fr": "Euno répond avec ta propre clé d’IA",
+    "es": "Euno responde con tu propia clave de IA"
+  },
+  "Ask Euno needs an account": {
+    "fr": "Demander à Euno nécessite un compte",
+    "es": "Preguntar a Euno necesita una cuenta"
+  },
+  "Add a key from Anthropic, OpenAI or OpenRouter in Settings → Connections. It’s stored encrypted and only used when you ask.": {
+    "fr": "Ajoute une clé Anthropic, OpenAI ou OpenRouter dans Réglages → Connexions. Elle est stockée chiffrée et utilisée seulement quand tu poses une question.",
+    "es": "Añade una clave de Anthropic, OpenAI u OpenRouter en Ajustes → Conexiones. Se guarda cifrada y solo se usa cuando preguntas."
+  },
+  "Sign in to the web app to ask questions here.": {
+    "fr": "Connecte-toi à l’appli web pour poser des questions ici.",
+    "es": "Inicia sesión en la app web para hacer preguntas aquí."
+  },
+  "Open Connections": {
+    "fr": "Ouvrir Connexions",
+    "es": "Abrir Conexiones"
+  },
+  "The language of the app’s buttons, messages and Euno’s answers. Your practice language is set in Settings → You.": {
+    "fr": "La langue des boutons, des messages et des réponses d’Euno. La langue que tu pratiques se règle dans Réglages → Toi.",
+    "es": "El idioma de los botones, los mensajes y las respuestas de Euno. El idioma que practicas se elige en Ajustes → Tú."
+  },
+  "Euno’s answers (your AI key)": {
+    "fr": "Réponses d’Euno (ta clé d’IA)",
+    "es": "Respuestas de Euno (tu clave de IA)"
+  },
+  "Ask Euno (optional)": {
+    "fr": "Demander à Euno (facultatif)",
+    "es": "Preguntar a Euno (opcional)"
+  },
+  "Anything Euno should know when he answers": {
+    "fr": "Quelque chose qu’Euno devrait savoir quand il répond",
+    "es": "Algo que Euno deba saber cuando responda"
+  },
+  "Used for Euno’s answers, the listener pack and your check-ins.": {
+    "fr": "Utilisé pour les réponses d’Euno, le pack d’écoute à l’aveugle et tes bilans.",
+    "es": "Se usa para las respuestas de Euno, el paquete de escucha a ciegas y tus evaluaciones."
+  }
+}

@@ -284,7 +284,7 @@ const Mic = {
 };
 
 /* a small mic control: live level meter, automatic volume on/off, manual boost */
-function micControl() {
+function micControl({ compact = false } = {}) {
   const s = settings();
   const fill = h('i', { style: { width: '0%' } });
   const meter = h('div', { class: 'bar mic-meter', title: t('Microphone level') }, fill);
@@ -315,12 +315,12 @@ function micControl() {
   fillDevices();
   if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener('devicechange', () => { if (pick.isConnected) fillDevices(); });
   pick.addEventListener('focus', fillDevices); // names appear once the browser has mic permission
-  const el = h('div', { class: 'mic-control' }, icon('mic'), pick, meter, auto, slider, val);
+  const el = compact ? h('div', { class: 'mic-control', title: t('Microphone level') }, icon('mic'), meter) : h('div', { class: 'mic-control' }, icon('mic'), pick, meter, auto, slider, val);
   const tick = () => {
     if (!el.isConnected) return;
     const pct = clamp((Mic.level + 60) / 60, 0, 1) * 100;
     fill.style.width = pct + '%';
-    fill.style.background = Mic.level > -3 ? 'var(--red)' : Mic.level > -35 ? 'var(--green)' : 'var(--wattle)';
+    fill.style.background = Mic.level > -3 ? 'var(--red)' : Mic.level > -35 ? 'var(--green)' : 'var(--amber)';
     if (settings().micAuto && Mic.gain) val.textContent = `auto ${fmtNum(Mic.gain.gain.value, 1)}x`;
     requestAnimationFrame(tick);
   };

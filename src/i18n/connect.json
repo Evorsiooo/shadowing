@@ -99,9 +99,9 @@
     "fr": "Plugins (barre latérale) → Add (en haut à droite) → Add Custom MCP Server. Donne-lui un nom, colle l’adresse, puis Authenticate.",
     "es": "Plugins (barra lateral) → Add (arriba a la derecha) → Add Custom MCP Server. Ponle un nombre, pega la dirección y luego Authenticate."
   },
-  "Settings → Connected apps → Custom (top right). Paste the address, then Connect.": {
-    "fr": "Settings → Connected apps → Custom (en haut à droite). Colle l’adresse, puis Connect.",
-    "es": "Settings → Connected apps → Custom (arriba a la derecha). Pega la dirección y luego Connect."
+  "Settings → Connections → Custom (top right). Paste the address, then Connect.": {
+    "fr": "Settings → Connections → Custom (en haut à droite). Colle l’adresse, puis Connect.",
+    "es": "Settings → Connections → Custom (arriba a la derecha). Pega la dirección y luego Connect."
   },
   "You’ll be asked to sign in here and allow the app.": {
     "fr": "On te demandera de te connecter ici et d’autoriser l’appli.",

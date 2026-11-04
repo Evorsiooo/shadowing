@@ -15,7 +15,6 @@ const make = ({ SITE, L, host }) => ({
     langNow: 'Language: English',
     navWhat: 'What is shadowing?',
     navRoutine: 'Daily routine',
-    footRoutine: 'Accent shadowing routine',
     contact: 'Contact',
     privacy: 'Privacy',
     terms: 'Terms',
@@ -124,7 +123,7 @@ const make = ({ SITE, L, host }) => ({
     ],
     cmpH2: 'See how your recording compares',
     cmpIntro: 'This is the comparison view. Each recording is drawn over the speaker’s, so you can see what changed between your first attempt and your last.',
-    cmpCaption: 'The speaker’s melody (green) and yours (blue) after the step 3 recording and after the final one: closer in timing and in shape.',
+    cmpCaption: 'The speaker’s melody (black) and yours (green) after the step 3 recording and after the final one: closer in timing and in shape.',
     cmpPoints: [
       '<strong>Your melody next to theirs.</strong> Both lines are measured relative to each speaker’s own voice, so a higher or lower voice doesn’t matter.',
       '<strong>Your lag.</strong> Euno lines the recordings up and tells you how far behind or ahead of the speaker you were.',

@@ -83,7 +83,7 @@ export async function driveStatus(env, userId) {
 export async function driveAccessToken(env, userId) {
   const row = await readDrive(env, userId);
   if (!row) throw Object.assign(new Error('Google Drive isn’t connected.'), { status: 409, reconnect: true });
-  if (!row.refreshToken) throw Object.assign(new Error('Reconnect Google Drive in Settings → Storage.'), { status: 409, reconnect: true });
+  if (!row.refreshToken) throw Object.assign(new Error('Reconnect Google Drive in Settings → Data.'), { status: 409, reconnect: true });
   const r = await fetch(GOOGLE_TOKEN, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -93,7 +93,7 @@ export async function driveAccessToken(env, userId) {
   if (d.error === 'invalid_grant') {
     // access was removed from the Google account: forget the token so the app offers to reconnect
     await setPrivate(env.DB, userId, PRIVATE_KEY, null);
-    throw Object.assign(new Error('Google Drive access was removed. Reconnect it in Settings → Storage.'), { status: 409, reconnect: true });
+    throw Object.assign(new Error('Google Drive access was removed. Reconnect it in Settings → Data.'), { status: 409, reconnect: true });
   }
   if (!r.ok || !d.access_token) throw Object.assign(new Error(`Google didn’t give a Drive token (${d.error || r.status}).`), { status: 502 });
   return { accessToken: d.access_token, expiresAt: Date.now() + (Number(d.expires_in) || 3600) * 1000 };

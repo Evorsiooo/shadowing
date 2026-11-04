@@ -82,8 +82,8 @@ const ONBOARDING_STEPS = [
     ],
   },
   {
-    id: 'ai', label: N_('AI'),
-    title: () => t('AI feedback (optional)'),
+    id: 'ai', label: N_('Ask Euno'),
+    title: () => t('Ask Euno (optional)'),
     sub: () => t('After a recorded pass you can write down what sounded off and get advice on it.'),
     body: (W) => onboardingAiStep(W),
   },
@@ -166,7 +166,7 @@ function renderOnboarding(W) {
       h('span', { class: 'grow' }),
       btn('', () => closeModal(), { icon: 'close', kind: 'ghost', size: 'sm', title: t('Close (you can finish setting up in Settings)'), aria: t('Close') })),
     progress,
-    h('div', { class: 'wiz-head' }, h('h2', null, step.title(W)), step.sub ? h('p', { class: 'muted' }, step.sub(W)) : null),
+    h('div', { class: 'wiz-head' }, Euno.el('wizard', W.i === 0 ? 'happy' : last ? 'pleased' : 'listening', { cls: 'wiz-euno' }), h('h2', null, step.title(W)), step.sub ? h('p', { class: 'muted' }, step.sub(W)) : null),
     h('div', { class: 'wiz-body stack' }, step.body(W)),
     h('div', { class: 'wiz-foot' },
       W.i > 0 ? btn(t('Back'), back, { kind: 'ghost', icon: 'back' }) : null,
@@ -180,6 +180,7 @@ function renderOnboarding(W) {
 
 /* closing early keeps whatever was saved so far; everything can be changed later in Settings → You */
 function finishOnboarding(W, closed) {
+  Euno.drop('wizard');
   saveProfile({ onboarded: new Date().toISOString() });
   lsSet('welcomed', true);
   if (closed) return;
@@ -278,7 +279,7 @@ function accentField(draft) {
 }
 
 function notesField(draft) {
-  return h('label', { class: 'field', for: 'pfNotes' }, h('span', null, t('Anything the AI feedback should know'), ' ', h('span', { class: 'muted' }, t('(optional)'))),
+  return h('label', { class: 'field', for: 'pfNotes' }, h('span', null, t('Anything Euno should know when he answers'), ' ', h('span', { class: 'muted' }, t('(optional)'))),
     h('textarea', { id: 'pfNotes', rows: 2, maxlength: 500, placeholder: t('e.g. I understand everything but only started speaking it recently; rhythm is my weak spot.'), value: draft.notes, oninput: (e) => { draft.notes = e.target.value; } }));
 }
 
@@ -317,7 +318,7 @@ function profileView() {
     } else toast(t('Profile saved.'), 'good');
     closeModal();
   } },
-  h('div', { class: 'card' }, h('h3', null, t('About you')), h('p', { class: 'small muted' }, t('Used for AI feedback, the listener pack and your check-ins.')),
+  h('div', { class: 'card' }, h('h3', null, t('About you')), h('p', { class: 'small muted' }, t('Used for Euno’s answers, the listener pack and your check-ins.')),
     nameField(draft), nativeLanguagesField(draft), targetLanguageField(draft, redrawAccent)),
   h('div', { class: 'card' }, h('h3', null, t('Your target accent')), accentSlot, notesField(draft)),
   h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary big' }, h('span', null, t('Save profile'))),

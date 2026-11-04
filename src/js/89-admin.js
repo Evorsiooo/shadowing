@@ -19,11 +19,11 @@ async function openAdmin(tab = Admin.tab) {
   Admin.tab = tab;
   const tabs = [['users', t('Users')], ['signup', t('Sign-up')], ['inbox', Admin.open ? t('Inbox ({n})', { n: Admin.open }) : t('Inbox')]];
   const body = h('div', { class: 'stack' }, h('p', { class: 'muted' }, t('Loading…')));
-  openModal([
+  openView([
     modalHead(t('Admin'), t('Accounts, sign-up and messages from the contact form.')),
-    h('div', { class: 'tabs' }, tabs.map(([k, l]) => btn(l, () => openAdmin(k), { size: 'sm', on: k === tab }))),
+    h('div', { class: 'tabs', role: 'tablist' }, tabs.map(([k, l]) => btn(l, () => openAdmin(k), { size: 'sm', on: k === tab }))),
     body,
-  ]);
+  ], { page: 'admin', sub: tab === 'users' ? null : tab });
   try {
     const view = tab === 'users' ? await adminUsersView() : tab === 'signup' ? await adminSignupView() : await adminInboxView();
     if (Admin.tab === tab && body.isConnected) mount(body, view);
@@ -42,7 +42,7 @@ async function adminUsersView() {
       h('thead', null, h('tr', null, [t('Account'), t('Joined'), t('Last seen'), t('Sessions'), t('Drive'), t('AI key'), ''].map((x) => h('th', null, x)))),
       h('tbody', null, users.map((u) => h('tr', null,
         h('td', null,
-          h('div', { style: { fontWeight: 700 } }, u.name || u.email, u.role === 'admin' ? h('span', { class: 'muted small' }, ` · ${t('admin')}`) : null, u.disabled ? h('span', { class: 'small', style: { color: 'var(--red)' } }, ` · ${t('disabled')}`) : null),
+          h('div', { style: { fontWeight: 600 } }, u.name || u.email, u.role === 'admin' ? h('span', { class: 'muted small' }, ` · ${t('admin')}`) : null, u.disabled ? h('span', { class: 'small', style: { color: 'var(--red)' } }, ` · ${t('disabled')}`) : null),
           u.name ? h('div', { class: 'small muted' }, u.email) : null,
           u.invite_code ? h('div', { class: 'small muted' }, t('Invite {code}', { code: u.invite_code })) : null),
         h('td', null, fmtWhen(u.created)),
@@ -120,7 +120,7 @@ async function adminSignupView() {
       invites.length ? h('div', { class: 'table-wrap' }, h('table', null,
         h('thead', null, h('tr', null, [t('Code'), t('Used'), t('Ends'), t('Used by'), ''].map((x) => h('th', null, x)))),
         h('tbody', null, invites.map((i) => h('tr', null,
-          h('td', null, h('div', { style: { fontWeight: 800, fontFamily: 'ui-monospace, monospace' } }, i.code),
+          h('td', null, h('div', { style: { fontWeight: 600, fontFamily: 'ui-monospace, monospace' } }, i.code),
             h('div', { class: 'small muted' }, [statusText[i.status], i.note].filter(Boolean).join(' · '))),
           h('td', null, t('{uses} of {max}', { uses: i.uses, max: i.max_uses })),
           h('td', null, i.expires ? fmtWhen(i.expires) : t('Never')),
@@ -161,7 +161,7 @@ async function adminInboxView() {
       return h('div', { class: 'card', style: m.status === 'done' ? { opacity: 0.65 } : null },
         h('div', { class: 'row' },
           h('div', { class: 'grow' },
-            h('div', { style: { fontWeight: 700 } }, m.user_name ? `${m.user_name} · ${m.email}` : m.email || t('No email given')),
+            h('div', { style: { fontWeight: 600 } }, m.user_name ? `${m.user_name} · ${m.email}` : m.email || t('No email given')),
             h('div', { class: 'small muted' }, [fmtWhen(m.created), m.user_id ? t('signed in') : t('not signed in'), m.status === 'done' ? t('handled') : null].filter(Boolean).join(' · ')))),
         h('p', { style: { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' } }, m.message),
         h('div', { class: 'row' },

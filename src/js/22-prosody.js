@@ -188,23 +188,26 @@ const Prosody = {
   },
 };
 
+/* one timing, pitch or stress difference in words */
+const prosodyWhen = (f) => `${fmtNum(f.a, 1)}–${fmtNum(f.b, 1)} s`;
+function prosodyLine(f) {
+  const where = f.words ? t('around “{words}” ({when})', { words: f.words, when: prosodyWhen(f) }) : t('at {when}', { when: prosodyWhen(f) });
+  if (f.kind === 'rushed') return t('You went faster than the speaker {where}.', { where });
+  if (f.kind === 'dragged') return t('You went slower than the speaker {where}.', { where });
+  if (f.kind === 'pitch') {
+    if (f.dir === 'up') return f.ours === 'down' ? t('The speaker’s voice goes up {where}; yours went down.', { where }) : t('The speaker’s voice goes up {where}; yours stayed flat.', { where });
+    return f.ours === 'up' ? t('The speaker’s voice goes down {where}; yours went up.', { where }) : t('The speaker’s voice goes down {where}; yours stayed flat.', { where });
+  }
+  return f.dir === 'softer' ? t('The speaker leans on a syllable {where} that you said more softly.', { where }) : t('You leaned on a syllable {where} that the speaker keeps light.', { where });
+}
+
 /* "Differences from the speaker" card for one recording */
 function prosodyCard(clip, analysis, heard, withPhones) {
   let res = null;
   try { res = Prosody.compare(clip, analysis); } catch (e) { res = null; }
   const spoken = heard ? Speech.unclear(clip.sentence, heard) : null;
   if (!res && !spoken) return null;
-  const when = (f) => `${fmtNum(f.a, 1)}–${fmtNum(f.b, 1)} s`;
-  const line = (f) => {
-    const where = f.words ? t('around “{words}” ({when})', { words: f.words, when: when(f) }) : t('at {when}', { when: when(f) });
-    if (f.kind === 'rushed') return t('You went faster than the speaker {where}.', { where });
-    if (f.kind === 'dragged') return t('You went slower than the speaker {where}.', { where });
-    if (f.kind === 'pitch') {
-      if (f.dir === 'up') return f.ours === 'down' ? t('The speaker’s voice goes up {where}; yours went down.', { where }) : t('The speaker’s voice goes up {where}; yours stayed flat.', { where });
-      return f.ours === 'up' ? t('The speaker’s voice goes down {where}; yours went up.', { where }) : t('The speaker’s voice goes down {where}; yours stayed flat.', { where });
-    }
-    return f.dir === 'softer' ? t('The speaker leans on a syllable {where} that you said more softly.', { where }) : t('You leaned on a syllable {where} that the speaker keeps light.', { where });
-  };
+  const line = prosodyLine;
   const found = res ? res.findings : [];
   const shown = found.slice(0, 6);
   return h('details', { class: 'card', open: true },

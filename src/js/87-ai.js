@@ -41,7 +41,7 @@ function aiPanel({ onboarding = false } = {}) {
         h('button', { type: 'button', class: p.id === provider ? 'on' : '', 'aria-pressed': String(p.id === provider), onclick: () => { provider = p.id; draw(); } }, p.name))),
       h('label', { class: 'field', for: 'ai-key' }, t('{provider} API key', { provider: P.name }), input),
       h('p', { class: 'small muted' }, t('Get one at {link}.', { link: '\u0000' }).split('\u0000').flatMap((part, i) => (i ? [h('a', { href: P.keyUrl, target: '_blank', rel: 'noopener noreferrer' }, P.keyUrl.replace(/^https:\/\//, '')), part] : [part])),
-        ' ', t('It’s stored encrypted on our server, only used for your feedback, and never shown again. You pay your provider directly; one answer on the default model costs a tiny fraction of a cent.')),
+        ' ', t('It’s stored encrypted on our server, only used when you ask Euno, and never shown again. You pay your provider directly; one answer on the default model costs a tiny fraction of a cent.')),
       h('div', { class: 'row' }, save, replacing ? btn(t('Cancel'), () => { replacing = false; draw(); }, { size: 'sm', kind: 'ghost' }) : null));
   };
 
@@ -61,14 +61,14 @@ function aiPanel({ onboarding = false } = {}) {
         h('select', { id: 'ai-model', onchange: async (e) => {
           try { keep(await Api.req('PUT', '/api/ai', { model: e.target.value })); testMsg = null; draw(); toast(t('Now using {model}.', { model: st.model }), 'good'); } catch (err) { toast(err.message, 'bad'); }
         } }, shown.map((m) => h('option', { value: m.id, selected: m.id === st.model }, label(m))))),
-      list.cheap && st.model !== list.cheap ? h('p', { class: 'small muted' }, t('Short feedback like this doesn’t need a big model.'), ' ',
+      list.cheap && st.model !== list.cheap ? h('p', { class: 'small muted' }, t('Short answers like these don’t need a big model.'), ' ',
         btn(t('Use {model}', { model: list.cheap }), async () => { try { keep(await Api.req('PUT', '/api/ai', { model: list.cheap })); draw(); } catch (err) { toast(err.message, 'bad'); } }, { size: 'sm', kind: 'ghost' })) : null);
   };
 
   const draw = () => {
     if (!st) { mount(wrap, h('p', { class: 'small muted' }, t('Checking…'))); return; }
     if (!st.available) { mount(wrap, h('p', { class: 'muted' }, t('AI keys aren’t switched on for this site yet. Notes still offer a prompt you can copy into any AI chat.'))); return; }
-    const intro = onboarding ? null : h('p', { class: 'muted' }, t('Get feedback on your notes right inside the app, using your own key from Anthropic, OpenAI or OpenRouter. This is optional: without a key, notes give you a prompt to copy into any AI chat.'));
+    const intro = onboarding ? null : h('p', { class: 'muted' }, t('Euno answers your questions and your notes right inside the app, using your own key from Anthropic, OpenAI or OpenRouter. This is optional: without a key, notes give you a prompt to copy into any AI chat.'));
     if (!st.configured || replacing) { mount(wrap, intro, keyForm()); return; }
     const test = btn(t('Test key'), async () => {
       test.disabled = true; testMsg = h('span', { class: 'muted' }, t('Asking…')); draw();
@@ -83,7 +83,7 @@ function aiPanel({ onboarding = false } = {}) {
         h('span', { class: 'chip' }, icon('check'), t('{provider} key saved ({hint})', { provider: st.providerName, hint: st.hint })),
         btn(t('Replace key'), () => { replacing = true; provider = st.provider; draw(); }, { size: 'sm' }),
         btn(t('Remove key'), async () => {
-          try { await Api.req('DELETE', '/api/ai'); keep({ configured: false }); list = null; testMsg = null; draw(); toast(t('Key removed. Notes will offer “Copy prompt for AI”.')); } catch (e) { toast(e.message, 'bad'); }
+          try { await Api.req('DELETE', '/api/ai'); keep({ configured: false }); list = null; testMsg = null; draw(); toast(t('Key removed. Notes will offer “Copy prompt for an AI”.')); } catch (e) { toast(e.message, 'bad'); }
         }, { size: 'sm', kind: 'ghost' })),
       modelPicker(),
       h('div', { class: 'row' }, test, testMsg ? h('span', { class: 'small', role: 'status' }, testMsg) : null));

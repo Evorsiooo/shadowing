@@ -400,8 +400,9 @@ function recommendedClipId() {
 function renderPlayerEmpty() {
   const any = Store.all('videos').some((v) => !v.archived);
   mount($('#playerEmpty'),
+    Euno.el('player', any ? 'watching' : 'searching'),
     h('h2', null, any ? t('Pick a video from your library') : t('Add your first video')),
-    h('p', null, any ? t('Open a video on the right, then choose a clip, or press Cut clips to make a new one.') : t('Pick a video of someone with the accent you want: an interview or a talk where one person speaks clearly works best.')),
+    h('p', null, any ? t('Open a video from the list, then choose a clip, or press Cut clips to make a new one.') : t('Pick a video of someone with the accent you want: an interview or a talk where one person speaks clearly works best.')),
     btn(any ? t('Open the library') : t('Add a video'), () => { UI.addOpen = !any; openDrawer(); renderSidebar(); setTimeout(() => { const f = $('#addUrl'); if (f) f.focus(); }, 60); }, { kind: 'primary', size: 'big', icon: any ? 'menu' : 'plus' }));
 }
 

@@ -286,7 +286,7 @@ function pronunciationSummary(data, today = dayKey()) {
 }
 export function pronunciationProgress(data, today = dayKey()) {
   const pron = data.meta.pron, prosody = data.meta.prosody;
-  if (!pron && !prosody) return { enabled: false, note: 'No pronunciation history yet (the learner has not turned on Settings → Pronunciation or recorded a pass).' };
+  if (!pron && !prosody) return { enabled: false, note: 'No pronunciation history yet (the learner has not turned on pronunciation in Settings → Analysis or recorded a pass).' };
   const blocked = (pron && pron.blocked) || [];
   const pairs = Object.entries((pron && pron.tally) || {}).filter(([pair]) => !blocked.includes(pair)).map(([pair, e]) => {
     const T = trendOf(e.bk, today);
