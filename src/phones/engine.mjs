@@ -9,7 +9,8 @@ import { TOKENS } from './tokens.mjs';
 export const MODEL_ID = 'zipa-small-crctc-300k-int8';
 const now = () => (globalThis.performance ? performance.now() : Date.now());
 
-export async function transcribe(samples, { runModel, originSec = 0, model = MODEL_ID, external } = {}) {
+/* onProgress(doneSec, totalSec) is called after each chunk (a chunk is at most 20 s of audio, the model's unit of work) */
+export async function transcribe(samples, { runModel, originSec = 0, model = MODEL_ID, external, onProgress } = {}) {
   const t00 = now();
   let tFeat = 0, tModel = 0, tDec = 0, droppedOnSilence = 0, uncertainFrames = 0, speechFrames = 0, speechOutFrames = 0, frameSec = 0.04;
   const phones = [];
@@ -31,6 +32,7 @@ export async function transcribe(samples, { runModel, originSec = 0, model = MOD
     droppedOnSilence += dec.droppedOnSilence; uncertainFrames += dec.uncertainFrames; speechFrames += dec.speechFrames;
     speechOutFrames += mask.reduce((x, y) => x + y, 0);
     tDec += now() - t;
+    if (onProgress) onProgress(b / FBANK.SR, samples.length / FBANK.SR);
   }
   const words = groupWords(phones);
   const durationSec = samples.length / FBANK.SR;

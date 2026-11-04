@@ -4,6 +4,8 @@
 
 /* start working out a take's sounds; the review card fills in when it is done */
 function startPhones(R, args) {
+  R.phonesError = null; R.phonesProgress = null;
+  args = { ...args, onProgress: (p) => { R.phonesProgress = p; if (R.onPhonesProgress) R.onPhonesProgress(p); }, onError: (why) => { R.phonesError = why; } };
   R.phonesPromise = Pron.process(args).then((p) => { R.phones = p; return p; }, () => { R.phones = null; return null; });
 }
 
@@ -35,8 +37,15 @@ function pronCard(clip, R) {
   if (!Pron.on() || !R) return null;
   const wrap = h('div');
   const draw = () => {
-    if (R.phones === undefined) { mount(wrap, h('p', { class: 'small muted', role: 'status' }, t('Checking the sounds…'))); return; }
-    if (R.phones === null) { mount(wrap); return; }
+    if (R.phones === undefined) {
+      const txt = h('span', null), bar = h('i', { style: { width: '0%' } });
+      const show = (p) => { txt.textContent = p ? `${t('Checking the sounds…')} ${t('step {n} of {m}', { n: p.step, m: p.steps })}` : t('Checking the sounds…'); bar.style.width = (p ? Math.round(p.fraction * 100) : 0) + '%'; };
+      show(R.phonesProgress);
+      R.onPhonesProgress = (p) => { if (wrap.isConnected) show(p); };
+      mount(wrap, h('div', { role: 'status' }, h('p', { class: 'small muted' }, txt), h('div', { class: 'pv-prog', 'aria-hidden': 'true' }, bar)));
+      return;
+    }
+    if (R.phones === null) { mount(wrap, R.phonesError ? h('p', { class: 'small muted' }, t('Couldn’t check the sounds: {why}', { why: R.phonesError })) : null); return; }
     const other = R.slot === 'final' && Session.doc ? Pron.phonesFor(Session.doc.recs.step3) : null;
     const { items, total, repeated } = Pron.shown(R.phones, other);
     mount(wrap, h('div', { class: 'card' },

@@ -77,6 +77,15 @@ await test('success resets the failure count; cancel is not a failure', async ()
   await assert.rejects(r, { code: 'cancelled' });
   assert.equal(w.Heavy.isOn('p'), true);
 });
+await test('time spent waiting for a recording does not count against the job; a timeout says why', async () => {
+  const w = make(); w.Heavy.register('p', def); w.Heavy.enable('p');
+  let busy = true; w.Heavy.blockers.push(() => busy);
+  setTimeout(() => { busy = false; }, 900);
+  assert.equal(await w.Heavy.run('p', async () => 5, { timeoutMs: 200 }), 5); // waited ~1 s, timeout is 0.2 s
+  const err = await w.Heavy.run('p', () => new Promise(() => {}), { timeoutMs: 30 }).catch((e) => e);
+  assert.equal(err.code, 'timeout'); assert.match(err.message, /longer than/);
+  assert.match(new w.HeavyError('cancelled').message, /stopped/);
+});
 await test('out of memory turns it off at once', async () => {
   const w = make(); w.Heavy.register('p', def); w.Heavy.enable('p');
   await assert.rejects(w.Heavy.run('p', async () => { throw new RangeError('Array buffer allocation failed'); }), { code: 'out-of-memory' });

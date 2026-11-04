@@ -103,3 +103,11 @@ test('fingerprint differs for different audio, same for same', () => {
   assert.equal(fingerprint(a), fingerprint(a.slice()));
   assert.notEqual(fingerprint(a), fingerprint(new Float32Array(5000).map((_, i) => Math.cos(i))));
 });
+
+test('transcribe reports progress after each chunk', async () => {
+  const { transcribe } = await import('../engine.mjs');
+  const seen = [];
+  const fake = async (data, frames) => ({ logProbs: new Float32Array(frames * 0), T: 1, V: 1 });
+  try { await transcribe(new Float32Array(16000 * 45), { runModel: fake, onProgress: (d, t) => seen.push([d, t]) }); } catch { /* a fake model may not decode */ }
+  assert.ok(seen.length >= 1 && seen.every(([d, t]) => d <= t + 1e-9 && t === 45));
+});

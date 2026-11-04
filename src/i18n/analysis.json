@@ -187,10 +187,6 @@
     "fr": "Vous avez arrêté la comparaison.",
     "es": "Detuviste la comparación."
   },
-  "The model is ready; this is the analysis itself. It runs on your device and takes a while on a slow one.": {
-    "fr": "Le modèle est prêt ; c’est l’analyse elle-même. Elle s’exécute sur votre appareil et prend du temps sur un appareil lent.",
-    "es": "El modelo está listo; esto es el análisis en sí. Se ejecuta en tu dispositivo y tarda más en uno lento."
-  },
   "{pct}% · {done} of {mb} MB": {
     "fr": "{pct} % · {done} sur {mb} Mo",
     "es": "{pct} % · {done} de {mb} MB"
@@ -274,5 +270,65 @@
   "The download starts when you continue and carries on in the background. Skip this and nothing is downloaded. You can turn it on or off any time in Settings → Analysis.": {
     "fr": "Le téléchargement démarre quand vous continuez et se poursuit en arrière-plan. Passez cette étape et rien n’est téléchargé. Vous pouvez l’activer ou le désactiver à tout moment dans Réglages → Analyse.",
     "es": "La descarga empieza al continuar y sigue en segundo plano. Si omites este paso, no se descarga nada. Puedes activarlo o desactivarlo cuando quieras en Ajustes → Análisis."
+  },
+  "It took too long on this device and was stopped.": {
+    "fr": "Cela a pris trop de temps sur cet appareil et a été arrêté.",
+    "es": "Tardó demasiado en este dispositivo y se detuvo."
+  },
+  "It was stopped before it finished.": {
+    "fr": "Cela a été arrêté avant la fin.",
+    "es": "Se detuvo antes de terminar."
+  },
+  "The page is using nearly all the memory the browser allows.": {
+    "fr": "La page utilise presque toute la mémoire autorisée par le navigateur.",
+    "es": "La página usa casi toda la memoria que permite el navegador."
+  },
+  "The device ran out of memory.": {
+    "fr": "L’appareil a manqué de mémoire.",
+    "es": "El dispositivo se quedó sin memoria."
+  },
+  "Pronunciation analysis is off on this device.": {
+    "fr": "L’analyse de prononciation est désactivée sur cet appareil.",
+    "es": "El análisis de pronunciación está desactivado en este dispositivo."
+  },
+  "Something went wrong.": {
+    "fr": "Un problème est survenu.",
+    "es": "Algo salió mal."
+  },
+  "Starting…": {
+    "fr": "Démarrage…",
+    "es": "Iniciando…"
+  },
+  "reading the speaker": {
+    "fr": "lecture du locuteur",
+    "es": "leyendo al hablante"
+  },
+  "reading your take": {
+    "fr": "lecture de votre prise",
+    "es": "leyendo tu toma"
+  },
+  "comparing the two": {
+    "fr": "comparaison des deux",
+    "es": "comparando ambos"
+  },
+  "Step {n} of {m}: {what} · {pct}%": {
+    "fr": "Étape {n} sur {m} : {what} · {pct} %",
+    "es": "Paso {n} de {m}: {what} · {pct} %"
+  },
+  "speaker already read": {
+    "fr": "locuteur déjà lu",
+    "es": "hablante ya leído"
+  },
+  "It runs on your device. The bar counts the audio read so far; a short clip moves in a few steps.": {
+    "fr": "Cela s’exécute sur votre appareil. La barre compte l’audio déjà lu ; un clip court avance en quelques étapes.",
+    "es": "Se ejecuta en tu dispositivo. La barra cuenta el audio ya leído; un clip corto avanza en pocos pasos."
+  },
+  "step {n} of {m}": {
+    "fr": "étape {n} sur {m}",
+    "es": "paso {n} de {m}"
+  },
+  "Couldn’t check the sounds: {why}": {
+    "fr": "Impossible de vérifier les sons : {why}",
+    "es": "No se pudieron comprobar los sonidos: {why}"
   }
 }

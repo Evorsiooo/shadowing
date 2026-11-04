@@ -163,6 +163,7 @@ const Session = {
     }
     this.applyPassRate();
     this.phase = this.recordingThisPass ? 'recording' : 'playing';
+    if (!this.recordingThisPass) { try { Pron.warm(clip); } catch { /* the check is optional */ } } // load the model while the learner listens
     document.body.classList.toggle('calm', st.speak);
     renderSession();
     const ok = await Player.play();

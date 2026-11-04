@@ -21,8 +21,9 @@
      const res = await Heavy.run('pronunciation', async ({ signal }) => { … }, { timeoutMs: 60000 });
      // errors are HeavyError with .code: 'off' | 'timeout' | 'low-memory' | 'cancelled' | 'failed'; handle them quietly
 */
+const HEAVY_ERR_TEXT = { cancelled: 'It was stopped before it finished.', timeout: 'It took too long and was stopped.', off: 'This feature is off on this device.', 'low-memory': 'The page is using nearly all the memory the browser allows.' };
 class HeavyError extends Error {
-  constructor(code, message) { super(message || code); this.code = code; }
+  constructor(code, message) { super(message || HEAVY_ERR_TEXT[code] || code); this.code = code; }
 }
 
 const Heavy = (() => {
@@ -158,22 +159,22 @@ const Heavy = (() => {
     const ctl = new AbortController();
     const cancel = () => ctl.abort();
     if (outer) { if (outer.aborted) throw new HeavyError('cancelled'); outer.addEventListener('abort', cancel, { once: true }); }
-    let timedOut = false;
-    const timer = setTimeout(() => { timedOut = true; ctl.abort(); }, timeoutMs);
+    let timedOut = false, timer = 0;
     try {
-      await waitIdle(ctl.signal);
+      await waitIdle(ctl.signal); // waiting for a recording to end is not the job's time: the clock starts when the job does
       if (memoryPressure()) throw new HeavyError('low-memory', 'The page is using nearly all the memory the browser allows.');
+      timer = setTimeout(() => { timedOut = true; ctl.abort(); }, timeoutMs);
       put(id, { pending: Date.now() });
       const res = await Promise.race([
         job({ signal: ctl.signal }),
-        new Promise((_, rej) => ctl.signal.addEventListener('abort', () => rej(new HeavyError(timedOut ? 'timeout' : 'cancelled')), { once: true })),
+        new Promise((_, rej) => ctl.signal.addEventListener('abort', () => rej(timedOut ? new HeavyError('timeout', `It took longer than ${Math.round(timeoutMs / 1000)} s and was stopped.`) : new HeavyError('cancelled')), { once: true })),
       ]);
       put(id, { pending: 0, fails: 0 });
       return res;
     } catch (e) {
       // a job that stops because the watchdog aborted it reports 'cancelled' itself; it was really a timeout
       const code = timedOut ? 'timeout' : e instanceof HeavyError ? e.code : /memory|alloc/i.test(String(e && e.message)) ? 'out-of-memory' : 'failed';
-      const err = e instanceof HeavyError && e.code === code ? e : new HeavyError(code, e && e.message);
+      const err = e instanceof HeavyError && e.code === code ? e : new HeavyError(code, code === 'timeout' ? `It took longer than ${Math.round(timeoutMs / 1000)} s and was stopped.` : e && e.message);
       if (code === 'cancelled' || code === 'low-memory' || code === 'off') put(id, { pending: 0 }); // not the feature's fault
       else {
         const fails = get(id).fails + 1;

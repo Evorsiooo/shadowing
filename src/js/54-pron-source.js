@@ -18,7 +18,8 @@
    PronSource.download()         -> Promise<void>   (normally started by the Settings → Analysis switch; this is the fallback)
    PronSource.load()             -> Promise<void>   (download if needed, then load into memory)
    PronSource.stop()             -> stop loading the model
-   PronSource.analyse(clip, take, signal?)-> Promise<PronResult>  take = { id, blob, url, ref, analysis } or null (speaker only) */
+   PronSource.analyse(clip, take, signal?, onProgress?)-> Promise<PronResult>   onProgress({ fraction 0..1, step, steps, stage })
+   take = { id, blob, url, ref, analysis } or null (speaker only) */
 
 /* engine words (PhoneWord, no text) + the differences to show -> PronWord[] */
 function pronWords(S, shown, ext) {
@@ -155,17 +156,17 @@ const PronSource = (() => {
     download: () => Phones.download(),
     load: () => Phones.load(),
     stop: () => Phones.stop(),
-    async analyse(clip, take, signal) {
+    async analyse(clip, take, signal, onProgress) {
       clip = Store.get('clips', clip.id) || clip; // words may have arrived or been fixed since the tab opened
       const spk = await speakerSamples(clip, signal);
       // words, when the clip has them (clip.words = [{w, s, e}], automatic or fixed by the learner, seconds from the clip start); sounds alone otherwise.
       // Attached after the engine, never passed in: its cached results must not freeze an older version of the words.
       const external = clip.words && clip.words.length ? { source: 'asr', words: clip.words.map((x) => ({ text: x.w, t0: x.s, t1: x.e })) } : undefined;
       const withWords = (seq) => (external ? Phones.attachExternalWords(seq, external) : { ...seq, external: undefined });
-      if (!take) return pronFromSequence(withWords(await Heavy.run('pronunciation', () => Phones.transcribe(spk, { originSec: 0 }), { timeoutMs: 90000, signal })));
+      if (!take) return pronFromSequence(withWords(await Heavy.run('pronunciation', () => Phones.transcribe(spk, { originSec: 0, cache: true, onProgress: (d, tot) => onProgress && onProgress({ fraction: d / tot, step: 1, steps: 1, stage: 'speaker' }) }), { timeoutMs: 90000, signal })));
       const blob = take.blob || (await (await fetch(await Store.blobUrl(take.ref))).blob());
       const you = await AudioEng.decodeBlob(blob);
-      const res = await Heavy.run('pronunciation', () => Phones.analyse(spk, you, { speakerOriginSec: 0 }), { timeoutMs: 90000, signal });
+      const res = await Heavy.run('pronunciation', () => Phones.analyse(spk, you, { speakerOriginSec: 0, onProgress }), { timeoutMs: 90000, signal });
       return pronFromClipResult({ ...res, speaker: withWords(res.speaker) });
     },
   };

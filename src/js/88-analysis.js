@@ -101,4 +101,5 @@ function announceHeavyOff() {
 Heavy.onChange(announceHeavyOff);
 
 /* never load a model or run heavy analysis while a pass is being recorded: it could glitch the take */
-Heavy.blockers.push(() => !!(Session.active && Session.recordingThisPass));
+/* wait only while the microphone is actually recording (Session.rec); recordingThisPass stays true through the review screen and the gap, which made the analysis wait until its time ran out */
+Heavy.blockers.push(() => !!(Session.active && Session.rec));
