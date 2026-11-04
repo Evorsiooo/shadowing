@@ -286,7 +286,7 @@ ${plain(en.home.lede)} ${plain(en.home.fine)}
 
 ${en.home.featureList.map((f) => `- ${f}`).join('\n')}
 - Pronunciation history: which sound differences keep recurring and which have gone quiet (English, beta)
-- Optional read-only connection to Claude, ChatGPT or Gemini through MCP (sign-in required), so an AI app can see the user's own practice data, including the pronunciation history (tool get_pronunciation_progress). It cannot change anything and never receives audio
+- Optional read-only connection to Claude, ChatGPT or Gemini through MCP (sign-in required), so an AI app can see the user's own practice data, including the pronunciation history (tools get_pronunciation_progress and get_clip_pronunciation: the speaker's and the learner's sounds per clip and per take, English only, compared with the speaker's audio). It cannot change anything and never receives audio
 - Clips cut from your own videos, with a zoomed waveform for trimming at the pauses
 - Looping, playback at 0.5x, 0.75x or 1x, and keyboard shortcuts
 - A five-minute bad-day version of the session; durations and pass counts are settings

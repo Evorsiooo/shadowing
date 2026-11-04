@@ -34,6 +34,8 @@ All tools are marked read-only (`readOnlyHint`). They never return the `private`
 | `get_overview` | Streak, this week, minutes, clips, open issues, check-ins, lag by week, recent sessions, settings |
 | `list_records` | One collection, newest first, with an optional exact-match filter. Pitch arrays are shortened unless `full` is set. |
 | `get_record` | One record in full |
+| `get_pronunciation_progress` | Sound-pair history (active, easing, archived, trend) and timing/pitch/stress trends |
+| `get_clip_pronunciation` | Per clip: the speaker's saved sounds (IPA) and words, and for every take the learner's sounds, the differences from the speaker and how sure the engine was. No `clipId` lists clips and what is saved for each; `detail` adds every sound with its times. English only. |
 | `search` | Notes, issues, clips and videos matching some words. Ids look like `notes:abc` (the shape ChatGPT expects). |
 | `fetch` | One record by a `search` id |
 

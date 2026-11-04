@@ -174,12 +174,15 @@ const PronSource = (() => {
         let spk = null;
         if (!given) { say('speaker-audio'); spk = await speakerSamples(clip, signal); lap('speaker audio ready'); }
         if (!take) return pronFromSequence(withWords(given ? given.seq : await Heavy.run('pronunciation', () => Phones.transcribe(spk, { originSec: 0, cache: true }), { timeoutMs: 90000, signal })));
+        const kept = Prep.savedTake(take.id, clip, given); // this take was compared before (on a pass, or here): read the saved comparison
+        if (kept) { lap('saved comparison'); return pronFromClipResult({ ...kept, speaker: withWords(kept.speaker) }); }
         say('take-audio');
         const blob = take.blob || (await (await fetch(await Store.blobUrl(take.ref))).blob());
         const you = await AudioEng.decodeBlob(blob);
         lap('take decoded');
         say('queue');
         const res = await Heavy.run('pronunciation', () => Phones.analyse(spk, you, { speakerOriginSec: 0, speakerSeq: given, onProgress: onP }), { timeoutMs: 90000, signal });
+        Prep.saveTake(take.id, clip, res, given && given.fp);
         return pronFromClipResult({ ...res, speaker: withWords(res.speaker) });
       });
     },

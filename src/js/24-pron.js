@@ -61,16 +61,17 @@ function wordsAt(clip, a, b) {
    substitutions only (not extra or missing sounds yet), model noise (`weak`) left out, the engine's own pick first */
 const PhonesAdapter = {
   ready() { return !!(typeof Phones !== 'undefined' && typeof Phones.analyse === 'function' && Phones.supported().ok); },
-  async diff({ clip, samples, onProgress }) {
+  async diff({ clip, samples, recId, onProgress }) {
     if (!samples) return null;
-    return Prep.around(clip, 2, onProgress, (onP) => this.compare(clip, samples, onP));
+    return Prep.around(clip, 2, onProgress, (onP) => this.compare(clip, samples, onP, recId));
   },
-  async compare(clip, samples, onProgress) {
+  async compare(clip, samples, onProgress, recId) {
     clip = Store.get('clips', clip.id) || clip; // its words and sounds may have just been worked out
     const given = Prep.speakerSeq(clip);
     const speaker = given ? null : VideoAudio.slice(clip.videoId, clip.start, clip.end);
     if (!given && !speaker) return null;
     const r = await Heavy.run('pronunciation', () => Phones.analyse(speaker, samples, { speakerOriginSec: 0, speakerSeq: given, onProgress }), { timeoutMs: 90000 });
+    if (r) Prep.saveTake(recId, clip, r, given && given.fp); // every result is kept with the take, also a low-quality one
     if (!r || r.status !== 'ok') return null;
     const syms = (seq, w) => (w == null || !seq.words[w] ? [] : seq.phones.slice(seq.words[w].first, seq.words[w].last + 1).map((p) => p.sym));
     const diffs = r.comparison.diffs.filter((d) => d.kind === 'sub' && !d.weak).map((d) => {
@@ -136,7 +137,7 @@ const Pron = {
   async process({ clip, samples, blob, analysis, recId, slot, sessionId, pass, step, onProgress, onError }) {
     if (!this.on() || !clip) return null;
     let res = null;
-    try { res = await this.engine().diff({ clip, samples, blob, analysis, slot, onProgress }); } catch (e) { const why = this.reason(e); console.warn('pronunciation engine failed:', why, e && e.code, e); if (onError) onError(why); return null; }
+    try { res = await this.engine().diff({ clip, samples, blob, analysis, slot, recId, onProgress }); } catch (e) { const why = this.reason(e); console.warn('pronunciation engine failed:', why, e && e.code, e); if (onError) onError(why); return null; }
     if (!res || !Array.isArray(res.diffs)) return null;
     const phones = this.clean(res);
     if (recId) Store.patch('recordings', recId, { phones });
