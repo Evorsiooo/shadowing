@@ -205,6 +205,7 @@ function footer(page) {
     <a href="${L('/contact/')}">${u.contact}</a>
     <a href="${L('/privacy/')}">${u.privacy}</a>
     <a href="${L('/terms/')}">${u.terms}</a>
+    <a href="https://github.com/Evorsiooo/shadowing" rel="noopener">${u.source}</a>
   </nav>
   <nav class="foot-langs" aria-label="${esc(u.langNav)}">${langLinks(page).join('')}</nav>
   <span class="copy">© ${year} ${SITE.name}</span>
