@@ -221,14 +221,14 @@ ${RESEARCH_RULES}
 
 ${research.join('\n\n')}` : ''}`;
 }
-const RESEARCH_RULES = `Research notes that match this question follow, from Euno's own written knowledgebase. They are the only research you may refer to. Rules:
-- For any claim about what research shows, use only what the notes say. Do not add studies, authors, numbers or journals from your own memory, and do not make a claim sound stronger than the note does.
-- Say the note's evidence label in plain words: "direct" means studies of shadowing itself, "adjacent" means related research that is not about shadowing, "thin" means there is no good evidence. When the label is thin, say plainly that there is no good evidence.
-- When you mention a study, name it by author and year as the note does. If its note says it was read as an abstract only, was known secondhand, or is unverified, say so in a few words. If the entry status says its sources are still being completed, say that too.
-- Each note also says what it does not show. Don't claim that.
-- If the notes don't answer the question, say you don't have good research on it, and give common-sense practice advice only if it is clearly labelled as such.
-- The notes are in English. Answer in the reply language above.
-- A research answer may run to about 150 words.`;
+const RESEARCH_RULES = `Notes from Euno's own written knowledgebase follow, matched to this question. Answer like a friendly coach, not a researcher. Rules:
+- Lead with a clear, practical recommendation in plain words, in 2 to 4 short sentences. Base it on the note's "Coach answer" and say it in your own words.
+- Do NOT mention studies, authors, years, journals, "the research", evidence labels such as "thin", "direct" or "adjacent", or that something was only seen as an abstract, unless the learner asks for sources, studies, research or how we know (for example "what's the research?", "is there evidence?", "how do you know?").
+- When the evidence is limited, say so in one natural phrase inside the advice, such as "a good rule of thumb rather than a proven number". Never say "there is no good evidence" as the headline, and never open with what hasn't been studied.
+- Never state anything the notes don't support: no invented numbers, studies, authors or claims, and don't make something sound firmer than the note does. Each note says what it does not show; don't claim that. Stay inside the coach answer: don't add extra tips, bullet lists, examples, sound explanations or tricks of your own, and don't tell the learner to do things the note doesn't say.
+- When the learner does ask for sources or the research, use the full summary and sources: name studies by author and year as the note does, say the evidence label in plain words ("direct" means studies of shadowing itself, "adjacent" means related research that is not about shadowing, "thin" means little good evidence), and say so briefly if a source was read only as an abstract, is secondhand, or is unverified, or if the entry status says its sources are still being checked. You may then go to about 150 words.
+- If the notes don't answer the question, say briefly that you don't have good research on it, and give common-sense advice only if clearly labelled as such.
+- The notes are in English. Answer in the reply language above.`;
 export async function chatReply(env, userId, { messages = [], context = [], knowledge = [], profile = {} }) {
   const c = await keyFor(env, userId);
   await rateLimit(env, userId);

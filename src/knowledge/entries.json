@@ -4,6 +4,7 @@
   "question": "What is shadowing, and how is it different from repeating?",
   "evidence": "direct",
   "status": "draft",
+  "coach": "Shadowing means speaking along with a clip a split second behind the speaker, while you're still hearing it. Repeating is different: you listen, pause, then say it back. Shadowing is the harder, more live version, because you can't stop to think.",
   "keywords": "what is shadowing definition repeating repeat difference shadowing définition répéter différence qu'est-ce que sombra definición repetir diferencia qué es",
   "answer": "Shadowing means repeating speech out loud while you are still hearing it, a fraction of a second behind the speaker, usually without reading a script. Listen-and-repeat is different: you hear a chunk, there is a pause, then you say it. Researchers treat shadowing as the more demanding \"live\" version because you cannot stop to think about meaning. The word is used loosely, though: in one systematic review, 8 of 44 studies that said \"shadowing\" actually used delayed repetition of single words.",
   "sources": [
@@ -30,6 +31,7 @@
   "question": "How good is the evidence that shadowing works?",
   "evidence": "direct",
   "status": "draft",
+  "coach": "Yes, it's worth doing. Most studies find it helps, and the clearest benefit is for listening. It also seems to help how easy you are to understand, how fluent you sound and your rhythm. Don't expect it to fix every individual sound, though, and nobody can promise how much it will change your accent.",
   "keywords": "help helps evidence research studies proof proven work works scientific science really effective preuve preuves recherche études efficace fonctionne scientifique evidencia investigación estudios funciona eficaz científico",
   "answer": "There is real research and most of it is positive, but it is thin. The best evidence is for listening. For pronunciation, a 2025 systematic review of 44 studies tentatively concluded shadowing can help how easy you are to understand, plus fluency and rhythm/intonation, while results for individual sounds were inconclusive. The studies are mostly short, mostly with learners of English (many in Japan or Taiwan), and usually tested with controlled tasks like reading aloud, so nobody knows how much it helps you in particular or how much practice is ideal.",
   "sources": [
@@ -59,6 +61,7 @@
   "question": "Does shadowing improve pronunciation and accent?",
   "evidence": "direct, mixed",
   "status": "draft",
+  "coach": "It can help you become easier to understand and sound more fluent, especially if you're already fairly advanced. The clearest gains are in clarity and flow rather than in how accented you sound, and it's less certain for fixing single sounds. So use it for rhythm and flow, and don't expect it to wipe out an accent on its own.",
   "keywords": "pronunciation accent improve improvement sounds speaking better help helps prononciation accent améliorer progresser pronunciación acento mejorar",
   "answer": "It may help how easy you are to understand and how fluent you sound, especially for advanced learners. The one carefully rated study I read found gains in comprehensibility and fluency but not in how accented the speech sounded. Evidence for fixing individual sounds is inconclusive.",
   "sources": [
@@ -92,6 +95,7 @@
   "question": "Does shadowing improve listening?",
   "evidence": "direct, limited design",
   "status": "draft",
+  "coach": "Listening is where shadowing helps most. After a few weeks of regular shadowing, learners in several classes understood spoken English better, and the gain was biggest for people whose listening was weaker. Whether the gain lasts after you stop hasn't been tested, so keep it up.",
   "keywords": "listening comprehension understand hearing listen écoute compréhension orale comprendre escucha comprensión auditiva entender",
   "answer": "Listening is the best-supported benefit. Several classroom studies, mostly in Japan and Taiwan, report better listening scores after a few weeks of shadowing, and one study found better recognition of individual sounds. The gains in that study were mainly for learners with lower listening levels.",
   "sources": [
@@ -120,6 +124,7 @@
   "question": "Who benefits most?",
   "evidence": "direct, thin",
   "status": "draft",
+  "coach": "Shadowing works at most levels, but it suits you better the closer the clip is to what you can already follow. If your listening is still developing, you'll likely gain a lot. If you want to copy a fast, natural speaker's sounds closely, it helps to be fairly comfortable first. Choose slower or easier clips if you keep losing the thread.",
   "keywords": "beginner advanced level who benefits suitable proficiency débutant avancé niveau principiante avanzado nivel",
   "answer": "For listening, lower-level learners seem to gain most (one study, plus reports of others). For pronunciation, the study with clear gains used advanced learners, and one author argues you need a fairly high level to copy a fast, natural speaker accurately. That is the author's reading of two different studies, not a test of the question.",
   "sources": [
@@ -149,6 +154,7 @@
   "question": "How often and how long should I shadow?",
   "evidence": "thin",
   "status": "draft",
+  "coach": "A few short sessions a week beat one long one. In the studies that worked, people shadowed three or four times a week, at least 10 minutes each, for a month or two. That's a good rule of thumb rather than a proven number, so choose a routine you'll actually stick to.",
   "keywords": "how often how long daily every day minutes weekly frequency practice schedule spacing session length combien fréquence jours minutes quotidien chaque jour cuántas frecuencia días minutos diario todos los días",
   "answer": "Nobody has tested how often or how long to shadow. The studies that worked used a few short sessions a week for a month or two (for example, 4 times a week for at least 10 minutes over 8 weeks). Memory research on other material says spreading practice over days beats cramming it, so several short sessions with gaps is a sensible bet, but that is borrowed evidence, not a shadowing result.",
   "sources": [
@@ -193,6 +199,7 @@
   "question": "Should I use a transcript, or understand the clip first?",
   "evidence": "direct, thin",
   "status": "draft",
+  "coach": "If you can't follow a clip yet, read what it says first, then shadow it. That order is a sensible way to start. Once you know the clip well, try it without the text so you're listening to the sounds, not reading. There's no proven rule here, so do whatever helps you stay with the speaker.",
   "keywords": "transcript subtitles script text read understand first captions transcription sous-titres texte lire transcripción subtítulos leer",
   "answer": "Classic shadowing is defined as scriptless, although the lessons in that study included reading along with the text. In the one study that tested order (two different classes, no control group), the class that learned the passage first and shadowed afterwards gained 0.84 of 13 points on a listening test, a statistically significant gain; the class that shadowed first gained 0.53, which was not significant. Nobody tested whether the two gains differ from each other. Nobody I found compared \"with transcript\" and \"without\" for pronunciation, so there is no evidence-based rule. If you can't follow a clip yet, knowing what it says first has only that one small study behind it.",
   "sources": [
@@ -224,6 +231,7 @@
   "question": "Does recording myself and checking it help?",
   "evidence": "direct, thin (secondhand)",
   "status": "draft-needs-primary-sources",
+  "coach": "Record yourself and listen back afterwards. While you shadow, all your attention is on the speaker, so you can't judge your own voice in the moment. Checking your recording afterwards is a good habit, and the small studies on it point the same way, though it isn't proven.",
   "keywords": "record recording myself self listen back playback monitor enregistrer enregistrement m'écouter grabar grabación escucharme",
   "answer": "Two small Japanese studies, described in a review, compared self-monitoring (recording yourself and checking it) with pair-checking or other checking methods. In one, the self-monitoring group reproduced more of the clip; in the other, only lower-level listeners in the self-monitoring group improved on listening questions. I haven't opened those studies, so treat this as a lead, not a finding. The idea behind it: while you shadow, all your attention is on the audio, so you can't judge yourself in the moment.",
   "sources": [
@@ -248,6 +256,7 @@
   "question": "Is a native accent the right goal?",
   "evidence": "adjacent",
   "status": "draft",
+  "coach": "Being understood and sounding like a particular speaker are two different goals. A strong accent doesn't automatically make you hard to understand, and clarity matters most for most people. If sounding close to your chosen speaker is what you want, that's a perfectly good goal. Just know that it's a personal choice, not something you need.",
   "keywords": "native accent goal intelligible intelligibility comprehensible foreign lose accent natif objectif intelligible compréhensible acento nativo meta inteligible",
   "answer": "Researchers separate three things: how accented you sound, how easy you are to understand, and how many words listeners actually catch. A classic study found that a strong accent does not necessarily make speech hard to understand. Many researchers now treat clarity as the main goal, but sounding close to a model speaker is a legitimate personal goal if that's what you want (that last point is our judgement, not a research finding).",
   "sources": [
@@ -273,6 +282,7 @@
   "question": "Does pronunciation teaching work at all?",
   "evidence": "adjacent",
   "status": "draft",
+  "coach": "Yes, practising pronunciation on purpose works. On average people improve clearly, and more with longer programmes and with feedback on what to fix. Results vary a lot from person to person, so expect steady progress rather than a quick fix.",
   "keywords": "teaching pronunciation instruction lessons teacher taught learn enseignement enseigner cours professeur enseñanza clases profesor",
   "answer": "Yes, on average. A meta-analysis of 86 reports found a large improvement from pronunciation instruction, bigger for longer programmes and ones that include feedback. The authors warn that published results probably overstate the true effect, and a separate review notes many studies tested only read-aloud speech.",
   "sources": [
@@ -298,6 +308,7 @@
   "question": "Does ear training help me pronounce a sound?",
   "evidence": "adjacent",
   "status": "draft",
+  "coach": "Listening closely to a hard sound, with lots of different speakers, helps a little with saying it. The gains are small though, so don't count on listening alone. Listen carefully, then say it out loud and compare.",
   "keywords": "ear training perception hear difference minimal pairs perceive production entraînement auditif perception paires minimales entrenamiento auditivo percepción pares mínimos",
   "answer": "Training your ear on a hard sound with many speakers gives small gains in how you say it, with weaker gains on new words and over time. The authors of the newer review say the evidence that hearing training transfers to speaking is not strong. These studies did not test whether you must hear a sound before you can say it.",
   "sources": [
@@ -323,6 +334,7 @@
   "question": "Does automatic feedback on pronunciation help? How accurate is it?",
   "evidence": "adjacent",
   "status": "draft",
+  "coach": "Feedback from software can help, mostly when it tells you exactly which sound to fix. Treat a flag as a prompt to listen again, not a verdict. Software can mark clear speech as wrong, and Euno's sound differences haven't been checked against what real listeners hear.",
   "keywords": "automatic feedback software app score grade accurate accuracy asr ai computer retour automatique logiciel score précis précision note ia retroalimentación automática puntuación precisión",
   "answer": "On average, software feedback on pronunciation helps, mostly for individual sounds and when it tells you specifically what to fix. The reviews also say the evidence is of limited quality and one review notes, secondhand and not independently confirmed, that this kind of software can mark understandable speech as wrong, so a flag is a prompt to listen again, not a verdict.",
   "sources": [
@@ -355,6 +367,7 @@
   "question": "Is shadowing boring? Will I stick with it?",
   "evidence": "thin",
   "status": "draft",
+  "coach": "Most learners find shadowing interesting and useful. Some find it repetitive or frustrating, especially when the audio is too fast. If it starts feeling like a chore, switch to a slower or more interesting clip rather than pushing through.",
   "keywords": "boring bored motivation stick quit enjoy tedious repetitive ennuyeux ennui motivation abandonner aburrido motivación abandonar",
   "answer": "Most learners in the studies found shadowing interesting and useful. A minority found it repetitive, time-consuming or frustrating when the audio was too fast, and some got discouraged after failing. I found no study on streaks or reminders for shadowing.",
   "sources": [
@@ -382,6 +395,7 @@
   "question": "Does shadowing work for French or Spanish?",
   "evidence": "thin",
   "status": "draft",
+  "coach": "Shadowing should work for French and Spanish too, but nearly all the research is on English, so it's a sensible bet rather than a proven one. Euno's sound-by-sound comparison only works for English at the moment.",
   "keywords": "french spanish language other languages français espagnol langues francés español idiomas lenguas",
   "answer": "Almost all the research is on English. In the 2025 systematic review, 27 of 34 analysed studies were about English, 5 about Japanese and 1 about French; none about Spanish. A small French study with 19 high-school students found better pronunciation after a term of repeat-after-the-video practice, but it wasn't strict shadowing and had no comparison group. So for French and Spanish Euno should say shadowing is plausible but untested.",
   "sources": [
@@ -410,6 +424,7 @@
   "question": "Which French sounds are hardest for English speakers?",
   "evidence": "adjacent",
   "status": "draft-incomplete",
+  "coach": "The sounds English speakers most often struggle with in French are the front rounded vowels, like the u in tu versus the ou in tout, and peur versus port. Nasal vowels and liaison are often hard as well. Listen to those pairs carefully and shadow short phrases that contain them. Euno's sound comparison is English-only for now.",
   "keywords": "french sounds hard difficult vowels sons français difficiles voyelles sonidos francés difíciles vocales",
   "answer": "The best-documented trouble spot is telling the front rounded vowels (like the u in \"tu\" versus \"tout\", and \"peur\" versus \"port\") apart (the study tested hearing and word recognition, not speaking); even advanced English-speaking learners categorise these differently from French speakers. Nasal vowels and liaison are often listed as hard too, but I have not yet found solid studies to cite for them.",
   "sources": [
@@ -430,6 +445,7 @@
   "question": "Which Spanish sounds are hardest for English speakers?",
   "evidence": "adjacent",
   "status": "draft-incomplete",
+  "coach": "Common trouble spots for English speakers in Spanish are the soft b, d and g between vowels (lado, haba), the rolled r versus the single tap (carro and caro), and p, t and k without a puff of air. The soft b, d and g take time, so expect gradual progress. Euno's sound comparison is English-only for now.",
   "keywords": "spanish sounds hard difficult vowels trill sons espagnol difficiles voyelles sonidos español difíciles vocales vibrante",
   "answer": "Studies point to the soft b/d/g between vowels (as in \"lado\", \"haba\"), the rolled r versus the tap (\"carro\" vs \"caro\"), and unaspirated p/t/k. The soft b/d/g is hard for learners: in one year-long study of 26 learners, looking at the soft b only, the group average did not change, although some individuals improved.",
   "sources": [
@@ -466,6 +482,7 @@
   "question": "Is French/Spanish \"syllable-timed\", and does it matter?",
   "evidence": "adjacent, disputed",
   "status": "draft",
+  "coach": "Copy the speaker's real timing instead of trusting the textbook idea that Spanish and French have an even beat. Measurements don't show a clean split between languages. Shadow closely and let the speaker's rhythm guide you.",
   "keywords": "syllable-timed stress-timed rhythm syllable timed french spanish rythme syllabique accentuel ritmo silábico acentual",
   "answer": "Textbooks call Spanish and French \"syllable-timed\" and English \"stress-timed\", but measurements don't back a clean split. One study of six languages found the rhythm numbers were inconsistent, affected by how speech was recorded, and not clearly different even between English and Spanish. So \"copy the speaker's real timing\" is safer advice than \"Spanish has an even beat\".",
   "sources": [
@@ -488,6 +505,7 @@
   "question": "How far behind the speaker should I be?",
   "evidence": "thin",
   "status": "draft",
+  "coach": "Stay a short, comfortable beat behind the speaker, roughly a quarter to half a second, so you can still hear them while you speak. No one has found a best exact delay, so adjust until it feels steady.",
   "keywords": "lag delay behind how far behind latency seconds speaker close distant décalage retard derrière combien de retard desfase retraso detrás cuánto retraso",
   "answer": "I found no study that tested which delay works best for learning. Psychology experiments, as described in a Japanese study, divide shadowers into \"close\" (about a quarter of a second behind) and \"distant\" (about half a second or more); that split is secondhand here. In a study of 81 Japanese high school students there was almost no link between how long learners waited and how many errors they made, and the author proposed more than a second as the definition of a long delay. A short, comfortable lag is how shadowing is described, but a best number is not established.",
   "sources": [
@@ -527,6 +545,7 @@
   "question": "What speed should I shadow at? Should I slow the audio?",
   "evidence": "direct, thin",
   "status": "draft",
+  "coach": "Start slower, then speed up over a few weeks as it gets comfortable. Slowed audio helps you pick out the sounds, and pushing the speed too early mostly causes frustration. Go back to natural speed as soon as you can keep up, since that's the speed you'll meet in real life.",
   "keywords": "speed slow slower faster fast rate slow down audio words per minute vitesse lent plus lent rapide ralentir velocidad lento más lento rápido ralentizar",
   "answer": "Starting slower is supported, though by little shadowing-specific evidence. A study that trained listening with slowed recordings found the slow group improved most at hearing individual sounds and words. In a Japanese-as-a-foreign-language shadowing study, the author suggests beginning slowly and speeding up over weeks, but listening improved in both the shadowing and the control group there, so it does not show speed-ups matter. Experiments with bilinguals show shadowing accuracy falling steadily once speech goes beyond about 125 words per minute. Pushing speed too early can cause frustration, which is a recurring complaint in learner surveys.",
   "sources": [
@@ -567,6 +586,7 @@
   "question": "How many times should I repeat the same clip?",
   "evidence": "direct, thin",
   "status": "draft",
+  "coach": "A handful of repeats of the same clip is enough. After about four or five, you copy it about as well as you're going to, so more rounds add little. Move to a new clip and come back to the old one on another day.",
   "keywords": "repetitions repeat times how many same clip again répétitions répéter fois combien repeticiones repetir veces cuántas",
   "answer": "In one experiment, after four or five repeats of the same passage, learners' accuracy at copying it levelled off close to its ceiling, so more repeats of that one passage added little to accuracy. A newer study found learners who did more repeats scored higher on listening and phrase-memory tests. Neither tested pronunciation, so a best number of repeats for accent is not established.",
   "sources": [
@@ -607,6 +627,7 @@
   "question": "Can I improve by shadowing alone, with no teacher?",
   "evidence": "direct, thin (one conference study)",
   "status": "draft",
+  "coach": "Yes, you can practise alone at home. In one study, beginners shadowing every day for six weeks improved their listening, but didn't clearly improve their own pronunciation. So pair it with recording yourself and checking, or with feedback, if accent is the goal.",
   "keywords": "alone self-study teacher own myself independent seul tout seul sans professeur solo sin profesor autoaprendizaje",
   "answer": "One conference study had 35 Japanese beginner learners of English (CEFR A1-A2) shadow short passages at home every day for six weeks with no teacher and no control group. A score of their hearing improved, but across the 42 days I could see no clear gain in their own pronunciation, although within a single session their shadowing got closer to the model. It is a single study and the perception score is an automatic score of their own shadowing, so treat it as a hint.",
   "sources": [
@@ -635,6 +656,7 @@
   "question": "Does sleep help? Should I practise before bed?",
   "evidence": "adjacent, thin",
   "status": "draft",
+  "coach": "Practising in the evening may help it stick, because sleep helps memory settle. That's a mild hint from lab studies on hearing new sounds, not a rule, so practise whenever you'll really do it.",
   "keywords": "sleep bed night tired consolidation memory evening morning sommeil dormir nuit soir matin sueño dormir noche tarde mañana",
   "answer": "In lab studies of learning a foreign speech sound (not shadowing), people trained in the evening and tested the next day did better than people trained in the morning, which suggests sleep helps the memory settle. These were small experiments on hearing a sound difference, so they do not show that shadowing before bed helps.",
   "sources": [
@@ -672,6 +694,7 @@
   "question": "I'm nervous or embarrassed. Does anxiety matter?",
   "evidence": "adjacent",
   "status": "draft",
+  "coach": "Feeling nervous about speaking is common, and it tends to go along with slower progress. Starting with slower or familiar clips can take some of the pressure off.",
   "keywords": "anxiety nervous embarrassed shy afraid stress self-conscious anxiété stress nerveux gêné timide honte ansiedad nervioso vergüenza tímido",
   "answer": "Language anxiety is real and measurable. A large analysis of 97 reports found a moderate negative link between anxiety and language achievement, though that is a correlation, not proof that anxiety causes poorer results. For shadowing, the evidence is thinner: researchers and learners say it is demanding to repeat unfamiliar speech, and starting with familiar or slower material is suggested to reduce stress.",
   "sources": [
@@ -710,6 +733,7 @@
   "question": "Why are some people better at copying accents?",
   "evidence": "adjacent",
   "status": "draft",
+  "coach": "People differ in how easily they copy an accent. A good ear for music and quick, flexible mouth movements help, and so does liking the speaker. None of that says how much you can improve with practice, so don't read a slow start as a ceiling.",
   "keywords": "talent gift ear music imitate imitation accents personality ability talent don oreille musique imitation aptitude talento don oído música imitación aptitud",
   "answer": "People differ a lot in how well they can imitate an accent, and studies link it to a good ear for music, quick mouth movements, and personality traits such as openness; attitudes towards the speaker also play a part. These are studies of how well people copy, not of how much training improves them, so they say nothing about how much you can gain by practising.",
   "sources": [
@@ -743,6 +767,7 @@
   "question": "Is it true that shadowing works because of mirror neurons?",
   "evidence": "thin",
   "status": "draft",
+  "coach": "You don't need to worry about mirror neurons. You sometimes hear that they explain why shadowing works, but that idea isn't proven, and the practice works as advice either way. Just keep shadowing and listening back to yourself.",
   "keywords": "mirror neurons neuroscience brain why neurones miroirs cerveau neuronas espejo cerebro",
   "answer": "I found no study showing that mirror neurons explain why shadowing helps. Some shadowing papers mention mirror neurons as a possible reason, and at least one calls the idea \"still controversial\". A critical review argues that the mirror-neuron explanation of how we understand actions has never been properly tested and faces strong evidence against it in humans. The practical advice about shadowing doesn't depend on it.",
   "sources": [
@@ -769,6 +794,7 @@
   "question": "I've stopped improving. Is that normal?",
   "evidence": "adjacent",
   "status": "draft",
+  "coach": "Yes, it's normal. Most people progress fast at the start, then slower, and a lot of people hit flat patches. A plateau doesn't mean you should stop. Change clips, speaker or speed, or go back to your notes on what's still off, and keep going.",
   "keywords": "plateau stuck stopped improving progress slow plateau bloqué stagner progresser meseta estancado estancamiento progresar",
   "answer": "Yes, it's a common pattern. Studies that followed adults learning English by living in it found fast progress in the first months or years, then slower progress, with large differences between people. Some people kept improving for years, though most levelled off. None of this measured shadowing, so I cannot say how a shadowing plateau looks.",
   "sources": [
@@ -801,6 +827,7 @@
   "question": "Can shadowing strain my voice?",
   "evidence": "thin",
   "status": "draft",
+  "coach": "If your voice feels tired, hoarse or sore, rest it and keep sessions short. There's no research on voice strain from shadowing, so this is common sense, not a study result.",
   "keywords": "voice strain hoarse sore throat tired vocal voix fatigue enrouée gorge voz cansancio ronca garganta",
   "answer": "I found no study of voice strain from shadowing. The nearest evidence is one small study in which people said their voice tired faster when speaking a foreign language, but measurements mostly suggested this may come from mental effort rather than extra vocal loading, though some measures hinted at more loading. If your voice feels hoarse or sore, that's a reason to rest, not something research can tell you more about here.",
   "sources": [
@@ -823,6 +850,7 @@
   "question": "Does seeing the spelling help or hurt my pronunciation?",
   "evidence": "adjacent",
   "status": "draft",
+  "coach": "Reading along can help you catch a sound, and it can also pull you toward the wrong pronunciation, like saying letters that are silent. French spelling is especially tricky for this, since many letters are silent. A good approach is to read first if you need to, then shadow without the text to focus on the sounds.",
   "keywords": "spelling orthography written letters reading silent orthographe lettres écrit lire ortografía letras escrito leer",
   "answer": "Both. A review of this research finds that written words can help learners hear and say a sound, and can also push them toward wrong pronunciations, like pronouncing silent letters. Which happens depends on how the spelling matches your own language's spelling-sound habits. This is the closest evidence for the transcript question, but none of it tested shadowing.",
   "sources": [
@@ -856,6 +884,7 @@
   "question": "French: nasal vowels and liaison",
   "evidence": "adjacent",
   "status": "draft",
+  "coach": "Two things English speakers often find tricky in French are the nasal vowels (the ones in blanc and bon) and liaison, where a silent final consonant links to the next word, as in petit ami. Listen to short phrases with those, shadow them slowly, and compare. Euno's sound comparison is English-only for now.",
   "keywords": "french nasal vowels liaison blanc bon linking voyelles nasales liaison vocales nasales enlace",
   "answer": "English speakers learning French do find some contrasts harder than others. In one comparison, English speakers were less accurate than Spanish speakers at telling apart two nasal vowels (the ones in \"blanc\" and \"bon\") and made them sound more alike. For liaison (linking a normally silent final consonant, as in \"petit ami\"), two studies of English-speaking learners point the same way: one (Howard 2005) finds obligatory liaison produced near-categorically but optional liaison used less than by native speakers; another (Tennant 2015) finds liaison closer to native rates in spontaneous speech than in reading aloud. These are two separate findings, not one result.",
   "sources": [
@@ -897,6 +926,7 @@
   "question": "French and Spanish stress and intonation",
   "evidence": "adjacent, thin",
   "status": "draft",
+  "coach": "In French, the stress falls at the end of a phrase, and the voice tends to rise there. In Spanish, stress usually lands where English speakers expect, except in words stressed on the last syllable. Listen for where the speaker puts the weight, and copy the tune of a whole phrase, not just word by word.",
   "keywords": "stress intonation prosody pitch french spanish rise placement accent tonique intonation prosodie acento tónico entonación prosodia",
   "answer": "The rhythm of French and Spanish differs from English at the phrase and word levels. In one production study, English-speaking learners of Spanish placed stress like native speakers except in words stressed on the last syllable, while learners of French were less accurate and tended to stress too early or in several places, because French marks prominence at the end of phrases. Another study found English speakers struggled to group French words into the right phrases and to produce the phrase-final rise. These are small studies, so use them as hints about what to listen for.",
   "sources": [
@@ -926,6 +956,7 @@
   "question": "Which Spanish or French accent should I copy?",
   "evidence": "adjacent, thin",
   "status": "draft",
+  "coach": "Pick the speaker you want to understand and sound like, and stay with them for a while. The more different voices you hear, the better you'll understand them. Some accents are harder at first, but it passes after a few weeks. There's no proven best variety to copy.",
   "keywords": "regional variety dialect which accent copy spanish french argentine mexican spain quebec europe variété régionale dialecte quel accent copier québec variedad regional dialecto qué acento copiar argentino mexicano",
   "answer": "Research on learners of Spanish found that familiarity with a regional variety went with better understanding of it, and understanding was more accurate with several kinds of exposure (a correlation, not a proven cause). Some varieties are harder at first (for example, Argentine \"y/ll\" sounds caused recognition problems in a four-week immersion study, which went away after a month). There is no evidence on which variety is best to copy for pronunciation, so pick the speaker you want to understand and sound like.",
   "sources": [

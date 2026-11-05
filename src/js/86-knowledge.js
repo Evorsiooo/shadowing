@@ -1,7 +1,7 @@
 /* ---------- Euno's research notes (the knowledgebase) ----------
    KNOWLEDGE is filled in by scripts/build.mjs from src/knowledge/entries.json: 31 short entries about what research says on
    shadowing and accent learning, each with its evidence label and the studies it rests on. They ship with the app as plain
-   text, are matched to the question on this device, and the best few go along with the question to the learner's own AI
+   text, each with a short plain "coach" answer, are matched to the question on this device, and the best few go along with the question to the learner's own AI
    key (server/ai.js chatSystemPrompt), which may only cite what they say. Nothing is hosted and nothing is looked up. */
 const Know = {
   STOP: new Set(('a an and are as at be but by can do does for from has have how i if in is it its me my of on or so than that the their them then there these this to was we what when where which who why will with would you your ' +
@@ -41,6 +41,6 @@ const Know = {
   render(e) {
     const src = e.sources.map((s) => `- ${s.cite}${s.read ? ` [read: ${s.read}]` : ''}${s.design ? ` Design: ${s.design}.` : ''}${s.finding ? ` Finding: ${s.finding}` : ''}`).join('\n');
     const unfinished = e.status !== 'draft' ? ` Entry status: ${e.status} (sources still being completed or checked).` : '';
-    return `NOTE ${e.id}. Question: ${e.question}\nEvidence label: ${e.evidence}.${unfinished}${e.english_only_sound_comparison ? ' Euno\'s sound-by-sound comparison works for English only, not French or Spanish.' : ''}\nSummary: ${e.answer}\nSources:\n${src}\nCaveats: ${e.caveats.join(' ') || '(none)'}\nThis does NOT say: ${e.not_say.join(' ') || '(n/a)'}${e.app_note ? `\nAbout the app: ${e.app_note}` : ''}`.slice(0, 4000);
+    return `NOTE ${e.id}. Question: ${e.question}\nCoach answer (default wording; say it in your own words): ${e.coach}\nEvidence label (for you, not for the learner unless they ask): ${e.evidence}.${unfinished}${e.english_only_sound_comparison ? ' Euno\'s sound-by-sound comparison works for English only, not French or Spanish.' : ''}\nFull summary (only when they ask for the research or sources): ${e.answer}\nSources:\n${src}\nCaveats: ${e.caveats.join(' ') || '(none)'}\nThis does NOT say: ${e.not_say.join(' ') || '(n/a)'}${e.app_note ? `\nAbout the app: ${e.app_note}` : ''}`.slice(0, 4000);
   },
 };
