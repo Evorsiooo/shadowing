@@ -197,7 +197,7 @@ const asMessages = (user) => (typeof user === 'string' ? [{ role: 'user', conten
 /* ---------- Ask Euno: a short conversation about the learner's own practice ----------
    The app sends the conversation so far (the history itself is kept in the learner's own data) and a few lines of
    context it worked out on the device: streak, open issues, sounds flagged lately, the clip they're on. */
-function chatSystemPrompt(profile = {}, context = []) {
+export function chatSystemPrompt(profile = {}, context = [], knowledge = []) {
   const clean = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
   const lang = clean(profile.targetLanguage, 40) || 'English';
   const accent = clean(profile.accent, 80) || `a native ${lang} accent`;
@@ -205,16 +205,31 @@ function chatSystemPrompt(profile = {}, context = []) {
   const notes = clean(profile.notes, 500);
   const reply = ['English', 'French', 'Spanish'].includes(profile.replyLanguage) ? profile.replyLanguage : 'English';
   const lines = (Array.isArray(context) ? context : []).slice(0, 30).map((l) => `- ${clean(l, 240)}`).filter((l) => l.length > 2);
+  const research = (Array.isArray(knowledge) ? knowledge : []).slice(0, 3).map((k) => String(k || '').replace(/[ \t]+/g, ' ').trim().slice(0, 4000)).filter(Boolean);
   return `You are Euno, the small green character in Euno Shadowing, a free app where people improve their accent by shadowing: speaking along with a clip of a speaker they want to sound like. The learner is moving their ${lang} accent towards ${accent}.${native ? ` Their native language: ${native}.` : ''}${notes ? ` About them: ${notes}` : ''}
 
 Answer their question about pronunciation, accent, shadowing or their own practice. Reply in ${reply}, plainly and warmly, in at most about 120 words unless they ask for more, with no linguistics jargon: describe sounds with everyday ${lang} example words. Plain text only, no Markdown headings or tables; a short list is fine.
 
 You have not heard their voice. All you know is the context below, measured by software on their device, which can be wrong, so say "may" about any difference and never state one as fact. Don't invent recordings, scores or history that aren't in the context. If they ask about something unrelated to speaking or learning languages, say briefly that you can only help with their practice.${lines.length ? `
 
-Context from the app:
-${lines.join('\n')}` : ''}`;
+Background from the app (private to you; the learner can't see this list):
+${lines.join('\n')}
+
+How to use that background: treat it as reference material, not something to bring up. Don't mention their notes, open issues, flagged sounds, timing or pitch data, streak, or the clip they're on unless their message is actually about them (for example asking what to work on, how they're doing, or about a particular sound, word or the current clip). For a greeting, a test message, small talk or a general question (such as how often to practise), answer briefly and naturally in a sentence or two, as if you didn't have the background, and don't suggest a specific sound to work on. Never open with a summary of their practice. Don't say which clip they're on unless it matters to the answer.` : ''}${research.length ? `
+
+${RESEARCH_RULES}
+
+${research.join('\n\n')}` : ''}`;
 }
-export async function chatReply(env, userId, { messages = [], context = [], profile = {} }) {
+const RESEARCH_RULES = `Research notes that match this question follow, from Euno's own written knowledgebase. They are the only research you may refer to. Rules:
+- For any claim about what research shows, use only what the notes say. Do not add studies, authors, numbers or journals from your own memory, and do not make a claim sound stronger than the note does.
+- Say the note's evidence label in plain words: "direct" means studies of shadowing itself, "adjacent" means related research that is not about shadowing, "thin" means there is no good evidence. When the label is thin, say plainly that there is no good evidence.
+- When you mention a study, name it by author and year as the note does. If its note says it was read as an abstract only, was known secondhand, or is unverified, say so in a few words. If the entry status says its sources are still being completed, say that too.
+- Each note also says what it does not show. Don't claim that.
+- If the notes don't answer the question, say you don't have good research on it, and give common-sense practice advice only if it is clearly labelled as such.
+- The notes are in English. Answer in the reply language above.
+- A research answer may run to about 150 words.`;
+export async function chatReply(env, userId, { messages = [], context = [], knowledge = [], profile = {} }) {
   const c = await keyFor(env, userId);
   await rateLimit(env, userId);
   const turns = (Array.isArray(messages) ? messages : []).slice(-12)
@@ -222,7 +237,7 @@ export async function chatReply(env, userId, { messages = [], context = [], prof
     .filter((m) => m.content.trim());
   while (turns.length && turns[0].role !== 'user') turns.shift(); // a conversation starts with the learner
   if (!turns.length || turns[turns.length - 1].role !== 'user') throw httpError(400, 'Ask a question first.');
-  const system = chatSystemPrompt(profile && typeof profile === 'object' ? profile : {}, context);
+  const system = chatSystemPrompt(profile && typeof profile === 'object' ? profile : {}, context, knowledge);
   const ask = c.provider === 'anthropic' ? askAnthropic : askOpenAICompatible;
   const text = (await ask(c, system, turns, false, 1500)).trim();
   if (!text) throw httpError(502, 'The model sent back an empty answer.');

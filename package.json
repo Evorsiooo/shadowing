@@ -10,6 +10,7 @@
     "setup": "node scripts/setup.mjs",
     "deploy:reminders": "wrangler deploy -c workers/reminders/wrangler.toml",
     "check:i18n": "node scripts/check-i18n.mjs",
+    "test:knowledge": "node scripts/test-knowledge.mjs",
     "test:heavy": "node scripts/test-heavy.mjs",
     "test:phones": "node --test src/phones/test/*.test.mjs",
     "test:prepare": "node scripts/test-prepare.mjs",

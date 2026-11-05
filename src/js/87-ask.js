@@ -18,11 +18,37 @@ function askContext() {
   for (const n of notes) out.push(`Recent note (${n.date}): what sounded off: "${String(n.off || '').slice(0, 160)}"${n.aim ? `; aiming for: "${String(n.aim).slice(0, 80)}"` : ''}.`);
   if (Pron.on()) for (const r of Pron.seenAcross().slice(0, 3)) out.push(`Phones: the sound recogniser flagged ${Pron.pairName(r.pair)} on ${r.e.days.length} day(s), in ${r.flagged} of ${r.occurred} places where the speaker has that sound.`);
   try { for (const r of ProsodyLog.summary().filter((x) => x.T.recent.o >= 3).slice(0, 3)) out.push(`Timing/pitch: "${PROSODY_PLAIN[r.kind]}" in ${r.T.recent.f} of ${r.T.recent.o} recent recorded passes.`); } catch { /* optional */ }
+  out.push(...askSessionContext());
   const clip = Store.get('clips', UI.clipId);
   if (clip) {
     const v = Store.get('videos', clip.videoId);
-    out.push(`Clip they're on: "${clipName(clip)}"${v && v.speaker ? ` spoken by ${v.speaker}` : ''}, ${round(clip.end - clip.start, 1)} s${clip.sentence ? `, sentence: "${String(clip.sentence).slice(0, 200)}"` : ''}.`);
+    out.push(`Clip open on their screen (mention only if relevant): "${clipName(clip)}"${v && v.speaker ? ` spoken by ${v.speaker}` : ''}, ${round(clip.end - clip.start, 1)} s${clip.sentence ? `, sentence: "${String(clip.sentence).slice(0, 200)}"` : ''}.`);
   }
+  return out;
+}
+
+/* the practice session that is running right now: which step and pass, the pass that was just recorded and what it found,
+   and the notes written during it. Like the rest, background only: Euno mentions it when the question is about it. */
+function askSessionContext() {
+  const S = typeof Session !== 'undefined' ? Session : null;
+  if (!S || !S.active || !S.doc) return [];
+  const out = [];
+  try {
+    const clip = S.clip(), st = S.step();
+    if (!clip || !st) return out;
+    const v = Store.get('videos', clip.videoId);
+    const phase = { review: 'looking at the pass they just recorded', recording: 'recording a pass', paused: 'paused', gap: 'between passes', armed: 'about to record a pass', intro: 'about to start the step' }[S.phase] || 'listening or shadowing';
+    out.push(`Practice session in progress now (${S.mode} session): step ${S.stepIdx + 1} of ${S.plan.length}, "${st.name}", pass ${Math.min(S.pass + 1, st.passes)} of ${st.passes}; they are ${phase}. Clip: "${clipName(clip)}"${v && v.speaker ? ` by ${v.speaker}` : ''}.`);
+    const R = S.review;
+    if (R && R.analysis && R.analysis.lag != null && !R.analysis.manual) out.push(`The pass they just recorded was ${round(R.analysis.lag, 2)} s behind the speaker (positive = behind).`);
+    if (R) {
+      for (const it of tryItems(clip, R).shown) {
+        const x = tryText(it, clip);
+        out.push(`Found in that pass (${it.type}, computer-detected, can be wrong): ${x.word}: ${x.text}`);
+      }
+    }
+    for (const n of Store.all('notes').filter((n) => n.sessionId === S.doc.id)) out.push(`Note written in this session: "${String(n.off || '').slice(0, 160)}"${n.aim ? `; aiming for: "${String(n.aim).slice(0, 80)}"` : ''}.`);
+  } catch { /* optional */ }
   return out;
 }
 
@@ -38,11 +64,14 @@ async function askSend(text) {
   Ask.error = null;
   const msgs = [...askDoc().messages, { role: 'user', text, at: new Date().toISOString() }];
   askSave(msgs);
+  // research notes that fit the question, matched on this device (src/js/86-knowledge.js)
+  let notes = [];
+  try { notes = Know.pick(msgs.filter((m) => m.role === 'user').slice(-2).map((m) => m.text)); } catch { /* optional */ }
   Ask.busy = true;
   if (UI.askOpen) openAsk();
   try {
-    const r = await Api.req('POST', '/api/ai/chat', { messages: msgs.map((m) => ({ role: m.role, text: m.text })), context: askContext(), profile: profileForAI() });
-    askSave([...askDoc().messages, { role: 'assistant', text: r.text, at: new Date().toISOString() }]);
+    const r = await Api.req('POST', '/api/ai/chat', { messages: msgs.map((m) => ({ role: m.role, text: m.text })), context: askContext(), knowledge: notes.map((e) => Know.render(e)), profile: profileForAI() });
+    askSave([...askDoc().messages, { role: 'assistant', text: r.text, at: new Date().toISOString(), ...(notes.length ? { notes: notes.map((e) => ({ id: e.id, evidence: e.evidence, open: e.status !== 'draft' })) } : {}) }]);
   } catch (e) {
     Ask.error = t('Euno couldn’t answer: {error}', { error: e.message || 'error' });
   }
@@ -68,7 +97,8 @@ function openAsk() {
   const log = h('div', { class: 'ask-log', 'aria-live': 'polite' },
     msgs.map((m) => (m.role === 'user'
       ? h('div', { class: 'msg you' }, m.text)
-      : h('div', { class: 'msg-row' }, eunoLogo('logo'), h('div', { class: 'msg euno-says' }, m.text)))),
+      : h('div', { class: 'msg-row' }, eunoLogo('logo'), h('div', { class: 'msg euno-says' }, m.text,
+        m.notes && m.notes.length ? h('p', { class: 'small muted msg-source' }, t('From Euno’s research notes. Evidence: {label}.', { label: [...new Set(m.notes.map((n) => n.evidence))].join('; ') }), m.notes.some((n) => n.open) ? ' ' + t('Some sources are still being checked.') : '') : null)))),
     Ask.busy ? h('div', { class: 'msg-row' }, eunoLogo('logo'), h('div', { class: 'msg euno-says muted' }, t('Thinking…'))) : null,
     Ask.error ? h('p', { class: 'formerr' }, Ask.error) : null,
     canAsk && !msgs.length ? h('div', { class: 'ask-starts' }, ASK_STARTS.map((q) => h('button', { type: 'button', class: 'chip', onclick: () => askSend(t(q)) }, t(q)))) : null);
