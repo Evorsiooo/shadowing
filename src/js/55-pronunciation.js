@@ -1,11 +1,11 @@
 /* ---------- Pronunciation tab in the analysis panel ----------
-   The clip's words on the same time axis as the Pitch and Waveform charts: one-second lines, an orange
-   playhead, press or drag to seek (and never during a pass). A word sits where it was said and the bar under it
-   is as long as the word. Green: sounds like the speaker. Orange: differs from the speaker, with a YOU line
-   under it showing the sounds that differ. Grey: no comparison (no take yet, or too unsure).
+   The clip's words as a sentence. Words whose sounds differ from the speaker's are marked; one of them at a time is
+   opened below with the speaker's sounds and yours, each playable. Press a word to play from there (never during a
+   pass); the word being said is underlined as the clip plays. At most three differences, most certain first.
    The data comes through PronSource (54-pron-source.js). The wording is "differences from the speaker". */
 const PronTab = {
-  top: lsGet('pronTop', 'words'), // which row is big: 'words' or 'phones'
+  top: lsGet('pronTop', 'words'), // 'phones': show the sounds under every word, not only the ones that differ
+  sel: 0, selFor: null, // the difference that is open
   cache: new Map(), // `${clipId}:${recId}` -> PronResult
   asked: new Set(),
   /* "Sounds the same to me" for one word: saved in the synced pronunciation document (meta/pron), so every device and a reinstall keep it.
@@ -54,21 +54,13 @@ function pvPhones(phones, who) {
   return out;
 }
 const pvPlain = (phones, who) => phones.map((p) => p[who] || '').join('');
-
-/* time <-> pixel. Anchors are [seconds, px] pairs in increasing order; between them the line is straight. */
-function pvToX(map, sec) {
-  for (let i = 1; i < map.length; i++) if (sec <= map[i][0] || i === map.length - 1) {
-    const [t0, x0] = map[i - 1], [t1, x1] = map[i];
-    return t1 > t0 ? x0 + clamp((sec - t0) / (t1 - t0), 0, 1) * (x1 - x0) : x0;
-  }
-  return 0;
-}
-function pvToTime(map, x) {
-  for (let i = 1; i < map.length; i++) if (x <= map[i][1] || i === map.length - 1) {
-    const [t0, x0] = map[i - 1], [t1, x1] = map[i];
-    return x1 > x0 ? t0 + clamp((x - x0) / (x1 - x0), 0, 1) * (t1 - t0) : t0;
-  }
-  return 0;
+/* the first difference in a word, in words */
+function pvWhy(w) {
+  const p = w.phones.find((x) => x.spk !== x.you);
+  if (!p) return '';
+  if (!p.you) return t('The speaker says {a} here; you may have left it out.', { a: p.spk });
+  if (!p.spk) return t('You may have added {b} here.', { b: p.you });
+  return t('The speaker has {a} here; you may have said {b}.', { a: p.spk, b: p.you });
 }
 
 /* a message in the Pronunciation tab; outside a session Euno shows what's going on (in a session he is on the session card) */
@@ -209,71 +201,79 @@ function buildPronView(clip) {
     return box;
   }
 
+  /* The result reads like the clip itself: its words as a sentence, the ones whose sounds differ marked, and one
+     difference at a time opened below with the speaker's sounds and yours, each playable. While the clip plays,
+     the word being said is underlined. */
   function renderResult(clip, res, take) {
-    const dur = clip.end - clip.start;
     const hasWords = res.words.some((w) => w.text); // a word the recogniser skipped shows its sounds instead
     if (PronTab.noWords === hasWords) { PronTab.noWords = !hasWords; setTimeout(renderPanel); }
-    const wordsTop = hasWords && PronTab.top !== 'phones';
-    const pct = (s) => (s / dur) * 100 + '%';
-    const shown = PronTab.shown(clip, res);
+    const allSounds = PronTab.top === 'phones' || !hasWords;
+    const shown = PronTab.shown(clip, res).sort((a, b) => res.words.indexOf(a) - res.words.indexOf(b)); // stepped through in the order they are said
     const hidden = res.hidden || 0;
+    const name = speakerName(Store.get('videos', clip.videoId));
+    const selKey = `${clip.id}:${take ? take.id || 'review' : 'none'}`;
+    if (PronTab.selFor !== selKey) { PronTab.selFor = selKey; PronTab.sel = 0; }
+    const sel = shown.length ? shown[clamp(PronTab.sel, 0, shown.length - 1)] : null;
     const stateOf = (w) => (!take || res.confidence === 'low' ? 'none' : shown.includes(w) ? 'diff' : w.differs && !PronTab.dismissed.has(PronTab.skey(clip, w)) ? 'none' : 'ok');
+    const pick = (w) => { PronTab.sel = shown.indexOf(w); fill(); };
 
+    // the sentence
     const words = res.words.map((w) => {
       const st = stateOf(w);
-      const sp = pvPhones(w.phones, 'spk');
-      const big = h('div', { class: 'tv-big ' + (wordsTop && w.text ? 'wd' : 'ph') }, h('span', null, wordsTop && w.text ? w.text : sp));
-      const sub = h('div', { class: 'tv-sub ' + (wordsTop ? 'ph' : 'wd') }, hasWords && w.text ? h('span', null, wordsTop ? sp : w.text) : null);
-      const el = h('div', { class: 'tv-w ' + st }, big, h('div', { class: 'tv-bar' }), sub,
-        st === 'diff' ? h('div', { class: 'tv-you' }, h('span', { class: 'tv-tag' }, t('You')), h('span', { class: 'tv-yph' }, pvPhones(w.phones, 'you'))) : null);
-      return { w, el, big, sub };
+      const label = w.text ? w.text : h('span', { class: 'ipa' }, pvPlain(w.phones, 'spk'));
+      const sounds = (allSounds || st === 'diff') && w.text ? h('span', { class: 'pv-ipa ipa' }, pvPlain(w.phones, 'spk')) : null;
+      const el = h('button', {
+        type: 'button', class: `pv-w ${st}${w === sel ? ' sel' : ''}`,
+        title: st === 'diff' ? t('Sounds differ from {name} here', { name }) : null,
+        onclick: () => {
+          if (st === 'diff' && w !== sel) { pick(w); return; }
+          if (analysisCanScrub()) Player.seek(clip.start + Math.max(0, w.start - 0.05));
+        },
+      }, h('span', { class: 'pv-t' }, label), sounds);
+      return { w, el };
     });
+    Panel.canvas = null;
+    Panel.refs = { words, now: null };
+    const line = h('div', { class: 'pv-line', 'aria-label': t('The words of the clip') }, words.map((x) => x.el));
 
-    // one-second lines, as in the Pitch and Waveform views
-    const ticks = [];
-    for (let s = 1; s < dur; s++) ticks.push({ s, el: h('div', { class: 'tv-tick' }) });
-    const head = h('div', { class: 'tv-head' });
-    const track = h('div', { class: 'tv-track' }, ticks.map((x) => x.el), words.map((x) => x.el), head);
-    const view = h('div', { class: 'tv-view', 'aria-label': t('Words of the clip on a time line; press or drag to move through it') }, track);
-    Panel.canvas = view;
-    Panel.refs = { view, track, head, dur, words, ticks, map: null, w: 0 };
+    // what the comparison found, in one line
+    let sum, warn = false;
+    if (!take) sum = t('Record a pass and Euno shows where your sounds differ from {name}.', { name });
+    else if (res.confidence === 'low' && res.lowWho === 'speaker') { sum = t('The speaker’s sound is hard to analyse here (music, noise or overlapping voices), so no differences are shown.'); warn = true; }
+    else if (res.confidence === 'low') { sum = t('Hard to tell for this take (too quiet, noisy or cut short), so no differences are shown. Try recording again closer to the microphone.'); warn = true; }
+    else if (!shown.length) sum = t('Your sounds match {name} in this take. No clear differences.', { name });
+    else sum = tp(shown.length, 'One place where your sounds differ from {name}.', '{n} places where your sounds differ from {name}.', { name });
+    const head = h('div', { class: 'pv-sum' }, h('p', { class: warn ? 'warn' : null }, sum), h('span', { class: 'pv-beta' }, t('beta')));
 
-    // press or drag to move through the clip, as on the Pitch and Waveform charts
-    let down = false;
-    const seekTo = (e) => {
-      const r = view.getBoundingClientRect(), R = Panel.refs;
-      const x = e.clientX - r.left + view.scrollLeft;
-      Player.seek(Math.min(clip.start + (R.map ? pvToTime(R.map, x) : clamp(x / r.width, 0, 1) * dur), clip.end - 0.05));
-      if (Session.previewRec && Session.previewRec.clip.id === clip.id) syncRecTo(Player.time());
-    };
-    view.addEventListener('pointerdown', (e) => { if (!analysisCanScrub() || e.clientY - view.getBoundingClientRect().top > view.clientHeight) return; down = true; view.setPointerCapture(e.pointerId); seekTo(e); });
-    view.addEventListener('pointermove', (e) => { if (down) seekTo(e); });
-    view.addEventListener('pointerup', () => { down = false; });
-    view.addEventListener('pointercancel', () => { down = false; });
-
-    // under the chart: what it shows, then the differences with their play buttons
-    let note;
-    if (!take) note = t('Record a pass and the differences from the speaker show up here.');
-    else if (res.confidence === 'low' && res.lowWho === 'speaker') note = t('The speaker’s sound is hard to analyse here (music, noise or overlapping voices), so no differences are shown.');
-    else if (res.confidence === 'low') note = t('Hard to tell for this take (too quiet, noisy or cut short), so no differences are shown. Try recording again closer to the microphone.');
-    else if (!shown.length) note = t('No clear differences from the speaker this time.');
-    const items = shown.map((w) => h('div', { class: 'pv-item' },
-      h('span', { class: 'pv-word' + (w.text ? '' : ' ph') }, PronTab.label(w)),
-      h('span', { class: 'pv-btns' },
-        btn(t('Speaker'), () => pronPlay(clip, take, w, 'spk'), { size: 'sm', icon: 'play', title: t('Hear the speaker say “{word}”', { word: PronTab.label(w) }), cls: 'pv-spk' }),
-        btn(t('You'), () => pronPlay(clip, take, w, 'you'), { size: 'sm', icon: 'play', title: t('Hear how you said “{word}”', { word: PronTab.label(w) }), cls: 'pv-you' })),
-      btn(t('Sounds the same to me'), () => { PronTab.dismiss(clip, w); fill(); }, { size: 'sm', kind: 'ghost', title: t('Hide this one. It won’t come back for this clip.') })));
-    const legend = h('div', { class: 'pv-legend small muted' },
-      take && res.confidence !== 'low' ? [h('span', { class: 'pv-key ok' }), t('same as the speaker'), h('span', { class: 'pv-key diff' }), t('differs from the speaker')] : null,
-      h('span', { class: 'pv-beta' }, t('beta')));
-    return [view,
+    // the open difference
+    let detail = null;
+    if (sel) {
+      const i = shown.indexOf(sel);
+      const word = PronTab.label(sel);
+      const nav = shown.length > 1 ? h('div', { class: 'pv-nav' },
+        btn('', () => { PronTab.sel = (i - 1 + shown.length) % shown.length; fill(); }, { size: 'sm', icon: 'back', aria: t('Previous difference'), title: t('Previous difference') }),
+        h('span', { class: 'small muted num' }, t('{n} of {total}', { n: i + 1, total: shown.length })),
+        btn('', () => { PronTab.sel = (i + 1) % shown.length; fill(); }, { size: 'sm', icon: 'back', cls: 'flip', aria: t('Next difference'), title: t('Next difference') })) : null;
+      const row = (who, tag, cls) => h('div', { class: `pv-row ${cls}` },
+        h('span', { class: 'pv-who' }, tag),
+        h('span', { class: 'pv-ph ipa' }, pvPhones(sel.phones, who)),
+        btn(t('Play'), () => pronPlay(clip, take, sel, who), { size: 'sm', icon: 'play', kind: cls === 'spk' ? 'blue' : 'primary', title: who === 'spk' ? t('Hear the speaker say “{word}”', { word }) : t('Hear how you said “{word}”', { word }) }));
+      const both = () => { pronPlay(clip, take, sel, 'spk'); setTimeout(() => pronPlay(clip, take, sel, 'you'), (sel.end - sel.start + 0.6) * 1000 / ((Player.v && Player.v.playbackRate) || 1)); };
+      detail = h('div', { class: 'pv-detail' },
+        h('div', { class: 'pv-detail-head' }, h('h3', null, word), nav),
+        row('spk', name, 'spk'),
+        row('you', t('You'), 'you'),
+        h('p', { class: 'pv-why' }, pvWhy(sel)),
+        h('div', { class: 'row' },
+          btn(t('{name}, then you', { name }), both, { icon: 'replay', size: 'sm' }),
+          h('span', { class: 'grow' }),
+          btn(t('Sounds the same to me'), () => { PronTab.dismiss(clip, sel); fill(); }, { size: 'sm', kind: 'ghost', title: t('Hide this one. It won’t come back for this clip.') })),
+        h('p', { class: 'small muted' }, t('Not exact. Listen to both and decide.')));
+    }
+    return [head, line, detail,
       h('div', { class: 'pv-foot' },
-        note ? h('p', { class: 'pv-note' + (res.confidence === 'low' ? ' warn' : '') }, note) : h('div', { class: 'pv-list-head' }, h('b', null, t('Differences from the speaker')), h('span', { class: 'small muted' }, t('Worth a listen'))),
-        items,
         hidden ? h('p', { class: 'small muted' }, tp(hidden, '{n} more possible difference is hidden because it is less certain.', '{n} more possible differences are hidden because they are less certain.')) : null,
-        take && shown.length ? h('p', { class: 'small muted' }, t('Not exact. Listen to both and decide.')) : null,
-        wordsBlock(clip),
-        legend)];
+        wordsBlock(clip))];
   }
 
   fill();
@@ -319,32 +319,13 @@ async function pronPlay(clip, take, w, who) {
 }
 
 Panel.drawPron = function (now) {
-  const R = this.refs, { view, track, head, dur, words, ticks } = R;
+  const R = this.refs;
   const clip = Store.get('clips', UI.clipId);
-  if (!view || !clip) return;
-  const W = view.clientWidth;
-  if (W && W !== R.w) { // every word keeps one readable size; a word that would touch the one before is moved right, and the line scrolls sideways
-    R.w = W;
-    const map = [[0, 0]];
-    let edge = 0, lastT = 0;
-    words.forEach(({ w, el }) => {
-      const x = Math.max(w.start / dur * W, edge);
-      el.style.left = x + 'px';
-      el.style.width = '';
-      const wd = Math.ceil(el.getBoundingClientRect().width) || 0;
-      const t0 = Math.max(w.start, lastT), t1 = Math.max(w.end, t0);
-      map.push([t0, x], [t1, x + wd]);
-      lastT = t1;
-      edge = x + wd + 10;
-      el.style.width = Math.max(wd, 1) + 'px';
-    });
-    if (dur > lastT) map.push([dur, Math.max(W, edge)]);
-    R.map = map;
-    track.style.width = Math.max(W, edge) + 'px';
-    ticks.forEach(({ s, el }) => { el.style.left = pvToX(map, s) + 'px'; });
-  }
-  if (!R.map) return;
-  const x = pvToX(R.map, clamp(now - clip.start, 0, dur));
-  head.style.left = x + 'px';
-  if (x < view.scrollLeft + 24 || x > view.scrollLeft + W - 48) view.scrollLeft = Math.max(0, x - W * 0.3); // follow the playhead
+  if (!R || !R.words || !clip) return;
+  const tt = now - clip.start;
+  const cur = Player.v && !Player.v.paused ? R.words.find((x) => tt >= x.w.start && tt < x.w.end) : null;
+  if (cur === R.now) return;
+  if (R.now) R.now.el.classList.remove('now');
+  if (cur) cur.el.classList.add('now');
+  R.now = cur;
 };

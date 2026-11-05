@@ -191,26 +191,6 @@
     "fr": "Prononciation",
     "es": "Pronunciación"
   },
-  "Which row is big": {
-    "fr": "Quelle ligne est en grand",
-    "es": "Qué fila va en grande"
-  },
-  "Words": {
-    "fr": "Mots",
-    "es": "Palabras"
-  },
-  "Phones": {
-    "fr": "Sons",
-    "es": "Sonidos"
-  },
-  "Words big, sounds small": {
-    "fr": "Mots en grand, sons en petit",
-    "es": "Palabras grandes, sonidos pequeños"
-  },
-  "Sounds big, words small": {
-    "fr": "Sons en grand, mots en petit",
-    "es": "Sonidos grandes, palabras pequeñas"
-  },
   "This browser can’t run the pronunciation check": {
     "fr": "Ce navigateur ne peut pas lancer la vérification de prononciation",
     "es": "Este navegador no puede ejecutar la comprobación de pronunciación"
@@ -255,21 +235,9 @@
     "fr": "Analyse du locuteur…",
     "es": "Analizando al hablante…"
   },
-  "Words of the clip on a time line; press or drag to move through it": {
-    "fr": "Mots du clip sur une ligne de temps ; appuie ou fais glisser pour te déplacer",
-    "es": "Palabras del clip en una línea de tiempo; pulsa o arrastra para moverte"
-  },
-  "Record a pass and the differences from the speaker show up here.": {
-    "fr": "Enregistre un passage et les différences avec le locuteur apparaissent ici.",
-    "es": "Graba una pasada y las diferencias con el hablante aparecerán aquí."
-  },
   "Hard to tell for this take (too quiet, noisy or cut short), so no differences are shown. Try recording again closer to the microphone.": {
     "fr": "Difficile à dire pour cette prise (trop faible, bruyante ou coupée), donc aucune différence n’est affichée. Réessaie plus près du micro.",
     "es": "Difícil de saber con esta toma (muy baja, ruidosa o cortada), así que no se muestran diferencias. Prueba a grabar más cerca del micrófono."
-  },
-  "No clear differences from the speaker this time.": {
-    "fr": "Aucune différence nette avec le locuteur cette fois.",
-    "es": "Ninguna diferencia clara con el hablante esta vez."
   },
   "Hear the speaker say “{word}”": {
     "fr": "Écouter le locuteur dire « {word} »",
@@ -283,18 +251,6 @@
     "fr": "Masquer celui-ci. Il ne reviendra pas pour ce clip.",
     "es": "Ocultar este. No volverá en este clip."
   },
-  "same as the speaker": {
-    "fr": "comme le locuteur",
-    "es": "igual que el hablante"
-  },
-  "differs from the speaker": {
-    "fr": "diffère du locuteur",
-    "es": "difiere del hablante"
-  },
-  "Worth a listen": {
-    "fr": "À écouter",
-    "es": "Vale la pena escuchar"
-  },
   "{n} more possible difference is hidden because it is less certain.|{n} more possible differences are hidden because they are less certain.": {
     "fr": "{n} autre différence possible est masquée car elle est moins sûre.|{n} autres différences possibles sont masquées car elles sont moins sûres.",
     "es": "Se oculta {n} diferencia posible más porque es menos segura.|Se ocultan {n} diferencias posibles más porque son menos seguras."
@@ -302,10 +258,6 @@
   "Not exact. Listen to both and decide.": {
     "fr": "Pas exact. Écoute les deux et décide.",
     "es": "No es exacto. Escucha ambos y decide."
-  },
-  "No words for this clip, only sounds": {
-    "fr": "Pas de mots pour ce clip, seulement des sons",
-    "es": "Sin palabras para este clip, solo sonidos"
   },
   "The speaker’s sound is hard to analyse here (music, noise or overlapping voices), so no differences are shown.": {
     "fr": "Le son du locuteur est difficile à analyser ici (musique, bruit ou voix qui se chevauchent), donc aucune différence n’est affichée.",

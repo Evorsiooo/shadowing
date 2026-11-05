@@ -1,12 +1,14 @@
 // Euno drawn once, as plain SVG, for places that can't run the engine: the favicon and icons, the public
 // site's logo, and the server's own pages (sign-in consent, invites, errors).
 import { renderAvatarFrame, createAvatarPlaybackState } from './engine/core/index.ts';
-import definition from './euno.avatar.json' with { type: 'json' };
+import full from './euno.avatar.json' with { type: 'json' };
+import { calmDefinition } from './calm.mjs';
 
 const r1 = (d) => d.replace(/-?\d+\.\d+/g, (n) => String(Math.round(parseFloat(n) * 10) / 10));
 
 /* fit: crop the view to Euno himself (with `pad` around him) instead of the engine's 300-unit square */
-export function eunoSvg(expression = 'neutral', { size = null, label = 'Euno', fit = true, pad = 6, body = null, eyes = null, idSuffix = '' } = {}) {
+export function eunoSvg(expression = 'neutral', { size = null, label = 'Euno', fit = true, pad = 6, body = null, eyes = null, idSuffix = '', look = [0, 0] } = {}) {
+  const definition = calmDefinition(full, { look });
   const playback = { ...createAvatarPlaybackState(), activeExpression: expression };
   const s = renderAvatarFrame(definition, playback, 0, { random: () => 0.5, reduceMotion: true });
   const g = s.geometry;

@@ -506,5 +506,57 @@
   "Used for Euno’s answers, the listener pack and your check-ins.": {
     "fr": "Utilisé pour les réponses d’Euno, le pack d’écoute à l’aveugle et tes bilans.",
     "es": "Se usa para las respuestas de Euno, el paquete de escucha a ciegas y tus evaluaciones."
+  },
+  "Sounds differ from {name} here": {
+    "fr": "Les sons diffèrent de {name} ici",
+    "es": "Los sonidos difieren de {name} aquí"
+  },
+  "The words of the clip": {
+    "fr": "Les mots de l’extrait",
+    "es": "Las palabras del fragmento"
+  },
+  "Record a pass and Euno shows where your sounds differ from {name}.": {
+    "fr": "Enregistre un passage et Euno te montre où tes sons diffèrent de {name}.",
+    "es": "Graba una pasada y Euno te muestra dónde tus sonidos difieren de {name}."
+  },
+  "Your sounds match {name} in this take. No clear differences.": {
+    "fr": "Tes sons correspondent à {name} dans cette prise. Aucune différence nette.",
+    "es": "Tus sonidos coinciden con {name} en esta toma. No hay diferencias claras."
+  },
+  "Previous difference": {
+    "fr": "Différence précédente",
+    "es": "Diferencia anterior"
+  },
+  "Next difference": {
+    "fr": "Différence suivante",
+    "es": "Diferencia siguiente"
+  },
+  "{n} of {total}": {
+    "fr": "{n} sur {total}",
+    "es": "{n} de {total}"
+  },
+  "One place where your sounds differ from {name}.|{n} places where your sounds differ from {name}.": {
+    "fr": "Un endroit où tes sons diffèrent de {name}.|{n} endroits où tes sons diffèrent de {name}.",
+    "es": "Un lugar donde tus sonidos difieren de {name}.|{n} lugares donde tus sonidos difieren de {name}."
+  },
+  "You know this one. Listen to tune in, then you speak.": {
+    "fr": "Tu connais celui-ci. Écoute pour te mettre dans le ton, puis tu parles.",
+    "es": "Ya conoces este. Escucha para entrar en el tono y luego hablas."
+  },
+  "All sounds": {
+    "fr": "Tous les sons",
+    "es": "Todos los sonidos"
+  },
+  "Show the sounds under every word, not only where yours differ": {
+    "fr": "Affiche les sons sous chaque mot, pas seulement là où les tiens diffèrent",
+    "es": "Muestra los sonidos bajo cada palabra, no solo donde los tuyos difieren"
+  },
+  "The speaker says {a} here; you may have left it out.": {
+    "fr": "Le locuteur dit {a} ici ; tu l’as peut-être omis.",
+    "es": "El hablante dice {a} aquí; quizá lo omitiste."
+  },
+  "You may have added {b} here.": {
+    "fr": "Tu as peut-être ajouté {b} ici.",
+    "es": "Quizá añadiste {b} aquí."
   }
 }

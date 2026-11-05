@@ -3,8 +3,13 @@
 function fitPasses(minutes, perPass, lo, hi, extraSec = 0) {
   return clamp(Math.round((minutes * 60 - extraSec) / perPass), lo, hi);
 }
-function buildPlan(mode, clip) {
+/* a clip you have already shadowed in an earlier session: you know how it goes, so it needs only a couple of listens */
+function clipPractised(clip, exceptId = null) {
+  return !!clip && Store.all('sessions').some((x) => x.clipId === clip.id && x.id !== exceptId && (x.passes || []).length > 0);
+}
+function buildPlan(mode, clip, sessionId = null) {
   const s = settings();
+  const known = clipPractised(clip, sessionId);
   const len = clip ? clip.end - clip.start : 0;
   // when fitted, pass counts follow the clip length so the session lasts about as long as its minutes say
   const perPass = s.fitPassesToClip && len > 0 ? len / ((Player.v && Player.v.playbackRate) || 1) + s.loopGap : 0;
@@ -12,8 +17,12 @@ function buildPlan(mode, clip) {
   if (mode === 'badday') {
     const listenMin = Math.max(1, Math.round(s.badMinutes * 0.3));
     const shadowMin = Math.max(1, Math.round(s.badMinutes * 0.7));
+    if (known) return [
+      { key: 'listen', name: N_('Listen'), passes: 1, minutes: 1, speak: false, known },
+      { key: 'shadow', name: N_('Shadow'), passes: fit(s.badShadowPasses, s.badMinutes - 1, 3, 30), minutes: s.badMinutes - 1, speak: true },
+    ];
     return [
-      { key: 'listen', name: N_('Listen'), passes: fit(s.badListenPasses, listenMin, 1, 10), minutes: listenMin, speak: false },
+      { key: 'listen', name: N_('Listen'), passes: fit(s.badListenPasses, listenMin, 1, 4), minutes: listenMin, speak: false },
       { key: 'shadow', name: N_('Shadow'), passes: fit(s.badShadowPasses, shadowMin, 3, 20), minutes: shadowMin, speak: true },
     ];
   }
@@ -24,9 +33,13 @@ function buildPlan(mode, clip) {
       { key: 'record', name: N_('Record & compare'), passes: 1, minutes: 1, speak: true, recordLast: 'step3' },
     ];
   }
+  // a new clip gets a few listens before you speak (at most 5: more is just waiting); a clip you know gets two, and
+  // the time saved goes to shadowing
+  const listenMin = known ? 1 : s.listenMinutes;
+  const shadowMin = s.shadowMinutes + (s.listenMinutes - listenMin);
   return [
-    { key: 'listen', name: N_('Listen'), passes: fit(s.listenPasses, s.listenMinutes, 2, 10), minutes: s.listenMinutes, speak: false },
-    { key: 'shadow', name: N_('Shadow'), passes: fit(s.shadowPasses, s.shadowMinutes, 3, 40), minutes: s.shadowMinutes, speak: true },
+    { key: 'listen', name: N_('Listen'), passes: known ? 2 : fit(s.listenPasses, s.listenMinutes, 2, 5), minutes: listenMin, speak: false, known },
+    { key: 'shadow', name: N_('Shadow'), passes: fit(s.shadowPasses, shadowMin, 3, 40), minutes: shadowMin, speak: true },
     { key: 'record', name: N_('Record & compare'), passes: 1, minutes: s.recordMinutes, speak: true, recordLast: 'step3' },
     // the last pass records and is followed by a comparison, so leave it some time
     { key: 'again', name: N_('Shadow again'), passes: fit(s.againPasses + 1, s.againMinutes, 2, 40, 45), minutes: s.againMinutes, speak: true, recordLast: 'final' },
@@ -35,6 +48,7 @@ function buildPlan(mode, clip) {
 const EXTEND_MINUTES = 2;
 const STEP_HELP = {
   listen: N_('Just listen. Don’t speak yet; take in the rhythm and melody.'),
+  listenKnown: N_('You know this one. Listen to tune in, then you speak.'),
   shadow: N_('Speak along at the same time as the speaker. Copy everything: rhythm, melody and sounds.'),
   record: N_('Headphones on. Shadow one pass while it records, then compare it with the original.'),
   again: N_('Shadow again, copying as closely as you can. The last pass records so you can compare it with step 3.'),
@@ -416,7 +430,7 @@ const Session = {
     const done = this.pass;
     const key = this.step().key;
     this.mode = 'badday';
-    this.plan = buildPlan('badday', this.clip());
+    this.plan = buildPlan('badday', this.clip(), this.doc && this.doc.id);
     this.doc.mode = 'badday';
     this.stepIdx = this.plan.findIndex((p) => p.key === key);
     this.pass = Math.min(done, this.step().passes - 1);
@@ -576,7 +590,7 @@ function renderSession() {
   } else if (S.phase === 'intro') {
     main = [
       h('h2', { class: 'sess-title' }, t('Step {n}: {step}', { n: S.stepIdx + 1, step: t(st.name) })),
-      h('p', { class: 'session-hint' }, `${t(STEP_HELP[st.key])} ${tp(st.passes, '{n} pass, about {min} min.', '{n} passes, about {min} min.', { min: st.minutes })}${slowHint(S)}`),
+      h('p', { class: 'session-hint' }, `${t(STEP_HELP[st.known ? 'listenKnown' : st.key])} ${tp(st.passes, '{n} pass, about {min} min.', '{n} passes, about {min} min.', { min: st.minutes })}${slowHint(S)}`),
       st.key === 'again' ? focusLine() : null,
       h('div', { class: 'session-main' }, btn(t(STEP_START[st.key]), () => S.go(), { kind: 'primary', size: 'big', icon: 'play' })),
     ];
