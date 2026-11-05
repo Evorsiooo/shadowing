@@ -191,6 +191,10 @@
     "fr": "Ta pratique",
     "es": "Tu práctica"
   },
+  "Source code": {
+    "fr": "Code source",
+    "es": "Código fuente"
+  },
   "Guides": {
     "fr": "Guides",
     "es": "Guías"
@@ -926,13 +930,5 @@
   "{n} day ago|{n} days ago": {
     "fr": "il y a {n} jour|il y a {n} jours",
     "es": "hace {n} día|hace {n} días"
-  },
-  "From Euno’s research notes. Evidence: {label}.": {
-    "fr": "D’après les notes de recherche d’Euno. Preuves : {label}.",
-    "es": "Según las notas de investigación de Euno. Evidencia: {label}."
-  },
-  "Some sources are still being checked.": {
-    "fr": "Certaines sources sont encore en cours de vérification.",
-    "es": "Algunas fuentes aún se están comprobando."
   }
 }

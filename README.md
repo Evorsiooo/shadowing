@@ -1,6 +1,6 @@
 # Euno Shadowing
 
-A web app for a daily 15-minute shadowing routine: repeat short clips of a model speaker to move your English accent towards theirs. It runs at [shadowing.euno.cc](https://shadowing.euno.cc). Anyone can sign in with Google, and each person's practice data is private to them. The product spec is in [docs/SPEC.md](docs/SPEC.md).
+A web app for a daily 15-minute shadowing routine: repeat short clips of a model speaker to move your English accent towards theirs. It runs at [shadowing.euno.cc](https://shadowing.euno.cc). The app is completely free, with no subscription or paid plan (only the optional Ask Euno uses the user's own AI key, billed by their provider). Anyone can sign in with Google, and each person's practice data is private to them. The product spec is in [docs/SPEC.md](docs/SPEC.md).
 
 ## What's in it
 
@@ -95,6 +95,10 @@ npm run dev        # http://localhost:8788
 
 `DEV_NO_AUTH` signs you in as `dev@localhost` and only works on localhost, so it does nothing on the deployed site. Leave it out to run `node scripts/test-accounts.mjs` and `node scripts/test-admin.mjs`, which check that users can't reach each other's data and that admin routes are admin-only. Opened without the server, the app still runs on its own in browser storage.
 
+## Licence
+
+Euno Shadowing is open source under the [GNU Affero General Public License v3.0](LICENSE). The mascot's animation engine in `src/euno/engine/` comes from the [Bible Strong avatar lab](https://github.com/smontlouis/bible-strong-avatar-lab) (AGPL-3.0, by Stéphane Montlouis-Calixte), which is why the whole app is AGPL. Third-party models, libraries and fonts keep their own licences, listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). The source of the running site is at https://github.com/Evorsiooo/shadowing.
+
 ## Code map
 
 | Server file | What it does |
@@ -116,7 +120,7 @@ npm run dev        # http://localhost:8788
 | `workers/reminders/` | The reminders Worker (Durable Object alarm scheduler) |
 | `scripts/setup.mjs` | One-shot Cloudflare setup (database, migrations, secrets) |
 | `scripts/build.mjs` | Builds the app (`dist/app/index.html` plus its hashed script and styles in `dist/assets/h/`), the public site pages, `robots.txt`, `sitemap.xml`, `llms.txt`, the web manifest and `_headers` |
-| `src/euno/` | Euno, the mascot: his definition (`euno.avatar.json`) and the animation engine he runs on (`engine/`, copied from the Bible Strong avatar lab with its own `LICENSE`) |
+| `src/euno/` | Euno, the mascot: his definition (`euno.avatar.json`) and the animation engine he runs on (`engine/`, copied from the Bible Strong avatar lab by Stéphane Montlouis-Calixte, AGPL-3.0, with its own `LICENSE`) |
 | `scripts/make-icons.mjs` | Redraws the favicons, app icons and the server pages' Euno from his definition |
 | `src/fonts/` | Rubik and Nunito (Latin subsets, woff2) and their SIL Open Font Licences |
 | `src/site/` | Public site: page content and SEO data (`pages.mjs`), styles, the sign-in/contact script and icons. The canonical URL and sign-in link are in `SITE` at the top of `pages.mjs`. |
