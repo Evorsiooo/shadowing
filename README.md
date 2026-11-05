@@ -1,6 +1,6 @@
 # Euno Shadowing
 
-A web app for a daily 15-minute shadowing routine: repeat short clips of a model speaker to move your English accent towards theirs. It runs at [shadowing.euno.cc](https://shadowing.euno.cc). Anyone can sign in with Google, and each person's practice data is private to them. The product spec is in [docs/SPEC.md](docs/SPEC.md).
+A web app for a daily 15-minute shadowing routine: repeat short clips of a model speaker to move your English accent towards theirs. It runs at [shadowing.euno.cc](https://shadowing.euno.cc). The app is completely free, with no subscription or paid plan (only the optional Ask Euno uses the user's own AI key, billed by their provider). Anyone can sign in with Google, and each person's practice data is private to them. The product spec is in [docs/SPEC.md](docs/SPEC.md).
 
 ## What's in it
 

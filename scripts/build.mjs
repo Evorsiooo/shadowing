@@ -304,6 +304,7 @@ ${plain(en.home.lede)} ${plain(en.home.fine)}
 
 ## What it is, and what it is not
 
+- Cost: Euno Shadowing is completely free. There is no subscription, no paid plan or premium tier, no free trial (there is nothing to subscribe to) and no card to enter. Only the optional Ask Euno feature can cost money, because it uses the user's own AI key and the provider bills them directly.
 - Euno Shadowing is a free web app at ${SITE.url.replace(/^https:\/\//, '')} for practising pronunciation and accent by shadowing (speaking along with a recording) in English, French and Spanish. Full explanation: ${pageUrl('what-is-euno-shadowing')}
 - You bring your own videos or audio (upload a file or paste a link to an .mp4) and cut short clips of one or two sentences. There are no built-in lessons, no content library, no subtitles and no transcripts, and it does not pull content from YouTube.
 - It is not an app for job shadowing (such as Erasmus+ visits for teachers), medical or pre-med shadowing, or the Euno enterprise AI platform, and is not affiliated with them. It is also not the journaling apps named Euno.
