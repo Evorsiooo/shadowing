@@ -17,7 +17,8 @@
     "test:prepare": "node scripts/test-prepare.mjs",
     "test:rank": "node scripts/test-rank.mjs",
     "test:words": "node --test src/words/test/*.test.mjs && node scripts/test-words.mjs",
-    "test:pron-late": "node scripts/test-pron-late.mjs"
+    "test:pron-late": "node scripts/test-pron-late.mjs",
+    "test:layout": "node scripts/test-layout.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.128.0"
@@ -26,6 +27,7 @@
     "@huggingface/transformers": "3.3.3",
     "esbuild": "0.28.1",
     "onnxruntime-web": "1.20.1",
+    "playwright": "1.63.0",
     "wrangler": "4.143.1"
   }
 }
