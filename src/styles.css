@@ -276,7 +276,7 @@ body.focus .topbar, body.focus #todayView, body.focus #pageView { display: none 
 .banner p { flex: 1 1 260px; min-width: 0; }
 
 /* ---------- Today ---------- */
-.todayv { max-width: 1240px; margin: 0 auto; padding: 4px max(24px, env(safe-area-inset-left, 0px)) 56px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; }
+.todayv { max-width: 1240px; margin: 0 auto; padding: 4px max(24px, env(safe-area-inset-left, 0px)) 16px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; }
 .stage { padding-top: 24px; display: flex; flex-direction: column; gap: 18px; }
 .tgreet { display: flex; flex-direction: column; gap: 2px; min-height: 86px; justify-content: flex-end; }
 .tgreet h2 { font-size: 1.9rem; }
@@ -322,7 +322,7 @@ body.focus .topbar, body.focus #todayView, body.focus #pageView { display: none 
 .state p { color: var(--ink-2); }
 
 /* ---------- pages: Progress, Settings, Admin, Ask Euno ---------- */
-.pagev { max-width: 1040px; margin: 0 auto; padding: 8px max(24px, env(safe-area-inset-left, 0px)) 64px; display: flex; flex-direction: column; gap: 18px; }
+.pagev { max-width: 1040px; margin: 0 auto; padding: 8px max(24px, env(safe-area-inset-left, 0px)) 24px; display: flex; flex-direction: column; gap: 18px; }
 .pagev > .modal-head h2 { font-size: 2.1rem; }
 .pagev .mh-close { display: none; }
 .pagev .tabs { margin-bottom: 4px; }
@@ -453,6 +453,10 @@ button.try-item p { color: var(--muted); }
 .playbig.big { width: 72px; height: 72px; }
 .playbig.big svg { width: 28px; height: 28px; }
 .focus-card .pills + .small, .focus-card .row { justify-content: center; }
+/* the passes sit on the play button's axis: the marks centred under it, the label centred under them */
+.passes { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.passes .pills { justify-content: center; align-items: center; height: 20px; }
+.passes .bar { width: 160px; }
 .focus-note { margin-top: -6px; }
 .focus-mic { width: min(100%, 420px); }
 .preflight { display: flex; flex-direction: column; gap: 10px; width: min(100%, 520px); background: var(--card); border-radius: var(--r-lg, 22px); padding: 16px 18px; }
@@ -485,10 +489,24 @@ button.try-item p { color: var(--muted); }
 .try-head { align-items: center; }
 @media (max-width: 640px) {
   .focus-head { flex-direction: column; text-align: center; gap: 6px; }
-  .focus-text { min-height: 8.6rem; justify-content: flex-start; }
-  .focus-head > .euno { width: 72px; height: 72px; margin: 0; }
+  .focus-text { min-height: 6.8rem; justify-content: flex-start; }
+  .focus-text .sess-title { font-size: 1.35rem; }
+  .focus-head > .euno { width: 56px; height: 56px; margin: 0; }
+  .focus-card { gap: 10px; }
   .focus-ctl { gap: 14px; }
 }
+
+/* short, wide windows: video on the left, the instruction and controls on the right (set by fitLayout) */
+.layout.focus.split { grid-template-columns: var(--focus-w, 60%) minmax(0, 1fr); grid-template-areas: "player below"; align-items: start; gap: 0 28px; padding-bottom: 8px; }
+.layout.focus.split .player { width: 100%; justify-self: start; }
+.layout.focus.split .below { width: 100%; max-height: var(--split-h, none); overflow-y: auto; overflow-x: hidden; }
+.layout.focus.split .focus-wrap { justify-content: flex-start; }
+.layout.focus.split .focus-card { width: 100%; gap: 12px; padding: 0 0 10px; }
+.layout.focus.split .focus-head { width: 100%; gap: 12px; align-items: flex-start; }
+.layout.focus.split .focus-head > .euno { width: 64px; height: 64px; margin: 0; flex: none; }
+.layout.focus.split .focus-text .sess-title { font-size: 1.35rem; }
+.layout.focus.split .focus-text { min-height: 7.4rem; }
+.layout.focus.split .listen-for, .layout.focus.split .preflight, .layout.focus.split .focus-mic { width: 100%; }
 
 /* ---------- analysis panel ---------- */
 .panel { background: var(--card); border-radius: var(--r-xl); padding: 18px 20px 20px; position: relative; }
@@ -720,6 +738,7 @@ body.calm .btn:active { transform: none; }
   .sidebar { max-height: none; }
   .player { border-radius: var(--r-lg); }
   .player video { max-height: 40vh; }
+  .layout.focus:not(.split) .below { width: 100%; } /* the text keeps the full width; only the video follows the height that is left */
   .controls { position: static; background: #111316; padding-top: 10px; }
   .player-empty, .player-error { inset: 0 0 auto 0; aspect-ratio: 16 / 9; max-height: 40vh; }
   .player-empty .euno { width: 90px; height: 90px; }
@@ -741,6 +760,13 @@ body.calm .btn:active { transform: none; }
   .modal { padding: 20px; }
 }
 @media (max-width: 520px) {
+  /* the session bar on a phone: End and the menu as icons, the current step's name shortened, so the time and menu stay on screen */
+  .focusbar { gap: 6px; padding: 0 8px; height: 52px; }
+  .focusbar > .btn > .txt { display: none; }
+  .fsteps { gap: 8px; min-width: 0; }
+  .fsteps li { gap: 6px; font-size: 0.85rem; min-width: 0; }
+  .fsteps li.cur .txt { overflow: hidden; text-overflow: ellipsis; max-width: 38vw; }
+  .ftime { min-width: 0; font-size: 0.95rem; }
   .steps .step-name { font-size: 0.72rem; }
   .counter { font-size: 1.6rem; }
   .vol { display: none; }
@@ -855,7 +881,8 @@ label.check.nest { display: flex; align-items: flex-start; }
 .pv-else .kind { min-width: 4.5em; }
 .pv-else .btn { width: 32px; height: 32px; padding: 0; }
 /* ---------- session done: a page, not a window ---------- */
-.done-page { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 16px; }
+.pagev[data-page="done"] { padding-top: 0; padding-bottom: 0; } /* the card column has its own spacing; both together left a few pixels of needless scroll */
+.done-page { max-width: 760px; margin: 0 auto; padding: 24px 16px 32px; display: flex; flex-direction: column; gap: 16px; }
 .done-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
 .done-head .euno { width: 130px; height: 130px; margin-bottom: -4px; }
 .done-head h2 { font-size: 2rem; }
@@ -925,7 +952,7 @@ body.ask-open { overflow: hidden; }
 .cut-edge .time-in { width: 6.2em; text-align: center; height: 34px; min-height: 34px; padding: 4px 6px; }
 
 /* ---------- library page ---------- */
-.libv { max-width: 1320px; margin: 0 auto; padding: 16px max(24px, env(safe-area-inset-left, 0px)) 64px; }
+.libv { max-width: 1320px; margin: 0 auto; padding: 16px max(24px, env(safe-area-inset-left, 0px)) 24px; }
 .lib { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 28px; align-items: start; }
 .lib-vids { display: flex; flex-direction: column; gap: 10px; }
 .lib-vids h2, .lib-main h2 { font-size: 1.5rem; }
@@ -991,6 +1018,8 @@ body.ask-open { overflow: hidden; }
 .cal2 .d.bad { background: var(--green); }
 .cal2 .d.today { box-shadow: inset 0 0 0 2px var(--green); }
 .cal2 .d.future { opacity: 0.4; }
+/* on a short window the calendar gives up a little height so the page doesn't need a scrollbar for the last few pixels */
+@media (max-height: 860px) and (min-width: 901px) { .cal2 { --cal-cell: 18px; gap: 3px; } }
 @media (max-width: 900px) { .ov-row { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- first visit: a page of its own ---------- */
