@@ -71,7 +71,7 @@ async function askSend(text) {
   if (UI.askOpen) openAsk();
   try {
     const r = await Api.req('POST', '/api/ai/chat', { messages: msgs.map((m) => ({ role: m.role, text: m.text })), context: askContext(), knowledge: notes.map((e) => Know.render(e)), profile: profileForAI() });
-    askSave([...askDoc().messages, { role: 'assistant', text: r.text, at: new Date().toISOString(), ...(notes.length ? { notes: notes.map((e) => ({ id: e.id, evidence: e.evidence, open: e.status !== 'draft' })) } : {}) }]);
+    askSave([...askDoc().messages, { role: 'assistant', text: r.text, at: new Date().toISOString() }]);
   } catch (e) {
     Ask.error = t('Euno couldn’t answer: {error}', { error: e.message || 'error' });
   }
@@ -97,8 +97,7 @@ function openAsk() {
   const log = h('div', { class: 'ask-log', 'aria-live': 'polite' },
     msgs.map((m) => (m.role === 'user'
       ? h('div', { class: 'msg you' }, m.text)
-      : h('div', { class: 'msg-row' }, eunoLogo('logo'), h('div', { class: 'msg euno-says' }, m.text,
-        m.notes && m.notes.length ? h('p', { class: 'small muted msg-source' }, t('From Euno’s research notes. Evidence: {label}.', { label: [...new Set(m.notes.map((n) => n.evidence))].join('; ') }), m.notes.some((n) => n.open) ? ' ' + t('Some sources are still being checked.') : '') : null)))),
+      : h('div', { class: 'msg-row' }, eunoLogo('logo'), h('div', { class: 'msg euno-says' }, m.text)))),
     Ask.busy ? h('div', { class: 'msg-row' }, eunoLogo('logo'), h('div', { class: 'msg euno-says muted' }, t('Thinking…'))) : null,
     Ask.error ? h('p', { class: 'formerr' }, Ask.error) : null,
     canAsk && !msgs.length ? h('div', { class: 'ask-starts' }, ASK_STARTS.map((q) => h('button', { type: 'button', class: 'chip', onclick: () => askSend(t(q)) }, t(q)))) : null);

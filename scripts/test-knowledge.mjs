@@ -11,10 +11,12 @@ const ids = (...q) => Array.from(ctx.Know.pick(q), (e) => e.id);
 
 // every entry has what the prompt needs
 for (const e of KNOWLEDGE) {
-  for (const k of ['id', 'question', 'evidence', 'answer', 'keywords']) assert.ok(e[k], `${e.id || '?'} lacks ${k}`);
+  for (const k of ['id', 'question', 'evidence', 'answer', 'coach', 'keywords']) assert.ok(e[k], `${e.id || '?'} lacks ${k}`);
   assert.ok(e.sources.length, `${e.id} has no sources`);
   assert.ok(e.sources.every((s) => s.cite && s.read), `${e.id}: a source lacks cite or read level`);
   assert.ok(ctx.Know.render(e).length < 4001);
+  assert.ok(!/\b(1[89]|20)\d\d\b|\bet al\b|abstract|evidence: ?thin/i.test(e.coach), `${e.id}: coach answer should have no study names, years or labels`);
+  assert.ok(e.coach.split(/(?<=[.!?])\s+/).length <= 5, `${e.id}: coach answer too long`);
 }
 assert.equal(new Set(KNOWLEDGE.map((e) => e.id)).size, KNOWLEDGE.length);
 
