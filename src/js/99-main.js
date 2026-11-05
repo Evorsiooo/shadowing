@@ -50,6 +50,9 @@ function fitLayout() {
   const gapY = parseFloat(css.rowGap) || 14, gapX = parseFloat(css.columnGap) || 16;
   const top = L.getBoundingClientRect().top + window.scrollY;
   const avail = Math.max(360, window.innerHeight - top - padT - padB);
+  const sh = $('#studioHead');
+  const headH = sh && !sh.hidden ? sh.offsetHeight + gapY : 0;
+  const availW = avail - headH;
   const totalW = L.clientWidth - padX - gapX;
   /* On short windows the panel allowance would squash the video, so there width is the limit instead:
      the video may be as tall as its width allows (right column at its widest), up to MAX_WIDTH_LIMITED_H,
@@ -64,13 +67,13 @@ function fitLayout() {
   }
   const sideMax = Math.max(360, Math.min(600, totalW * 0.36));
   const widthVh = (totalW - sideMax - 6) / ar;
-  let vh = Math.max(avail * 0.5, avail - BELOW_ALLOWANCE - gapY - 6, Math.min(widthVh, MAX_WIDTH_LIMITED_H));
-  if (L.classList.contains('reviewing')) vh = Math.min(vh, avail * 0.4); // the review is about the chart: the video steps back
+  let vh = Math.max(availW * 0.5, availW - BELOW_ALLOWANCE - gapY - 6, Math.min(widthVh, MAX_WIDTH_LIMITED_H));
+  if (L.classList.contains('reviewing')) vh = Math.min(vh, availW * 0.4); // the review is about the chart: the video steps back
   const sideW = clamp(Math.round(totalW - vh * ar - 6), 360, Math.max(360, Math.min(600, totalW * 0.36)));
   L.style.setProperty('--side-w', `${sideW}px`);
   L.style.setProperty('--video-h', `${Math.floor(vh)}px`);
   const playerH = $('#player').offsetHeight;
-  L.style.setProperty('--below-h', `${Math.max(BELOW_ALLOWANCE, Math.floor(avail - playerH - gapY))}px`);
+  L.style.setProperty('--below-h', `${Math.max(BELOW_ALLOWANCE, Math.floor(availW - playerH - gapY))}px`);
   L.style.setProperty('--top-h', `${playerH}px`); // library / session card: same height as the player
   Panel.onTime(Player.time()); // the chart may have changed size
 }
@@ -94,11 +97,15 @@ function renderAll() {
   renderSession();
   renderPanel();
   renderSidebar();
+  renderLibPage();
+  renderCutCard();
+  renderStudioHead();
   $('#playerEmpty').hidden = !!Player.current();
   if (!Player.current()) renderPlayerEmpty();
 }
 
 function onKey(e) {
+  if (UI.askOpen) { if (e.key === 'Escape') closeAsk(); return; } // the panel takes the keys while it is open
   const tag = (e.target && e.target.tagName) || '';
   if (/INPUT|TEXTAREA|SELECT/.test(tag) || e.target.isContentEditable) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -175,7 +182,8 @@ async function boot() {
   const last = lastClipId();
   if (last && Store.get('clips', last) && Store.get('clips', last).videoId === UI.videoId) UI.clipId = last;
   const start = parseHash();
-  if (start.tab && start.tab !== 'today') go(start.tab, start.sub); else { UI.tab = 'today'; history.replaceState(null, '', '#today'); renderAll(); }
+  if (location.hash === '#ask') { UI.tab = 'today'; history.replaceState(null, '', '#today'); renderAll(); openAsk(); }
+  else if (start.tab && start.tab !== 'today') go(start.tab, start.sub); else { UI.tab = 'today'; history.replaceState(null, '', '#today'); renderAll(); }
   document.addEventListener('keydown', onKey);
   document.addEventListener('click', () => { closeMenu(); if (UI.sessMenu) { UI.sessMenu = false; renderFocusbar(); } });
   window.addEventListener('hashchange', onHashChange);

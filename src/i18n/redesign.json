@@ -195,22 +195,6 @@
     "fr": "Guides",
     "es": "Guías"
   },
-  "Saved to your account and Google Drive": {
-    "fr": "Enregistré dans ton compte et Google Drive",
-    "es": "Guardado en tu cuenta y Google Drive"
-  },
-  "Saved to your account": {
-    "fr": "Enregistré dans ton compte",
-    "es": "Guardado en tu cuenta"
-  },
-  "Saved in the artifact": {
-    "fr": "Enregistré dans l’artefact",
-    "es": "Guardado en el artefacto"
-  },
-  "Saved in this browser only": {
-    "fr": "Enregistré dans ce navigateur seulement",
-    "es": "Guardado solo en este navegador"
-  },
   "Steps": {
     "fr": "Étapes",
     "es": "Pasos"
@@ -327,10 +311,6 @@
     "fr": "Une courte séance aujourd’hui lance une série.",
     "es": "Una sesión corta hoy empieza una racha."
   },
-  "Listen for": {
-    "fr": "À écouter",
-    "es": "Fíjate en"
-  },
   "Your notes on it": {
     "fr": "Tes notes à ce sujet",
     "es": "Tus notas sobre esto"
@@ -342,14 +322,6 @@
   "Wired is best. Without them, the microphone picks up the video and your recordings are off.": {
     "fr": "Filaire de préférence. Sans casque, le micro capte la vidéo et tes enregistrements sont faussés.",
     "es": "Mejor con cable. Sin ellos, el micrófono capta el vídeo y tus grabaciones salen mal."
-  },
-  "About a sound, your notes, or what to practise next.": {
-    "fr": "Sur un son, tes notes ou ce que tu devrais travailler ensuite.",
-    "es": "Sobre un sonido, tus notas o qué practicar después."
-  },
-  "Ask a question": {
-    "fr": "Poser une question",
-    "es": "Hacer una pregunta"
   },
   "About 3 minutes. Every later check-in is compared with it, so record it before you practise much.": {
     "fr": "Environ 3 minutes. Chaque bilan suivant y est comparé, alors enregistre-le avant de trop t’entraîner.",
@@ -618,5 +590,341 @@
   "More": {
     "fr": "Plus",
     "es": "Más"
+  },
+  "A few words of what’s said": {
+    "fr": "Quelques mots de ce qui est dit",
+    "es": "Unas palabras de lo que se dice"
+  },
+  "About {n} minutes. There’s a shorter version for bad days.": {
+    "fr": "Environ {n} minutes. Il existe une version plus courte pour les jours sans.",
+    "es": "Unos {n} minutos. Hay una versión más corta para los días malos."
+  },
+  "After a recorded pass, write what sounded off. Things that keep coming back collect here.": {
+    "fr": "Après un passage enregistré, note ce qui sonnait faux. Ce qui revient souvent s’affiche ici.",
+    "es": "Tras una pasada grabada, anota lo que sonó raro. Lo que se repite aparece aquí."
+  },
+  "After the earlier check-ins": {
+    "fr": "Après les bilans précédents",
+    "es": "Después de los controles anteriores"
+  },
+  "After two sessions with recorded passes, the line shows here.": {
+    "fr": "La courbe s’affiche ici après deux séances avec des passages enregistrés.",
+    "es": "La línea aparece aquí tras dos sesiones con pasadas grabadas."
+  },
+  "All": {
+    "fr": "Tout",
+    "es": "Todo"
+  },
+  "All videos": {
+    "fr": "Toutes les vidéos",
+    "es": "Todos los vídeos"
+  },
+  "All videos and clips": {
+    "fr": "Toutes les vidéos et extraits",
+    "es": "Todos los vídeos y fragmentos"
+  },
+  "Both edges are in the middle of a word": {
+    "fr": "Les deux bords tombent au milieu d’un mot",
+    "es": "Los dos bordes caen en medio de una palabra"
+  },
+  "Choose a sentence": {
+    "fr": "Choisis une phrase",
+    "es": "Elige una frase"
+  },
+  "Click the timeline under the video to get near it. The waveform below shows the 30 seconds around that point: drag across the sentence there.": {
+    "fr": "Clique sur la barre sous la vidéo pour t’en approcher. La forme d’onde en dessous montre les 30 secondes autour de ce point : fais glisser sur la phrase à cet endroit.",
+    "es": "Haz clic en la barra bajo el vídeo para acercarte. La forma de onda de abajo muestra los 30 segundos alrededor de ese punto: arrastra sobre la frase ahí."
+  },
+  "Clip saved.": {
+    "fr": "Extrait enregistré.",
+    "es": "Fragmento guardado."
+  },
+  "Closer to zero means you anticipate the speaker more. Clips and speeds differ, so read the trend, not single values. A rough measure, not an accent score.": {
+    "fr": "Plus c’est proche de zéro, plus tu anticipes l’orateur. Les extraits et les vitesses varient : regarde la tendance, pas chaque valeur. Une mesure approximative, pas une note d’accent.",
+    "es": "Cuanto más cerca de cero, más te anticipas al hablante. Los fragmentos y las velocidades varían: mira la tendencia, no cada valor. Una medida aproximada, no una nota de acento."
+  },
+  "Coming up": {
+    "fr": "À venir",
+    "es": "Próximamente"
+  },
+  "Cut a new clip": {
+    "fr": "Découper un nouvel extrait",
+    "es": "Cortar un fragmento nuevo"
+  },
+  "Cut one sentence of 10 to 20 seconds to start.": {
+    "fr": "Pour commencer, découpe une phrase de 10 à 20 secondes.",
+    "es": "Para empezar, corta una frase de 10 a 20 segundos."
+  },
+  "Drag across a sentence to choose it": {
+    "fr": "Fais glisser sur une phrase pour la choisir",
+    "es": "Arrastra sobre una frase para elegirla"
+  },
+  "Drag the green edges onto the quiet gaps": {
+    "fr": "Place les bords verts dans les silences",
+    "es": "Lleva los bordes verdes a los silencios"
+  },
+  "Good afternoon": {
+    "fr": "Bon après-midi",
+    "es": "Buenas tardes"
+  },
+  "Good afternoon, {name}": {
+    "fr": "Bon après-midi, {name}",
+    "es": "Buenas tardes, {name}"
+  },
+  "Good evening": {
+    "fr": "Bonsoir",
+    "es": "Buenas noches"
+  },
+  "Good evening, {name}": {
+    "fr": "Bonsoir, {name}",
+    "es": "Buenas noches, {name}"
+  },
+  "Good morning": {
+    "fr": "Bonjour",
+    "es": "Buenos días"
+  },
+  "Good morning, {name}": {
+    "fr": "Bonjour, {name}",
+    "es": "Buenos días, {name}"
+  },
+  "How far behind the speaker you shadow": {
+    "fr": "Ton retard sur l’orateur",
+    "es": "Cuánto vas detrás del hablante"
+  },
+  "Its clips show here, ready to practise.": {
+    "fr": "Ses extraits s’affichent ici, prêts à travailler.",
+    "es": "Sus fragmentos aparecen aquí, listos para practicar."
+  },
+  "Last practised": {
+    "fr": "Dernière séance",
+    "es": "Última práctica"
+  },
+  "Leave without saving this clip?": {
+    "fr": "Partir sans enregistrer cet extrait ?",
+    "es": "¿Salir sin guardar este fragmento?"
+  },
+  "Listen for this next time": {
+    "fr": "À écouter la prochaine fois",
+    "es": "Para escuchar la próxima vez"
+  },
+  "Listen for this today": {
+    "fr": "À écouter aujourd’hui",
+    "es": "Para escuchar hoy"
+  },
+  "Move both edges into the nearest pauses": {
+    "fr": "Placer les deux bords dans les pauses les plus proches",
+    "es": "Llevar los dos bordes a las pausas más cercanas"
+  },
+  "Name (optional)": {
+    "fr": "Nom (facultatif)",
+    "es": "Nombre (opcional)"
+  },
+  "No clips yet": {
+    "fr": "Pas encore d’extraits",
+    "es": "Aún no hay fragmentos"
+  },
+  "No pause found within 2 seconds of the edges.": {
+    "fr": "Aucune pause à moins de 2 secondes des bords.",
+    "es": "No hay ninguna pausa a menos de 2 segundos de los bordes."
+  },
+  "No video open.": {
+    "fr": "Aucune vidéo ouverte.",
+    "es": "No hay ningún vídeo abierto."
+  },
+  "Open in the player": {
+    "fr": "Ouvrir dans le lecteur",
+    "es": "Abrir en el reproductor"
+  },
+  "Open in the player: its pitch line and sounds": {
+    "fr": "Ouvrir dans le lecteur : sa courbe de hauteur et ses sons",
+    "es": "Abrir en el reproductor: su línea de tono y sus sonidos"
+  },
+  "Opens {date}": {
+    "fr": "Disponible le {date}",
+    "es": "Disponible el {date}"
+  },
+  "Or play the video and press Start under it where the sentence begins, then End where it finishes (I and O on the keyboard).": {
+    "fr": "Ou lance la vidéo et appuie sur Début en dessous quand la phrase commence, puis sur Fin quand elle se termine (I et O au clavier).",
+    "es": "O reproduce el vídeo y pulsa Inicio debajo cuando empiece la frase, y Fin cuando acabe (I y O en el teclado)."
+  },
+  "Overview": {
+    "fr": "Vue d’ensemble",
+    "es": "Resumen"
+  },
+  "Play clip": {
+    "fr": "Écouter l’extrait",
+    "es": "Reproducir fragmento"
+  },
+  "Practise": {
+    "fr": "S’entraîner",
+    "es": "Practicar"
+  },
+  "Practise this clip": {
+    "fr": "S’entraîner sur cet extrait",
+    "es": "Practicar este fragmento"
+  },
+  "Reading the video’s sound…": {
+    "fr": "Lecture du son de la vidéo…",
+    "es": "Leyendo el sonido del vídeo…"
+  },
+  "Recent clips": {
+    "fr": "Extraits récents",
+    "es": "Fragmentos recientes"
+  },
+  "Rename or merge": {
+    "fr": "Renommer ou fusionner",
+    "es": "Renombrar o fusionar"
+  },
+  "Save and practise": {
+    "fr": "Enregistrer et s’entraîner",
+    "es": "Guardar y practicar"
+  },
+  "Save, cut another": {
+    "fr": "Enregistrer, en découper un autre",
+    "es": "Guardar y cortar otro"
+  },
+  "Show earlier in the video": {
+    "fr": "Voir plus tôt dans la vidéo",
+    "es": "Ver antes en el vídeo"
+  },
+  "Show later in the video": {
+    "fr": "Voir plus loin dans la vidéo",
+    "es": "Ver después en el vídeo"
+  },
+  "Snap to gaps": {
+    "fr": "Caler sur les pauses",
+    "es": "Ajustar a las pausas"
+  },
+  "The end is in the middle of a word": {
+    "fr": "La fin tombe au milieu d’un mot",
+    "es": "El final cae en medio de una palabra"
+  },
+  "The start is in the middle of a word": {
+    "fr": "Le début tombe au milieu d’un mot",
+    "es": "El inicio cae en medio de una palabra"
+  },
+  "There’s a shorter version for bad days.": {
+    "fr": "Il existe une version plus courte pour les jours sans.",
+    "es": "Hay una versión más corta para los días malos."
+  },
+  "Today’s recordings": {
+    "fr": "Enregistrements du jour",
+    "es": "Grabaciones de hoy"
+  },
+  "Video options": {
+    "fr": "Options de la vidéo",
+    "es": "Opciones del vídeo"
+  },
+  "Waveform around the clip: drag across a sentence to choose it, or drag the green edges": {
+    "fr": "Forme d’onde autour de l’extrait : fais glisser sur une phrase pour la choisir, ou déplace les bords verts",
+    "es": "Forma de onda alrededor del fragmento: arrastra sobre una frase para elegirla, o mueve los bordes verdes"
+  },
+  "What to work on": {
+    "fr": "À travailler",
+    "es": "Qué trabajar"
+  },
+  "What you’ll do each day": {
+    "fr": "Ce que tu feras chaque jour",
+    "es": "Lo que harás cada día"
+  },
+  "Your clip": {
+    "fr": "Ton extrait",
+    "es": "Tu fragmento"
+  },
+  "a new-clip day": {
+    "fr": "un jour de nouvel extrait",
+    "es": "un día de fragmento nuevo"
+  },
+  "a repeat day": {
+    "fr": "un jour de révision",
+    "es": "un día de repaso"
+  },
+  "a rest day": {
+    "fr": "un jour de repos",
+    "es": "un día de descanso"
+  },
+  "aiming at what you heard": {
+    "fr": "en visant ce que tu as entendu",
+    "es": "apuntando a lo que oíste"
+  },
+  "by speaking along with the speaker, a fraction behind": {
+    "fr": "en parlant avec l’orateur, une fraction de seconde derrière",
+    "es": "hablando con el hablante, una fracción por detrás"
+  },
+  "fixed": {
+    "fr": "réglé",
+    "es": "resuelto"
+  },
+  "from a link": {
+    "fr": "depuis un lien",
+    "es": "desde un enlace"
+  },
+  "good length": {
+    "fr": "bonne longueur",
+    "es": "buena duración"
+  },
+  "in your Google Drive": {
+    "fr": "dans ton Google Drive",
+    "es": "en tu Google Drive"
+  },
+  "in {n} note|in {n} notes": {
+    "fr": "dans {n} note|dans {n} notes",
+    "es": "en {n} nota|en {n} notas"
+  },
+  "last heard {when}": {
+    "fr": "entendu {when}",
+    "es": "oído {when}"
+  },
+  "last {n} session|last {n} sessions": {
+    "fr": "{n} séance récente|{n} séances récentes",
+    "es": "{n} sesión reciente|{n} sesiones recientes"
+  },
+  "long": {
+    "fr": "long",
+    "es": "largo"
+  },
+  "no clips yet": {
+    "fr": "pas encore d’extraits",
+    "es": "aún sin fragmentos"
+  },
+  "not yet": {
+    "fr": "pas encore",
+    "es": "todavía no"
+  },
+  "on this device": {
+    "fr": "sur cet appareil",
+    "es": "en este dispositivo"
+  },
+  "on {n} clip|on {n} clips": {
+    "fr": "sur {n} extrait|sur {n} extraits",
+    "es": "en {n} fragmento|en {n} fragmentos"
+  },
+  "on {n} day|on {n} days": {
+    "fr": "sur {n} jour|sur {n} jours",
+    "es": "en {n} día|en {n} días"
+  },
+  "one pass with theirs": {
+    "fr": "un passage avec le sien",
+    "es": "una pasada con la suya"
+  },
+  "short": {
+    "fr": "court",
+    "es": "corto"
+  },
+  "to a clip of 10 to 20 seconds a few times": {
+    "fr": "un extrait de 10 à 20 secondes, plusieurs fois",
+    "es": "un fragmento de 10 a 20 segundos varias veces"
+  },
+  "today": {
+    "fr": "aujourd’hui",
+    "es": "hoy"
+  },
+  "{done} of {total} clips done": {
+    "fr": "{done} extraits faits sur {total}",
+    "es": "{done} de {total} fragmentos hechos"
+  },
+  "{n} day ago|{n} days ago": {
+    "fr": "il y a {n} jour|il y a {n} jours",
+    "es": "hace {n} día|hace {n} días"
   }
 }

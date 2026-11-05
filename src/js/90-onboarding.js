@@ -175,7 +175,19 @@ function renderOnboarding(W) {
   // focus the step's first text box, else Continue (not the close button)
   const first = form.querySelector('.wiz-body input:not([type="checkbox"]):not([type="radio"]), .wiz-body textarea') || form.querySelector('button[type="submit"]');
   first.setAttribute('autofocus', '');
-  openModal(form, { narrow: true, onClose: () => finishOnboarding(W, true) });
+  // a page of its own: the questions on the left, what a day of practice looks like on the right
+  const s = settings();
+  const mins = Math.round((s.listenMinutes || 0) + (s.shadowMinutes || 0) + (s.recordMinutes || 0) + (s.againMinutes || 0));
+  const day = h('aside', { class: 'ob-side', 'aria-label': t('What you’ll do each day') },
+    h('div', { class: 'ob-card' },
+      h('h3', null, t('What you’ll do each day')),
+      h('ol', { class: 'ob-steps' },
+        h('li', null, h('span', null, h('b', null, t('Listen')), ' ', t('to a clip of 10 to 20 seconds a few times'))),
+        h('li', null, h('span', null, h('b', null, t('Shadow')), ' ', t('by speaking along with the speaker, a fraction behind'))),
+        h('li', null, h('span', null, h('b', null, t('Record & compare')), ' ', t('one pass with theirs'))),
+        h('li', null, h('span', null, h('b', null, t('Shadow again')), ' ', t('aiming at what you heard')))),
+      h('p', { class: 'small muted' }, mins ? t('About {n} minutes. There’s a shorter version for bad days.', { n: mins }) : t('There’s a shorter version for bad days.'))));
+  openModal([form, day], { onClose: () => finishOnboarding(W, true), cls: 'obpage' });
 }
 
 /* closing early keeps whatever was saved so far; everything can be changed later in Settings → You */
@@ -188,7 +200,7 @@ function finishOnboarding(W, closed) {
   renderAll();
   if (W.steps.some((s) => s.id === 'video') && W.addVideo) {
     UI.addOpen = true;
-    renderSidebar();
+    renderLib();
     if (!W.baseline || !W.steps.some((s) => s.id === 'baseline')) { openDrawer(); setTimeout(() => { const f = $('#addUrl') || $('#addFile'); if (f) f.focus(); }, 60); }
   }
   if (W.baseline && W.steps.some((s) => s.id === 'baseline')) openCheckins(0);

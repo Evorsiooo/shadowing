@@ -319,10 +319,6 @@
     "fr": "Ce navigateur",
     "es": "Este navegador"
   },
-  "Not saved": {
-    "fr": "Non enregistré",
-    "es": "Sin guardar"
-  },
   "Library": {
     "fr": "Bibliothèque",
     "es": "Biblioteca"
@@ -415,10 +411,6 @@
     "fr": "Le stockage est bloqué dans cette vue, donc rien ne sera conservé. Ouvre l’appli dans une fenêtre de navigateur normale.",
     "es": "El almacenamiento está bloqueado en esta vista, así que no se guardará nada. Abre la app en una ventana normal del navegador."
   },
-  "Habit": {
-    "fr": "Habitude",
-    "es": "Hábito"
-  },
   "Issues": {
     "fr": "Points faibles",
     "es": "Puntos débiles"
@@ -466,14 +458,6 @@
   "Full session": {
     "fr": "Séance complète",
     "es": "Sesión completa"
-  },
-  "Not practised": {
-    "fr": "Pas de pratique",
-    "es": "Sin práctica"
-  },
-  "Average lag behind the speaker, by week": {
-    "fr": "Décalage moyen sur le locuteur, par semaine",
-    "es": "Retraso medio respecto al hablante, por semana"
   },
   "Clip": {
     "fr": "Extrait",
@@ -923,10 +907,6 @@
     "fr": "Terminé",
     "es": "Hecho"
   },
-  "How far behind the speaker your voice is, on average, across your passes. Beginners echo the speaker; with practice you start to anticipate, so the lag shrinks towards zero. Clips and speeds differ, so read the trend over several weeks, not the single values.": {
-    "fr": "Le retard moyen de ta voix sur celle de l’orateur, sur l’ensemble de tes passages. Au début on répète en écho ; avec la pratique on anticipe, et le retard se rapproche de zéro. Les extraits et les vitesses varient, alors regarde la tendance sur plusieurs semaines plutôt que chaque valeur.",
-    "es": "Cuánto va tu voz por detrás de la del hablante, de media, en tus pasadas. Al principio repites como un eco; con la práctica empiezas a anticiparte y el retraso se acerca a cero. Los fragmentos y las velocidades varían, así que fíjate en la tendencia de varias semanas, no en cada valor."
-  },
   "{n}-day streak. Well done for coming back every day.": {
     "fr": "Série de {n} jours. Bravo d’être revenu chaque jour.",
     "es": "Racha de {n} días. Bien hecho por volver cada día."
@@ -938,10 +918,6 @@
   "Add another note": {
     "fr": "Ajouter une autre note",
     "es": "Añadir otra nota"
-  },
-  "Minutes per week": {
-    "fr": "Minutes par semaine",
-    "es": "Minutos por semana"
   },
   "First and final recording, session by session": {
     "fr": "Premier et dernier enregistrement, séance par séance",

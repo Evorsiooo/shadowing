@@ -233,15 +233,23 @@ function issuesView() {
           h('td', { class: 'num' }, notes.length),
           h('td', { class: 'num' }, recent),
           h('td', { class: 'num' }, days),
-          h('td', null, h('div', { class: 'row', style: { flexWrap: 'nowrap' } },
+          h('td', null, h('div', { class: 'row', style: { flexWrap: 'nowrap', justifyContent: 'flex-end' } },
             btn(t('Notes'), () => openIssueNotes(i), { size: 'sm', kind: 'ghost' }),
-            btn(t('Rename'), () => renameIssue(i, draw), { size: 'sm', kind: 'ghost' }),
-            rows.length > 1 ? btn(t('Merge'), () => mergeIssue(i, draw), { size: 'sm', kind: 'ghost' }) : null))))))) : h('p', { class: 'muted' }, t('No issues yet. They appear when you add notes after recorded passes.')));
+            btn('', () => issueMenu(i, rows.length > 1, draw), { size: 'sm', kind: 'ghost', icon: 'more', title: t('Rename or merge') })))))))) : h('p', { class: 'muted' }, t('No issues yet. They appear when you add notes after recorded passes.')));
   };
   draw();
   return wrap;
 }
 
+/* the rarer actions on an issue, out of the table row */
+function issueMenu(i, canMerge, after) {
+  openModal([
+    modalHead(i.name),
+    h('div', { class: 'stack' },
+      btn(t('Rename'), () => { closeModal(); renameIssue(i, after); }, { icon: 'edit' }),
+      canMerge ? btn(t('Merge'), () => { closeModal(); mergeIssue(i, after); }, { icon: 'plus' }) : null),
+  ], { narrow: true });
+}
 function renameIssue(i, after) {
   const inp = h('input', { type: 'text', id: 'renameIssue', value: i.name, autofocus: true });
   openModal([modalHead(t('Rename issue')), inp, h('div', { class: 'row' }, btn(t('Save'), () => { const v = inp.value.trim(); if (v) Store.patch('issues', i.id, { name: v }); closeModal(); openProgress('issues'); }, { kind: 'primary' }))], { narrow: true });

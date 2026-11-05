@@ -26,8 +26,8 @@ if (location.protocol !== 'file:') for (const p of ['/api/health', '/api/docs'])
 </script>
 <title>Euno Shadowing</title>
 <link rel="preload" href="/assets/h/rubik-latin.691cd1d9b4.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="../assets/h/app.2bd37b2aab.css">
-<script src="../assets/h/app.d629c92e7f.js" defer></script>
+<link rel="stylesheet" href="../assets/h/app.4918ce0d7c.css">
+<script src="../assets/h/app.83da668461.js" defer></script>
 
 <header class="topbar" id="topbar">
   <a class="brand" href="#today" id="brand"><span class="logo" id="logo"></span><span class="txt">Euno</span></a>
@@ -38,7 +38,9 @@ if (location.protocol !== 'file:') for (const p of ['/api/health', '/api/docs'])
 <div class="banners" id="banners"></div>
 <main class="todayv" id="todayView" hidden></main>
 <main class="pagev" id="pageView" hidden></main>
+<main class="libv" id="libView" hidden></main>
 <main class="layout" id="work">
+  <div class="studio-head" id="studioHead" hidden></div>
   <div class="player" id="player">
     <video id="video" playsinline preload="auto"></video>
     <div class="player-empty" id="playerEmpty"></div>
@@ -60,6 +62,7 @@ if (location.protocol !== 'file:') for (const p of ['/api/health', '/api/docs'])
   </div>
   <div class="side" id="side">
     <div id="sideSlot"></div>
+    <section class="cutcard" id="cutCard" hidden></section>
     <aside class="sidebar" id="sidebar" aria-label="Video library"></aside>
   </div>
 </main>

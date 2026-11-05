@@ -159,10 +159,6 @@
     "fr": "Ta courbe apparaît ici quand tu enregistres un passage",
     "es": "Tu línea aparece aquí cuando grabas una pasada"
   },
-  "Zoomed waveform of the selection; drag the yellow edges onto quiet gaps": {
-    "fr": "Forme d’onde agrandie de la sélection ; fais glisser les bords jaunes sur les silences",
-    "es": "Forma de onda ampliada de la selección; arrastra los bordes amarillos hasta los silencios"
-  },
   "Type a time like 3:35.2 or a number of seconds.": {
     "fr": "Saisis un temps comme 3:35.2 ou un nombre de secondes.",
     "es": "Escribe un tiempo como 3:35.2 o un número de segundos."
@@ -174,18 +170,6 @@
   "End": {
     "fr": "Fin",
     "es": "Fin"
-  },
-  "Length (s)": {
-    "fr": "Durée (s)",
-    "es": "Duración (s)"
-  },
-  "A few words of what’s said (optional)": {
-    "fr": "Quelques mots de ce qui est dit (facultatif)",
-    "es": "Unas palabras de lo que se dice (opcional)"
-  },
-  "Reading the video’s sound for the zoomed waveform…": {
-    "fr": "Lecture du son de la vidéo pour la forme d’onde agrandie…",
-    "es": "Leyendo el sonido del video para la forma de onda ampliada…"
   },
   "{error} You can still cut the clip with the nudge buttons and by ear.": {
     "fr": "{error} Tu peux quand même découper l’extrait avec les boutons d’ajustement et à l’oreille.",
@@ -199,10 +183,6 @@
     "fr": "vise {min}–{max} s",
     "es": "apunta a {min}–{max} s"
   },
-  "Play selection": {
-    "fr": "Lire la sélection",
-    "es": "Reproducir selección"
-  },
   "Cancel": {
     "fr": "Annuler",
     "es": "Cancelar"
@@ -211,21 +191,9 @@
     "fr": "Abandonner la sélection et quitter le mode découpe (Échap)",
     "es": "Descartar la selección y salir del modo de corte (Esc)"
   },
-  "Save and shadow": {
-    "fr": "Enregistrer et faire du shadowing",
-    "es": "Guardar y hacer shadowing"
-  },
-  "Save the clip and start a session with it": {
-    "fr": "Enregistrer l’extrait et commencer une séance avec",
-    "es": "Guardar el fragmento y empezar una sesión con él"
-  },
   "Save changes": {
     "fr": "Enregistrer les modifications",
     "es": "Guardar cambios"
-  },
-  "Save clip": {
-    "fr": "Enregistrer l’extrait",
-    "es": "Guardar fragmento"
   },
   "Start 0.1 s earlier": {
     "fr": "Commencer 0,1 s plus tôt",
@@ -235,14 +203,6 @@
     "fr": "Commencer 0,1 s plus tard",
     "es": "Empezar 0,1 s después"
   },
-  "Snap": {
-    "fr": "Caler",
-    "es": "Ajustar"
-  },
-  "Move the start into the nearest pause": {
-    "fr": "Placer le début dans la pause la plus proche",
-    "es": "Mover el inicio a la pausa más cercana"
-  },
   "End 0.1 s earlier": {
     "fr": "Finir 0,1 s plus tôt",
     "es": "Terminar 0,1 s antes"
@@ -250,14 +210,6 @@
   "End 0.1 s later": {
     "fr": "Finir 0,1 s plus tard",
     "es": "Terminar 0,1 s después"
-  },
-  "Move the end into the nearest pause": {
-    "fr": "Placer la fin dans la pause la plus proche",
-    "es": "Mover el final a la pausa más cercana"
-  },
-  "Label": {
-    "fr": "Libellé",
-    "es": "Etiqueta"
   },
   "Stop": {
     "fr": "Arrêter",
@@ -267,33 +219,13 @@
     "fr": "La forme d’onde n’est pas disponible, donc pas de silence où caler le bord. Ajuste plutôt à l’oreille.",
     "es": "La forma de onda no está disponible, así que no hay silencios donde ajustar. Ajusta de oído."
   },
-  "No pause found within 2 seconds of that edge.": {
-    "fr": "Aucune pause trouvée à moins de 2 secondes de ce bord.",
-    "es": "No se encontró ninguna pausa a menos de 2 segundos de ese borde."
-  },
   "Snapping there would make the clip too short.": {
     "fr": "Caler le bord là rendrait l’extrait trop court.",
     "es": "Ajustar ahí dejaría el fragmento demasiado corto."
   },
-  "The start lands mid-word. Move it into a gap.": {
-    "fr": "Le début tombe au milieu d’un mot. Place-le dans un silence.",
-    "es": "El inicio cae a mitad de una palabra. Muévelo a un silencio."
-  },
-  "The end lands mid-word. Move it into a gap so the sentence isn’t cut in half.": {
-    "fr": "La fin tombe au milieu d’un mot. Place-la dans un silence pour ne pas couper la phrase en deux.",
-    "es": "El final cae a mitad de una palabra. Muévelo a un silencio para no cortar la frase por la mitad."
-  },
-  "Waveform unavailable": {
-    "fr": "Forme d’onde indisponible",
-    "es": "Forma de onda no disponible"
-  },
   "Clip updated.": {
     "fr": "Extrait mis à jour.",
     "es": "Fragmento actualizado."
-  },
-  "Clip saved. Cut another, or shadow it now.": {
-    "fr": "Extrait enregistré. Découpes-en un autre, ou fais du shadowing dessus maintenant.",
-    "es": "Fragmento guardado. Corta otro o haz shadowing con él ahora."
   },
   "Videos": {
     "fr": "Vidéos",
@@ -306,10 +238,6 @@
   "Add video": {
     "fr": "Ajouter une vidéo",
     "es": "Añadir video"
-  },
-  "No videos yet. Add a video file or a direct link to an .mp4 file to get started.": {
-    "fr": "Pas encore de vidéo. Ajoute un fichier vidéo ou un lien direct vers un fichier .mp4 pour commencer.",
-    "es": "Aún no hay videos. Añade un archivo de video o un enlace directo a un archivo .mp4 para empezar."
   },
   "Archived ({n})": {
     "fr": "Archivées ({n})",
@@ -470,22 +398,6 @@
   "The link took too long to answer (15 s). Check it opens in a new tab.": {
     "fr": "Le lien a mis trop de temps à répondre (15 s). Vérifie qu’il s’ouvre dans un nouvel onglet.",
     "es": "El enlace tardó demasiado en responder (15 s). Comprueba que se abre en una pestaña nueva."
-  },
-  "{done}/{total} clips done": {
-    "fr": "{done}/{total} extraits terminés",
-    "es": "{done}/{total} fragmentos terminados"
-  },
-  "last practised {day}": {
-    "fr": "dernière pratique {day}",
-    "es": "última práctica {day}"
-  },
-  "not practised yet": {
-    "fr": "pas encore pratiquée",
-    "es": "aún sin practicar"
-  },
-  "saved": {
-    "fr": "enregistrée",
-    "es": "guardado"
   },
   "Open": {
     "fr": "Ouvrir",

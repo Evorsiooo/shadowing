@@ -319,7 +319,7 @@ function renderControls() {
     btn('', () => Player.setVolume(UI.volume === 0 ? 1 : 0), { icon: volIcon, title: t('Mute') }),
     h('input', { type: 'range', class: 'vol', min: 0, max: 1, step: 0.05, value: UI.volume, 'aria-label': t('Volume'), oninput: (e) => Player.setVolume(+e.target.value) }),
     h('span', { class: 'spacer' }),
-    Session.active ? null : btn(t('Cut clips'), () => setCutMode(!UI.cutMode), { icon: 'scissors', on: UI.cutMode, pressed: UI.cutMode, title: t('Clip mode: drag on the timeline to select a new clip (C)'), aria: t('Cut clips'), id: 'cutBtn', disabled: dis }),
+    Session.active || UI.cutMode || UI.sel ? null : btn(t('Cut clips'), () => setCutMode(!UI.cutMode), { icon: 'scissors', on: UI.cutMode, pressed: UI.cutMode, title: t('Clip mode: drag on the timeline to select a new clip (C)'), aria: t('Cut clips'), id: 'cutBtn', disabled: dis }),
     UI.cutMode ? btn(t('Start@@clip edge'), () => markEdge('start'), { title: t('Mark clip start at the playhead (I or [)'), disabled: dis || Session.active }) : null,
     UI.cutMode ? btn(t('End'), () => markEdge('end'), { title: t('Mark clip end at the playhead (O or ])'), disabled: dis || Session.active }) : null,
     btn('', () => openShortcuts(), { icon: 'keyboard', title: t('Keyboard shortcuts (?)'), id: 'kbBtn' }));
@@ -328,6 +328,7 @@ function renderControls() {
 /* Cancel / Esc while cutting: drop the selection and leave clip mode in one go */
 function cancelCut() {
   UI.sel = null;
+  UI.cutWin = null;
   if (UI.cutMode) setCutMode(false); else renderAll();
 }
 
@@ -336,7 +337,8 @@ function setCutMode(on) {
   UI.cutMode = on;
   if (!on && UI.sel && !UI.sel.clipId) UI.sel = null;
   $('#player').classList.toggle('cutting', on);
-  if (on) toast(t('Clip mode: drag on the timeline to select a clip, or press I and O while it plays.'));
+  UI.cutWin = null;
+  if (on) { UI.clipId = null; window.scrollTo(0, 0); }
   renderAll();
 }
 
@@ -435,6 +437,8 @@ function editClip(id) {
   if (c.videoId !== UI.videoId) Player.load(c.videoId, { keepClip: true });
   UI.clipId = null;
   UI.sel = { start: c.start, end: c.end, clipId: c.id, label: c.label || '' };
+  UI.cutWin = null;
+  if (UI.tab !== 'library') showView('library');
   Player.seek(c.start);
   renderAll();
   loadSelAudio();
@@ -457,7 +461,8 @@ async function ensureModels(vid) {
 function loadSelAudio() {
   const vid = Player.current();
   if (!vid || !UI.sel) return Promise.resolve();
-  return VideoAudio.ensure(vid, UI.sel.start - 4, UI.sel.end + 4).then(() => renderPanel());
+  UI.cutWin = null;
+  return loadCutAudio();
 }
 
 function computeModel(c) {

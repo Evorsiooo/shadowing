@@ -1,6 +1,6 @@
 /* ---------- video library sidebar ---------- */
 /* the library sits beside the player (under it on phones): "open the library" goes there and brings it into view */
-function openDrawer() { if (UI.tab !== 'library') go('library'); requestAnimationFrame(() => { const sb = $('#sidebar'); if (sb && !wideLayout.matches) sb.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); }
+function openDrawer() { UI.libPage = true; if (UI.tab !== 'library') go('library'); else renderLib(); requestAnimationFrame(() => { const sb = $('#sidebar'); if (sb && !wideLayout.matches) sb.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); }
 function closeDrawer() { /* nothing to close any more */ }
 
 function videoProgress(v) {
@@ -10,20 +10,122 @@ function videoProgress(v) {
   return { total: clips.length, done, last };
 }
 
+/* beside the player when a clip is open: the way back to the library, and this video's clips */
 function renderSidebar() {
   const sb = $('#sidebar');
+  const v = Player.current();
+  enterOnChange(sb, UI.videoId, 'open-in');
+  mount(sb,
+    h('button', { type: 'button', class: 'linkbtn back', onclick: () => openLibPage() }, icon('chev-left'), t('All videos')),
+    v ? [h('h3', null, v.title || t('Untitled video')), clipList(v)] : h('p', { class: 'muted small' }, t('No video open.')));
+}
+function renderLib() { renderSidebar(); renderLibPage(); }
+function openLibPage() {
+  UI.libPage = true;
+  if (!Player.v.paused) Player.pause();
+  showView('library');
+  setHash('library');
+}
+/* a clip in the player, with its pitch line and pronunciation under it */
+function openClipView(id) {
+  UI.libPage = false;
+  selectClip(id);
+  showView('library');
+  setHash('library', 'clip');
+}
+function libPageShown() { return UI.tab === 'library' && !Session.active && UI.libPage && !UI.cutMode && !UI.sel; }
+
+/* ---------- the library page: videos on the left, the open video's clips on the right ---------- */
+function renderLibPage() {
+  const el = $('#libView');
+  if (!el || !libPageShown()) return;
   const vids = Store.all('videos').sort((a, b) => (a.added < b.added ? 1 : -1));
   const active = vids.filter((v) => !v.archived);
   const archived = vids.filter((v) => v.archived);
-  enterOnChange(sb, UI.videoId, 'open-in'); // the opened video's clip list drops in
-  enterOnChange(sb, !!UI.addOpen, 'add-in'); // and so does the add-video form
-  mount(sb,
-    h('div', { class: 'row' },
-      h('h3', { class: 'grow' }, t('Videos')),
-      btn(UI.addOpen ? t('Close') : t('Add video'), () => { UI.addOpen = !UI.addOpen; renderSidebar(); if (UI.addOpen) setTimeout(() => $('#addUrl') && $('#addUrl').focus(), 30); }, { icon: UI.addOpen ? 'close' : 'plus', size: 'sm', kind: UI.addOpen ? '' : 'primary' })),
-    UI.addOpen ? addVideoForm() : null,
-    active.length ? h('div', { class: 'vlist' }, active.map(videoItem)) : (!UI.addOpen ? h('p', { class: 'muted small' }, t('No videos yet. Add a video file or a direct link to an .mp4 file to get started.')) : null),
-    archived.length ? h('details', { class: 'archived' }, h('summary', null, t('Archived ({n})', { n: archived.length })), h('div', { class: 'vlist' }, archived.map(videoItem))) : null);
+  const v = Store.get('videos', UI.videoId);
+  const side = h('aside', { class: 'lib-vids', 'aria-label': t('Video library') },
+    h('div', { class: 'row' }, h('h2', { class: 'grow' }, t('Videos')),
+      btn(UI.addOpen ? t('Close') : t('Add video'), () => { UI.addOpen = !UI.addOpen; renderLibPage(); if (UI.addOpen) setTimeout(() => { const f = $('#addUrl') || $('#addFile'); if (f) f.focus(); }, 30); }, { icon: UI.addOpen ? 'close' : 'plus', size: 'sm' })),
+    UI.addOpen ? h('div', { class: 'lib-add' }, addVideoForm()) : null,
+    active.map((x) => libVideoCard(x)),
+    archived.length ? h('details', { class: 'archived', open: !!UI.showArchivedVids, ontoggle: (e) => { UI.showArchivedVids = e.target.open; } }, h('summary', null, t('Archived ({n})', { n: archived.length })), archived.map((x) => libVideoCard(x))) : null);
+  const main = v ? libVideoMain(v) : h('section', { class: 'lib-main lib-none' },
+    Euno.el('lib', active.length ? 'watching' : 'searching'),
+    h('h2', null, active.length ? t('Pick a video from your library') : t('Add your first video')),
+    h('p', { class: 'muted' }, active.length ? t('Its clips show here, ready to practise.') : t('Pick a video of someone with the accent you want: an interview or a talk where one person speaks clearly works best.')),
+    !active.length && !UI.addOpen ? btn(t('Add a video'), () => { UI.addOpen = true; renderLibPage(); }, { kind: 'primary', size: 'big', icon: 'plus', cls: 'self-start' }) : null);
+  mount(el, h('div', { class: 'lib' }, side, main));
+}
+
+function libVideoCard(v) {
+  const p = videoProgress(v);
+  const open = v.id === UI.videoId;
+  const pick = () => { if (!open) { Player.load(v.id); UI.clipId = null; } UI.editVideoId = null; renderLibPage(); };
+  return h('button', { type: 'button', class: `lib-vid${open ? ' on' : ''}`, 'aria-pressed': String(open), onclick: pick },
+    h('b', null, v.title || t('Untitled video')),
+    h('span', { class: 'small muted' }, [v.speaker, p.total ? t('{done} of {total} clips done', { done: p.done, total: p.total }) : t('no clips yet')].filter(Boolean).join(' · ')),
+    h('span', { class: 'bar vprog' }, h('i', { style: { width: (p.total ? (p.done / p.total) * 100 : 0) + '%' } })));
+}
+
+function libVideoMain(v) {
+  const all = videoClips(v.id);
+  const live = all.filter((c) => !c.archived);
+  const arch = all.filter((c) => c.archived);
+  const info = Rank.infoFn(), mode = Rank.mode();
+  const shown = Rank.order(live, mode, info);
+  const rec = recommendedClipId();
+  const lastBy = new Map();
+  for (const s of Store.all('sessions')) if (!s.empty && s.videoId === v.id && s.clipId && (!lastBy.has(s.clipId) || lastBy.get(s.clipId) < s.date)) lastBy.set(s.clipId, s.date);
+  const ago = (d) => { if (!d) return t('not yet'); const n = Math.round((parseDay(dayKey()) - parseDay(d)) / 864e5); return n <= 0 ? t('today') : n === 1 ? t('yesterday') : tp(n, '{n} day ago', '{n} days ago'); };
+  const dur = Player.current() && Player.current().id === v.id ? Player.duration() : 0;
+  const where = v.fileRef ? mediaStatus(v.fileRef) || (Drive.connected() ? t('in your Google Drive') : t('on this device')) : v.url ? t('from a link') : null;
+  const row = (c) => {
+    const i = live.indexOf(c);
+    const rk = c.archived ? {} : info(c);
+    const fit = rk.match && rk.match.n > 0 ? t('has {sounds}', { sounds: Rank.soundsText(rk.match) }) : '';
+    const lvl = mode === 'easy' && rk.diff ? Rank.levelText(rk.diff.level) : '';
+    const queued = UI.queue.includes(c.id);
+    const now = c.id === rec;
+    const sub = [lvl, fit, c.noisy ? t('noisy') : '', queued ? t('#{n} in queue', { n: UI.queue.indexOf(c.id) + 1 }) : ''].filter(Boolean).join(' · ');
+    return h('div', { class: `lib-row${now ? ' now' : ''}`, role: 'row' },
+      h('span', { class: `tick${c.done ? ' done' : ''}`, role: 'cell', 'aria-label': c.done ? t('Done {day}', { day: fmtDay(c.doneAt) }) : t('Not done yet') }, c.done ? icon('check', 'stroke-width="3.4"') : null),
+      h('div', { class: 'lib-name', role: 'cell' },
+        h('button', { type: 'button', class: 'linkbtn plain', onclick: () => openClipView(c.id), title: t('Open in the player: its pitch line and sounds') }, c.archived ? c.label || clipName(c) : clipName(c, i)),
+        now ? h('span', { class: 'lib-today' }, t('today')) : null,
+        sub ? h('span', { class: 'small muted lib-sub' }, sub) : null),
+      h('span', { class: 'num lib-len', role: 'cell' }, fmtSec(c.end - c.start)),
+      h('span', { class: 'small muted lib-last', role: 'cell' }, ago(lastBy.get(c.id))),
+      h('span', { class: 'lib-acts', role: 'cell' },
+        c.archived ? null : btn(t('Practise'), () => Session.start([c.id]), { size: 'sm', icon: 'play', kind: now ? 'primary' : '' }),
+        btn('', () => openClipMenu(c), { size: 'sm', kind: 'ghost', icon: 'more', title: t('Clip options') })));
+  };
+  const head = UI.editVideoId === v.id ? h('div', { class: 'lib-edit' }, editVideoForm(v)) : h('div', { class: 'lib-head' },
+    h('div', { class: 'grow' },
+      h('p', { class: 'small muted' }, [v.speaker, dur ? fmtTime(dur) : null, where].filter(Boolean).join(' · ')),
+      h('h2', null, v.title || t('Untitled video'))),
+    v.archived ? null : btn(t('Cut a new clip'), () => { if (UI.videoId !== v.id) Player.load(v.id); setCutMode(true); }, { icon: 'scissors' }),
+    btn('', () => openVideoMenu(v), { kind: 'ghost', icon: 'more', title: t('Video options') }));
+  return h('section', { class: 'lib-main' },
+    head,
+    live.length > 2 ? sortRow(mode) : null,
+    live.length ? h('div', { class: 'lib-table', role: 'table', 'aria-label': t('Clips') },
+      h('div', { class: 'lib-row lib-th', role: 'row' }, h('span', { role: 'columnheader' }), h('span', { role: 'columnheader' }, t('Clip')), h('span', { role: 'columnheader' }, t('Length')), h('span', { role: 'columnheader' }, t('Last practised')), h('span', { role: 'columnheader' })),
+      shown.map(row))
+      : h('div', { class: 'tintcard' }, h('h3', null, t('No clips yet')), h('p', null, t('Cut one sentence of 10 to 20 seconds to start.')),
+        v.archived ? null : btn(t('Cut a new clip'), () => { if (UI.videoId !== v.id) Player.load(v.id); setCutMode(true); }, { kind: 'primary', icon: 'scissors', cls: 'self-start' })),
+    UI.queue.length ? h('div', { class: 'row small' }, h('span', { class: 'muted grow' }, tp(UI.queue.length, '{n} queued', '{n} queued')), btn(t('Clear queue'), () => { UI.queue = []; renderLib(); renderSession(); }, { size: 'sm', kind: 'ghost' })) : null,
+    arch.length ? h('details', { class: 'archived', open: UI.showArchivedClips, ontoggle: (e) => { UI.showArchivedClips = e.target.open; } }, h('summary', null, t('Archived clips ({n})', { n: arch.length })), h('div', { class: 'lib-table' }, arch.map(row))) : null);
+}
+
+function openVideoMenu(v) {
+  openModal([
+    modalHead(v.title || t('Untitled video'), v.speaker || ''),
+    h('div', { class: 'stack' },
+      v.url ? h('a', { class: 'btn', href: v.url, target: '_blank', rel: 'noopener' }, icon('link'), h('span', { class: 'txt' }, t('Open the original link'))) : null,
+      btn(t('Edit title or link'), () => { closeModal(); UI.editVideoId = v.id; UI.editVideo = { title: v.title, url: v.url, speaker: v.speaker || '' }; renderLib(); }, { icon: 'edit' }),
+      v.archived ? btn(t('Restore'), () => { Store.patch('videos', v.id, { archived: false }); closeModal(); renderLib(); toast(t('Video restored.')); }, { icon: 'restore' })
+        : btn(t('Archive (clips and history are kept)'), () => { Store.patch('videos', v.id, { archived: true }); closeModal(); if (UI.videoId === v.id) Player.load(null); renderAll(); toast(t('Video archived. Its clips and history are kept.')); }, { icon: 'archive' })),
+  ], { narrow: true });
 }
 
 function addVideoForm() {
@@ -34,8 +136,8 @@ function addVideoForm() {
   const status = h('div', { role: 'status' });
   const fileIn = h('input', { type: 'file', id: 'addFile', accept: 'video/*,audio/*', onchange: (e) => { F.file = e.target.files[0] || null; if (F.file && !F.title) { F.title = F.file.name.replace(/\.\w+$/, ''); const t = $('#addTitle'); if (t) t.value = F.title; } } });
   const source = device ? h('div', { class: 'seg', role: 'group', 'aria-label': t('Where the video comes from') },
-    h('button', { type: 'button', class: F.source === 'file' ? 'on' : '', onclick: () => { F.source = 'file'; renderSidebar(); } }, t('A file on this device')),
-    h('button', { type: 'button', class: F.source === 'link' ? 'on' : '', onclick: () => { F.source = 'link'; renderSidebar(); } }, t('From a link'))) : null;
+    h('button', { type: 'button', class: F.source === 'file' ? 'on' : '', onclick: () => { F.source = 'file'; renderLib(); } }, t('A file on this device')),
+    h('button', { type: 'button', class: F.source === 'link' ? 'on' : '', onclick: () => { F.source = 'link'; renderLib(); } }, t('From a link'))) : null;
   const where = Drive.connected() ? t('It goes into your Google Drive, so it’s on all your devices.')
     : deviceOnly() || Store.mode !== 'cloud' ? t('It’s kept in this browser only.')
       : h('span', null, t('It stays in this browser only until you connect Google Drive.'), ' ', h('a', { href: '#', onclick: (e) => { e.preventDefault(); Drive.connect(); } }, t('Connect Google Drive')));
@@ -65,7 +167,7 @@ function finishAdd(fields) {
   UI.addForm = { title: '', url: '', speaker: '' };
   UI.addOpen = false;
   Player.load(v.id);
-  renderSidebar();
+  renderLib();
   toast(t('Video added. Press Cut clips, then drag along the timeline to make your first clip.'), 'good');
 }
 
@@ -152,25 +254,6 @@ function checkPlayable(url) {
   });
 }
 
-function videoItem(v) {
-  const open = v.id === UI.videoId;
-  const p = videoProgress(v);
-  const editing = UI.editVideoId === v.id;
-  return h('div', { class: `vitem ${open ? 'open' : ''}` },
-    editing ? editVideoForm(v) : [
-      h('div', { class: 'vitem-title', role: 'button', tabindex: 0, onclick: () => { Player.load(v.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); Player.load(v.id); closeDrawer(); } } }, v.title || t('Untitled video')),
-      h('div', { class: 'meta' }, `${t('{done}/{total} clips done', { done: p.done, total: p.total })} · ${p.last ? t('last practised {day}', { day: fmtDay(p.last) }) : t('not practised yet')}${v.speaker ? ` · ${v.speaker}` : ''}${v.fileRef ? ` · ${mediaStatus(v.fileRef) || t('saved')}` : ''}`),
-      h('div', { class: 'bar vprog' }, h('i', { style: { width: (p.total ? (p.done / p.total) * 100 : 0) + '%' } })),
-      h('div', { class: 'row' },
-        !open ? btn(t('Open'), () => { Player.load(v.id); closeDrawer(); }, { size: 'sm', kind: 'primary' }) : null,
-        v.url ? h('a', { class: 'btn sm ghost', href: v.url, target: '_blank', rel: 'noopener', title: t('Open the original link') }, icon('link'), h('span', { class: 'txt' }, t('Link'))) : null,
-        btn('', () => { UI.editVideoId = v.id; UI.editVideo = { title: v.title, url: v.url, speaker: v.speaker || '' }; renderSidebar(); }, { size: 'sm', kind: 'ghost', icon: 'edit', title: t('Edit title or link') }),
-        v.archived ? btn(t('Restore'), () => { Store.patch('videos', v.id, { archived: false }); renderSidebar(); toast(t('Video restored.')); }, { size: 'sm', icon: 'restore' })
-          : btn('', () => { Store.patch('videos', v.id, { archived: true }); if (open) Player.load(null); renderSidebar(); toast(t('Video archived. Its clips and history are kept.')); }, { size: 'sm', kind: 'ghost', icon: 'archive', title: t('Archive (clips and history are kept)') })),
-      open ? clipList(v) : null,
-    ]);
-}
-
 function editVideoForm(v) {
   const E = UI.editVideo;
   return h('form', { class: 'stack', onsubmit: (e) => {
@@ -179,13 +262,13 @@ function editVideoForm(v) {
     Store.patch('videos', v.id, { title: E.title.trim() || v.title, url: E.url.trim(), speaker: E.speaker.trim() || null });
     UI.editVideoId = null;
     if (urlChanged) { VideoAudio.cache.delete(v.id); if (UI.videoId === v.id) Player.reloadSrc(); }
-    renderSidebar();
+    renderLib();
     toast(t('Video updated.'));
   } },
   h('label', { class: 'field', for: 'evTitle' }, t('Title'), h('input', { type: 'text', id: 'evTitle', value: E.title, oninput: (e) => { E.title = e.target.value; } })),
   h('label', { class: 'field', for: 'evUrl' }, t('Link'), h('input', { type: 'url', id: 'evUrl', value: E.url, oninput: (e) => { E.url = e.target.value; } })),
   h('label', { class: 'field', for: 'evSpeaker' }, t('Speaker'), h('input', { type: 'text', id: 'evSpeaker', value: E.speaker, oninput: (e) => { E.speaker = e.target.value; } })),
-  h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary sm' }, h('span', null, t('Save'))), btn(t('Cancel'), () => { UI.editVideoId = null; renderSidebar(); }, { size: 'sm', kind: 'ghost' })));
+  h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn primary sm' }, h('span', null, t('Save'))), btn(t('Cancel'), () => { UI.editVideoId = null; renderLib(); }, { size: 'sm', kind: 'ghost' })));
 }
 
 const CLIP_LIMIT = 5;
@@ -213,23 +296,23 @@ function clipList(v) {
         : c.done ? h('span', { class: 'tick done', title: t('Done {day}', { day: fmtDay(c.doneAt) }), 'aria-label': t('Done {day}', { day: fmtDay(c.doneAt) }) }, icon('check', 'stroke-width="3.4"'))
         : h('span', { class: 'tick', title: t('Not done yet'), 'aria-label': t('Not done yet') }),
       h('div', { style: { minWidth: 0 } },
-        h('div', { class: 'clabel', role: 'button', tabindex: 0, onclick: () => { selectClip(c.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectClip(c.id); } } }, clipName(c, i)),
+        h('div', { class: 'clabel', role: 'button', tabindex: 0, onclick: () => { selectClip(c.id); }, onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectClip(c.id); } } }, clipName(c, i)),
         h('div', { class: 'cmeta' }, `${fmtTime(c.start)}–${fmtTime(c.end)} · ${fmtSec(c.end - c.start)}${c.noisy ? ` · ${t('noisy')}` : ''}${queued ? ` · ${t('#{n} in queue', { n: UI.queue.indexOf(c.id) + 1 })}` : ''}${lvl}${fit}`)),
       h('div', { class: 'row', style: { gap: '2px', flexWrap: 'nowrap' } },
         !c.archived ? btn('', () => { editClip(c.id); closeDrawer(); }, { size: 'sm', kind: 'ghost', icon: 'edit', title: t('Edit clip (start, end, length, label)'), disabled: Session.active }) : null,
-        btn('', () => openClipMenu(c), { size: 'sm', kind: 'ghost', icon: 'menu', title: t('Clip options') })));
+        btn('', () => openClipMenu(c), { size: 'sm', kind: 'ghost', icon: 'more', title: t('Clip options') })));
   };
   return h('div', { class: 'clist' },
     live.length > 2 ? sortRow(mode) : null,
     live.length ? visibleClips(v, shown).map((c) => item(c, live.indexOf(c))) : h('p', { class: 'small muted' }, t('No clips yet. Press Cut clips under the video, then drag along the timeline.')),
-    live.length > CLIP_LIMIT ? btn(UI.showAllClips[v.id] ? t('Show fewer') : t('Show all {n} clips', { n: live.length }), () => { UI.showAllClips[v.id] = !UI.showAllClips[v.id]; renderSidebar(); }, { size: 'sm', kind: 'ghost' }) : null,
-    UI.queue.length ? h('div', { class: 'row small' }, h('span', { class: 'muted grow' }, tp(UI.queue.length, '{n} queued', '{n} queued')), btn(t('Clear queue'), () => { UI.queue = []; renderSidebar(); renderSession(); }, { size: 'sm', kind: 'ghost' })) : null,
+    live.length > CLIP_LIMIT ? btn(UI.showAllClips[v.id] ? t('Show fewer') : t('Show all {n} clips', { n: live.length }), () => { UI.showAllClips[v.id] = !UI.showAllClips[v.id]; renderLib(); }, { size: 'sm', kind: 'ghost' }) : null,
+    UI.queue.length ? h('div', { class: 'row small' }, h('span', { class: 'muted grow' }, tp(UI.queue.length, '{n} queued', '{n} queued')), btn(t('Clear queue'), () => { UI.queue = []; renderLib(); renderSession(); }, { size: 'sm', kind: 'ghost' })) : null,
     arch.length ? h('details', { class: 'archived', open: UI.showArchivedClips, ontoggle: (e) => { UI.showArchivedClips = e.target.open; } }, h('summary', null, t('Archived clips ({n})', { n: arch.length })), h('div', { class: 'clist' }, arch.map(item))) : null);
 }
 
 /* how the clip list is ordered. 'Fits my sounds' needs the speaker's sounds saved on the clips (Settings → Analysis → Prepare my library) */
 function sortRow(mode) {
-  const opt = (m, label) => h('button', { type: 'button', class: mode === m ? 'on' : '', 'aria-pressed': String(mode === m), onclick: () => { Rank.setMode(m); renderSidebar(); } }, label);
+  const opt = (m, label) => h('button', { type: 'button', class: mode === m ? 'on' : '', 'aria-pressed': String(mode === m), onclick: () => { Rank.setMode(m); renderLib(); } }, label);
   return h('div', { class: 'seg sm', role: 'group', 'aria-label': t('Order of the clips') }, opt('time', t('As cut')), opt('easy', t('Easier first')), opt('issues', t('Fits my sounds')));
 }
 
@@ -237,11 +320,12 @@ function openClipMenu(c) {
   openModal([
     modalHead(clipName(c), `${fmtTime(c.start, 1)}–${fmtTime(c.end, 1)} · ${fmtSec(c.end - c.start)}`),
     h('div', { class: 'stack' },
-      btn(t('Shadow this clip'), () => { closeModal(); closeDrawer(); Session.start([c.id]); }, { kind: 'primary', icon: 'mic', disabled: Session.active }),
+      btn(t('Practise'), () => { closeModal(); Session.start([c.id]); }, { kind: 'primary', icon: 'play', disabled: Session.active || c.archived }),
+      libPageShown() ? btn(t('Open in the player'), () => { closeModal(); openClipView(c.id); }, { icon: 'play' }) : null,
       btn(t('Edit edges or label'), () => { closeModal(); closeDrawer(); editClip(c.id); }, { icon: 'scissors', disabled: Session.active }),
       !c.archived ? btn(UI.queue.includes(c.id) ? t('Remove from the queue') : t('Add to the queue, to shadow it right after the others'), () => {
         UI.queue = UI.queue.includes(c.id) ? UI.queue.filter((x) => x !== c.id) : [...UI.queue, c.id];
-        closeModal(); renderSidebar(); renderSession();
+        closeModal(); renderLib(); renderSession();
       }, { icon: 'plus', disabled: Session.active }) : null,
       btn(t('History and recordings'), () => openHistory(c.id), { icon: 'history' }),
       btn(c.done ? t('Remove the tick') : t('Mark as done'), () => { Store.patch('clips', c.id, { done: !c.done, doneAt: c.done ? null : dayKey() }); closeModal(); renderAll(); }, { icon: 'check' }),

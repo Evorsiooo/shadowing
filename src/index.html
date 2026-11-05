@@ -21,7 +21,9 @@ if (location.protocol !== 'file:') for (const p of ['/api/health', '/api/docs'])
 <div class="banners" id="banners"></div>
 <main class="todayv" id="todayView" hidden></main>
 <main class="pagev" id="pageView" hidden></main>
+<main class="libv" id="libView" hidden></main>
 <main class="layout" id="work">
+  <div class="studio-head" id="studioHead" hidden></div>
   <div class="player" id="player">
     <video id="video" playsinline preload="auto"></video>
     <div class="player-empty" id="playerEmpty"></div>
@@ -43,6 +45,7 @@ if (location.protocol !== 'file:') for (const p of ['/api/health', '/api/docs'])
   </div>
   <div class="side" id="side">
     <div id="sideSlot"></div>
+    <section class="cutcard" id="cutCard" hidden></section>
     <aside class="sidebar" id="sidebar" aria-label="Video library"></aside>
   </div>
 </main>

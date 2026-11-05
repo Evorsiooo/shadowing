@@ -530,7 +530,7 @@ function initMedia() {
     setTimeout(() => {
       queued = false;
       if (storageView.redraw) storageView.redraw();
-      if (!UI.addOpen && !UI.editVideoId) renderSidebar(); // "in Drive" / "uploading" on each video
+      if (!UI.addOpen && !UI.editVideoId) renderLib(); // "in Drive" / "uploading" on each video
     }, 400);
   });
   handleDriveReturn();
