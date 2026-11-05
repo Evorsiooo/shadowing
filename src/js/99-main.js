@@ -29,6 +29,7 @@ const BELOW_ALLOWANCE = 250;
 const fitFocus = { key: null, below: 0 };
 const FOCUS_BELOW = 290; // the instruction, the controls and the passes under the video in a session
 const MAX_WIDTH_LIMITED_H = 540;
+const LF_W = 280, LF_GAP = 24; // room kept beside the video for "Listen for these"
 let fitQueued = false;
 function scheduleFit() {
   if (fitQueued) return;
@@ -44,6 +45,9 @@ function fitLayout() {
   const L = $('.layout');
   const split = splitFocus(L);
   L.classList.toggle('split', split);
+  // wide windows: "Listen for these" stands beside the video, so the video is the same size in every step
+  const lfSide = !split && wideLayout.matches && L.classList.contains('focus');
+  L.classList.toggle('lf-side', lfSide);
   const phoneFocus = !wideLayout.matches && !split && L.classList.contains('focus'); // a phone held upright, in a session: the video also takes the height that is left
   if (!wideLayout.matches && !split && !phoneFocus) {
     L.classList.remove('fit');
@@ -84,10 +88,20 @@ function fitLayout() {
     const ctlH = ctl && getComputedStyle(ctl).position === 'static' ? ctl.offsetHeight + 8 : 0; // on a phone the timeline sits under the video, not over it
     const stepKey = `${Session.doc && Session.doc.id}:${Session.stepIdx}`;
     if (fitFocus.key !== stepKey) { fitFocus.key = stepKey; fitFocus.below = FOCUS_BELOW; }
-    if (fc) { const bl = $('#below'); fitFocus.below = Math.max(fitFocus.below, Math.ceil(Math.max(fc.offsetHeight, split || !bl ? 0 : bl.offsetHeight)) + 12); }
-    const fvh = Math.max(phoneFocus ? 140 : 240, Math.min((L.clientWidth - padX) / ar, avail - fitFocus.below - gapY - ctlH));
+    if (fc) { const lf = lfSide ? fc.querySelector('.listen-for') : null; const own = fc.offsetHeight - (lf ? lf.offsetHeight + 16 : 0); const bl = $('#below'); fitFocus.below = Math.max(fitFocus.below, Math.ceil(Math.max(own, split || !bl ? 0 : bl.offsetHeight - (lf ? lf.offsetHeight + 16 : 0))) + 12); }
+    // the room on each side of the video is kept free in every step, so the video doesn't change size when the list appears
+    const sideRoom = lfSide ? 2 * (LF_W + LF_GAP) : 0;
+    const fvh = Math.max(phoneFocus ? 140 : 240, Math.min((L.clientWidth - padX - sideRoom) / ar, avail - fitFocus.below - gapY - ctlH));
     L.style.setProperty('--video-h', `${Math.floor(fvh)}px`);
     L.style.setProperty('--focus-w', `${Math.floor(fvh * ar)}px`);
+    if (lfSide) {
+      const pl = $('#player');
+      const left = Math.round((L.clientWidth + fvh * ar) / 2 + LF_GAP);
+      L.style.setProperty('--lf-left', `${left}px`);
+      L.style.setProperty('--lf-w', `${Math.max(200, Math.min(380, L.clientWidth - left - padX / 2))}px`);
+      L.style.setProperty('--lf-top', `${Math.round(pl.getBoundingClientRect().top - L.getBoundingClientRect().top)}px`);
+      L.style.setProperty('--lf-h', `${Math.floor(fvh)}px`);
+    }
     L.style.setProperty('--below-h', 'auto');
     return;
   }

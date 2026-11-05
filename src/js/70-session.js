@@ -661,15 +661,16 @@ function listenForList(S) {
   if (!items.length) return null;
   const clip = S.clip();
   const name = speakerName(clip && Store.get('videos', clip.videoId));
-  const idle = !['playing', 'recording'].includes(S.phase);
   const take = S.listenTake;
+  // always there; pressing one stops the pass that is running (press play to start it again), then plays that bit
+  const hear = (fn) => () => { if (['playing', 'recording', 'gap'].includes(S.phase)) S.togglePause(); fn(); };
   return h('div', { class: 'listen-for' },
     h('h3', null, t('Listen for these')),
     h('ul', null, items.map((it) => h('li', null,
       h('b', null, it.word), h('span', null, it.text),
-      idle && it.a != null ? h('div', { class: 'lf-play' },
-        btn('', () => playSnippetOriginal(clip, it.a, it.b), { size: 'sm', icon: 'play', cls: 'spk', title: t('Hear {name} here', { name }) }),
-        take ? btn('', () => playSynced(clip, take.url, take.analysis, { from: clip.start + it.a, stopAt: clip.start + it.b }), { size: 'sm', icon: 'play', cls: 'mine', title: t('Hear yourself here') }) : null) : null))));
+      it.a != null ? h('div', { class: 'lf-play' },
+        btn('', hear(() => playSnippetOriginal(clip, it.a, it.b)), { size: 'sm', icon: 'play', cls: 'spk', title: t('Hear {name} here', { name }) }),
+        take ? btn('', hear(() => playSynced(clip, take.url, take.analysis, { from: clip.start + it.a, stopAt: clip.start + it.b })), { size: 'sm', icon: 'play', cls: 'mine', title: t('Hear yourself here') }) : null) : null))));
 }
 
 /* the ⋯ menu of a session: what used to sit under the session card */
