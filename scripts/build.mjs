@@ -91,7 +91,9 @@ const eunoJs = buildSync({ ...EUNO_BUILD, entryPoints: [join(src, 'euno', 'entry
 const eunoStatic = await import('data:text/javascript;base64,' + Buffer.from(buildSync({ ...EUNO_BUILD, entryPoints: [join(src, 'euno', 'static.mjs')], format: 'esm', platform: 'node', minify: false }).outputFiles[0].text).toString('base64'));
 const eunoSvg = eunoStatic.eunoSvg;
 
-const js = eunoJs + '\n' + `const EUNO_LOGO = ${JSON.stringify(eunoSvg('attentive-left', { label: null, idSuffix: '-logo' }))};\n` + `const I18N_STRINGS = ${JSON.stringify(i18n).replace(/</g, '\\u003c')};\n` + readdirSync(join(src, 'js'))
+// Euno's research notes (src/knowledge/entries.json), shipped inside the app script as plain text (see src/js/86-knowledge.js).
+const knowledge = JSON.parse(readFileSync(join(src, 'knowledge', 'entries.json'), 'utf8'));
+const js = eunoJs + '\n' + `const KNOWLEDGE = ${JSON.stringify(knowledge).replace(/</g, '\\u003c')};\n` + `const EUNO_LOGO = ${JSON.stringify(eunoSvg('attentive-left', { label: null, idSuffix: '-logo' }))};\n` + `const I18N_STRINGS = ${JSON.stringify(i18n).replace(/</g, '\\u003c')};\n` + readdirSync(join(src, 'js'))
   .filter((f) => f.endsWith('.js'))
   .sort()
   .map((f) => `/* ---- ${f} ---- */\n` + withWords(withPhones(readFileSync(join(src, 'js', f), 'utf8'))))
