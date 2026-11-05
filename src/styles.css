@@ -475,6 +475,12 @@ button.try-item p { color: var(--muted); }
 .lf-play { display: flex; gap: 6px; flex: none; }
 .listen-for { padding: 12px 16px; }
 .listen-for ul { gap: 4px; }
+/* wide windows: the list stands to the right of the video (set by fitLayout), so the video keeps its size and place in every step */
+.layout.focus.lf-side { position: relative; }
+.layout.focus.lf-side .listen-for { position: absolute; top: var(--lf-top, 0); left: var(--lf-left, 100%); width: var(--lf-w, 300px); max-height: var(--lf-h, none); overflow-y: auto; }
+.layout.focus.lf-side .listen-for li { flex-wrap: wrap; row-gap: 4px; }
+.layout.focus.lf-side .listen-for li > span { flex: 1 1 100%; order: 3; }
+.layout.focus.lf-side .lf-play { margin-left: auto; }
 /* the review: playback and the note line sit with the chart under the video */
 .rev-wrap { background: var(--card); border-radius: var(--r-xl); padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; }
 .rev-play { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
