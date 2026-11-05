@@ -1066,3 +1066,29 @@ body.ask-open { overflow: hidden; }
   body:not(.focus) .toasts { bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); }
   .topbar { justify-content: space-between; }
 }
+
+/* Say something: a take spoken to Euno, inside the Ask Euno chat (87-ask-say.js) */
+.msg.you.say { background: var(--card); color: var(--ink); white-space: normal; display: flex; flex-direction: column; gap: 10px; width: min(100%, 520px); max-width: 94%; }
+.say-head { display: flex; align-items: center; gap: 6px; }
+.say-line { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.say-w { display: inline-flex; flex-direction: column; padding: 2px 8px 4px; border-radius: 10px; }
+.say-w.diff { background: var(--diff); color: var(--diff-ink); }
+.say-t { font-weight: 600; font-size: 1.15rem; line-height: 1.25; }
+.say-ipa { font-size: 1.05rem; letter-spacing: 0.02em; }
+.say-ipa i.lo { font-style: normal; opacity: 0.45; }
+.say-note { margin: 0; }
+.say-cmp, .say-find { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--sunk-2); }
+.say-cmp p, .say-find p { margin: 0; }
+.say-sum { font-weight: 600; }
+.say-diff { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; background: var(--page); border-radius: var(--r-md); }
+.say-pair { display: grid; grid-template-columns: 5.5rem 1fr; align-items: baseline; gap: 8px; }
+.say-pair .spk b.x { text-decoration-color: var(--green); }
+.say-pair .you b.x { color: var(--diff-ink); background: var(--diff); border-radius: 6px; padding: 0 3px; text-decoration: none; }
+.say-text { flex: 1; min-width: 0; }
+.say-hits { display: flex; flex-direction: column; gap: 8px; }
+.say-hit { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: var(--page); border-radius: var(--r-md); }
+.say-snip { font-weight: 500; }
+.say-live { display: flex; align-items: center; gap: 10px; padding: 0 6px; }
+.say-dot { width: 10px; height: 10px; border-radius: 50%; background: #d64545; animation: sayPulse 1.2s ease-in-out infinite; }
+@keyframes sayPulse { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .say-dot { animation: none; } }

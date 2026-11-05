@@ -19,6 +19,7 @@ function askContext() {
   if (Pron.on()) for (const r of Pron.seenAcross().slice(0, 3)) out.push(`Phones: the sound recogniser flagged ${Pron.pairName(r.pair)} on ${r.e.days.length} day(s), in ${r.flagged} of ${r.occurred} places where the speaker has that sound.`);
   try { for (const r of ProsodyLog.summary().filter((x) => x.T.recent.o >= 3).slice(0, 3)) out.push(`Timing/pitch: "${PROSODY_PLAIN[r.kind]}" in ${r.T.recent.f} of ${r.T.recent.o} recent recorded passes.`); } catch { /* optional */ }
   out.push(...askSessionContext());
+  try { out.push(...saySummary()); } catch { /* optional */ }
   const clip = Store.get('clips', UI.clipId);
   if (clip) {
     const v = Store.get('videos', clip.videoId);
@@ -70,7 +71,7 @@ async function askSend(text) {
   Ask.busy = true;
   if (UI.askOpen) openAsk();
   try {
-    const r = await Api.req('POST', '/api/ai/chat', { messages: msgs.map((m) => ({ role: m.role, text: m.text })), context: askContext(), knowledge: notes.map((e) => Know.render(e)), profile: profileForAI() });
+    const r = await Api.req('POST', '/api/ai/chat', { messages: msgs.filter((m) => m.role === 'user' || m.role === 'assistant').map((m) => ({ role: m.role, text: m.text })), context: askContext(), knowledge: notes.map((e) => Know.render(e)), profile: profileForAI() });
     askSave([...askDoc().messages, { role: 'assistant', text: r.text, at: new Date().toISOString() }]);
   } catch (e) {
     Ask.error = t('Euno couldn’t answer: {error}', { error: e.message || 'error' });
@@ -95,11 +96,12 @@ function openAsk() {
   UI.askOpen = true;
   closeMenu();
   const log = h('div', { class: 'ask-log', 'aria-live': 'polite' },
-    msgs.map((m) => (m.role === 'user'
+    msgs.map((m) => (m.role === 'say' ? sayRow(m) : m.role === 'user'
       ? h('div', { class: 'msg you' }, m.text)
       : h('div', { class: 'msg-row' }, eunoLogo('logo'), h('div', { class: 'msg euno-says' }, m.text)))),
     Ask.busy ? h('div', { class: 'msg-row' }, eunoLogo('logo'), h('div', { class: 'msg euno-says muted' }, t('Thinking…'))) : null,
     Ask.error ? h('p', { class: 'formerr' }, Ask.error) : null,
+    sayLogExtras(),
     canAsk && !msgs.length ? h('div', { class: 'ask-starts' }, ASK_STARTS.map((q) => h('button', { type: 'button', class: 'chip', onclick: () => askSend(t(q)) }, t(q)))) : null);
   const box = h('textarea', { id: 'askBox', rows: 1, placeholder: t('Ask Euno about a sound, your notes or your practice'), 'aria-label': t('Your question'),
     oninput: (e) => { e.target.style.height = 'auto'; e.target.style.height = Math.min(200, e.target.scrollHeight) + 'px'; },
@@ -117,7 +119,8 @@ function openAsk() {
         : t('Sign in to the web app to ask questions here.')),
       Store.mode === 'cloud' ? btn(t('Open Connections'), () => { closeAsk(); openSettings('connections'); }, { kind: 'primary', cls: 'self-start' }) : null));
   const foot = canAsk ? h('div', { class: 'askp-foot' },
-    h('form', { class: 'ask-form', onsubmit: (e) => { e.preventDefault(); askSend(box.value); } }, box, btn('', null, { kind: 'primary', icon: 'arrow-up', title: t('Send'), aria: t('Send'), cls: 'send', disabled: Ask.busy })),
+    sayLive(),
+    h('form', { class: 'ask-form', onsubmit: (e) => { e.preventDefault(); askSend(box.value); } }, box, sayMic(), btn('', null, { kind: 'primary', icon: 'arrow-up', title: t('Send'), aria: t('Send'), cls: 'send', disabled: Ask.busy })),
     msgs.length && !Ask.busy ? h('div', { class: 'row' }, h('span', { class: 'small muted grow' }, t('Kept with your practice data, on every device.')),
       btn(t('Clear the conversation'), () => { askSave([]); Ask.error = null; openAsk(); }, { size: 'sm', kind: 'ghost' })) : null) : null;
   const panel = root.querySelector('.askp');
@@ -137,6 +140,7 @@ function openAsk() {
 function closeAsk() {
   const root = $('#askPanel');
   if (!root || !UI.askOpen) return;
+  sayCancel();
   UI.askOpen = false;
   root.hidden = true;
   document.body.classList.remove('ask-open');
