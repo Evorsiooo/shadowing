@@ -4,7 +4,7 @@
   Referrer-Policy: same-origin
   X-Frame-Options: DENY
   Permissions-Policy: microphone=(self), camera=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-yeRfiK33F2xbpPPylPwSNeu/9jgLF7XsqKSpcg8HnG0=' https://challenges.cloudflare.com; style-src 'self' 'sha256-3dR709cZQcww+YlrLi5to+2Hy5L6OxOlCzTjk514v9w='; font-src 'self'; img-src 'self' data:; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-yeRfiK33F2xbpPPylPwSNeu/9jgLF7XsqKSpcg8HnG0=' https://challenges.cloudflare.com; style-src 'self' 'sha256-EjCyXwfvDQfLXAptahlJGWhkw115pxUqSicTb7OpWtk='; font-src 'self'; img-src 'self' data:; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'
 
 /app/*
   ! Content-Security-Policy

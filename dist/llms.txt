@@ -2,7 +2,7 @@
 
 > Free accent practice by shadowing a speaker you choose. Euno compares your recording with their audio and marks the sounds that differ (English, beta, no score), plus your timing and melody.
 
-Euno Shadowing is a free web app for accent practice. Cut a short clip from a video of someone whose accent you want, speak along with it for fifteen minutes, and Euno compares your recording with the speaker’s audio and marks the sounds that differ. Completely free: no subscription, no paid plan, no card. Runs in your browser. The sound comparison is English only, and a beta. Your files go to your own Google Drive, not our server.
+Euno Shadowing is a free web app for accent practice. Cut a short clip from a video of someone whose accent you want, speak along with it for fifteen minutes, and Euno compares your recording with the speaker’s audio and marks the sounds that differ.
 
 ## What it is, and what it is not
 
