@@ -107,7 +107,10 @@ const body = readFileSync(join(src, 'index.html'), 'utf8')
   .replace('@SCRIPTS@', () => `..${appJs}`);
 
 // Google's search results want a PNG/ICO whose size is a multiple of 48px, so the 48 and 96 are not optional.
-const ICON_LINKS = `<link rel="icon" href="/favicon.ico" sizes="48x48">\n<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">\n<link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">\n<link rel="icon" href="/assets/favicon-48.png" sizes="48x48" type="image/png">\n<link rel="icon" href="/assets/favicon-96.png" sizes="96x96" type="image/png">\n<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">\n<link rel="manifest" href="/site.webmanifest">`;
+// The icon URLs carry a short hash of the icon files: browsers keep favicons for a very long time, so a changed
+// icon only shows up once its URL changes too. /favicon.ico itself stays unversioned for crawlers that ask for it blindly.
+const ICON_V = createHash('sha256').update(readFileSync(join(src, 'site', 'favicon.ico'))).update(readFileSync(join(src, 'site', 'assets', 'favicon.svg'))).digest('hex').slice(0, 8);
+const ICON_LINKS = `<link rel="icon" href="/favicon.ico?v=${ICON_V}" sizes="48x48">\n<link rel="icon" href="/assets/favicon.svg?v=${ICON_V}" type="image/svg+xml">\n<link rel="icon" href="/assets/favicon-32.png?v=${ICON_V}" sizes="32x32" type="image/png">\n<link rel="icon" href="/assets/favicon-48.png?v=${ICON_V}" sizes="48x48" type="image/png">\n<link rel="icon" href="/assets/favicon-96.png?v=${ICON_V}" sizes="96x96" type="image/png">\n<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=${ICON_V}">\n<link rel="manifest" href="/site.webmanifest">`;
 const APP_THEME_COLOR = '<meta name="theme-color" content="#f6f7f3">'; // light is the default; applyTheme (88-settings.js) switches it for dark
 
 // The app's CSP is a <meta> tag so it can pin the page's own inline scripts by hash. Scripts are
