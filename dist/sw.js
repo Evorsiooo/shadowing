@@ -4,7 +4,7 @@
 // opens without a connection. Those files hold no user data. Nothing else is cached: API, sign-in,
 // OAuth and MCP requests, videos and everything else go straight to the network.
 
-const BUILD = '128162eb7c'; // filled in by scripts/build.mjs; changes with every new version of the app files
+const BUILD = '49407ae1d3'; // filled in by scripts/build.mjs; changes with every new version of the app files
 const CACHE = `euno-app-${BUILD}`;
 const SHELL = '/app/';
 const HASHED = /^\/assets\/h\/[\w.-]+$/; // content-hashed files never change, so they're safe to keep
