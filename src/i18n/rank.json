@@ -78,5 +78,33 @@
   "Prepare {n} clip|Prepare {n} clips": {
     "fr": "Préparer {n} extrait|Préparer {n} extraits",
     "es": "Preparar {n} clip|Preparar {n} clips"
+  },
+  "Check my past recordings": {
+    "fr": "Vérifier mes anciens enregistrements",
+    "es": "Revisar mis grabaciones anteriores"
+  },
+  "Recordings made while Pronunciation analysis was off have no sound differences yet. This runs the same comparison on them now, against the speaker’s audio, one at a time in the background, and files each under the day you recorded it. Your recordings are not changed. Like the rest, the results are a computer’s guesses.": {
+    "fr": "Les enregistrements faits quand l’analyse de la prononciation était désactivée n’ont pas encore de différences de sons. Cette action leur applique maintenant la même comparaison, avec la voix du locuteur, un par un en arrière-plan, et classe chacun au jour où vous l’avez enregistré. Vos enregistrements ne sont pas modifiés. Comme le reste, les résultats sont des suppositions d’un ordinateur.",
+    "es": "Las grabaciones hechas cuando el análisis de pronunciación estaba desactivado aún no tienen diferencias de sonidos. Esto les aplica ahora la misma comparación, con el audio del hablante, una por una en segundo plano, y archiva cada una en el día en que la grabaste. Tus grabaciones no se modifican. Como el resto, los resultados son suposiciones de un ordenador."
+  },
+  "{n} recording is waiting to be checked.|{n} recordings are waiting to be checked.": {
+    "fr": "{n} enregistrement attend d’être vérifié.|{n} enregistrements attendent d’être vérifiés.",
+    "es": "{n} grabación espera ser revisada.|{n} grabaciones esperan ser revisadas."
+  },
+  "All your recordings have been checked.": {
+    "fr": "Tous vos enregistrements ont été vérifiés.",
+    "es": "Todas tus grabaciones se han revisado."
+  },
+  "{n} couldn’t be checked (the recording or the video isn’t on this device, or the link is down).|{n} couldn’t be checked (the recording or the video isn’t on this device, or the link is down).": {
+    "fr": "{n} n’a pas pu être vérifié (l’enregistrement ou la vidéo n’est pas sur cet appareil, ou le lien ne répond pas).|{n} n’ont pas pu être vérifiés (l’enregistrement ou la vidéo n’est pas sur cet appareil, ou le lien ne répond pas).",
+    "es": "{n} no se pudo revisar (la grabación o el vídeo no está en este dispositivo, o el enlace no responde).|{n} no se pudieron revisar (la grabación o el vídeo no está en este dispositivo, o el enlace no responde)."
+  },
+  "Check {n} recording|Check {n} recordings": {
+    "fr": "Vérifier {n} enregistrement|Vérifier {n} enregistrements",
+    "es": "Revisar {n} grabación|Revisar {n} grabaciones"
+  },
+  "Nothing to check": {
+    "fr": "Rien à vérifier",
+    "es": "Nada que revisar"
   }
 }

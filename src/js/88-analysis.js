@@ -32,7 +32,8 @@ function analysisView() {
       h('p', { class: 'muted' }, t('These features run an AI model inside your browser, on this device. They are off until you turn them on. Turning one on downloads its model straight away (you see the size first), and the rest of the app works the same without them. These switches apply to this device only.')),
       h('div', { class: 'card' }, h('h3', null, t('This device')), h('p', { class: 'small muted' }, dev)),
       ids.filter((id) => !Heavy.spec(id).parent).map(group),
-      libraryCard(draw));
+      libraryCard(draw),
+      takesCard());
   };
   draw();
   Heavy.refreshDevice().then(() => { if (box.isConnected) draw(); });
@@ -56,6 +57,26 @@ function libraryCard(redraw) {
       j.error ? h('p', { class: 'small warn' }, j.error) : null,
       !ready ? h('p', { class: 'small muted' }, t('Wait for the pronunciation model to finish downloading first.')) : null,
       h('div', { class: 'row' }, j.running ? btn(t('Stop'), () => Rank.stopLibrary(), { size: 'sm' }) : btn(missing > 0 ? tp(missing, 'Prepare {n} clip', 'Prepare {n} clips') : t('Nothing to prepare'), () => Rank.prepareLibrary(), { kind: 'primary', size: 'sm', disabled: !ready || missing <= 0 })));
+  };
+  paint();
+  const off = Rank.onChange(() => { if (box.isConnected) paint(); else off(); });
+  return box;
+}
+
+/* "Check my past recordings": the same comparison, run afterwards on takes recorded while Pronunciation analysis was off (28-rank.js, Rank.prepareTakes) */
+function takesCard() {
+  if (!Heavy.isOn('pronunciation')) return null;
+  const box = h('div', { class: 'card' });
+  const paint = () => {
+    const c = Rank.takeCounts(), j = Rank.tjob, ready = Pron.on();
+    mount(box,
+      h('h3', null, t('Check my past recordings')),
+      h('p', { class: 'small' }, t('Recordings made while Pronunciation analysis was off have no sound differences yet. This runs the same comparison on them now, against the speaker’s audio, one at a time in the background, and files each under the day you recorded it. Your recordings are not changed. Like the rest, the results are a computer’s guesses.')),
+      h('p', { class: 'small muted', role: 'status' }, j.running ? t('Working: {done} of {total} done. It pauses while you record or play a video.', { done: j.done, total: j.total }) : (c.waiting ? tp(c.waiting, '{n} recording is waiting to be checked.', '{n} recordings are waiting to be checked.') : t('All your recordings have been checked.')) + (c.failed ? ' ' + tp(c.failed, '{n} couldn’t be checked (the recording or the video isn’t on this device, or the link is down).', '{n} couldn’t be checked (the recording or the video isn’t on this device, or the link is down).') : '')),
+      j.running ? h('div', { class: 'pv-prog', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': j.total, 'aria-valuenow': j.done }, h('i', { style: { width: (j.total ? Math.round((j.done / j.total) * 100) : 0) + '%' } })) : null,
+      j.error ? h('p', { class: 'small warn' }, j.error) : null,
+      !ready ? h('p', { class: 'small muted' }, t('Wait for the pronunciation model to finish downloading first.')) : null,
+      h('div', { class: 'row' }, j.running ? btn(t('Stop'), () => Rank.stopTakes(), { size: 'sm' }) : btn(c.waiting > 0 ? tp(c.waiting, 'Check {n} recording', 'Check {n} recordings') : t('Nothing to check'), () => Rank.prepareTakes(), { kind: 'primary', size: 'sm', disabled: !ready || c.waiting <= 0 })));
   };
   paint();
   const off = Rank.onChange(() => { if (box.isConnected) paint(); else off(); });
