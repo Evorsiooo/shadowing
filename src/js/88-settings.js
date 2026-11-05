@@ -131,7 +131,7 @@ function advancedView() {
 }
 
 function youView() {
-  return h('div', { class: 'stack' }, profileView(), lookView());
+  return h('div', { class: 'stack' }, profileView(), aboutCard(), lookView());
 }
 function dataTabView() {
   return h('div', { class: 'stack' }, storageView(), dataView());

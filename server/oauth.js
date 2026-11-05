@@ -418,7 +418,7 @@ function consentPage(requestId, client, redirectUri, auth, env, lang = 'en') {
     <p>${T('{app}{calls} wants to read your Euno Shadowing practice data.', { app: `<strong>${esc(appName)}</strong>`, calls })}</p>
     <ul>
       <li>${esc(T('Your clips, sessions, notes, issues, check-ins and settings'))}</li>
-      <li>${esc(T('Read only: it can’t change or delete anything'))}</li>
+      <li>${esc(T('Read only, except short notes about you that it can add or remove'))}</li>
       <li>${esc(T('Not your recordings, AI keys or Discord webhook'))}</li>
     </ul>
     <p class="small">${T('Signed in as {email}. After you choose, you’ll go back to {host}.', { email: `<!--email_off-->${esc(auth.email)}<!--/email_off-->`, host: `<strong>${esc(app.host)}</strong>` })}${app.loopback ? ` ${esc(T('Only allow this if you just started connecting an app on this computer.'))}` : ''} ${esc(T('You can disconnect it any time in Settings → Connections.'))}</p>

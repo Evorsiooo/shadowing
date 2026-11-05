@@ -58,7 +58,7 @@ Everything except `POST /api/support` needs a signed-in user, and every query is
 
 ### MCP tools
 
-All read-only and scoped to the signed-in user: `get_overview`, `list_records`, `get_record`, `search`, `fetch`, `get_pronunciation_progress`, `get_clip_pronunciation`. See [docs/MCP.md](docs/MCP.md).
+Scoped to the signed-in user and read-only, except two that add or remove short notes about the learner (`save_about_learner`, `forget_about_learner`): `get_overview`, `get_progress`, `get_about_learner`, `list_records`, `get_record`, `search`, `fetch`, `get_pronunciation_progress`, `get_clip_pronunciation`. See [docs/MCP.md](docs/MCP.md).
 Per-user limits (practice data size, AI calls, key checks, Drive tokens, contact form) are listed in [docs/SPEC.md](docs/SPEC.md#limits).
 
 ## Setting it up

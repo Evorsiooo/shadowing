@@ -53,7 +53,7 @@ const make = ({ SITE, L, host }) => ({
     ['Can I paste a YouTube link?', 'No. Euno does not fetch videos from YouTube or other sites. You need a file you have the right to use, either uploaded from your device or a direct link to an .mp4. If you want to practise with a YouTube video, a browser extension such as Language Reactor works on the page itself; Euno is for cutting a clip from a file you have and comparing your voice with the speaker’s.'],
     ['Does Euno come with lessons, videos or transcripts?', 'No. You shadow your own videos: upload a file from your device or paste a direct link to an .mp4 (not a YouTube link), then cut the clips you want to practise. Euno has no lesson library, subtitles or transcripts of its own. It runs the shadowing routine on your clips and compares your voice with the speaker’s.'],
     ['Do I need an AI key?', 'No. Everything works without one. With a key from Anthropic, OpenAI or OpenRouter, you can ask Euno about a sound, your notes or your practice inside the app. Without a key, notes give you a prompt to paste into any chatbot.'],
-    ['Can I connect Claude, ChatGPT or Gemini?', 'Yes, optionally. In Settings → Connections you can link Claude, ChatGPT or Gemini to your own practice data through MCP. They can read your notes, sessions and pronunciation history, and nothing else: they cannot change anything and never receive audio.'],
+    ['Can I connect Claude, ChatGPT or Gemini?', 'Yes, optionally. In Settings → Connections you can link Claude, ChatGPT or Gemini to your own practice data through MCP. They can read your notes, sessions and pronunciation history, and nothing else: the only thing they can change is the short notes about you under Settings → You, which you can edit or delete. They never receive audio.'],
     ['Do I need a microphone?', 'Yes, for recording passes and check-ins. A headset or earphones help, so the speaker’s voice doesn’t leak into your recording.'],
   ],
   home: {
@@ -113,7 +113,7 @@ const make = ({ SITE, L, host }) => ({
       ]],
       ['Your AI key, your AI apps', [
         'Bring a key from Anthropic, OpenAI or OpenRouter only if you want Ask Euno. Your key is encrypted on our server and never shown again, not even to you.',
-        'You can also connect Claude, ChatGPT or Gemini to your own practice data, read-only, to ask them about your progress. They never receive audio and cannot change anything.',
+        'You can also connect Claude, ChatGPT or Gemini to your own practice data, to ask them about your progress. They can read it and add short notes about you (which you can delete), nothing else, and never receive audio.',
       ]],
     ],
     limitsH2: 'What it does not do',

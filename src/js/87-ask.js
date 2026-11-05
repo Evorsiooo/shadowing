@@ -72,7 +72,10 @@ async function askSend(text) {
   if (UI.askOpen) openAsk();
   try {
     const r = await Api.req('POST', '/api/ai/chat', { messages: msgs.filter((m) => m.role === 'user' || m.role === 'assistant').map((m) => ({ role: m.role, text: m.text })), context: askContext(), knowledge: notes.map((e) => Know.render(e)), profile: profileForAI() });
-    askSave([...askDoc().messages, { role: 'assistant', text: r.text, at: new Date().toISOString() }]);
+    // things the learner just told Euno about themselves are saved (16-about.js) and shown under the answer, where they can be undone
+    let saved = [];
+    try { saved = (await About.add(r.remember || [], 'euno')).map((f) => ({ id: f.id, text: f.text })); } catch { /* the answer still shows */ }
+    askSave([...askDoc().messages, { role: 'assistant', text: r.text, at: new Date().toISOString(), ...(saved.length ? { saved } : {}) }]);
   } catch (e) {
     Ask.error = t('Euno couldn’t answer: {error}', { error: e.message || 'error' });
   }
@@ -82,6 +85,14 @@ async function askSend(text) {
 
 /* Ask Euno opens as a panel over whatever is on screen, so nothing underneath is lost; the X (or Escape) closes it
    and you are exactly where you were. The messages scroll; the box to type in stays at the bottom. */
+/* "Saved about you" under an answer: what Euno kept from this message, with a way to take it back */
+function savedRows(m) {
+  const facts = (m.saved || []).filter((f) => About.facts().some((x) => x.id === f.id));
+  if (!facts.length) return null;
+  return h('div', { class: 'saved-about' }, facts.map((f) => h('div', { class: 'saved-row' },
+    h('span', { class: 'small muted grow' }, t('Saved about you: {fact}', { fact: f.text })),
+    btn(t('Undo'), async () => { await About.remove(f.id); openAsk(); }, { size: 'sm', kind: 'ghost' }))));
+}
 function openAsk() {
   const msgs = askDoc().messages;
   const canAsk = Store.mode === 'cloud' && !!Api.ai;
@@ -98,7 +109,7 @@ function openAsk() {
   const log = h('div', { class: 'ask-log', 'aria-live': 'polite' },
     msgs.map((m) => (m.role === 'say' ? sayRow(m) : m.role === 'user'
       ? h('div', { class: 'msg you' }, m.text)
-      : h('div', { class: 'msg-row' }, eunoLogo('logo'), h('div', { class: 'msg euno-says' }, m.text)))),
+      : h('div', { class: 'msg-row' }, eunoLogo('logo'), h('div', { class: 'msg euno-says' }, m.text, savedRows(m))))),
     Ask.busy ? h('div', { class: 'msg-row' }, eunoLogo('logo'), h('div', { class: 'msg euno-says muted' }, t('Thinking…'))) : null,
     Ask.error ? h('p', { class: 'formerr' }, Ask.error) : null,
     sayLogExtras(),

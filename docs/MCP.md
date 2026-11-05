@@ -27,10 +27,14 @@ A lookalike site can't register, so it can't send someone a consent link that en
 
 ## Tools
 
-All tools are marked read-only (`readOnlyHint`). They never return the `private` table (Discord webhook, AI keys, Drive tokens), and recordings stay on the user's device and Drive.
+All tools are read-only (`readOnlyHint`) except `save_about_learner` and `forget_about_learner`, which only add or remove short facts about the learner (`meta/about`, shown and editable in Settings → You; up to 30 facts of 200 characters). They never return the `private` table (Discord webhook, AI keys, Drive tokens), and recordings stay on the user's device and Drive.
 
 | Tool | What it returns |
 |-|-|
+| `get_progress` | Has the learner improved: first vs latest takes (lag, differences per clip), each tracked sound and timing/pitch/stress in the first vs last two weeks, check-ins. Ask Euno gets the same figures. |
+| `get_about_learner` | The profile and the short facts saved about who the learner is |
+| `save_about_learner` | Adds one short fact the learner just said about themselves (write) |
+| `forget_about_learner` | Removes one saved fact by id (write) |
 | `get_overview` | Streak, this week, minutes, clips, open issues, check-ins, lag by week, recent sessions, settings |
 | `list_records` | One collection, newest first, with an optional exact-match filter. Pitch arrays are shortened unless `full` is set. |
 | `get_record` | One record in full |

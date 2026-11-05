@@ -1,8 +1,11 @@
-// The per-user MCP server's tools (Streamable HTTP, stateless JSON responses). Every tool is read-only
-// and every query is scoped to the signed-in user's id. It never sees the `private` table (Discord
+// The per-user MCP server's tools (Streamable HTTP, stateless JSON responses). Every tool is read-only except
+// save_about_learner / forget_about_learner, which only add or remove short facts about the learner (server/about.js).
+// Every query is scoped to the signed-in user's id. It never sees the `private` table (Discord
 // webhook, AI keys, Drive tokens), and recordings stay on the user's device and Drive.
 import { COLLECTIONS, validCol, validId } from './util.js';
 import { allDocs, getDoc } from './store.js';
+import { progressBrief } from './progress.js';
+import { readFacts, addFacts, removeFact, cleanFact, MAX_FACTS, MAX_FACT_LENGTH } from './about.js';
 
 const PROTOCOLS = ['2025-11-25', '2025-06-18', '2025-03-26', '2024-11-05'];
 const SERVER_INFO = { name: 'euno-shadowing', title: 'Euno Shadowing', version: '1.0.0' };
@@ -63,7 +66,7 @@ async function handle(m, ctx) {
 }
 
 const INSTRUCTIONS = `Euno Shadowing: the user's accent practice by shadowing (repeating a speaker a fraction of a second behind).
-This server is read-only and shows only the signed-in user's own data, stored as JSON records in collections: ${COLLECTIONS.join(', ')}.
+This server shows only the signed-in user's own data and is read-only, with one exception: save_about_learner and forget_about_learner add or remove short facts about the learner (level, goals, background, how they like to practise). The data is stored as JSON records in collections: ${COLLECTIONS.join(', ')}.
 - videos {title, url, speaker, archived, added}
 - clips {videoId, start, end, label, sentence?, done, doneAt, archived, noisy, model{...pitch and timing measures}, words? [{w, s, e}] (the speaker's words, seconds from the clip start), speakerPhones? (the speaker's sounds)}
 - sessions {date, clipId, videoId, mode: full|badday|review, stepsCompleted[], passes[{step, n, lag, recorded, recId}], minutes, complete}
@@ -71,9 +74,9 @@ This server is read-only and shows only the signed-in user's own data, stored as
 - notes {clipId, sessionId, sentence, off (what sounded off), aim, reply (AI feedback), issueId, date}
 - issues {name, noteIds[], status: open|fixed, lastSeen, mergedInto?}
 - checkins {week: 0|4|8|12, date, recs, questions[], measures}
-- meta: settings (routine settings and target accent profile), app, voice; pron (sound-level history) and prosody (timing/pitch/stress history), best read through get_pronunciation_progress
+- meta: settings (routine settings and target accent profile), about (short facts about the learner, best read through get_about_learner), app, voice; pron (sound-level history) and prosody (timing/pitch/stress history), best read through get_pronunciation_progress
 Lag is in seconds (positive = behind the speaker). Pitch lines ("st") are semitones relative to the speaker's own median, at 10 ms hops.
-Start with get_overview. Use get_clip_pronunciation for the speaker's and the learner's sounds and words per clip and per take. Use get_pronunciation_progress for how the learner's pronunciation differences are changing over time. Use search to find notes, issues, clips and videos by text.`;
+Start with get_overview, get_progress for whether they have improved (first against recent takes), and get_about_learner to learn who they are. When the learner tells you something lasting about themselves that would help coaching, call save_about_learner (only what they said, never guesses; the learner sees and can delete every fact in the app). Use get_clip_pronunciation for the speaker's and the learner's sounds and words per clip and per take. Use get_pronunciation_progress for how the learner's pronunciation differences are changing over time. Use search to find notes, issues, clips and videos by text.`;
 
 const colProp = { type: 'string', enum: COLLECTIONS, description: 'Collection name' };
 
@@ -85,6 +88,54 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     annotations: { title: 'Practice overview', ...READ_ONLY },
     run: async (_a, { env, user }) => overview(await allDocs(env.DB, user.userId)),
+  },
+  {
+    name: 'get_progress',
+    title: 'Progress since the start',
+    description: 'Has the learner improved? Their first against their most recent takes: timing (lag) behind the speaker, the differences from the speaker per clip they practised more than once, each tracked sound flagged in the first two weeks against the last two weeks, timing/pitch/stress tallies the same way, check-ins, and practice totals. Measurements saved with each take, not audio; use "may". Ask Euno inside the app is given the same figures.',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    annotations: { title: 'Progress since the start', ...READ_ONLY },
+    run: async (_a, { env, user }) => progressBrief(await allDocs(env.DB, user.userId)),
+  },
+  {
+    name: 'get_about_learner',
+    title: 'What is known about the learner',
+    description: 'The short facts saved about who the learner is (level, goals, background, preferences), plus the profile they filled in: native languages, target language and accent, and their own free-text notes. Facts come from the learner’s chats with Euno and with AI apps; they can edit or delete any of them in the app.',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    annotations: { title: 'What is known about the learner', ...READ_ONLY },
+    run: async (_a, { env, user }) => {
+      const [facts, settings] = await Promise.all([readFacts(env.DB, user.userId), getDoc(env.DB, user.userId, 'meta', 'settings')]);
+      const p = (settings && settings.profile) || {};
+      return {
+        profile: { name: p.name || null, nativeLanguages: p.nativeLanguages || null, targetLanguage: p.targetLanguage || 'en', accent: p.accent === 'other' ? p.accentOther || null : p.accent || null, ownNotes: p.notes || null },
+        facts: facts.map((f) => ({ id: f.id, fact: f.text, saved: f.at, by: f.by })),
+      };
+    },
+  },
+  {
+    name: 'save_about_learner',
+    title: 'Remember something about the learner',
+    description: `Save one short fact the learner just told you about themselves, so Euno and their other AI apps know it next time: their level, goals, background, how they like to practise, what is hard for them. Write it in the third person, one sentence (up to ${MAX_FACT_LENGTH} characters), for example "Is C2 in English except for speaking." Only save what the learner actually said, never your guesses, and nothing sensitive such as health, finances or passwords. The learner sees every saved fact in the app and can delete it. At most ${MAX_FACTS} are kept.`,
+    inputSchema: { type: 'object', properties: { fact: { type: 'string', maxLength: MAX_FACT_LENGTH, description: 'One short sentence about the learner' } }, required: ['fact'], additionalProperties: false },
+    annotations: { title: 'Remember something about the learner', readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    run: async (a, { env, user }) => {
+      const text = cleanFact(a.fact);
+      if (text.length < 3) throw new Error('Send one short sentence about the learner.');
+      const { facts, added } = await addFacts(env.DB, user.userId, [text], 'ai');
+      return { saved: added.length ? added[0].id : null, alreadyKnown: !added.length, count: facts.length };
+    },
+  },
+  {
+    name: 'forget_about_learner',
+    title: 'Forget a saved fact about the learner',
+    description: 'Remove one saved fact, by the id from get_about_learner, for example when the learner says it is no longer true.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'], additionalProperties: false },
+    annotations: { title: 'Forget a saved fact', readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+    run: async (a, { env, user }) => {
+      if (!validId(a.id)) throw new Error('Use an id from get_about_learner.');
+      const { removed } = await removeFact(env.DB, user.userId, a.id);
+      return { removed };
+    },
   },
   {
     name: 'get_pronunciation_progress',
