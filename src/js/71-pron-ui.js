@@ -75,11 +75,12 @@ function pronCard(clip, R) {
   return wrap;
 }
 
-/* Drill this: the speaker's snippet three times to shadow, the last one recorded, then both to compare by ear. No score. */
+/* Drill this: the speaker's snippet three times to shadow, the last one recorded and compared with the speaker's audio.
+   The result (not flagged / flagged again / couldn't check) is kept on the account. A recogniser can be wrong, so it says so. */
 function openDrill(clip, d) {
   const [a, b] = Pron.snippet(clip, d);
   const PASSES = 3;
-  let n = 0, stopped = false, mine = null, recorder = null;
+  let n = 0, stopped = false, mine = null, recorder = null, verdict = null, checking = false;
   const body = h('div', { class: 'stack' });
   const stopAll = () => {
     stopped = true;
@@ -92,13 +93,28 @@ function openDrill(clip, d) {
     au.onended = () => then && then();
     au.play().catch(() => {});
   };
+  const verdictView = () => {
+    if (checking) return h('p', { role: 'status', class: 'small muted' }, t('Comparing your take with the speaker…'));
+    if (!verdict) return null;
+    const v = verdict, name = soundName(d.from);
+    const text = v.result === 'clear' ? t('This time {a} wasn’t flagged: the computer didn’t hear it come out as another sound.', { a: name })
+      : v.result === 'still' ? t('{a} was flagged again: the computer still heard {b} where the speaker has {a}.', { a: name, b: soundName(d.to) })
+      : t('Couldn’t check this one: {why}', { why: v.why || '' });
+    const hist = Pron.drillLine(Pron.pairOf(d));
+    return h('div', { class: 'card', role: 'status' },
+      h('strong', null, v.result === 'clear' ? t('Not flagged this time') : v.result === 'still' ? t('Flagged again') : t('Not checked')),
+      h('p', { class: 'small' }, text),
+      v.others && v.others.length ? h('p', { class: 'small muted' }, t('Also flagged: {list}.', { list: v.others.map((x) => `${soundName(x.from)} → ${soundName(x.to)}`).join(', ') })) : null,
+      hist ? h('p', { class: 'small muted' }, hist) : null,
+      h('p', { class: 'small muted' }, t('Not exact: one short try, judged by a computer that can be wrong. Play both and decide for yourself.')));
+  };
   const draw = (state) => {
     const phones = h('div', { class: 'stack' }, phoneRow(t('Speaker'), d.speaker, d.from), phoneRow(t('You'), d.you, d.to));
     if (state === 'running') {
       mount(body, phones, h('p', { role: 'status' }, h('strong', null, t('Pass {n} of {total}', { n, total: PASSES })), ' ',
         n === PASSES ? t('Shadow along. This one is recorded.') : t('Shadow along with the speaker.')));
     } else if (state === 'done') {
-      mount(body, phones,
+      mount(body, phones, verdictView(),
         h('p', null, mine ? t('Hear any difference?') : t('Done. Hear any difference between how you sound and the speaker?')),
         h('div', { class: 'row' },
           btn(t('Speaker'), () => playSnippetOriginal(clip, a, b), { size: 'sm', icon: 'play' }),
@@ -106,14 +122,26 @@ function openDrill(clip, d) {
           mine ? btn(t('Speaker then mine'), () => playSnippetOriginal(clip, a, b, () => setTimeout(() => playMineBlob(), 300)), { size: 'sm' }) : null,
           btn(t('Again'), () => run(), { size: 'sm', kind: 'blue', icon: 'replay' })));
     } else {
+      const prior = Pron.drillLine(Pron.pairOf(d));
       mount(body, phones,
-        h('p', { class: 'small muted' }, t('The speaker’s snippet ({a}–{b} s) plays {n} times. Shadow it; the last time is recorded. Headphones on.', { a: fmtNum(a, 1), b: fmtNum(b, 1), n: PASSES })),
+        h('p', { class: 'small muted' }, t('The speaker’s snippet ({a}–{b} s) plays {n} times. Shadow it; the last time is recorded and compared with the speaker. Headphones on.', { a: fmtNum(a, 1), b: fmtNum(b, 1), n: PASSES })),
+        prior ? h('p', { class: 'small muted' }, prior) : null,
         btn(t('Start'), () => run(), { kind: 'primary', icon: 'play' }));
     }
   };
+  const check = async (r) => {
+    verdict = null; checking = true; draw('done');
+    let res;
+    try { res = await Pron.drillCheck(clip, d, a, b, r.samples); } catch (e) { res = { result: 'unclear', why: Pron.reason(e) }; }
+    if (stopped) return;
+    try { await Pron.recordDrill(clip, d, res, r.blob); } catch (e) { console.warn('drill not saved', e); }
+    verdict = res; checking = false;
+    if (!stopped) draw('done');
+  };
   const run = async () => {
-    stopped = false; mine = null;
+    stopped = false; mine = null; verdict = null; checking = false;
     stopReviewPlayback();
+    let take = null;
     for (n = 1; n <= PASSES && !stopped; n++) {
       if (n === PASSES && (await Mic.open().catch(() => false))) { recorder = new Recording(); recorder.start(); }
       draw('running');
@@ -123,11 +151,14 @@ function openDrill(clip, d) {
         await sleep(500);
         const r = await recorder.stop();
         recorder = null;
-        if (r.blob && r.blob.size) mine = URL.createObjectURL(r.blob);
+        if (r.blob && r.blob.size) { mine = URL.createObjectURL(r.blob); take = r; }
       }
       await sleep(700);
     }
-    if (!stopped) draw('done');
+    if (stopped) return;
+    draw('done');
+    if (take) check(take);
+    else { verdict = { result: 'unclear', why: t('No recording was made (is the microphone allowed?).') }; draw('done'); }
   };
   draw('ready');
   openModal([modalHead(t('Drill this'), itemLabel(d)), body], { narrow: true, onClose: stopAll });
@@ -229,6 +260,7 @@ function pronSeenView(redraw) {
         state === 'archived' ? h('span', { class: 'issue-pill' }, t('gone quiet')) : null),
       h('p', { class: 'small muted' }, t('Flagged on {days} and {clips}, in {flagged} of {occurred} places where the speaker has that sound.', { days: tp(e.days.length, '{n} day', '{n} days'), clips: tp(e.clips.length, '{n} clip', '{n} clips'), flagged, occurred })),
       trendLine(trend) ? h('p', { class: 'small muted' }, trendLine(trend)) : null,
+      Pron.drillLine(pair) ? h('p', { class: 'small muted' }, Pron.drillLine(pair)) : null,
       examplesLine(e) ? h('p', { class: 'small muted' }, examplesLine(e)) : null,
       h('div', { class: 'row' },
         recurring && note ? btn(t('Open note'), () => {

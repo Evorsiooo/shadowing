@@ -6,7 +6,7 @@ The engine is the global `Phones` (contract: `src/phones/contract.d.ts`). `src/j
 saved on the recording as `phones`: `{ v, diffs: [{ a, b, words, speaker, you, from, to, conf }], sounds }`.
 Until the engine is in the build, `PronMock` supplies demo data, only with `?pronmock=1` or `localStorage.euno_pronmock = '1'`.
 
-Where it shows: review card after a recorded pass (max 3, Speaker/You snippets, Drill this, "Sounds the same to me"),
+Where it shows: review card after a recorded pass (max 3, Speaker/You snippets, Drill this (the recorded last pass is compared with the speaker audio for that stretch; result saved as a `drill` recording + `meta/pron.drills`, not added to the tally), "Sounds the same to me"),
 the start of a note ("From this take"), step 3 vs final, one line in the end-of-session popup (only for a difference in both
 recordings), Progress → Issues ("Seen across sessions"), the step 4 "Today's focus" line, and the AI prompt.
 
