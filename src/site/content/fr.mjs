@@ -31,7 +31,6 @@ const make = ({ SITE, L, host }) => ({
   },
   example: {
     aria: 'Exemple de l’onglet Prononciation : dans la phrase « I think this is the one », « think » et « this » sont signalés. Pour « think », le locuteur dit « think » avec le son « th » et tu as dit un « s », donc ça a donné « sink ».',
-    tag: 'Ce qu’Euno te montre',
     sentence: 'I <mark>think</mark> <mark>this</mark> is the one.',
     word: 'think',
     speaker: 'Locuteur',
@@ -39,7 +38,6 @@ const make = ({ SITE, L, host }) => ({
     speakerSound: 'th',
     youSound: 's',
     note: 'Le locuteur dit « think » avec un « th », comme dans « thin ». Toi, tu as dit un « s », donc ça a donné « sink ».',
-    more: 'Écoute le locuteur, puis toi, et entends la différence.',
   },
   faq: [
     ['C’est quoi le shadowing ?', `Faire du shadowing, c’est parler en même temps qu’un enregistrement, en copiant le rythme, la mélodie et les sons du locuteur d’aussi près que possible. Ça entraîne ta façon de parler, pas seulement ta compréhension. <a href="${L('/what-is-shadowing/')}">Lire le guide complet</a>.`],
@@ -67,10 +65,8 @@ const make = ({ SITE, L, host }) => ({
     lede: 'Euno Shadowing est une application web gratuite pour travailler ton accent. Découpe un court extrait d’une vidéo de quelqu’un dont tu veux l’accent, parle en même temps que lui pendant quinze minutes, et Euno compare ton enregistrement à l’audio du locuteur et signale les sons qui diffèrent.',
     cta: 'Commencer avec Google',
     how: 'Comment ça marche',
-    fine: 'Entièrement gratuit : pas d’abonnement, pas d’offre payante, pas de carte bancaire. Dans ton navigateur. La comparaison des sons n’existe qu’en anglais, et en bêta. Tes fichiers vont dans ton propre Google Drive, pas sur notre serveur.',
-    caption: 'Un exemple de l’onglet Prononciation, dessiné pour cette page. Ce n’est pas un vrai enregistrement.',
     howH2: 'Une séance, du début à la fin',
-    howIntro: 'Chaque séance porte sur un extrait d’une ou deux phrases. Euno le passe en boucle, compte tes passages et gère le temps : tu n’as plus qu’à écouter et parler.',
+    howIntro: 'Chaque séance porte sur un extrait d’une ou deux phrases.',
     steps: [
       ['Écouter', '2 min.', 'Écoute l’extrait trois fois sans parler. Repère le rythme et les endroits où la voix monte et descend.'],
       ['Faire du shadowing', '7 min.', 'Parle en même temps que le locuteur, environ 15 passages, sans transcription. Copie tout : rythme, mélodie et sons.'],
@@ -79,7 +75,7 @@ const make = ({ SITE, L, host }) => ({
     ],
     after: 'Pas le temps ? Le mode jour sans propose une version de cinq minutes, pour ne jamais sauter un jour. Chaque durée et chaque nombre de passages se règle.',
     soundsH2: 'Tes sons, face à ceux du locuteur',
-    soundsIntro: 'Voilà ce que fait l’onglet Prononciation après une passe enregistrée. Il n’existe qu’en anglais, en bêta, et il est désactivé tant que tu ne l’actives pas dans Réglages → Analyse (un téléchargement unique d’environ 71 Mo). Il fonctionne sur ton appareil, et ton enregistrement n’est pas envoyé pour cela.',
+    soundsIntro: 'Voilà ce que fait l’onglet Prononciation après une passe enregistrée. Il est désactivé tant que tu ne l’actives pas dans Réglages → Analyse (un téléchargement unique d’environ 71 Mo). Il fonctionne sur ton appareil, et ton enregistrement n’est pas envoyé pour cela.',
     soundsPoints: [
       '<strong>Comparé au locuteur, pas à un manuel.</strong> Euno aligne les sons de ton enregistrement sur ceux de l’audio du locuteur. Il n’utilise ni transcription ni accent standard : la cible, c’est la personne que tu as choisie.',
       '<strong>Jusqu’à trois endroits par passe.</strong> Les mots sont marqués dans la phrase. Ouvre-en un pour voir le son du locuteur et le tien.',
@@ -87,12 +83,10 @@ const make = ({ SITE, L, host }) => ({
       '<strong>Pas de note, et il peut se tromper.</strong> C’est un ordinateur qui écoute. Il peut mal interpréter un son, ou ne rien montrer sur un extrait bruyant : tu décides à l’oreille, et tu peux écarter chaque élément avec « Ça sonne pareil pour moi ».',
     ],
     whatH2: 'Tu choisis le locuteur. Euno gère l’entraînement.',
-    whatIntro: 'Euno Shadowing est un outil d’entraînement, pas un cours : il n’y a pas de leçons à suivre. La voix que tu imites est celle que tu as choisie, et la comparaison se fait avec elle.',
     whatPanels: [
       ['Tes extraits, ton locuteur', [
         'Importe un fichier vidéo ou audio, ou colle un lien vers un .mp4, puis découpe un extrait d’une ou deux phrases.',
         'Choisis le locuteur dont tu veux l’accent : un invité d’interview, un podcasteur, quelqu’un que tu admires.',
-        'Pas de leçons, de sous-titres ni de transcriptions intégrés. Euno apporte la routine, le chronomètre, l’enregistrement et la comparaison.',
       ]],
       ['Demander à Euno, si tu veux', [
         'Pose une question sur un son, tes notes ou ton entraînement, directement dans l’app. Euno connaît tes notes et ce que l’ordinateur a signalé récemment. Il n’a pas entendu ta voix, donc il peut se tromper.',
@@ -115,16 +109,13 @@ const make = ({ SITE, L, host }) => ({
         'Les vidéos et les enregistrements de ta voix vont dans un dossier « Euno Shadowing » de ton propre Google Drive, pour que tu les retrouves sur tous tes appareils.',
         'L’app ne voit que les fichiers qu’elle y range, et notre serveur ne les stocke jamais.',
         'Notre serveur ne garde que tes notes d’entraînement, tes réglages et tes progrès, que tu peux exporter ou supprimer quand tu veux.',
-        'La comparaison des sons en anglais est calculée dans ton navigateur : ton enregistrement n’est pas envoyé pour cela.',
       ]],
       ['Ta clé d’IA, tes apps d’IA', [
         'Apporte une clé Anthropic, OpenAI ou OpenRouter seulement si tu veux Demander à Euno. Ta clé est chiffrée sur notre serveur et n’est plus jamais affichée, même pas à toi.',
         'Tu peux aussi connecter Claude, ChatGPT ou Gemini à tes propres données d’entraînement, en lecture seule, pour leur poser des questions sur tes progrès. Ils ne reçoivent jamais d’audio et ne peuvent rien modifier.',
-        'Pas de clé et pas d’app d’IA ? Tout le reste fonctionne pareil.',
       ]],
     ],
     limitsH2: 'Ce qu’il ne fait pas',
-    limitsIntro: 'Pour que tu le saches avant de te connecter.',
     limits: [
       ['Pas de leçons ni de bibliothèque.', 'Tu apportes les vidéos. Euno n’a ni cours, ni extraits prêts à l’emploi, ni sous-titres, ni transcriptions.'],
       ['Pas de note.', 'Rien ne dit juste ou faux. Il montre où tes sons, ton rythme et ta mélodie diffèrent de ceux du locuteur, et un ordinateur peut se tromper.'],

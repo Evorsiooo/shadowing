@@ -32,7 +32,6 @@ const make = ({ SITE, L, host }) => ({
   },
   example: {
     aria: 'Example of the Pronunciation tab: in the sentence “I think this is the one”, “think” and “this” are marked. The speaker says “think” with the “th” sound and you said an “s”, so it came out like “sink”.',
-    tag: 'What Euno shows you',
     sentence: 'I <mark>think</mark> <mark>this</mark> is the one.',
     word: 'think',
     speaker: 'Speaker',
@@ -40,7 +39,6 @@ const make = ({ SITE, L, host }) => ({
     speakerSound: 'th',
     youSound: 's',
     note: 'The speaker says “think” with a “th”, as in “thin”. You said an “s”, so it came out like “sink”.',
-    more: 'Play the speaker, then yourself, and hear the difference.',
   },
   faq: [
     ['What is shadowing?', `Shadowing means speaking along with a recording at the same time as the speaker, copying their rhythm, melody and sounds as closely as you can. It trains the way you speak, not just the way you understand. <a href="${L('/what-is-shadowing/')}">Read the full guide</a>.`],
@@ -68,10 +66,8 @@ const make = ({ SITE, L, host }) => ({
     lede: 'Euno Shadowing is a free web app for accent practice. Cut a short clip from a video of someone whose accent you want, speak along with it for fifteen minutes, and Euno compares your recording with the speaker’s audio and marks the sounds that differ.',
     cta: 'Start practising with Google',
     how: 'How it works',
-    fine: 'Completely free: no subscription, no paid plan, no card. Runs in your browser. The sound comparison is English only, and a beta. Your files go to your own Google Drive, not our server.',
-    caption: 'An example of the Pronunciation tab, drawn for this page. Not a real recording.',
     howH2: 'A session, start to finish',
-    howIntro: 'Each session works on one clip of one or two sentences. Euno loops it, counts your passes and keeps the time, so all you do is listen and speak.',
+    howIntro: 'Each session works on one clip of one or two sentences.',
     steps: [
       ['Listen', '2 min.', 'Hear the clip three times without speaking. Notice the rhythm and where the voice rises and falls.'],
       ['Shadow', '7 min.', 'Speak along with the speaker, about 15 passes, no transcript. Copy everything: rhythm, melody and sounds.'],
@@ -80,7 +76,7 @@ const make = ({ SITE, L, host }) => ({
     ],
     after: 'Short on time? Bad-day mode runs a five-minute version, so you never have to skip a day. Every duration and pass count is a setting.',
     soundsH2: 'Your sounds, set against the speaker’s',
-    soundsIntro: 'This is what the Pronunciation tab does after a recorded pass. It is English only, a beta, and off until you turn it on in Settings → Analysis, a one-time download of about 71 MB. It runs on your device, and your recording is not uploaded for it.',
+    soundsIntro: 'This is what the Pronunciation tab does after a recorded pass. It is off until you turn it on in Settings → Analysis, a one-time download of about 71 MB, and it runs on your device. Your recording is not uploaded for it.',
     soundsPoints: [
       '<strong>Compared with the speaker, not a rulebook.</strong> Euno lines up the sounds in your recording with the sounds in the speaker’s audio. It uses no transcript and no standard accent, so the target is the person you chose.',
       '<strong>Up to three places per pass.</strong> The words are marked in the sentence. Open one to see the speaker’s sound and yours.',
@@ -88,12 +84,10 @@ const make = ({ SITE, L, host }) => ({
       '<strong>No score, and it can be wrong.</strong> A computer is listening. It can misread a sound, or show nothing on a noisy clip, so you decide by ear, and you can dismiss any item with “Sounds the same to me”.',
     ],
     whatH2: 'You pick the speaker. Euno runs the practice.',
-    whatIntro: 'Euno Shadowing is a practice tool, not a course, so there are no lessons to follow. The voice you copy is one you chose, and the comparison is against that voice.',
     whatPanels: [
       ['Your clips, your speaker', [
         'Upload a video or audio file, or paste a link to an .mp4, then cut a clip of one or two sentences.',
         'Pick any speaker whose accent you want: an interviewee, a podcaster, a speaker you admire.',
-        'There are no built-in lessons, subtitles or transcripts. The routine, the timer, the recording and the comparison are what Euno adds.',
       ]],
       ['Ask Euno, if you want', [
         'Ask about a sound, your notes or your practice, right in the app. Euno knows your notes and what the computer flagged lately. He hasn’t heard your voice, so he can be wrong.',
@@ -116,16 +110,13 @@ const make = ({ SITE, L, host }) => ({
         'Videos and voice recordings go into a “Euno Shadowing” folder in your own Google Drive, so they’re on every device you sign in on.',
         'The app can only see the files it puts there, and our server never stores them.',
         'Our server only keeps your practice notes, settings and progress, and you can export or delete them any time.',
-        'The English sound comparison is worked out in your browser, so your recording is not uploaded for it.',
       ]],
       ['Your AI key, your AI apps', [
         'Bring a key from Anthropic, OpenAI or OpenRouter only if you want Ask Euno. Your key is encrypted on our server and never shown again, not even to you.',
         'You can also connect Claude, ChatGPT or Gemini to your own practice data, read-only, to ask them about your progress. They never receive audio and cannot change anything.',
-        'No key and no AI app? Everything else works the same.',
       ]],
     ],
     limitsH2: 'What it does not do',
-    limitsIntro: 'So you know before you sign in.',
     limits: [
       ['No lessons or library.', 'You bring the videos. Euno has no courses, ready-made clips, subtitles or transcripts.'],
       ['No score.', 'Nothing says right or wrong. It shows where your sounds, timing and melody differ from the speaker’s, and a computer can misjudge them.'],

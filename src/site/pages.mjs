@@ -82,12 +82,11 @@ function guideCards(c, list) {
 // words marked, and one difference open.
 export function exampleCard(d = LANGS[0].example) {
   return `<div class="example" role="img" aria-label="${d.aria}">
-    <p class="ex-tag">${d.tag}</p>
     <p class="ex-sentence">${d.sentence}</p>
     <div class="ex-open">
       <p class="ex-word">${d.word}</p>
       <div class="ex-pair"><span><i>${d.speaker}</i><b>${d.speakerSound}</b></span><span><i>${d.you}</i><b>${d.youSound}</b></span></div>
-      <p class="ex-note">${d.note}</p><p class="ex-more">${d.more}</p>
+      <p class="ex-note">${d.note}</p>
     </div>
   </div>`;
 }
@@ -147,9 +146,8 @@ function home(c) {
       <h1>${h.h1}</h1>
       <p class="lede">${h.lede}</p>
       <div class="cta">${signInButton(h.cta)}<a class="btn btn-ghost btn-big" href="#how">${h.how}</a></div>
-      <p class="fine">${h.fine}</p>
     </div>
-    <div class="stage"><span class="euno" data-euno-hero aria-hidden="true">@EUNO_HERO@</span><figure class="demo">${exampleCard(c.example)}<figcaption>${h.caption}</figcaption></figure></div>
+    <div class="stage"><span class="euno" data-euno-hero aria-hidden="true">@EUNO_HERO@</span><figure class="demo">${exampleCard(c.example)}</figure></div>
   </div>
 </section>
 
@@ -177,7 +175,6 @@ function home(c) {
 <section class="block" id="what">
   <div class="wrap">
     <h2>${h.whatH2}</h2>
-    <p class="intro">${h.whatIntro}</p>
     <div class="split">
       ${h.whatPanels.map(([title, items], i) => `<div class="panel ${i ? 'wattle' : 'sky'}">
         <h3>${title}</h3>
@@ -215,7 +212,6 @@ function home(c) {
 <section class="block" id="limits">
   <div class="wrap">
     <h2>${h.limitsH2}</h2>
-    <p class="intro">${h.limitsIntro}</p>
     <ul class="limits">
       ${h.limits.map(([t, x]) => `<li><strong>${t}</strong> ${x}</li>`).join('\n      ')}
     </ul>

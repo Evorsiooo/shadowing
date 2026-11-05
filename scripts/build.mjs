@@ -301,7 +301,7 @@ out(
 
 > ${SITE.description}
 
-${plain(en.home.lede)} ${plain(en.home.fine)}
+${plain(en.home.lede)}
 
 ## What it is, and what it is not
 

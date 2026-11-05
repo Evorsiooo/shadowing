@@ -31,7 +31,6 @@ const make = ({ SITE, L, host }) => ({
   },
   example: {
     aria: 'Ejemplo de la pestaña Pronunciación: en la frase «I think this is the one», «think» y «this» están marcadas. En «think», el hablante dice «think» con el sonido «th» y tú dijiste una «s», así que sonó como «sink».',
-    tag: 'Lo que te muestra Euno',
     sentence: 'I <mark>think</mark> <mark>this</mark> is the one.',
     word: 'think',
     speaker: 'Hablante',
@@ -39,7 +38,6 @@ const make = ({ SITE, L, host }) => ({
     speakerSound: 'th',
     youSound: 's',
     note: 'El hablante dice «think» con una «th», como en «thin». Tú dijiste una «s», así que sonó como «sink».',
-    more: 'Escucha al hablante y luego a ti, y oye la diferencia.',
   },
   faq: [
     ['¿Qué es el shadowing?', `Hacer shadowing es hablar a la vez que una grabación, copiando el ritmo, la entonación y los sonidos del hablante lo más fielmente posible. Entrena tu forma de hablar, no solo tu comprensión. <a href="${L('/what-is-shadowing/')}">Leer la guía completa</a>.`],
@@ -67,10 +65,8 @@ const make = ({ SITE, L, host }) => ({
     lede: 'Euno Shadowing es una aplicación web gratuita para practicar tu acento. Recorta un fragmento corto de un vídeo de alguien cuyo acento quieres, habla a la vez que él durante quince minutos, y Euno compara tu grabación con el audio del hablante y marca los sonidos que difieren.',
     cta: 'Empezar con Google',
     how: 'Cómo funciona',
-    fine: 'Totalmente gratis: sin suscripción, sin plan de pago, sin tarjeta. En tu navegador. La comparación de sonidos solo existe en inglés, y en beta. Tus archivos van a tu propio Google Drive, no a nuestro servidor.',
-    caption: 'Un ejemplo de la pestaña Pronunciación, dibujado para esta página. No es una grabación real.',
     howH2: 'Una sesión, de principio a fin',
-    howIntro: 'Cada sesión trabaja un fragmento de una o dos frases. Euno lo repite en bucle, cuenta tus pasadas y lleva el tiempo: tú solo escuchas y hablas.',
+    howIntro: 'Cada sesión trabaja un fragmento de una o dos frases.',
     steps: [
       ['Escuchar', '2 min.', 'Escucha el fragmento tres veces sin hablar. Fíjate en el ritmo y en dónde sube y baja la voz.'],
       ['Hacer shadowing', '7 min.', 'Habla a la vez que el hablante, unas 15 pasadas, sin transcripción. Copia todo: ritmo, entonación y sonidos.'],
@@ -79,7 +75,7 @@ const make = ({ SITE, L, host }) => ({
     ],
     after: '¿Poco tiempo? El modo día malo ofrece una versión de cinco minutos, para que nunca tengas que saltarte un día. Cada duración y cada número de pasadas se ajusta.',
     soundsH2: 'Tus sonidos, frente a los del hablante',
-    soundsIntro: 'Esto es lo que hace la pestaña Pronunciación tras una pasada grabada. Solo existe en inglés, es una beta y está desactivada hasta que la actives en Ajustes → Análisis (una descarga única de unos 71 MB). Funciona en tu dispositivo, y tu grabación no se sube para ello.',
+    soundsIntro: 'Esto es lo que hace la pestaña Pronunciación tras una pasada grabada. Está desactivada hasta que la actives en Ajustes → Análisis (una descarga única de unos 71 MB). Funciona en tu dispositivo, y tu grabación no se sube para ello.',
     soundsPoints: [
       '<strong>Comparado con el hablante, no con un manual.</strong> Euno alinea los sonidos de tu grabación con los del audio del hablante. No usa transcripción ni acento estándar: la meta es la persona que elegiste.',
       '<strong>Hasta tres lugares por pasada.</strong> Las palabras se marcan en la frase. Abre una para ver el sonido del hablante y el tuyo.',
@@ -87,12 +83,10 @@ const make = ({ SITE, L, host }) => ({
       '<strong>Sin puntuación, y puede equivocarse.</strong> Quien escucha es un ordenador. Puede interpretar mal un sonido, o no mostrar nada en un fragmento ruidoso: decides tú de oído, y puedes descartar cualquier elemento con «Me suena igual».',
     ],
     whatH2: 'Tú eliges al hablante. Euno lleva la práctica.',
-    whatIntro: 'Euno Shadowing es una herramienta de práctica, no un curso, así que no hay lecciones que seguir. La voz que imitas es la que elegiste, y la comparación es con esa voz.',
     whatPanels: [
       ['Tus fragmentos, tu hablante', [
         'Sube un archivo de vídeo o audio, o pega un enlace a un .mp4, y recorta un fragmento de una o dos frases.',
         'Elige al hablante cuyo acento quieras: un entrevistado, un podcaster, alguien a quien admires.',
-        'No hay lecciones, subtítulos ni transcripciones incluidos. Euno aporta la rutina, el cronómetro, la grabación y la comparación.',
       ]],
       ['Preguntar a Euno, si quieres', [
         'Pregunta sobre un sonido, tus notas o tu práctica, dentro de la app. Euno conoce tus notas y lo que el ordenador marcó últimamente. No ha oído tu voz, así que puede equivocarse.',
@@ -115,16 +109,13 @@ const make = ({ SITE, L, host }) => ({
         'Los vídeos y las grabaciones de tu voz van a una carpeta «Euno Shadowing» de tu propio Google Drive, para que los tengas en todos tus dispositivos.',
         'La app solo puede ver los archivos que guarda ahí, y nuestro servidor nunca los almacena.',
         'Nuestro servidor solo guarda tus notas de práctica, tus ajustes y tu progreso, que puedes exportar o borrar cuando quieras.',
-        'La comparación de sonidos en inglés se calcula en tu navegador: tu grabación no se sube para ello.',
       ]],
       ['Tu clave de IA, tus apps de IA', [
         'Trae una clave de Anthropic, OpenAI u OpenRouter solo si quieres Preguntar a Euno. Tu clave se cifra en nuestro servidor y no se vuelve a mostrar, ni siquiera a ti.',
         'También puedes conectar Claude, ChatGPT o Gemini a tus propios datos de práctica, solo lectura, para preguntarles por tu progreso. Nunca reciben audio y no pueden cambiar nada.',
-        '¿Sin clave y sin app de IA? Todo lo demás funciona igual.',
       ]],
     ],
     limitsH2: 'Lo que no hace',
-    limitsIntro: 'Para que lo sepas antes de entrar.',
     limits: [
       ['Sin lecciones ni biblioteca.', 'Tú traes los vídeos. Euno no tiene cursos, fragmentos ya hechos, subtítulos ni transcripciones.'],
       ['Sin puntuación.', 'Nada dice si está bien o mal. Muestra dónde tus sonidos, tu ritmo y tu entonación difieren de los del hablante, y un ordenador puede equivocarse.'],
