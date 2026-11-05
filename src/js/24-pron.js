@@ -11,7 +11,7 @@
    learner said "sound the same" to, and which automatic notes were made. It is written once per recorded pass. */
 
 const PRON_SHOWN = 3; // at most this many differences in the review card
-const PRON_AUTO = { minDays: 2, minShare: 0.5, minPlaces: 3 }; // guesses until the native-ear check has been done
+const PRON_AUTO = { minDays: 2, minShare: 0.2, minPlaces: 8 }; // guesses until the native-ear check has been done
 /* when a sound has "gone quiet" (all guesses until the native-ear check): chances are places where the speaker has that
    sound, so a week without practice, or clips without the sound, never count towards it */
 const PRON_QUIET = { chances: 10, days: 14, maxRecent: 1, recentDays: 30, easeWindow: 14, easeMin: 6, relapseDays: 14, relapseShare: 0.3, keepDays: 120, trendGap: 0.2 };
