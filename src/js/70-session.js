@@ -1006,7 +1006,9 @@ function showSessionSummary(sum, streakBefore, nextClipId, redraw = false) {
       btn(t('Undo'), () => moveDay(sess.movedFrom, null), { size: 'sm', kind: 'ghost' }))
     : canCountForYesterday(sum.sessionId)
       ? h('div', { class: 'card row' },
-        h('p', { class: 'grow' }, t('You didn’t practise yesterday. A session started before 10am can count for yesterday instead of today.')),
+        h('p', { class: 'grow' }, yesterdayHasSession(sum.sessionId)
+          ? t('Yesterday is already marked as practised. If you meant this session for yesterday, count it there so today stays free. A session started before 10am can do that.')
+          : t('You didn’t practise yesterday. A session started before 10am can count for yesterday instead of today.')),
         btn(t('Count this for yesterday'), () => moveDay(addDays(sess.date, -1), sess.date), { size: 'sm', icon: 'history' }))
       : null;
   UI.lastSummary = [sum, streakBefore, nextClipId];
