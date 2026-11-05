@@ -495,10 +495,6 @@
     "fr": "Raccourcis clavier (?)",
     "es": "Atajos de teclado (?)"
   },
-  "Clip mode: drag on the timeline to select a clip, or press I and O while it plays.": {
-    "fr": "Mode découpe : fais glisser sur la frise pour sélectionner un extrait, ou appuie sur I et O pendant la lecture.",
-    "es": "Modo de corte: arrastra en la línea de tiempo para seleccionar un fragmento, o pulsa I y O mientras se reproduce."
-  },
   "Clip start marked at {time}": {
     "fr": "Début de l’extrait marqué à {time}",
     "es": "Inicio del fragmento marcado en {time}"

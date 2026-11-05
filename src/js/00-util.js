@@ -48,6 +48,8 @@ const ICONS = {
   check: '<path d="M4.5 12.5l5 5 10-11"/>',
   'arrow-down': '<path d="M12 4v14M5.5 12l6.5 7 6.5-7"/>',
   back: '<path d="M14.5 5.5L8 12l6.5 6.5"/>',
+  'chev-left': '<path d="M14.5 5.5L8 12l6.5 6.5"/>',
+  'chev-right': '<path d="M9.5 5.5L16 12l-6.5 6.5"/>',
   archive: '<rect x="3.5" y="4.5" width="17" height="4" rx="1"/><path d="M5 8.5v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-10"/><path d="M10 12.5h4"/>',
   restore: '<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/><path d="M12 8v4l3 2"/>',
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
@@ -187,13 +189,13 @@ function toast(msg, kind = '', ms = 3800) {
 /* ---------- modal ---------- */
 let modalCloseHook = null;
 let modalReturnFocus = null;
-function openModal(content, { narrow = false, onClose = null } = {}) {
+function openModal(content, { narrow = false, onClose = null, cls = '' } = {}) {
   // a modal replacing an open one (a tab or wizard step) only fades its content in, without the pop
   const swap = isModalOpen();
   if (!swap) modalReturnFocus = document.activeElement;
   closeModal(true);
   modalCloseHook = onClose;
-  const back = h('div', { class: `modal-back${swap ? ' swap' : ''}`, onmousedown: (e) => { if (e.target === back) closeModal(); } },
+  const back = h('div', { class: `modal-back${swap ? ' swap' : ''}${cls ? ' ' + cls : ''}`, onmousedown: (e) => { if (e.target === back) closeModal(); } },
     h('div', { class: `modal ${narrow ? 'narrow' : ''}`, role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'modalTitle', onkeydown: trapModalFocus }, content));
   const title = back.querySelector('h2');
   if (title) title.id = 'modalTitle';

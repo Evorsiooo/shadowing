@@ -38,7 +38,9 @@ const EUNO_LOOKS = {
   player: [-10, 0],
   panel: [-10, 0],
   ask: [-6, 14],
+  lib: [-10, 0],
 };
+const EUNO_NOT_CLICKABLE = ['ask', 'wizard'];
 const EUNO_DEFS = new Map();
 function eunoDefinition(look) {
   const key = look.join(',');
@@ -62,7 +64,15 @@ const Euno = {
     let s = this.slots.get(slot);
     if (!s) {
       const host = h('span', { class: 'euno', 'aria-hidden': 'true' });
-      s = { host, ctrl: null, mood: null, shown: null, visible: true, timer: null };
+      s = { host, ctrl: null, mood: null, shown: null, visible: true, timer: null, slot };
+      if (!EUNO_NOT_CLICKABLE.includes(slot)) {
+        host.classList.add('tap');
+        host.title = t('Ask Euno');
+        host.addEventListener('click', (e) => { e.stopPropagation(); openAsk(); });
+        // a small hint that he can be pressed: he looks up at you while the pointer is on him
+        host.addEventListener('pointerenter', () => { if (s.ctrl && !Euno.reduce.matches) { s.hover = true; s.ctrl.play('curious'); s.shown = 'hover'; } });
+        host.addEventListener('pointerleave', () => { if (s.hover) { s.hover = false; s.shown = null; Euno.apply(s); } });
+      }
       host._euno = s;
       this.slots.set(slot, s);
       if (window.EunoEngine) {
@@ -73,7 +83,7 @@ const Euno = {
       }
       if (this.seen) this.seen.observe(host);
     }
-    s.host.className = `euno ${cls}`.trim();
+    s.host.className = `euno ${cls}${EUNO_NOT_CLICKABLE.includes(slot) ? '' : ' tap'}`.trim();
     const key = `${mood}|${then ? then.join(':') : ''}`;
     if (s.key !== key) {
       s.key = key;

@@ -105,7 +105,7 @@ function lastClipId() {
 const PROGRESS_TABS = ['habit', 'issues', 'measures', 'checkins', 'clips'];
 function openProgress(tab = 'habit') {
   if (!PROGRESS_TABS.includes(tab)) tab = 'habit';
-  const tabs = [['habit', t('Habit')], ['issues', t('Issues')], ['measures', t('Measures')], ['checkins', t('Check-ins')], ['clips', t('Clips')]];
+  const tabs = [['habit', t('Overview')], ['issues', t('Issues')], ['measures', t('Measures')], ['checkins', t('Check-ins')], ['clips', t('Clips')]];
   const body = tab === 'habit' ? habitView() : tab === 'issues' ? issuesView() : tab === 'measures' ? measuresView() : tab === 'checkins' ? checkinsView() : clipsOverview();
   openView([
     modalHead(t('Progress')),
@@ -114,6 +114,7 @@ function openProgress(tab = 'habit') {
   ], { page: 'progress', sub: tab === 'habit' ? null : tab });
 }
 
+/* the overview: the habit in numbers, how far behind the speaker you shadow lately, what to work on, and the calendar */
 function habitView() {
   const s = streakInfo();
   const target = settings().weeklyTarget;
@@ -121,53 +122,55 @@ function habitView() {
   const start = addDays(weekStart(today), -7 * 11);
   const weeks = [];
   for (let w = 0; w < 12; w++) weeks.push(addDays(start, w * 7));
-  const lags = weeklyLag();
+  const sessions = Store.all('sessions').filter((x) => !x.empty);
+  const clipsUsed = new Set(sessions.map((x) => x.clipId).filter(Boolean)).size;
+  const lags = sessionLags(12);
+  const cal = h('div', { class: 'cal2', style: { gridTemplateColumns: `auto repeat(${weeks.length}, minmax(0, 26px))` } },
+    [1, 2, 3, 4, 5, 6, 0].map((wd, r) => [h('span', { class: 'cal2-day' }, r % 2 === 0 ? dayName(wd).slice(0, 3) : ''),
+      weeks.map((w) => {
+        const d = addDays(w, r);
+        const k = s.days.get(d);
+        return h('span', { class: `d ${k || ''} ${d === today ? 'today' : ''} ${d > today ? 'future' : ''}`, title: fmtDayLong(d) + (k ? ' · ' + (k === 'bad' ? t('bad-day session') : t('full session')) : '') });
+      })]));
   return h('div', { class: 'stack' },
     h('div', { class: 'cards' },
-      h('div', { class: 'card' }, h('span', { class: 'label' }, t('Day streak')), h('div', { class: 'stat' }, s.streak), h('p', { class: 'small muted' }, t('One rest day in a row is allowed; two breaks it.'))),
-      h('div', { class: 'card' }, h('span', { class: 'label' }, t('This week')), h('div', { class: 'stat' }, `${s.weekCount}/${target}`), h('div', { class: 'bar big' }, h('i', { style: { width: Math.min(100, (s.weekCount / target) * 100) + '%' } }))),
-      h('div', { class: 'card' }, h('span', { class: 'label' }, t('Total practice')), h('div', { class: 'stat' }, t('{n} min', { n: s.minutes })), h('p', { class: 'small muted' }, tp(Store.all('sessions').filter((x) => !x.empty).length, '{n} session', '{n} sessions')))),
+      h('div', { class: 'card' }, h('span', { class: 'label' }, t('Day streak')), h('div', { class: 'stat' }, tp(s.streak, '{n} day', '{n} days')), h('p', { class: 'small muted' }, t('One rest day in a row is allowed; two breaks it.'))),
+      h('div', { class: 'card' }, h('span', { class: 'label' }, t('This week')), h('div', { class: 'stat' }, t('{done} of {target}', { done: s.weekCount, target })), h('div', { class: 'bar big' }, h('i', { style: { width: Math.min(100, (s.weekCount / target) * 100) + '%' } }))),
+      h('div', { class: 'card' }, h('span', { class: 'label' }, t('Total practice')), h('div', { class: 'stat' }, t('{n} min', { n: s.minutes })), h('p', { class: 'small muted' }, tp(sessions.length, '{n} session', '{n} sessions') + (clipsUsed ? ' · ' + tp(clipsUsed, 'on {n} clip', 'on {n} clips') : '')))),
+    h('div', { class: 'ov-row' },
+      h('div', { class: 'card trend' },
+        h('div', { class: 'box-head' }, h('h3', null, t('How far behind the speaker you shadow')), lags.length ? h('span', { class: 'small muted' }, tp(lags.length, 'last {n} session', 'last {n} sessions')) : null),
+        lags.length > 1 ? trendChart(lags.map((l, i) => ({ x: i === 0 || i === lags.length - 1 ? (l.date === today ? t('today') : fmtDay(l.date)) : '', y: l.lag })), { unit: ' s', dec: 1 })
+          : h('p', { class: 'muted' }, t('After two sessions with recorded passes, the line shows here.')),
+        h('p', { class: 'small muted' }, t('Closer to zero means you anticipate the speaker more. Clips and speeds differ, so read the trend, not single values. A rough measure, not an accent score.'))),
+      workOnCard()),
     h('div', { class: 'card' },
-      h('h3', null, t('Last 12 weeks')),
-      h('div', { class: 'cal' },
-        h('span', null, ''), [1, 2, 3, 4, 5, 6, 0].map((i) => h('span', { style: { textAlign: 'center' }, title: dayName(i) }, dayName(i).charAt(0).toUpperCase())),
-        weeks.map((w) => [h('span', null, fmtDay(w)), [0, 1, 2, 3, 4, 5, 6].map((i) => {
-          const d = addDays(w, i);
-          const k = s.days.get(d);
-          return h('span', { class: `d ${k || ''} ${d === today ? 'today' : ''} ${d > today ? 'future' : ''}`, title: fmtDayLong(d) + (k ? ' · ' + (k === 'bad' ? t('bad-day session') : t('full session')) : '') }, k === 'full' ? '✓' : k === 'bad' ? '·' : '');
-        })])),
-      h('div', { class: 'legend' }, h('span', null, h('i', { style: { background: 'var(--ink)' } }), t('Full session')), h('span', null, h('i', { style: { background: 'var(--green)' } }), t('Bad-day session')), h('span', null, h('i', { style: { background: 'var(--surface-2)' } }), t('Not practised')))),
-    weeklyMinutes(weeks).some((m) => m > 0) ? h('div', { class: 'card' }, h('h3', null, t('Minutes per week')), minutesChart(weeks, weeklyMinutes(weeks))) : null,
-    lags.length > 1 ? h('div', { class: 'card trend' }, h('h3', null, t('Average lag behind the speaker, by week')), h('p', { class: 'small muted' }, t('How far behind the speaker your voice is, on average, across your passes. Beginners echo the speaker; with practice you start to anticipate, so the lag shrinks towards zero. Clips and speeds differ, so read the trend over several weeks, not the single values.')), trendChart(lags.map((l) => ({ x: fmtDay(l.week), y: l.lag })), { unit: ' s', dec: 2 })) : null);
+      h('div', { class: 'box-head' }, h('h3', null, t('Last 12 weeks')),
+        h('div', { class: 'legend' }, h('span', null, h('i', { style: { background: 'var(--ink)' } }), t('Full session')), h('span', null, h('i', { style: { background: 'var(--green)' } }), t('Bad-day session')))),
+      cal));
 }
-
-function weeklyMinutes(weeks) {
-  const by = new Map(weeks.map((w) => [w, 0]));
-  for (const s of Store.all('sessions')) {
-    if (s.empty) continue;
-    const w = weekStart(s.date);
-    if (by.has(w)) by.set(w, by.get(w) + (s.minutes || 0));
-  }
-  return weeks.map((w) => Math.round(by.get(w)));
+/* the average lag of each of the last n sessions that had a measured pass */
+function sessionLags(n) {
+  return Store.all('sessions').filter((x) => !x.empty && (x.passes || []).some((p) => p.lag != null))
+    .sort((a, b) => String(a.startedAt || a.date).localeCompare(String(b.startedAt || b.date)))
+    .slice(-n).map((x) => ({ date: x.date, lag: round(mean(x.passes.filter((p) => p.lag != null).map((p) => p.lag)), 2) }));
 }
-/* quiet bars, one per week, newest on the right */
-function minutesChart(weeks, mins) {
-  const top = Math.max(...mins, 1);
-  return h('div', { class: 'mins' }, weeks.map((w, i) => h('div', { class: 'col', title: t('{n} min', { n: mins[i] }) + ' · ' + fmtDay(w) },
-    h('i', { style: { height: Math.max(mins[i] ? 4 : 0, (mins[i] / top) * 100) + '%' } }), h('span', null, i % 2 === 0 ? fmtDay(w) : ''))));
-}
-
-function weeklyLag() {
-  const by = new Map();
-  for (const s of Store.all('sessions')) {
-    for (const p of s.passes || []) {
-      if (p.lag == null) continue;
-      const w = weekStart(s.date);
-      if (!by.has(w)) by.set(w, []);
-      by.get(w).push(p.lag);
-    }
-  }
-  return [...by.entries()].sort().map(([week, arr]) => ({ week, lag: round(mean(arr), 2) }));
+/* the open issues that keep coming back, three at most */
+function workOnCard() {
+  const since = addDays(dayKey(), -14);
+  const rows = Store.all('issues').filter((i) => !i.mergedInto).map((i) => {
+    const notes = (i.noteIds || []).map((id) => Store.get('notes', id)).filter(Boolean);
+    const last = notes.map((x) => x.date).sort().pop() || i.lastSeen;
+    return { i, notes, days: new Set(notes.map((x) => x.date)).size, recent: notes.filter((x) => x.date >= since).length, last };
+  }).sort((a, b) => (a.i.status === 'fixed') - (b.i.status === 'fixed') || b.recent - a.recent || b.days - a.days).slice(0, 3);
+  const ago = (d) => { const n = Math.round((parseDay(dayKey()) - parseDay(d)) / 864e5); return n <= 0 ? t('today') : n === 1 ? t('yesterday') : tp(n, '{n} day ago', '{n} days ago'); };
+  return h('div', { class: 'card' },
+    h('div', { class: 'box-head' }, h('h3', null, t('What to work on')), rows.length ? h('button', { type: 'button', class: 'linkbtn small', onclick: () => openProgress('issues') }, t('All')) : null),
+    rows.length ? h('div', { class: 'wo-list' }, rows.map(({ i, notes, days, last }) => h('button', { type: 'button', class: `wo${i.status === 'fixed' ? ' fixed' : ''}`, onclick: () => openIssueNotes(i) },
+      h('span', { class: `wo-pill${i.status === 'fixed' ? ' fixed' : ''}` }, i.status === 'fixed' ? t('fixed') : tp(days, 'on {n} day', 'on {n} days')),
+      h('span', { class: 'grow' }, h('b', null, i.name), h('span', { class: 'small muted' }, [tp(notes.length, '{n} note', '{n} notes'), last ? t('last heard {when}', { when: ago(last) }) : null].filter(Boolean).join(' · '))),
+      icon('chev-right'))))
+      : h('p', { class: 'muted' }, t('After a recorded pass, write what sounded off. Things that keep coming back collect here.')));
 }
 
 function clipsOverview() {
@@ -254,18 +257,21 @@ function openCheckins(focusWeek) {
 }
 function checkinsView() {
   const start = programmeStart();
+  const dueW = dueCheckin();
   const items = CHECKIN_WEEKS.map((w) => {
     const c = checkinFor(w);
     const due = addDays(start, w * 7);
     const done = checkinHasAll(c);
     const count = c ? TASKS.filter((t) => c.recs && c.recs[t.key] && c.recs[t.key].length).length : 0;
-    return h('div', { class: 'card' },
+    const locked = !done && !count && w !== dueW;
+    return h('div', { class: `card${locked ? ' locked' : ''}` },
       h('div', { class: 'row' },
         h('h3', { class: 'grow' }, w === 0 ? t('Week 0 · baseline') : t('Week {n}', { n: w })),
-        done ? h('span', { class: 'tick done' }, icon('check', 'stroke-width="3.4"')) : h('span', { class: 'small muted' }, `${count}/3`)),
-      h('p', { class: 'small muted' }, c && c.date ? t('Recorded {date}', { date: fmtDay(c.date) }) : w === 0 ? t('Record before your first practice') : t('Due {date}', { date: fmtDay(due) })),
+        done ? h('span', { class: 'tick done' }, icon('check', 'stroke-width="3.4"')) : locked ? null : h('span', { class: 'small muted' }, `${count}/3`)),
+      locked ? null : h('p', { class: 'small muted' }, c && c.date ? t('Recorded {date}', { date: fmtDay(c.date) }) : w === 0 ? t('Record before your first practice') : t('Due {date}', { date: fmtDay(due) })),
       h('div', { class: 'row' },
-        btn(done ? t('Open') : count ? t('Continue') : t('Start'), () => openCheckinRecorder(w), { size: 'sm', kind: done ? '' : 'primary' }),
+        done || count || w === dueW ? btn(done ? t('Open') : count ? t('Continue') : t('Record it'), () => openCheckinRecorder(w), { size: 'sm', kind: done ? '' : 'primary' })
+          : h('span', { class: 'small muted' }, due > dayKey() ? t('Opens {date}', { date: fmtDay(due) }) : t('After the earlier check-ins')),
         done && w !== 0 && checkinHasAll(checkinFor(0)) ? btn(t('Compare with baseline'), () => openCheckinCompare(w), { size: 'sm', kind: 'blue' }) : null));
   });
   return h('div', { class: 'stack' },

@@ -21,13 +21,13 @@ function renderPanel() {
   const vid = Player.current();
   const clip = Store.get('clips', UI.clipId);
   let key;
-  if (UI.sel && vid) key = `editor:${UI.sel.clipId || 'new'}:${VideoAudio.state(vid.id).status}`;
+  if ((UI.sel || (UI.cutMode && !Session.active)) && vid) key = `editor:${(UI.sel && UI.sel.clipId) || 'new'}:${VideoAudio.state(vid.id).status === 'error' ? 'error' : ''}`;
   else if (UI.cutMode && !Session.active) key = 'empty-cut';
   else if (clip) key = `clip:${clip.id}:${Session.active}:${UI.view}:${UI.view === 'pron' ? PronTab.top + ':' + PronTab.noWords + ':' + PronTab.takeKey(clip) : ''}:${UI.overlay}:${!!clip.model}:${Pron.enabled() ? 'p' : ''}:${VideoAudio.state(clip.videoId).status}`;
   else key = UI.cutMode ? 'empty-cut' : 'empty';
 
   // fade the panel in when it shows another clip or mode (not for a view toggle or an audio status change)
-  enterOnChange(el, key.startsWith('clip') ? `clip:${clip.id}:${Session.active}` : key.startsWith('editor') ? `editor:${UI.sel.clipId || 'new'}` : key);
+  enterOnChange(el, key.startsWith('clip') ? `clip:${clip.id}:${Session.active}` : key.startsWith('editor') ? `editor:${(UI.sel && UI.sel.clipId) || 'new'}` : key);
   if (key !== Panel.key) {
     Panel.key = key;
     Panel.canvas = null;
@@ -283,61 +283,87 @@ Panel.drawAnalysis = function (now) {
   }
 };
 
-/* ---------- zoomed clip editor ---------- */
-const MARGIN = 1.5;
+/* ---------- clip studio: the zoomed waveform under the video ----------
+   The waveform shows a fixed stretch of about 30 seconds around the clip (or around the playhead before
+   there is a clip), so it keeps its scale while you move the edges. Drag across a sentence to choose it,
+   drag a green edge to move it, click to hear from there, and ‹ › move the stretch along the video.
+   Whether an edge sits on a word is only checked once you let go, in a line of its own. */
+const CUT_SPAN = 30;
+function cutWindow() {
+  const d = Player.duration() || 0;
+  const sel = UI.sel;
+  const span = Math.min(d || CUT_SPAN, Math.max(CUT_SPAN, sel ? sel.end - sel.start + 8 : 0));
+  let W = UI.cutWin;
+  const ok = W && W.vid === UI.videoId && W.v1 - W.v0 >= span - 0.01 && (!sel || (sel.start >= W.v0 && sel.end <= W.v1));
+  if (!ok && !Panel.drag) {
+    const c = sel ? (sel.start + sel.end) / 2 : Player.time();
+    let v0 = Math.max(0, c - span / 2);
+    const v1 = Math.min(d || v0 + span, v0 + span);
+    v0 = Math.max(0, v1 - span);
+    W = UI.cutWin = { vid: UI.videoId, v0, v1 };
+  }
+  return W;
+}
+function panCut(dir) {
+  const W = cutWindow();
+  const d = Player.duration() || W.v1;
+  const span = W.v1 - W.v0;
+  const v0 = clamp(W.v0 + dir * span * 0.5, 0, Math.max(0, d - span));
+  UI.cutWin = { vid: W.vid, v0, v1: v0 + span };
+  // a selection the stretch no longer shows would pull it back, so it stays put until you choose again
+  UI.cutWin.free = true;
+  if (!UI.sel || UI.sel.end < v0 || UI.sel.start > v0 + span) Player.seek(v0 + span * 0.1);
+  loadCutAudio(); updateEditor();
+}
+
 function buildEditor(vid) {
-  const s = settings();
   const audio = VideoAudio.state(vid.id);
-  const canvas = h('canvas', { class: 'editor', 'aria-label': t('Zoomed waveform of the selection; drag the yellow edges onto quiet gaps') });
+  const canvas = h('canvas', { class: 'editor', 'aria-label': t('Waveform around the clip: drag across a sentence to choose it, or drag the green edges') });
   Panel.canvas = canvas;
   bindEditorCanvas(canvas);
   const R = Panel.refs;
   const nudge = (which, d) => () => {
+    if (!UI.sel) return;
     UI.sel[which] = clamp(round(UI.sel[which] + d, 2), 0, Player.duration() || 1e9);
-    if (UI.sel.end - UI.sel.start < 0.5) UI.sel[which === 'start' ? 'start' : 'end'] -= d;
-    Panel.editor = null; updateEditor(); renderScrubber();
+    if (UI.sel.end - UI.sel.start < 0.5) UI.sel[which] -= d;
+    updateEditor(); renderScrubber();
   };
-  R.len = h('span', { class: 'len' });
-  R.warn = h('div', { class: 'warnline', role: 'status' });
-  // typed times: m:ss.s or plain seconds; length moves the end
+  // typed times: m:ss.s or plain seconds
   const applyTyped = (which, raw) => {
+    if (!UI.sel) return;
     const v = parseTime(raw);
     if (v == null) { toast(t('Type a time like 3:35.2 or a number of seconds.')); updateEditor(); return; }
     const d = Player.duration() || 1e9;
     if (which === 'start') UI.sel.start = clamp(round(v, 2), 0, UI.sel.end - 0.5);
-    else if (which === 'end') UI.sel.end = clamp(round(v, 2), UI.sel.start + 0.5, d);
-    else UI.sel.end = clamp(round(UI.sel.start + Math.max(0.5, v), 2), UI.sel.start + 0.5, d);
-    Panel.editor = null; updateEditor(); renderScrubber(); loadSelAudio();
+    else UI.sel.end = clamp(round(v, 2), UI.sel.start + 0.5, d);
+    updateEditor(); renderScrubber(); loadCutAudio();
   };
   const timeInput = (which, id, aria) => h('input', { type: 'text', id, class: 'num time-in', inputmode: 'decimal', 'aria-label': aria,
     onchange: (e) => applyTyped(which, e.target.value), onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } });
   R.startT = timeInput('start', 'selStart', t('Start@@clip edge'));
   R.endT = timeInput('end', 'selEnd', t('End'));
-  R.lenT = timeInput('length', 'selLen', t('Length (s)'));
-  R.label = h('input', { type: 'text', id: 'clipLabel', placeholder: t('A few words of what’s said (optional)'), value: UI.sel.label || '', oninput: (e) => { UI.sel.label = e.target.value; } });
+  R.hint = h('h3', { class: 'cut-hint', role: 'status' });
+  R.w0 = h('span', { class: 'small muted num' });
+  R.w1 = h('span', { class: 'small muted num' });
   let msg = null;
-  if (audio.status === 'loading' || audio.status === 'decoding') msg = h('p', { class: 'small muted', id: 'audioMsg' }, t('Reading the video’s sound for the zoomed waveform…'));
-  else if (audio.status === 'error') msg = h('div', { class: 'row small' }, h('p', { class: 'grow muted' }, t('{error} You can still cut the clip with the nudge buttons and by ear.', { error: audio.error })), filePickButton(t('Load the file'), 'video/*,audio/*', (f) => useLocalFile(vid, f), { size: 'sm', icon: 'folder' }));
-  const editing = UI.sel.clipId;
-  const field = (label, forId, ...kids) => h('div', { class: 'efield' }, h('label', { class: 'label', for: forId }, label), h('div', { class: 'nudge' }, ...kids));
+  if (audio.status === 'error') msg = h('div', { class: 'row small' }, h('p', { class: 'grow muted' }, t('{error} You can still cut the clip with the nudge buttons and by ear.', { error: audio.error })), filePickButton(t('Load the file'), 'video/*,audio/*', (f) => useLocalFile(vid, f), { size: 'sm', icon: 'folder' }));
+  const edge = (label, which, input) => h('div', { class: 'cut-edge' }, h('label', { class: 'small muted', for: input.id }, label),
+    btn('', nudge(which, -0.1), { size: 'sm', kind: 'ghost', icon: 'chev-left', title: which === 'start' ? t('Start 0.1 s earlier') : t('End 0.1 s earlier') }),
+    input,
+    btn('', nudge(which, 0.1), { size: 'sm', kind: 'ghost', icon: 'chev-right', title: which === 'start' ? t('Start 0.1 s later') : t('End 0.1 s later') }));
+  R.edges = h('div', { class: 'cut-edges' }, edge(t('Start@@clip edge'), 'start', R.startT), edge(t('End'), 'end', R.endT));
   return [
     h('div', { class: 'panel-head' },
-      h('h3', null, editing ? t('Edit clip') : t('New clip')),
-      R.len,
-      h('span', { class: 'small muted' }, t('aim for {min}–{max} s', { min: s.clipMin, max: s.clipMax })),
+      R.hint,
       h('span', { class: 'spacer' }),
-      (R.playSel = btn(t('Play selection'), () => togglePlaySelection(), { icon: 'play', size: 'sm', id: 'playSelBtn' })),
-      btn(t('Cancel'), () => cancelCut(), { kind: 'ghost', size: 'sm', title: t('Discard the selection and leave clip mode (Esc)') }),
-      btn(t('Save and shadow'), () => saveSelection(true), { kind: 'blue', icon: 'mic', size: 'sm', title: t('Save the clip and start a session with it') }),
-      btn(editing ? t('Save changes') : t('Save clip'), () => saveSelection(false), { kind: 'primary', icon: 'check', size: 'sm' })),
+      (R.playSel = btn(t('Play clip'), () => togglePlaySelection(), { icon: 'play', size: 'sm', id: 'playSelBtn' })),
+      (R.snap = btn(t('Snap to gaps'), () => snapBoth(), { size: 'sm', title: t('Move both edges into the nearest pauses') }))),
     msg,
     canvas,
-    R.warn,
-    h('div', { class: 'editor-row' },
-      field(t('Start@@clip edge'), 'selStart', R.startT, btn('−0.1', nudge('start', -0.1), { size: 'sm', title: t('Start 0.1 s earlier') }), btn('+0.1', nudge('start', 0.1), { size: 'sm', title: t('Start 0.1 s later') }), btn(t('Snap'), () => snapEdge('start'), { size: 'sm', title: t('Move the start into the nearest pause') })),
-      field(t('End'), 'selEnd', R.endT, btn('−0.1', nudge('end', -0.1), { size: 'sm', title: t('End 0.1 s earlier') }), btn('+0.1', nudge('end', 0.1), { size: 'sm', title: t('End 0.1 s later') }), btn(t('Snap'), () => snapEdge('end'), { size: 'sm', title: t('Move the end into the nearest pause') })),
-      field(t('Length (s)'), 'selLen', R.lenT),
-      h('div', { class: 'efield grow' }, h('label', { class: 'label', for: 'clipLabel' }, t('Label')), R.label)),
+    h('div', { class: 'cut-foot' },
+      btn('', () => panCut(-1), { size: 'sm', kind: 'ghost', icon: 'chev-left', title: t('Show earlier in the video') }), R.w0,
+      R.edges,
+      R.w1, btn('', () => panCut(1), { size: 'sm', kind: 'ghost', icon: 'chev-right', title: t('Show later in the video') })),
   ];
 }
 
@@ -352,47 +378,48 @@ function syncPlaySelButton() {
   const b = $('#playSelBtn');
   if (!b) return;
   const playing = !Player.v.paused || Player.waitingLoop;
-  const next = btn(playing ? t('Stop') : t('Play selection'), () => togglePlaySelection(), { icon: playing ? 'stop' : 'play', size: 'sm', id: 'playSelBtn' });
+  const next = btn(playing ? t('Stop') : t('Play clip'), () => togglePlaySelection(), { icon: playing ? 'stop' : 'play', size: 'sm', id: 'playSelBtn', disabled: !UI.sel });
   b.replaceWith(next);
   Panel.refs.playSel = next;
 }
 
+/* the sound of the stretch the waveform shows, fetched when it is first needed */
+function loadCutAudio() {
+  const vid = Player.current();
+  if (!vid) return Promise.resolve();
+  const W = cutWindow();
+  return VideoAudio.ensure(vid, W.v0 - 1, W.v1 + 1).then(() => { Panel.editor = null; updateEditor(); });
+}
 function editorData(vid) {
-  const sel = UI.sel;
-  const w0 = Math.max(0, sel.start - MARGIN), w1 = Math.min(Player.duration() || sel.end + MARGIN, sel.end + MARGIN);
+  const W = cutWindow();
   const E = Panel.editor;
-  if (E && E.vid === vid.id && E.w0 <= w0 + 0.01 && E.w1 >= w1 - 0.01 && E.ready) return E;
-  // keep a wider window so small nudges don't recompute
-  const W0 = Math.max(0, w0 - 2), W1 = Math.min(Player.duration() || w1 + 2, w1 + 2);
+  if (E && E.vid === vid.id && E.w0 <= W.v0 + 0.01 && E.w1 >= W.v1 - 0.01 && E.ready) return E;
+  const W0 = Math.max(0, W.v0 - 1), W1 = Math.min(Player.duration() || W.v1 + 1, W.v1 + 1);
   const x = VideoAudio.slice(vid.id, W0, W1);
   if (!x || x.length < WIN * 2) {
-    // not decoded yet: fetch just this window, then the editor redraws
-    if (VideoAudio.state(vid.id).status !== 'loading' && VideoAudio.state(vid.id).status !== 'error') VideoAudio.ensure(vid, W0, W1);
+    // not decoded yet: fetch just this stretch, then the editor redraws
+    if (VideoAudio.state(vid.id).status !== 'loading' && VideoAudio.state(vid.id).status !== 'error') VideoAudio.ensure(vid, W0, W1).then(() => { Panel.editor = null; updateEditor(); });
     Panel.editor = { vid: vid.id, w0: W0, w1: W1, ready: false };
     return Panel.editor;
   }
   const n = Math.floor((x.length - WIN) / HOP);
   const db = new Float32Array(n);
   for (let i = 0; i < n; i++) db[i] = DSP.rmsDb(x, i * HOP, WIN);
-  // pause detection uses the loudness spread of the wider window
   const { pauses, thr } = DSP.pauses(db, 12);
-  Panel.editor = { vid: vid.id, w0: W0, w1: W1, db, pauses, thr, ready: true };
+  Panel.editor = { vid: vid.id, w0: W0, w1: W1, db, pauses, thr, ready: true, peak: percentile(Array.from(db), 0.99) };
   return Panel.editor;
 }
 
-function edgeOnSpeech(E, t) {
+function edgeOnSpeech(E, tt) {
   if (!E || !E.ready) return false;
-  const i = Math.round((t - E.w0) / HOP_S);
+  const i = Math.round((tt - E.w0) / HOP_S);
   let loud = 0;
   for (let k = i - 3; k <= i + 3; k++) if (E.db[k] != null && E.db[k] > E.thr + 3) loud++;
   return loud >= 4;
 }
 
-function snapEdge(which) {
-  const vid = Player.current();
-  const E = editorData(vid);
-  if (!E.ready) { toast(t('The waveform isn’t available, so there are no gaps to snap to. Nudge by ear instead.')); return; }
-  const at = UI.sel[which];
+/* the nearest pause to an edge, within 2 seconds */
+function gapNear(E, which, at) {
   let best = null;
   for (const p of E.pauses) {
     const a = E.w0 + p.a * HOP_S, b = E.w0 + p.b * HOP_S;
@@ -400,119 +427,237 @@ function snapEdge(which) {
     const d = Math.abs(mid - at);
     if (d < 2 && (!best || d < best.d)) best = { d, t: mid };
   }
-  if (!best) { toast(t('No pause found within 2 seconds of that edge.')); return; }
-  UI.sel[which] = round(best.t, 2);
-  if (UI.sel.end - UI.sel.start < 1) { toast(t('Snapping there would make the clip too short.')); return; }
+  return best;
+}
+function snapBoth() {
+  const vid = Player.current();
+  if (!UI.sel || !vid) return;
+  const E = editorData(vid);
+  if (!E.ready) { toast(t('The waveform isn’t available, so there are no gaps to snap to. Nudge by ear instead.')); return; }
+  const s = gapNear(E, 'start', UI.sel.start), e = gapNear(E, 'end', UI.sel.end);
+  if (!s && !e) { toast(t('No pause found within 2 seconds of the edges.')); return; }
+  const ns = s ? round(s.t, 2) : UI.sel.start, ne = e ? round(e.t, 2) : UI.sel.end;
+  if (ne - ns < 1) { toast(t('Snapping there would make the clip too short.')); return; }
+  UI.sel.start = ns; UI.sel.end = ne;
   updateEditor(); renderScrubber();
 }
 
 function updateEditor() {
-  const s = settings();
   const R = Panel.refs;
   const sel = UI.sel;
-  if (!sel || !R.len) return;
-  const len = sel.end - sel.start;
-  const lo = s.clipMin, hi = s.clipMax, slack = Math.max(2, (hi - lo) * 0.25);
-  const cls = len >= lo && len <= hi ? 'good' : len >= lo - slack && len <= hi + slack ? 'warn' : 'bad';
-  R.len.className = `len ${cls}`;
-  R.len.textContent = fmtSec(len);
-  // don't overwrite a field while it's being typed in
-  if (document.activeElement !== R.startT) R.startT.value = fmtTime(sel.start, 1);
-  if (document.activeElement !== R.endT) R.endT.value = fmtTime(sel.end, 1);
-  if (document.activeElement !== R.lenT) R.lenT.value = len.toFixed(1);
-  const E = editorData(Player.current());
-  const warns = [];
-  if (E.ready) {
-    if (edgeOnSpeech(E, sel.start)) warns.push(t('The start lands mid-word. Move it into a gap.'));
-    if (edgeOnSpeech(E, sel.end)) warns.push(t('The end lands mid-word. Move it into a gap so the sentence isn’t cut in half.'));
+  const vid = Player.current();
+  updateCutCard();
+  if (!R.hint || !vid) return;
+  const W = cutWindow();
+  R.w0.textContent = fmtTime(W.v0, 1);
+  R.w1.textContent = fmtTime(W.v1, 1);
+  R.edges.classList.toggle('off', !sel);
+  if (sel) {
+    if (document.activeElement !== R.startT) R.startT.value = fmtTime(sel.start, 1);
+    if (document.activeElement !== R.endT) R.endT.value = fmtTime(sel.end, 1);
+  } else { R.startT.value = ''; R.endT.value = ''; }
+  R.startT.disabled = R.endT.disabled = !sel;
+  R.snap.disabled = !sel;
+  if (R.playSel) R.playSel.disabled = !sel;
+  const E = editorData(vid);
+  // the hint line always has the same height; while an edge is being dragged it keeps its last text
+  if (!Panel.drag) {
+    let hint = sel ? t('Drag the green edges onto the quiet gaps') : t('Drag across a sentence to choose it');
+    let warn = false;
+    const audio = VideoAudio.state(vid.id);
+    if (!E.ready && (audio.status === 'loading' || audio.status === 'decoding' || !audio.status)) hint = t('Reading the video’s sound…');
+    else if (sel && E.ready) {
+      const a = edgeOnSpeech(E, sel.start), b = edgeOnSpeech(E, sel.end);
+      if (a || b) { warn = true; hint = a && b ? t('Both edges are in the middle of a word') : a ? t('The start is in the middle of a word') : t('The end is in the middle of a word'); }
+    }
+    R.hint.textContent = hint;
+    R.hint.classList.toggle('warn', warn);
   }
-  R.warn.textContent = warns.join(' ');
   Panel.drawEditor(Player.time());
 }
 
 Panel.drawEditor = function (now) {
   const c = this.canvas;
   const vid = Player.current();
-  if (!c || !UI.sel || !vid) return;
-  const { W, H, dpr } = sizeCanvas(c);
+  if (!c || !vid || !(UI.sel || UI.cutMode)) return;
+  const { W: Wd, H, dpr } = sizeCanvas(c);
   const g = c.getContext('2d');
-  g.clearRect(0, 0, W, H);
+  g.clearRect(0, 0, Wd, H);
   const sel = UI.sel;
-  const v0 = Math.max(0, sel.start - MARGIN), v1 = Math.min(Player.duration() || sel.end + MARGIN, sel.end + MARGIN);
-  const X = (tt) => ((tt - v0) / (v1 - v0)) * W;
+  // before there is a clip the stretch follows the playhead
+  if (!sel && !Panel.drag && UI.cutWin && !UI.cutWin.free && (now < UI.cutWin.v0 || now > UI.cutWin.v1)) { UI.cutWin = null; Panel.editor = null; updateEditor(); return; }
+  const Wn = cutWindow();
+  const v0 = Wn.v0, v1 = Wn.v1;
+  const X = (tt) => ((tt - v0) / (v1 - v0)) * Wd;
   const E = editorData(vid);
-  // selection backdrop
-  g.fillStyle = cssVar('--tint');
-  g.fillRect(X(sel.start), 0, X(sel.end) - X(sel.start), H);
+  g.fillStyle = cssVar('--page');
+  g.fillRect(0, 0, Wd, H);
+  if (sel) { g.fillStyle = cssVar('--tint'); g.fillRect(X(sel.start), 0, X(sel.end) - X(sel.start), H); }
   if (E.ready) {
-    // pauses
-    g.fillStyle = cssVar('--tint-2');
-    for (const p of E.pauses) {
-      const a = E.w0 + p.a * HOP_S, b = E.w0 + p.b * HOP_S;
-      if (b < v0 || a > v1) continue;
-      g.fillRect(X(a), H - 8 * dpr, X(b) - X(a), 8 * dpr);
-    }
-    const peak = percentile(Array.from(E.db), 0.99);
-    g.fillStyle = cssVar('--fg');
-    g.globalAlpha = 0.75;
+    const peak = E.peak;
     const i0 = Math.max(0, Math.floor((v0 - E.w0) / HOP_S)), i1 = Math.min(E.db.length, Math.ceil((v1 - E.w0) / HOP_S));
-    const bw = Math.max(1, (W / (i1 - i0)) * 0.8);
-    for (let i = i0; i < i1; i++) {
-      const a = clamp((E.db[i] - (peak - 48)) / 48, 0, 1);
-      const hh = a * (H / 2 - 12 * dpr);
-      g.fillRect(X(E.w0 + i * HOP_S), H / 2 - hh, bw, hh * 2);
+    // one bar every few pixels, the loudest frame under it
+    const step = Math.max(1, Math.round((3 * dpr) / (Wd / Math.max(1, i1 - i0))));
+    const inC = cssVar('--green'), outC = cssVar('--muted');
+    const bw = Math.max(dpr, (Wd / (i1 - i0)) * step * 0.6);
+    for (let i = i0; i < i1; i += step) {
+      let m = -200;
+      for (let k = i; k < Math.min(i1, i + step); k++) m = Math.max(m, E.db[k]);
+      const a = clamp((m - (peak - 48)) / 48, 0, 1);
+      const hh = Math.max(dpr, a * (H / 2 - 10 * dpr));
+      const tt = E.w0 + i * HOP_S;
+      const inside = sel && tt >= sel.start && tt <= sel.end;
+      g.fillStyle = inside ? inC : outC;
+      g.globalAlpha = inside ? 1 : 0.45;
+      g.fillRect(X(tt), H / 2 - hh, bw, hh * 2);
     }
     g.globalAlpha = 1;
-  } else {
-    g.fillStyle = cssVar('--muted');
-    g.font = `500 ${12 * dpr}px Rubik, system-ui, sans-serif`;
-    g.textAlign = 'center';
-    g.fillText(t('Waveform unavailable'), W / 2, H / 2);
-    g.textAlign = 'left';
   }
-  // edges as brackets
-  const wat = cssVar('--green');
-  g.fillStyle = wat;
-  for (const [tt, dir] of [[sel.start, 1], [sel.end, -1]]) {
-    const xx = X(tt);
-    g.fillRect(xx - 2 * dpr, 0, 4 * dpr, H);
-    g.fillRect(dir > 0 ? xx : xx - 12 * dpr, 0, 12 * dpr, 4 * dpr);
-    g.fillRect(dir > 0 ? xx : xx - 12 * dpr, H - 4 * dpr, 12 * dpr, 4 * dpr);
+  if (sel) {
+    // the edges: a line with a handle in the middle
+    g.fillStyle = cssVar('--green');
+    for (const tt of [sel.start, sel.end]) {
+      const xx = X(tt);
+      g.fillRect(xx - 1.5 * dpr, 0, 3 * dpr, H);
+      const hw = 7 * dpr, hhh = 26 * dpr;
+      g.beginPath();
+      if (g.roundRect) g.roundRect(xx - hw, H / 2 - hhh / 2, hw * 2, hhh, hw); else g.rect(xx - hw, H / 2 - hhh / 2, hw * 2, hhh);
+      g.fill();
+    }
   }
-  // playhead
   if (now >= v0 && now <= v1) { g.fillStyle = cssVar('--playhead'); g.fillRect(X(now) - dpr, 0, 2 * dpr, H); }
 };
 
 function bindEditorCanvas(c) {
-  const tAt = (e) => {
+  const at = (e) => {
     const r = c.getBoundingClientRect();
-    const sel = UI.sel;
-    const v0 = Math.max(0, sel.start - MARGIN), v1 = Math.min(Player.duration() || sel.end + MARGIN, sel.end + MARGIN);
-    return { t: v0 + ((e.clientX - r.left) / r.width) * (v1 - v0), px: (v1 - v0) / r.width };
+    const Wn = cutWindow();
+    return { t: clamp(Wn.v0 + ((e.clientX - r.left) / r.width) * (Wn.v1 - Wn.v0), 0, Player.duration() || 1e9), px: (Wn.v1 - Wn.v0) / r.width };
   };
+  let down = null;
   c.addEventListener('pointerdown', (e) => {
-    if (!UI.sel) return;
-    const { t, px } = tAt(e);
-    const ds = Math.abs(t - UI.sel.start), de = Math.abs(t - UI.sel.end);
-    const which = ds < de ? 'start' : 'end';
-    if (Math.min(ds, de) < px * 14) {
-      // freeze the view while dragging so the edge follows the pointer
-      Panel.drag = { which, v0: Math.max(0, UI.sel.start - MARGIN), v1: Math.min(Player.duration() || UI.sel.end + MARGIN, UI.sel.end + MARGIN) };
-      c.setPointerCapture(e.pointerId);
-    } else Player.seek(t);
+    if (!Player.current()) return;
+    const { t: tt, px } = at(e);
+    c.setPointerCapture(e.pointerId);
+    if (UI.sel) {
+      const ds = Math.abs(tt - UI.sel.start), de = Math.abs(tt - UI.sel.end);
+      if (Math.min(ds, de) < px * 14) { Panel.drag = { which: ds < de ? 'start' : 'end' }; return; }
+    }
+    down = { x: e.clientX, t: tt };
   });
   c.addEventListener('pointermove', (e) => {
+    const { t: tt } = at(e);
+    if (down && !Panel.drag && Math.abs(e.clientX - down.x) > 6) {
+      // dragging across the waveform chooses a new stretch
+      UI.sel = { start: Math.min(down.t, tt), end: Math.max(down.t, tt), label: UI.sel ? UI.sel.label : '', clipId: UI.sel ? UI.sel.clipId : undefined };
+      UI.clipId = null;
+      Panel.drag = { which: tt >= down.t ? 'end' : 'start', anchor: down.t };
+      down = null;
+      renderCutCard();
+    }
     const D = Panel.drag;
-    if (!D) return;
-    const r = c.getBoundingClientRect();
-    const t = D.v0 + ((e.clientX - r.left) / r.width) * (D.v1 - D.v0);
-    if (D.which === 'start') UI.sel.start = clamp(round(t, 2), 0, UI.sel.end - 0.5);
-    else UI.sel.end = clamp(round(t, 2), UI.sel.start + 0.5, Player.duration() || 1e9);
-    updateEditor();
+    if (!D) { c.style.cursor = UI.sel && Math.min(Math.abs(tt - UI.sel.start), Math.abs(tt - UI.sel.end)) < at(e).px * 14 ? 'ew-resize' : 'crosshair'; return; }
+    if (D.anchor != null) { UI.sel.start = round(Math.min(D.anchor, tt), 2); UI.sel.end = round(Math.max(D.anchor, tt), 2); }
+    else if (D.which === 'start') UI.sel.start = clamp(round(tt, 2), 0, UI.sel.end - 0.5);
+    else UI.sel.end = clamp(round(tt, 2), UI.sel.start + 0.5, Player.duration() || 1e9);
+    updateEditor(); renderScrubber();
   });
-  const end = () => { if (Panel.drag) { Panel.drag = null; renderScrubber(); updateEditor(); } };
+  const end = () => {
+    if (down) { Player.seek(down.t); down = null; }
+    if (Panel.drag) {
+      Panel.drag = null;
+      if (UI.sel && UI.sel.end - UI.sel.start < 0.5) UI.sel.end = UI.sel.start + 0.5;
+      if (UI.cutWin) UI.cutWin.free = false;
+      renderScrubber(); updateEditor();
+    }
+  };
   c.addEventListener('pointerup', end);
   c.addEventListener('pointercancel', end);
+  // a sideways scroll (trackpad) moves the stretch along the video
+  c.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    e.preventDefault();
+    const Wn = cutWindow();
+    const span = Wn.v1 - Wn.v0, d = Player.duration() || Wn.v1;
+    const v0 = clamp(Wn.v0 + (e.deltaX / c.getBoundingClientRect().width) * span, 0, Math.max(0, d - span));
+    UI.cutWin = { vid: Wn.vid, v0, v1: v0 + span, free: true };
+    clearTimeout(c._wheel);
+    c._wheel = setTimeout(() => loadCutAudio(), 200);
+    updateEditor();
+  }, { passive: false });
+}
+
+/* ---------- clip studio: the card beside the video ---------- */
+function renderCutCard() {
+  const el = $('#cutCard');
+  if (!el) return;
+  const on = !Session.active && (UI.cutMode || !!UI.sel) && UI.tab === 'library';
+  el.hidden = !on;
+  if (!on) { el.replaceChildren(); UI.cutCardKey = null; return; }
+  const key = `${UI.sel ? 'sel' : 'none'}:${UI.sel && UI.sel.clipId || ''}`;
+  if (UI.cutCardKey === key && el.firstChild) { updateCutCard(); return; }
+  UI.cutCardKey = key;
+  const s = settings();
+  const R = (UI.cutRefs = {});
+  if (!UI.sel) {
+    mount(el, h('div', { class: 'cutcard-in' },
+      h('h3', null, t('Choose a sentence')),
+      h('p', null, t('Click the timeline under the video to get near it. The waveform below shows the 30 seconds around that point: drag across the sentence there.')),
+      h('p', { class: 'small muted' }, t('Or play the video and press Start under it where the sentence begins, then End where it finishes (I and O on the keyboard).'))));
+    return;
+  }
+  const editing = UI.sel.clipId;
+  R.len = h('strong', { class: 'cut-len num' });
+  R.state = h('span', { class: 'cut-state' });
+  R.mark = h('i');
+  R.label = h('input', { type: 'text', id: 'clipLabel', placeholder: t('A few words of what’s said'), value: UI.sel.label || '', oninput: (e) => { UI.sel.label = e.target.value; } });
+  const top = Math.max(30, s.clipMax * 1.5);
+  const pc = (x) => `${clamp(x / top, 0, 1) * 100}%`;
+  mount(el, h('div', { class: 'cutcard-in' },
+    h('h3', null, editing ? t('Edit clip') : t('Your clip')),
+    h('div', { class: 'cut-lenrow' }, R.len, R.state),
+    h('div', { class: 'cut-meter', 'aria-hidden': 'true' },
+      h('b', { style: { left: pc(s.clipMin), width: `calc(${pc(s.clipMax)} - ${pc(s.clipMin)})` } }), R.mark),
+    h('div', { class: 'cut-scale small muted' }, h('span', null, '0 s'), h('span', null, t('aim for {min}–{max} s', { min: s.clipMin, max: s.clipMax })), h('span', null, `${Math.round(top)} s`)),
+    h('label', { class: 'field', for: 'clipLabel' }, t('Name (optional)'), R.label),
+    btn(editing ? t('Save and practise') : t('Save and practise'), () => saveSelection(true), { kind: 'primary', size: 'big', icon: 'play' }),
+    editing ? btn(t('Save changes'), () => saveSelection(false), { icon: 'check' }) : btn(t('Save, cut another'), () => saveSelection('another'), { icon: 'scissors' }),
+    btn(t('Cancel'), () => cancelCut(), { kind: 'ghost', size: 'sm', cls: 'self-start', title: t('Discard the selection and leave clip mode (Esc)') })));
+  updateCutCard();
+}
+function updateCutCard() {
+  const R = UI.cutRefs;
+  const sel = UI.sel;
+  if (!R || !R.len || !sel || !R.len.isConnected) return;
+  const s = settings();
+  const len = sel.end - sel.start;
+  const lo = s.clipMin, hi = s.clipMax, slack = Math.max(2, (hi - lo) * 0.25);
+  const cls = len >= lo && len <= hi ? 'good' : len >= lo - slack && len <= hi + slack ? 'warn' : 'bad';
+  R.len.textContent = fmtSec(len);
+  R.state.className = `cut-state ${cls}`;
+  R.state.textContent = cls === 'good' ? t('good length') : len < lo ? t('short') : t('long');
+  const top = Math.max(30, s.clipMax * 1.5);
+  R.mark.style.left = `${clamp(len / top, 0, 1) * 100}%`;
+}
+
+/* ---------- clip studio: the line above it ---------- */
+function renderStudioHead() {
+  const el = $('#studioHead');
+  if (!el) return;
+  const on = !Session.active && (UI.cutMode || !!UI.sel) && UI.tab === 'library';
+  el.hidden = !on;
+  if (!on) { el.replaceChildren(); return; }
+  const vid = Player.current();
+  mount(el,
+    h('button', { type: 'button', class: 'linkbtn back', onclick: () => leaveStudio() }, icon('chev-left'), t('Library')),
+    h('h2', null, `${UI.sel && UI.sel.clipId ? t('Edit clip') : t('New clip')}${vid ? ` · ${vid.title || t('Untitled video')}` : ''}`));
+}
+/* back to the library page, leaving the clip unsaved (asks first if there is one) */
+function leaveStudio() {
+  if (UI.sel && !UI.sel.clipId && !confirm(t('Leave without saving this clip?'))) return;
+  UI.sel = null;
+  UI.libPage = true;
+  if (UI.cutMode) setCutMode(false); else renderAll();
 }
 
 function saveSelection(shadowNow) {
@@ -525,12 +670,22 @@ function saveSelection(shadowNow) {
     toast(t('Clip updated.'), 'good');
   } else {
     clip = Store.put('clips', { videoId: vid.id, start: round(sel.start, 2), end: round(sel.end, 2), label: (sel.label || '').trim(), done: false, archived: false, noisy: false, created: new Date().toISOString() });
-    toast(t('Clip saved. Cut another, or shadow it now.'), 'good');
+    toast(t('Clip saved.'), 'good');
   }
   if (!computeModel(clip)) ensureModels(vid);
   Prep.schedule(clip); // the speaker's sounds and words, in the background, if those features are on
   UI.sel = null;
+  if (shadowNow === 'another') {
+    // stay in the studio, with the stretch after the saved clip on the waveform
+    UI.cutMode = true;
+    UI.clipId = null;
+    UI.cutWin = null;
+    Player.seek(clip.end);
+    renderAll(); loadCutAudio();
+    return;
+  }
   UI.clipId = clip.id;
+  UI.cutMode = false;
   renderAll();
   if (shadowNow) Session.start([clip.id]);
 }
