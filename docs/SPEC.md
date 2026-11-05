@@ -8,7 +8,7 @@ How the pieces work in detail: [ACCOUNTS.md](ACCOUNTS.md) (sign-in, admin) and [
 
 ## Purpose
 
-A web app for daily shadowing practice: you repeat short clips of a model speaker to move your accent towards theirs, and the app keeps time, records you, shows your pitch against theirs, and tracks whether your speech is actually changing.
+A web app for daily shadowing practice: you repeat short clips of a model speaker to move your accent towards theirs, and the app keeps time, records you, compares your sounds (English), timing and pitch with theirs, and tracks whether your speech is actually changing.
 
 * **Users:** anyone with a Google account. Each person's data is private to them.
 * **Target accents at launch:** English only, with General American, Southern British and General Australian English to choose from. Check-in material and AI prompts are organised per language (`src/js/15-profile.js`), so French, Spanish, Japanese and others can be added later.

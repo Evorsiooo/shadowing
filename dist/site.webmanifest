@@ -1,7 +1,7 @@
 {
   "name": "Euno Shadowing",
   "short_name": "Euno",
-  "description": "Euno Shadowing is a free daily coach for accent shadowing. Speak along with real clips, see your pitch and timing next to the speaker’s, and track your accent over 12 weeks.",
+  "description": "Free accent practice by shadowing a speaker you choose. Euno compares your recording with their audio and marks the sounds that differ (English, beta, no score), plus your timing and melody.",
   "id": "/app/",
   "start_url": "/app/",
   "scope": "/",
