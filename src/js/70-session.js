@@ -689,8 +689,8 @@ function sessionMenu() {
 /* the passes of a step as eye pills: done, this one, still to come (a bar when there are too many to count) */
 function passPills(st, n, running) {
   const label = t('Pass {n} of {total}', { n: Math.max(1, n), total: st.passes });
-  if (st.passes > 16) return h('div', { class: 'stack', style: { gap: '6px' } }, h('div', { class: 'bar', 'aria-hidden': 'true' }, h('i', { style: { width: `${(n / st.passes) * 100}%` } })), h('span', { class: 'small muted num' }, label));
-  return h('div', { class: 'row', style: { gap: '12px' } },
+  if (st.passes > 16) return h('div', { class: 'passes' }, h('div', { class: 'bar', 'aria-hidden': 'true' }, h('i', { style: { width: `${(n / st.passes) * 100}%` } })), h('span', { class: 'small muted num' }, label));
+  return h('div', { class: 'passes' },
     h('div', { class: 'pills', 'aria-hidden': 'true', style: { gap: '5px' } }, Array.from({ length: st.passes }, (_, i) =>
       h('span', { class: `pill ${i < n - (running ? 1 : 0) ? 'done' : i === n - 1 && running ? 'now' : 'short'}`, style: { width: '9px', height: i < n || (i === n - 1 && running) ? '20px' : '11px' } }))),
     h('span', { class: 'small muted num' }, label));

@@ -35,14 +35,22 @@ function scheduleFit() {
   fitQueued = true;
   requestAnimationFrame(() => { fitQueued = false; fitLayout(); });
 }
+/* A short, wide window (a laptop with browser chrome, a phone on its side): the session puts the video on the left and the instruction, controls and
+   "Listen for these" in a column on the right, so nothing needs scrolling. */
+function splitFocus(L) {
+  return L.classList.contains('focus') && window.innerWidth >= 700 && window.innerHeight <= 820 && window.innerWidth / window.innerHeight >= 1.35;
+}
 function fitLayout() {
   const L = $('.layout');
-  if (!wideLayout.matches) {
+  const split = splitFocus(L);
+  L.classList.toggle('split', split);
+  const phoneFocus = !wideLayout.matches && !split && L.classList.contains('focus'); // a phone held upright, in a session: the video also takes the height that is left
+  if (!wideLayout.matches && !split && !phoneFocus) {
     L.classList.remove('fit');
     ['--side-w', '--video-h', '--below-h', '--top-h'].forEach((v) => L.style.removeProperty(v));
     return;
   }
-  L.classList.add('fit');
+  L.classList.toggle('fit', !phoneFocus);
   const v = Player.v;
   const ar = v && v.videoWidth && v.videoHeight ? v.videoWidth / v.videoHeight : 16 / 9;
   L.style.setProperty('--video-ar', String(ar));
@@ -50,11 +58,20 @@ function fitLayout() {
   const padT = parseFloat(css.paddingTop), padB = parseFloat(css.paddingBottom), padX = parseFloat(css.paddingLeft) + parseFloat(css.paddingRight);
   const gapY = parseFloat(css.rowGap) || 14, gapX = parseFloat(css.columnGap) || 16;
   const top = L.getBoundingClientRect().top + window.scrollY;
-  const avail = Math.max(360, window.innerHeight - top - padT - padB);
+  const avail = Math.max(split ? 150 : phoneFocus ? 200 : 360, window.innerHeight - top - padT - padB);
   const sh = $('#studioHead');
   const headH = sh && !sh.hidden ? sh.offsetHeight + gapY : 0;
   const availW = avail - headH;
   const totalW = L.clientWidth - padX - gapX;
+  if (split) {
+    const rightMin = 360;
+    const fvh = Math.max(150, Math.min(avail, (totalW - rightMin) / ar));
+    L.style.setProperty('--video-h', `${Math.floor(fvh)}px`);
+    L.style.setProperty('--focus-w', `${Math.floor(fvh * ar)}px`);
+    L.style.setProperty('--below-h', 'auto');
+    L.style.setProperty('--split-h', `${Math.floor(avail)}px`);
+    return;
+  }
   /* On short windows the panel allowance would squash the video, so there width is the limit instead:
      the video may be as tall as its width allows (right column at its widest), up to MAX_WIDTH_LIMITED_H,
      and the page scrolls to reach the panel. Tall windows keep the window-derived height. */
@@ -62,10 +79,12 @@ function fitLayout() {
     // focus mode: one centred column, the video as large as leaves room for the instruction under it
     // what sits under the video is measured (the list of things to listen for makes it taller), and only ever grows within a step, so the video doesn't resize from pass to pass and the page never needs a scrollbar
     const fc = $('.focus-card');
+    const ctl = $('#controls');
+    const ctlH = ctl && getComputedStyle(ctl).position === 'static' ? ctl.offsetHeight + 8 : 0; // on a phone the timeline sits under the video, not over it
     const stepKey = `${Session.doc && Session.doc.id}:${Session.stepIdx}`;
     if (fitFocus.key !== stepKey) { fitFocus.key = stepKey; fitFocus.below = FOCUS_BELOW; }
-    if (fc) fitFocus.below = Math.max(fitFocus.below, Math.ceil(fc.offsetHeight) + 12);
-    const fvh = Math.max(240, Math.min((L.clientWidth - padX) / ar, avail - fitFocus.below - gapY));
+    if (fc) { const bl = $('#below'); fitFocus.below = Math.max(fitFocus.below, Math.ceil(Math.max(fc.offsetHeight, split || !bl ? 0 : bl.offsetHeight)) + 12); }
+    const fvh = Math.max(phoneFocus ? 140 : 240, Math.min((L.clientWidth - padX) / ar, avail - fitFocus.below - gapY - ctlH));
     L.style.setProperty('--video-h', `${Math.floor(fvh)}px`);
     L.style.setProperty('--focus-w', `${Math.floor(fvh * ar)}px`);
     L.style.setProperty('--below-h', 'auto');
@@ -73,7 +92,8 @@ function fitLayout() {
   }
   const sideMax = Math.max(360, Math.min(600, totalW * 0.36));
   const widthVh = (totalW - sideMax - 6) / ar;
-  let vh = Math.max(availW * 0.5, availW - BELOW_ALLOWANCE - gapY - 6, Math.min(widthVh, MAX_WIDTH_LIMITED_H));
+  // cutting a clip needs the waveform in view too, so there the video doesn't borrow height from it on short windows
+  let vh = Math.max(availW * 0.5, availW - BELOW_ALLOWANCE - gapY - 6, L.classList.contains('cutting') ? 0 : Math.min(widthVh, MAX_WIDTH_LIMITED_H));
   if (L.classList.contains('reviewing')) vh = Math.min(vh, availW * 0.4); // the review is about the chart: the video steps back
   const sideW = clamp(Math.round(totalW - vh * ar - 6), 360, Math.max(360, Math.min(600, totalW * 0.36)));
   L.style.setProperty('--side-w', `${sideW}px`);
@@ -202,7 +222,7 @@ async function boot() {
   window.addEventListener('resize', scheduleFit);
   Player.v.addEventListener('loadedmetadata', scheduleFit);
   // the row under the player and the banners change height as you work: refit when they do
-  if (window.ResizeObserver) { const ro = new window.ResizeObserver(scheduleFit); ro.observe($('#banners')); }
+  if (window.ResizeObserver) { const ro = new window.ResizeObserver(scheduleFit); ro.observe($("#banners")); if ($("#below")) ro.observe($("#below")); }
   window.addEventListener('beforeunload', () => { Store.flushAll(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) Store.flushAll(); });
   refreshAdminBadge();

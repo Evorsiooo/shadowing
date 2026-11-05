@@ -125,7 +125,7 @@ function habitView() {
   const sessions = Store.all('sessions').filter((x) => !x.empty);
   const clipsUsed = new Set(sessions.map((x) => x.clipId).filter(Boolean)).size;
   const lags = sessionLags(12);
-  const cal = h('div', { class: 'cal2', style: { gridTemplateColumns: `auto repeat(${weeks.length}, minmax(0, 26px))` } },
+  const cal = h('div', { class: 'cal2', style: { gridTemplateColumns: `auto repeat(${weeks.length}, minmax(0, var(--cal-cell, 26px)))` } },
     [1, 2, 3, 4, 5, 6, 0].map((wd, r) => [h('span', { class: 'cal2-day' }, r % 2 === 0 ? dayName(wd).slice(0, 3) : ''),
       weeks.map((w) => {
         const d = addDays(w, r);
