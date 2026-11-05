@@ -18,6 +18,7 @@ const make = ({ SITE, L, host }) => ({
     contact: 'Contact',
     privacy: 'Privacy',
     terms: 'Terms',
+    source: 'Source code',
     signIn: 'Sign in',
     openApp: 'Open the app',
     signInGoogle: 'Sign in with Google',

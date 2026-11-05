@@ -96,6 +96,7 @@ function renderTopbar() {
       menuItem('chat', t('Ask Euno'), () => openAsk()),
       isAdmin() ? menuItem('shield', t('Admin'), () => go('admin'), Admin.open || null) : null,
       h('a', { href: '/guides/', role: 'menuitem' }, icon('note'), t('Guides')),
+      h('a', { href: 'https://github.com/Evorsiooo/shadowing', target: '_blank', rel: 'noopener', role: 'menuitem' }, icon('note'), t('Source code')),
       menuItem('keyboard', t('Keyboard shortcuts'), () => { closeMenu(); openShortcuts(); }),
       Store.mode === 'cloud' ? [h('hr'), menuItem('back', t('Sign out'), () => signOutNow())] : null) : null);
 }
