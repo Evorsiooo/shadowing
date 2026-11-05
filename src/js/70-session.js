@@ -101,7 +101,7 @@ const Session = {
     this.begin(ids[0], mode);
   },
   begin(clipId, mode) {
-    this.listenFor = [];
+    this.listenFor = []; this.listenTake = null;
     const clip = Store.get('clips', clipId);
     if (!clip) return;
     UI.sel = null;
@@ -401,7 +401,7 @@ const Session = {
   continueAfterReview() {
     const st = this.step();
     const R = this.review, clip = this.clip();
-    if (R && clip) { try { this.listenFor = tryItems(clip, R).shown.map((it) => tryText(it, clip)); } catch (e) { console.warn('listen-for list failed', e); } }
+    if (R && clip) { try { this.listenFor = tryItems(clip, R).shown.map((it) => tryText(it, clip)); this.listenTake = R.url && R.analysis ? { url: R.url, analysis: R.analysis } : null; } catch (e) { console.warn('listen-for list failed', e); } }
     this.review = null;
     stopReviewPlayback();
     if (this.pass >= st.passes) { this.completeStep(); return; }
@@ -640,12 +640,12 @@ function focusCard(S, clip, st, mood, then) {
     const rates = [1, 0.75, 0.5];
     const nextRate = rates[(rates.indexOf(UI.rate) + 1) % rates.length] || 1;
     body = [
-      S.liveThisPass || S.phase === 'recording' ? h('div', { class: 'focus-mic' }, micControl({ compact: true })) : null,
       h('div', { class: 'focus-ctl' },
         h('button', { type: 'button', class: 'fctl', onclick: () => S.repeatPass(), title: t('Repeat this pass without counting it (R)') }, icon('replay'), h('span', null, t('Repeat pass'))),
         h('button', { type: 'button', class: `playbig big${paused ? '' : ' on'}`, onclick: () => S.togglePause(), title: paused ? t('Resume (Space)') : t('Pause (Space)'), 'aria-label': paused ? t('Resume (Space)') : t('Pause (Space)') }, icon(paused ? 'play' : 'pause')),
         h('button', { type: 'button', class: 'fctl', onclick: () => { if (S.slowed) S.fullSpeed(); else Player.setRate(nextRate); renderSession(); }, title: t('Speed (, and .)') }, h('b', { class: 'num' }, `${UI.rate}x`), h('span', null, t('Speed')))),
       passPills(st, n, runningNow),
+      S.liveThisPass || S.phase === 'recording' ? h('div', { class: 'focus-mic' }, micControl({ compact: true })) : null, // under the passes, so it never pushes the controls
       st.key === 'again' ? listenForList(S) : null,
     ];
   }
@@ -662,11 +662,14 @@ function listenForList(S) {
   const clip = S.clip();
   const name = speakerName(clip && Store.get('videos', clip.videoId));
   const idle = !['playing', 'recording'].includes(S.phase);
+  const take = S.listenTake;
   return h('div', { class: 'listen-for' },
     h('h3', null, t('Listen for these')),
     h('ul', null, items.map((it) => h('li', null,
       h('b', null, it.word), h('span', null, it.text),
-      idle && it.a != null ? btn('', () => playSnippetOriginal(clip, it.a, it.b), { size: 'sm', icon: 'play', cls: 'spk', title: t('Hear {name} here', { name }) }) : null))));
+      idle && it.a != null ? h('div', { class: 'lf-play' },
+        btn('', () => playSnippetOriginal(clip, it.a, it.b), { size: 'sm', icon: 'play', cls: 'spk', title: t('Hear {name} here', { name }) }),
+        take ? btn('', () => playSynced(clip, take.url, take.analysis, { from: clip.start + it.a, stopAt: clip.start + it.b }), { size: 'sm', icon: 'play', cls: 'mine', title: t('Hear yourself here') }) : null) : null))));
 }
 
 /* the ⋯ menu of a session: what used to sit under the session card */

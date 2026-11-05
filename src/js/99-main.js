@@ -26,7 +26,8 @@ function applyLayout() {
    - the library or session card beside the player matches its height;
    - the full-width panel underneath fills down to the bottom of the window. */
 const BELOW_ALLOWANCE = 250;
-const FOCUS_BELOW = 330; // the instruction, the controls and the passes under the video in a session
+const fitFocus = { key: null, below: 0 };
+const FOCUS_BELOW = 250; // the instruction, the controls and the passes under the video in a session
 const MAX_WIDTH_LIMITED_H = 540;
 let fitQueued = false;
 function scheduleFit() {
@@ -59,7 +60,12 @@ function fitLayout() {
      and the page scrolls to reach the panel. Tall windows keep the window-derived height. */
   if (L.classList.contains('focus')) {
     // focus mode: one centred column, the video as large as leaves room for the instruction under it
-    const fvh = Math.max(240, Math.min((L.clientWidth - padX) / ar, avail - FOCUS_BELOW - gapY));
+    // what sits under the video is measured (the list of things to listen for makes it taller), and only ever grows within a step, so the video doesn't resize from pass to pass and the page never needs a scrollbar
+    const fc = $('.focus-card');
+    const stepKey = `${Session.doc && Session.doc.id}:${Session.stepIdx}`;
+    if (fitFocus.key !== stepKey) { fitFocus.key = stepKey; fitFocus.below = FOCUS_BELOW; }
+    if (fc) fitFocus.below = Math.max(fitFocus.below, Math.ceil(fc.offsetHeight) + 12);
+    const fvh = Math.max(240, Math.min((L.clientWidth - padX) / ar, avail - fitFocus.below - gapY));
     L.style.setProperty('--video-h', `${Math.floor(fvh)}px`);
     L.style.setProperty('--focus-w', `${Math.floor(fvh * ar)}px`);
     L.style.setProperty('--below-h', 'auto');

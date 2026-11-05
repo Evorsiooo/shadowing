@@ -276,8 +276,8 @@ function buildPronView(clip) {
       const row = (who, tag, cls) => h('div', { class: `pv-row ${cls}` },
         h('span', { class: 'pv-who' }, tag),
         h('span', { class: 'pv-ph ipa' }, pvPhones(sel.phones, who)),
-        btn(t('Play'), () => pronPlay(clip, take, sel, who), { size: 'sm', icon: 'play', kind: cls === 'spk' ? 'blue' : 'primary', title: who === 'spk' ? t('Hear the speaker say “{word}”', { word }) : t('Hear how you said “{word}”', { word }) }));
-      const both = () => { pronPlay(clip, take, sel, 'spk'); setTimeout(() => pronPlay(clip, take, sel, 'you'), (sel.end - sel.start + 0.6) * 1000 / ((Player.v && Player.v.playbackRate) || 1)); };
+        btn(t('Play'), () => pronWordPlay(clip, take, sel, who), { size: 'sm', icon: 'play', kind: cls === 'spk' ? 'blue' : 'primary', title: who === 'spk' ? t('Hear the speaker say “{word}”', { word }) : t('Hear how you said “{word}”', { word }) }));
+      const both = () => { pronWordPlay(clip, take, sel, 'spk'); setTimeout(() => pronWordPlay(clip, take, sel, 'you'), (sel.end - sel.start + 0.6) * 1000 / ((Player.v && Player.v.playbackRate) || 1)); };
       detail = h('div', { class: 'pv-detail' },
         h('div', { class: 'pv-detail-head' }, h('h3', null, word), nav),
         row('spk', name, 'spk'),
@@ -322,7 +322,7 @@ function openWordsEditor(clip, done) {
 }
 
 /* play one word: the speaker's, or yours lined up with the clip */
-async function pronPlay(clip, take, w, who) {
+async function pronWordPlay(clip, take, w, who) {
   if (!analysisCanScrub()) { toast(t('Wait until the pass is over, then play it.')); return; } // it used to do nothing, silently
   const from = clip.start + Math.max(0, w.start - 0.12), stopAt = Math.min(clip.end, clip.start + w.end + 0.2);
   if (who === 'spk') {
