@@ -52,7 +52,7 @@ const make = ({ SITE, L, host }) => ({
     ['Puis-je coller un lien YouTube ?', 'Non. Euno ne récupère pas de vidéos sur YouTube ni sur d’autres sites. Il te faut un fichier que tu as le droit d’utiliser, importé depuis ton appareil ou un lien direct vers un .mp4. Pour t’entraîner sur une vidéo YouTube, une extension de navigateur comme Language Reactor agit sur la page elle-même ; Euno sert à découper un extrait d’un fichier que tu as et à comparer ta voix à celle du locuteur.'],
     ['Euno propose-t-il des leçons, des vidéos ou des transcriptions ?', 'Non. Tu fais du shadowing sur tes propres vidéos : importe un fichier depuis ton appareil ou colle un lien direct vers un .mp4 (pas un lien YouTube), puis découpe les extraits que tu veux travailler. Euno n’a ni bibliothèque de leçons, ni sous-titres, ni transcriptions. Il déroule la routine de shadowing sur tes extraits et compare ta voix à celle du locuteur.'],
     ['Faut-il une clé d’IA ?', 'Non. Tout fonctionne sans. Avec une clé Anthropic, OpenAI ou OpenRouter, tu peux interroger Euno dans l’app sur un son, tes notes ou ton entraînement. Sans clé, les notes te donnent un prompt à coller dans n’importe quel chatbot.'],
-    ['Puis-je connecter Claude, ChatGPT ou Gemini ?', 'Oui, en option. Dans Réglages → Connexions, tu peux relier Claude, ChatGPT ou Gemini à tes propres données d’entraînement via MCP. Ils peuvent lire tes notes, tes séances et ton historique de prononciation, et rien d’autre : ils ne peuvent rien modifier et ne reçoivent jamais d’audio.'],
+    ['Puis-je connecter Claude, ChatGPT ou Gemini ?', 'Oui, en option. Dans Réglages → Connexions, tu peux relier Claude, ChatGPT ou Gemini à tes propres données d’entraînement via MCP. Ils peuvent lire tes notes, tes séances et ton historique de prononciation, et rien d’autre : la seule chose qu’ils peuvent modifier, ce sont les courtes notes sur toi dans Réglages → Toi, que tu peux changer ou supprimer. Ils ne reçoivent jamais d’audio.'],
     ['Faut-il un micro ?', 'Oui, pour enregistrer tes passages et tes bilans. Un casque ou des écouteurs aident, pour que la voix du locuteur ne passe pas dans ton enregistrement.'],
   ],
   home: {
@@ -112,7 +112,7 @@ const make = ({ SITE, L, host }) => ({
       ]],
       ['Ta clé d’IA, tes apps d’IA', [
         'Apporte une clé Anthropic, OpenAI ou OpenRouter seulement si tu veux Demander à Euno. Ta clé est chiffrée sur notre serveur et n’est plus jamais affichée, même pas à toi.',
-        'Tu peux aussi connecter Claude, ChatGPT ou Gemini à tes propres données d’entraînement, en lecture seule, pour leur poser des questions sur tes progrès. Ils ne reçoivent jamais d’audio et ne peuvent rien modifier.',
+        'Tu peux aussi connecter Claude, ChatGPT ou Gemini à tes propres données d’entraînement, pour leur poser des questions sur tes progrès. Ils peuvent les lire et ajouter de courtes notes sur toi (que tu peux supprimer), rien d’autre, et ne reçoivent jamais d’audio.',
       ]],
     ],
     limitsH2: 'Ce qu’il ne fait pas',

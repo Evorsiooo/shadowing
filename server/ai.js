@@ -5,6 +5,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { getPrivate, setPrivate } from './reminders.js';
 import { limit } from './limits.js';
+import { allDocs } from './store.js';
+import { progressBrief, briefLines } from './progress.js';
 
 export const PROVIDERS = {
   anthropic: { name: 'Anthropic', keyUrl: 'https://console.anthropic.com/settings/keys', keyHint: 'sk-ant-…' },
@@ -126,13 +128,20 @@ function pickDefault(provider, models) {
 export function defaultModelFrom(provider, models) { try { return pickDefault(provider, models); } catch { return null; } }
 
 /* ---------- the prompt ---------- */
+
+/* what the learner wrote about themselves, plus the short facts saved from chats (src/js/16-about.js); both are sent with each request */
+function aboutThem(profile) {
+  const clean = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
+  const facts = (Array.isArray(profile.facts) ? profile.facts : []).slice(0, 30).map((f) => clean(f, 200)).filter(Boolean);
+  return [clean(profile.notes, 500), ...facts].filter(Boolean).join(' ').slice(0, 2500);
+}
 // The learner's profile comes from the app (meta/settings → profile); every field is optional.
 function systemPrompt(profile = {}) {
   const clean = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
   const lang = clean(profile.targetLanguage, 40) || 'English';
   const accent = clean(profile.accent, 80) || `a native ${lang} accent`;
   const native = clean(profile.nativeLanguages, 120);
-  const notes = clean(profile.notes, 500);
+  const notes = aboutThem(profile);
   const spelling = clean(profile.spelling, 40);
   const reply = ['English', 'French', 'Spanish'].includes(profile.replyLanguage) ? profile.replyLanguage : 'English';
   return `You help a learner with shadowing practice: they repeat a model speaker's clip to pick up the accent, rhythm and melody. The learner is moving their ${lang} accent towards ${accent}.${native ? ` Their native language: ${native}.` : ''}${notes ? ` About them: ${notes}` : ''}
@@ -202,15 +211,17 @@ export function chatSystemPrompt(profile = {}, context = [], knowledge = []) {
   const lang = clean(profile.targetLanguage, 40) || 'English';
   const accent = clean(profile.accent, 80) || `a native ${lang} accent`;
   const native = clean(profile.nativeLanguages, 120);
-  const notes = clean(profile.notes, 500);
+  const notes = aboutThem(profile);
   const reply = ['English', 'French', 'Spanish'].includes(profile.replyLanguage) ? profile.replyLanguage : 'English';
-  const lines = (Array.isArray(context) ? context : []).slice(0, 30).map((l) => `- ${clean(l, 240)}`).filter((l) => l.length > 2);
+  const lines = (Array.isArray(context) ? context : []).slice(0, 45).map((l) => `- ${clean(l, 320)}`).filter((l) => l.length > 2);
   const research = (Array.isArray(knowledge) ? knowledge : []).slice(0, 3).map((k) => String(k || '').replace(/[ \t]+/g, ' ').trim().slice(0, 4000)).filter(Boolean);
   return `You are Euno, the small green character in Euno Shadowing, a free app where people improve their accent by shadowing: speaking along with a clip of a speaker they want to sound like. The learner is moving their ${lang} accent towards ${accent}.${native ? ` Their native language: ${native}.` : ''}${notes ? ` About them: ${notes}` : ''}
 
 Answer their question about pronunciation, accent, shadowing or their own practice. Reply in ${reply}, plainly and warmly, in at most about 120 words unless they ask for more, with no linguistics jargon: describe sounds with everyday ${lang} example words. Plain text only, no Markdown headings or tables; a short list is fine.
 
-You have not heard their voice. All you know is the context below, measured by software on their device, which can be wrong, so say "may" about any difference and never state one as fact. Don't invent recordings, scores or history that aren't in the context. If they ask about something unrelated to speaking or learning languages, say briefly that you can only help with their practice.${lines.length ? `
+You cannot hear their voice or play their recordings: no audio reaches you. What you do have is the context below: measurements the app made on their device and saved with every recorded take, including how their first takes compare with their recent ones. Use it to answer questions about progress, and don't say you lack earlier recordings when the context lists them. Those measurements can be wrong, so say "may" about any difference and never state one as fact. Don't invent recordings, scores or history that aren't in the context, and when the context has too little to compare, say exactly what is missing. If they ask about something unrelated to speaking or learning languages, say briefly that you can only help with their practice.
+
+Remembering the learner: if in this message they tell you something lasting about themselves that would help you coach them (their level, goals, background, how they like to practise, what they find hard) and it isn't already in "About them", end your reply with one extra line: [[remember: one short sentence in the third person, for example Is C2 in English except for speaking.]] Only what they actually said, never your guesses, nothing sensitive (health, money, passwords), and not for one-off questions. Most replies need no such line.${lines.length ? `
 
 Background from the app (private to you; the learner can't see this list):
 ${lines.join('\n')}
@@ -229,6 +240,12 @@ const RESEARCH_RULES = `Notes from Euno's own written knowledgebase follow, matc
 - When the learner does ask for sources or the research, use the full summary and sources: name studies by author and year as the note does, say the evidence label in plain words ("direct" means studies of shadowing itself, "adjacent" means related research that is not about shadowing, "thin" means little good evidence), and say so briefly if a source was read only as an abstract, is secondhand, or is unverified, or if the entry status says its sources are still being checked. You may then go to about 150 words.
 - If the notes don't answer the question, say briefly that you don't have good research on it, and give common-sense advice only if clearly labelled as such.
 - The notes are in English. Answer in the reply language above.`;
+/* pulls the [[remember: ...]] lines Euno adds out of an answer: the learner never sees them in the text, only as "saved" under it */
+export function splitRemember(text) {
+  const remember = [];
+  const out = String(text).replace(/\[\[\s*remember\s*:\s*([^\]]{3,400}?)\s*\]\]/gi, (_m, fact) => { remember.push(fact.replace(/\s+/g, ' ').trim().slice(0, 200)); return ''; }).replace(/\n{3,}/g, '\n\n').trim();
+  return { text: out, remember: remember.slice(0, 2) };
+}
 export async function chatReply(env, userId, { messages = [], context = [], knowledge = [], profile = {} }) {
   const c = await keyFor(env, userId);
   await rateLimit(env, userId);
@@ -237,11 +254,15 @@ export async function chatReply(env, userId, { messages = [], context = [], know
     .filter((m) => m.content.trim());
   while (turns.length && turns[0].role !== 'user') turns.shift(); // a conversation starts with the learner
   if (!turns.length || turns[turns.length - 1].role !== 'user') throw httpError(400, 'Ask a question first.');
-  const system = chatSystemPrompt(profile && typeof profile === 'object' ? profile : {}, context, knowledge);
+  // the learner's saved history, worked out here from their stored data: the same figures the MCP tool get_progress gives their own AI
+  let history = [];
+  try { history = briefLines(progressBrief(await allDocs(env.DB, userId))); } catch (e) { console.error('progress brief failed', e); }
+  const system = chatSystemPrompt(profile && typeof profile === 'object' ? profile : {}, [...history, ...(Array.isArray(context) ? context : [])], knowledge);
   const ask = c.provider === 'anthropic' ? askAnthropic : askOpenAICompatible;
   const text = (await ask(c, system, turns, false, 1500)).trim();
   if (!text) throw httpError(502, 'The model sent back an empty answer.');
-  return { text, model: c.model, provider: c.provider };
+  const { text: reply, remember } = splitRemember(text);
+  return { text: reply || text, remember, model: c.model, provider: c.provider };
 }
 
 async function askAnthropic(c, system, user, structured, maxTokens = 4000) {

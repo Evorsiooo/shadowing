@@ -131,7 +131,7 @@ function advancedView() {
 }
 
 function youView() {
-  return h('div', { class: 'stack' }, profileView(), lookView());
+  return h('div', { class: 'stack' }, profileView(), aboutCard(), lookView());
 }
 function dataTabView() {
   return h('div', { class: 'stack' }, storageView(), dataView());
@@ -211,8 +211,7 @@ function lookView() {
       uiLangPicker(() => openSettings('you')), // 90-onboarding.js; re-open this tab so it shows in the new language
       h('p', { class: 'small muted' }, t('The language of the app’s buttons, messages and Euno’s answers. Your practice language is set in Settings → You.'))),
     h('div', { class: 'card' }, h('h3', null, t('Theme')),
-      h('div', { class: 'seg' }, [['system', t('Match device')], ['light', t('Light')], ['dark', t('Dark')]].map(([k, l]) => h('button', { type: 'button', class: cur === k ? 'on' : '', onclick: () => set(k) }, l))),
-      h('p', { class: 'small muted' }, t('Inside Claude, the viewer’s own theme setting can also switch this.'))));
+      h('div', { class: 'seg' }, [['system', t('Match device')], ['light', t('Light')], ['dark', t('Dark')]].map(([k, l]) => h('button', { type: 'button', class: cur === k ? 'on' : '', onclick: () => set(k) }, l)))));
 }
 function applyTheme() {
   // Light unless the user picks otherwise; inside Claude, an unset theme follows the viewer's own theme.

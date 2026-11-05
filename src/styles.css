@@ -67,7 +67,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
-body {
+body { overflow-wrap: break-word;
   margin: 0; background: var(--page); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -135,7 +135,8 @@ input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="file"
 }
 .card input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="file"])), .card textarea, .card select { background-color: var(--page); }
 input::placeholder, textarea::placeholder { color: var(--muted); opacity: 1; }
-textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+textarea { resize: vertical; min-height: 72px; line-height: 1.5; scrollbar-width: none; } /* a text box never draws a scrollbar (a long text still scrolls inside it); scripts/test-layout.mjs fails on one */
+textarea::-webkit-scrollbar { display: none; }
 input:focus, textarea:focus, select:focus { outline: none; box-shadow: inset 0 -3px 0 var(--green); background-color: var(--tint); }
 input[disabled], textarea[disabled], select[disabled] { opacity: 0.55; cursor: not-allowed; }
 select {
@@ -280,7 +281,8 @@ body.focus .topbar, body.focus #todayView, body.focus #pageView { display: none 
 .stage { padding-top: 24px; display: flex; flex-direction: column; gap: 18px; }
 .tgreet { display: flex; flex-direction: column; gap: 2px; min-height: 86px; justify-content: flex-end; }
 .tgreet h2 { font-size: 1.9rem; }
-.tbelow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.tbelow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: stretch; } /* cards in a row share one height, so a short card doesn't leave a gap under it */
+.tbelow > :last-child:nth-child(odd):not(:first-child) { grid-column: 1 / -1; } /* an odd one out takes the full row instead of sitting alone in a half row */
 @media (max-width: 640px) { .tbelow { grid-template-columns: minmax(0, 1fr); } }
 .tbelow .box.wide { grid-column: 1 / -1; }
 .box-kicker { margin-bottom: 2px; }
@@ -475,6 +477,12 @@ button.try-item p { color: var(--muted); }
 .lf-play { display: flex; gap: 6px; flex: none; }
 .listen-for { padding: 12px 16px; }
 .listen-for ul { gap: 4px; }
+/* wide windows: the list stands to the right of the video (set by fitLayout), so the video keeps its size and place in every step */
+.layout.focus.lf-side { position: relative; }
+.layout.focus.lf-side .listen-for { position: absolute; top: var(--lf-top, 0); left: var(--lf-left, 100%); width: var(--lf-w, 300px); max-height: var(--lf-h, none); overflow-y: auto; }
+.layout.focus.lf-side .listen-for li { flex-wrap: wrap; row-gap: 4px; }
+.layout.focus.lf-side .listen-for li > span { flex: 1 1 100%; order: 3; }
+.layout.focus.lf-side .lf-play { margin-left: auto; }
 /* the review: playback and the note line sit with the chart under the video */
 .rev-wrap { background: var(--card); border-radius: var(--r-xl); padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; }
 .rev-play { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -659,7 +667,8 @@ audio { max-width: 100%; height: 36px; }
 .msg-row { display: flex; gap: 10px; align-items: flex-end; }
 .msg-row > .logo { width: 34px; height: 34px; margin-bottom: 2px; }
 .ask-form { display: flex; gap: 10px; align-items: flex-end; background: var(--card); border-radius: 26px; padding: 8px 8px 8px 18px; }
-.ask-form textarea { background: transparent; box-shadow: none; min-height: 44px; max-height: 200px; resize: none; padding: 10px 0; border-radius: 0; }
+.ask-form textarea { background: transparent; box-shadow: none; min-height: 44px; max-height: 200px; resize: none; overflow-y: hidden; scrollbar-width: none; padding: 10px 0; border-radius: 0; }
+.ask-form textarea::-webkit-scrollbar { display: none; }
 .ask-form textarea:focus { background: transparent; box-shadow: none; }
 .ask-form:focus-within { box-shadow: inset 0 -3px 0 var(--green); }
 .ask-starts { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -1019,8 +1028,8 @@ body.ask-open { overflow: hidden; }
 .cal2 .d.bad { background: var(--green); }
 .cal2 .d.today { box-shadow: inset 0 0 0 2px var(--green); }
 .cal2 .d.future { opacity: 0.4; }
-/* on a short window the calendar gives up a little height so the page doesn't need a scrollbar for the last few pixels */
-@media (max-height: 860px) and (min-width: 901px) { .cal2 { --cal-cell: 18px; gap: 3px; } }
+/* the calendar shrinks smoothly with the window height (26px cells down to 14px) so the overview fits without a scrollbar for the last few pixels; the 968px is the page's height at full size */
+@media (min-width: 901px) { .cal2 { --cal-cell: clamp(14px, calc(26px - (968px - 100vh) / 7), 26px); } }
 @media (max-width: 900px) { .ov-row { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- first visit: a page of its own ---------- */
@@ -1045,6 +1054,10 @@ body.ask-open { overflow: hidden; }
 #pageView[data-page="settings"] .card > .field,
 #pageView[data-page="settings"] .cards > .field { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 16px; padding: 10px 0; margin: 0; }
 #pageView[data-page="settings"] .cards > .field + .field { box-shadow: inset 0 1px 0 var(--line); }
+/* a long-text field (the notes for Euno) keeps its label above and a full-width box */
+#pageView[data-page="settings"] .card > .field:has(> textarea),
+#pageView[data-page="settings"] .cards > .field:has(> textarea) { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+#pageView[data-page="settings"] .field > textarea { min-height: 112px; }
 #pageView[data-page="settings"] .cards > .field input[type="number"],
 #pageView[data-page="settings"] .card > .field input[type="number"] { width: 110px; text-align: right; }
 #pageView[data-page="settings"] .cards > .field select,
@@ -1092,3 +1105,13 @@ body.ask-open { overflow: hidden; }
 .say-dot { width: 10px; height: 10px; border-radius: 50%; background: #d64545; animation: sayPulse 1.2s ease-in-out infinite; }
 @keyframes sayPulse { 50% { opacity: 0.35; } }
 @media (prefers-reduced-motion: reduce) { .say-dot { animation: none; } }
+
+/* Settings: a field whose box needs the full width (the grid above puts label and control side by side) */
+#pageView[data-page="settings"] .card > .field.wide { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+#pageView[data-page="settings"] .card > .field.wide textarea { width: 100%; min-height: 96px; }
+/* what Euno knows about you */
+.about-list { display: flex; flex-direction: column; gap: 6px; }
+.about-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+.about-row input { flex: 1; min-width: 0; }
+.saved-about { margin-top: 8px; }
+.saved-row { display: flex; align-items: center; gap: 8px; }

@@ -58,7 +58,7 @@ const Prep = (() => {
     const P = (needSpeaker ? 1 : 0) + (needWords ? 1 : 0);
     let i = 0;
     const say = (stage, inner) => report({ stage, step: i, steps: P, inner: Math.max(0, Math.min(1, inner || 0)) });
-    if (!P) { if (!ctx.background && phonesOn()) await Heavy.run('pronunciation', () => Phones.load(), { timeoutMs: 120000 }); return; } // nothing to read: just have the model ready
+    if (!P) { if ((ctx.warm || !ctx.background) && phonesOn()) await Heavy.run('pronunciation', () => Phones.load(), { timeoutMs: 120000, background }); return; } // nothing to read: just have the model ready
     if (needSpeaker) {
       i++; say('speaker', 0);
       const spk = await audio(clip);
@@ -82,7 +82,7 @@ const Prep = (() => {
     const key = `${clip.id}:${clip.start}:${clip.end}`;
     let r = running.get(key);
     if (!r) {
-      r = { subs: new Set(), last: null, ctx: { background: !!opts.background } };
+      r = { subs: new Set(), last: null, ctx: { background: !!opts.background, warm: !!opts.warm } };
       r.promise = work(clip, r.ctx, (p) => { r.last = p; r.subs.forEach((f) => { try { f(p); } catch { /* a listener must not break the work */ } }); }).finally(() => running.delete(key));
       running.set(key, r);
     }

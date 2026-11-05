@@ -184,7 +184,6 @@ const Session = {
     }
     this.applyPassRate();
     this.phase = this.recordingThisPass ? 'recording' : 'playing';
-    if (!this.recordingThisPass) { try { Pron.warm(clip); } catch { /* the check is optional */ } } // load the model while the learner listens
     document.body.classList.toggle('calm', st.speak);
     renderSession();
     const ok = await Player.play();
@@ -235,6 +234,8 @@ const Session = {
     Player.v.pause();
     const phase = this.phase;
     this.phase = 'gap';
+    // get the sound-comparison model ready once a listen-only pass has finished, never while the video plays (loading it can make playback stutter)
+    if (phase === 'playing' && clip) { try { Pron.warm(clip); } catch { /* the check is optional */ } }
     let entry = { step: st.key, n: this.pass + 1, recorded: false, lag: null, at: new Date().toISOString() };
     if (this.rec) {
       await sleep(700); // catch the tail of a trailing voice
@@ -661,15 +662,16 @@ function listenForList(S) {
   if (!items.length) return null;
   const clip = S.clip();
   const name = speakerName(clip && Store.get('videos', clip.videoId));
-  const idle = !['playing', 'recording'].includes(S.phase);
   const take = S.listenTake;
+  // always there; pressing one stops the pass that is running (press play to start it again), then plays that bit
+  const hear = (fn) => () => { if (['playing', 'recording', 'gap'].includes(S.phase)) S.togglePause(); fn(); };
   return h('div', { class: 'listen-for' },
     h('h3', null, t('Listen for these')),
     h('ul', null, items.map((it) => h('li', null,
       h('b', null, it.word), h('span', null, it.text),
-      idle && it.a != null ? h('div', { class: 'lf-play' },
-        btn('', () => playSnippetOriginal(clip, it.a, it.b), { size: 'sm', icon: 'play', cls: 'spk', title: t('Hear {name} here', { name }) }),
-        take ? btn('', () => playSynced(clip, take.url, take.analysis, { from: clip.start + it.a, stopAt: clip.start + it.b }), { size: 'sm', icon: 'play', cls: 'mine', title: t('Hear yourself here') }) : null) : null))));
+      it.a != null ? h('div', { class: 'lf-play' },
+        btn('', hear(() => playSnippetOriginal(clip, it.a, it.b)), { size: 'sm', icon: 'play', cls: 'spk', title: t('Hear {name} here', { name }) }),
+        take ? btn('', hear(() => playSynced(clip, take.url, take.analysis, { from: clip.start + it.a, stopAt: clip.start + it.b })), { size: 'sm', icon: 'play', cls: 'mine', title: t('Hear yourself here') }) : null) : null))));
 }
 
 /* the ⋯ menu of a session: what used to sit under the session card */
