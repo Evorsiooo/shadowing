@@ -12,7 +12,7 @@ import guidesEs from './content/guides-es.mjs';
 export const SITE = {
   name: 'Euno Shadowing',
   url: 'https://shadowing.euno.cc',
-  description: 'Euno Shadowing is a free daily coach for accent shadowing. Speak along with real clips, see your pitch and timing next to the speaker’s, and track your accent over 12 weeks.',
+  description: 'Free accent practice by shadowing a speaker you choose. Euno compares your recording with their audio and marks the sounds that differ (English, beta, no score), plus your timing and melody.',
   // Starts Google sign-in (owned by the accounts work) and comes back to the app.
   signInUrl: '/auth/google',
   updated: '2026-11-02',
@@ -37,7 +37,7 @@ const icons = {
   spark: '<svg viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>',
 };
 // the feature cards, in the order of home.cards in each content file
-const CARD_ICONS = ['scissors', 'wave', 'timer', 'ear', 'mic', 'note', 'chart', 'bell', 'spark'];
+const CARD_ICONS = ['scissors', 'wave', 'note', 'spark', 'chart', 'bell'];
 
 /* ---------- languages ---------- */
 // The path of a page in a language: '/privacy/' -> '/fr/privacy/'.
@@ -77,50 +77,18 @@ function guideCards(c, list) {
     </ul>`;
 }
 
-// Illustration of the app's pitch view: the speaker's melody, yours, the lag, and the loudness under it.
-export function demoSvg(d = LANGS[0].demo) {
-  let bars = '';
-  let seed = 7;
-  for (let i = 0; i < 64; i++) {
-    seed = (seed * 9301 + 49297) % 233280;
-    const env = Math.sin((i / 64) * Math.PI * 3.2) ** 2 * 0.8 + 0.2;
-    const hgt = Math.max(3, Math.round((seed / 233280) * 40 * env + 4));
-    bars += `<rect x="${20 + i * 8.2}" y="${300 - hgt}" width="5" height="${hgt}" rx="2"/>`;
-  }
-  // the second key follows the first label, whose length depends on the language
-  const youX = 40 + Math.round(d.speaker.length * 8.5) + 22;
-  return `<svg viewBox="0 0 560 320" role="img" aria-labelledby="demoT demoD">
-  <title id="demoT">${d.title}</title>
-  <desc id="demoD">${d.desc}</desc>
-  <rect class="lane" x="0" y="0" width="560" height="320" rx="14"/>
-  <g class="grid"><line x1="20" y1="70" x2="540" y2="70"/><line x1="20" y1="130" x2="540" y2="130"/><line x1="20" y1="190" x2="540" y2="190"/></g>
-  <path class="speaker" pathLength="1" d="M20 160 C60 120 90 95 120 125 S170 190 200 160 S260 70 300 92 S360 170 390 150 S450 105 480 130 S520 180 540 170"/>
-  <path class="you" pathLength="1" d="M34 160 C74 132 104 112 134 132 S184 180 214 157 S274 92 314 106 S374 162 404 147 S464 118 494 134 S530 168 546 164"/>
-  <g class="wave">${bars}</g>
-  <circle class="key-s" cx="28" cy="28" r="6"/><text class="lbl" x="40" y="33">${d.speaker}</text>
-  <circle class="key-y" cx="${youX - 12}" cy="28" r="6"/><text class="lbl" x="${youX}" y="33">${d.you}</text>
-  <rect class="chip" x="364" y="12" width="180" height="34" rx="17"/><text class="chip-t" x="454" y="34" text-anchor="middle">${d.lag}</text>
-</svg>`;
-}
-
-// Illustration of the comparison view: the speaker against your first recording and your final one, each with its lag.
-export function compareSvg(d = LANGS[0].compare) {
-  const lane = (y, label, lag, you) => `<g transform="translate(0 ${y})">
-    <rect class="lane" x="0" y="0" width="560" height="176" rx="14"/>
-    <g class="grid" transform="translate(0 0)"><line x1="20" y1="70" x2="540" y2="70"/><line x1="20" y1="110" x2="540" y2="110"/><line x1="20" y1="150" x2="540" y2="150"/></g>
-    <g transform="translate(0 -30) scale(1 0.62)">
-      <path class="speaker" vector-effect="non-scaling-stroke" d="M20 160 C60 120 90 95 120 125 S170 190 200 160 S260 70 300 92 S360 170 390 150 S450 105 480 130 S520 180 540 170"/>
-      <path class="you" vector-effect="non-scaling-stroke" d="${you}"/>
-    </g>
-    <text class="lbl" x="20" y="30">${label}</text>
-    <rect class="chip" x="380" y="10" width="164" height="30" rx="15"/><text class="chip-t" x="462" y="30" text-anchor="middle">${lag}</text>
-  </g>`;
-  return `<svg viewBox="0 0 560 372" role="img" aria-labelledby="cmpT cmpD">
-  <title id="cmpT">${d.title}</title>
-  <desc id="cmpD">${d.desc}</desc>
-  ${lane(0, d.first, d.lagFirst, 'M52 164 C92 148 122 134 152 150 S202 182 232 166 S292 120 332 128 S392 168 422 158 S482 142 512 150 S536 168 546 168')}
-  ${lane(196, d.last, d.lagLast, 'M34 160 C74 132 104 112 134 132 S184 180 214 157 S274 92 314 106 S374 162 404 147 S464 118 494 134 S530 168 546 164')}
-</svg>`;
+// An example of the Pronunciation tab, drawn for the page (not a real recording): a sentence with the differing
+// words marked, and one difference open.
+export function exampleCard(d = LANGS[0].example) {
+  return `<div class="example" role="img" aria-label="${d.aria}">
+    <p class="ex-tag">${d.tag}</p>
+    <p class="ex-sentence">${d.sentence}</p>
+    <div class="ex-open">
+      <p class="ex-word">${d.word}</p>
+      <div class="ex-pair"><span><i>${d.speaker}</i><b>${d.speakerSound}</b></span><span><i>${d.you}</i><b>${d.youSound}</b></span></div>
+      <p class="ex-note">${d.note}</p><p class="ex-more">${d.more}</p>
+    </div>
+  </div>`;
 }
 
 // The publisher, shared by every page's structured data (other nodes point at it by @id).
@@ -180,7 +148,7 @@ function home(c) {
       <div class="cta">${signInButton(h.cta)}<a class="btn btn-ghost btn-big" href="#how">${h.how}</a></div>
       <p class="fine">${h.fine}</p>
     </div>
-    <div class="stage"><span class="euno" data-euno-hero aria-hidden="true">@EUNO_HERO@</span><figure class="demo">${demoSvg(c.demo)}<figcaption>${h.caption}</figcaption></figure></div>
+    <div class="stage"><span class="euno" data-euno-hero aria-hidden="true">@EUNO_HERO@</span><figure class="demo">${exampleCard(c.example)}<figcaption>${h.caption}</figcaption></figure></div>
   </div>
 </section>
 
@@ -195,6 +163,16 @@ function home(c) {
   </div>
 </section>
 
+<section class="block" id="sounds">
+  <div class="wrap">
+    <h2>${h.soundsH2}</h2>
+    <p class="intro">${h.soundsIntro}</p>
+    <ul class="points">
+      ${h.soundsPoints.map((x) => `<li>${x}</li>`).join('\n      ')}
+    </ul>
+  </div>
+</section>
+
 <section class="block" id="what">
   <div class="wrap">
     <h2>${h.whatH2}</h2>
@@ -206,19 +184,6 @@ function home(c) {
           ${items.map((x) => `<li>${x}</li>`).join('\n          ')}
         </ul>
       </div>`).join('\n      ')}
-    </div>
-  </div>
-</section>
-
-<section class="block" id="compare">
-  <div class="wrap">
-    <h2>${h.cmpH2}</h2>
-    <p class="intro">${h.cmpIntro}</p>
-    <div class="compare">
-      <figure class="demo">${compareSvg(c.compare)}<figcaption>${h.cmpCaption}</figcaption></figure>
-      <ul class="compare-points">
-        ${h.cmpPoints.map((x) => `<li>${x}</li>`).join('\n        ')}
-      </ul>
     </div>
   </div>
 </section>
@@ -243,6 +208,16 @@ function home(c) {
         </ul>
       </div>`).join('\n      ')}
     </div>
+  </div>
+</section>
+
+<section class="block" id="limits">
+  <div class="wrap">
+    <h2>${h.limitsH2}</h2>
+    <p class="intro">${h.limitsIntro}</p>
+    <ul class="limits">
+      ${h.limits.map(([t, x]) => `<li><strong>${t}</strong> ${x}</li>`).join('\n      ')}
+    </ul>
   </div>
 </section>
 

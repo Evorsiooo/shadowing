@@ -107,18 +107,26 @@ img, svg { max-width: 100%; height: auto; }
 .hero .stage .euno { position: absolute; pointer-events: none; right: 6%; top: -104px; width: 340px; height: 340px; z-index: 0; display: block; }
 .hero .stage .euno svg { width: 100%; height: 100%; display: block; }
 .hero .stage .demo { position: relative; z-index: 1; }
-.demo figcaption { font-size: 0.9rem; color: var(--muted); margin: 12px 6px 0; }
-.demo svg { display: block; width: 100%; }
-.demo .grid line { stroke: var(--line); stroke-width: 1; }
-.demo .lane { fill: var(--surface); }
-.demo .speaker { fill: none; stroke: var(--fg); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
-.demo .you { fill: none; stroke: var(--green); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
-.demo .wave rect { fill: var(--muted); opacity: 0.3; }
-.demo .lbl { fill: var(--muted); font: 500 13px var(--font-body); }
-.demo .chip { fill: var(--diff); }
-.demo .chip-t { fill: var(--fg); font: 500 14px var(--font-body); }
-.demo .key-s { fill: var(--fg); }
-.demo .key-y { fill: var(--green); }
+.demo figcaption, .demo .cap { font-size: 0.9rem; color: var(--muted); margin: 12px 6px 0; }
+/* the example of the Pronunciation tab: a sentence with the differing words marked, and one of them open */
+.example { background: var(--surface); border-radius: var(--r-lg); padding: 22px 24px 24px; }
+.ex-tag { margin: 0 0 12px; font-size: 0.85rem; font-weight: 500; color: var(--muted); }
+.ex-sentence { margin: 0 0 20px; font-size: 1.7rem; line-height: 1.5; font-weight: 500; letter-spacing: -0.01em; }
+.ex-sentence mark { background: var(--diff); color: var(--fg); border-radius: 10px; padding: 1px 8px; }
+.ex-open { background: var(--surface-2); border-radius: var(--r-md); padding: 16px 18px; }
+.ex-word { margin: 0 0 10px; font-weight: 600; }
+.ex-pair { display: flex; gap: 12px; margin-bottom: 12px; }
+.ex-pair span { flex: 1; background: var(--surface); border-radius: 14px; padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; }
+.ex-pair i { font-style: normal; font-size: 0.82rem; color: var(--muted); }
+.ex-pair b { font-size: 1.5rem; font-weight: 500; }
+.ex-note, .ex-more { margin: 0; font-size: 0.93rem; color: var(--ink-2); }
+.ex-more { margin-top: 8px; color: var(--muted); }
+.points { list-style: none; padding: 0; margin: 24px 0 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.points li { background: var(--surface); border-radius: var(--r-lg); padding: 20px 22px; color: var(--ink-2); }
+.points strong { display: block; color: var(--fg); margin-bottom: 4px; }
+.limits { list-style: none; padding: 0; margin: 24px 0 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 16px; }
+.limits li { background: var(--surface); border-radius: var(--r-lg); padding: 18px 22px; color: var(--ink-2); }
+.limits strong { display: block; color: var(--fg); margin-bottom: 2px; }
 .compare { display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px; align-items: center; margin-top: 28px; }
 .compare .demo { margin: 0; }
 .compare-points { margin: 0; padding-left: 1.2em; color: var(--ink-2); }
@@ -239,7 +247,8 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
   body { font-size: 16px; }
   .wrap { padding: 0 16px; }
   .hero { padding-top: 40px; }
-  .steps, .cards, .split, .guide-grid, .compare { grid-template-columns: 1fr; }
+  .steps, .cards, .split, .guide-grid, .compare, .limits, .points { grid-template-columns: 1fr; }
+  .ex-sentence { font-size: 1.4rem; }
   .site-nav .hide-sm { display: none; }
   .site-head .wrap { gap: 10px; }
   .site-nav { gap: 6px 10px; }
@@ -253,8 +262,6 @@ form.contact .hp { position: absolute; left: -9999px; width: 1px; height: 1px; o
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
 @keyframes fade { from { opacity: 0; } }
 @keyframes drop { from { opacity: 0; transform: translateY(-6px); } }
-@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-@keyframes grow { from { transform: scaleY(0.15); opacity: 0; } }
 @keyframes pop-in { from { opacity: 0; transform: scale(0.85); } }
 @media (prefers-reduced-motion: no-preference) {
   @view-transition { navigation: auto; }
