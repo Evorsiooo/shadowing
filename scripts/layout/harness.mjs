@@ -37,6 +37,9 @@ export const VIEWPORTS = [
   { name: 'laptop at 150%', width: 911, height: 512 }, // a 1366x768 Windows laptop set to 150% scaling
   { name: 'laptop at 200%', width: 683, height: 340 },
   { name: 'desktop', width: 1920, height: 960 },
+  { name: '1080p browser window', width: 1903, height: 950 },
+  { name: '1080p at 125%', width: 1523, height: 760 },
+  { name: 'wide and short', width: 1916, height: 634 }, // Adrien's window
 ];
 
 const day = (n) => new Date(Date.now() - n * 864e5).toISOString();
@@ -90,6 +93,24 @@ export function measure(allow) {
     return parts.join(' > ');
   };
   if (de.scrollWidth > de.clientWidth + 1) out.push({ kind: 'page-scrolls-sideways', detail: `content ${de.scrollWidth}px wide in a ${de.clientWidth}px window` });
+  // the page scrolls by only a few pixels: nobody wants a scrollbar for that
+  const over = de.scrollHeight - de.clientHeight;
+  if (over > 0 && over <= 48 && de.clientHeight >= 500) out.push({ kind: 'page-scrolls-a-little', detail: `the page is only ${over}px taller than the window` });
+  // cards in a grid: a short card next to a tall one must not leave a hole under it (the next row starts far below its bottom)
+  for (const g of document.body.querySelectorAll('*')) {
+    const gs = getComputedStyle(g);
+    if (gs.display !== 'grid' || g.children.length < 2) continue;
+    const gap = parseFloat(gs.rowGap) || 0;
+    const kids = [...g.children].filter((c) => { const r = c.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(c).position !== 'absolute'; });
+    const isCard = (c) => { const bg = getComputedStyle(c).backgroundColor; const r = c.getBoundingClientRect(); return bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent' && r.height >= 80 && r.width >= 200; };
+    for (const a of kids.filter(isCard)) { // only big filled cards: a label beside a field in a form grid is meant to sit at its row's edge
+      const ra = a.getBoundingClientRect();
+      const below = kids.map((b) => b.getBoundingClientRect()).filter((rb) => rb.top >= ra.bottom - 1 && rb.left < ra.right - 2 && rb.right > ra.left + 2);
+      if (!below.length) continue;
+      const hole = Math.min(...below.map((rb) => rb.top)) - ra.bottom;
+      if (hole > gap + 24) { out.push({ kind: 'gap-in-grid', el: sel(a), detail: `${Math.round(hole)}px of empty space under it (the grid's own gap is ${Math.round(gap)}px)` }); break; }
+    }
+  }
   const visible = (el) => { const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'; };
   const FIELDS = 'textarea, input, select, button, a, label, .btn, h1, h2, h3, h4, p, li, span';
   for (const el of document.body.querySelectorAll('*')) {

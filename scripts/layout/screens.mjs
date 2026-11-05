@@ -8,6 +8,7 @@ const longText = 'This is a long question that keeps going so that the box has t
 
 export const SCREENS = [
   { name: 'Today', run: go('#today'), themes: ['light', 'dark'] },
+  { name: 'Today, three cards under the main one', run: async (p) => { await go('#today')(p); await p.evaluate(() => { const g = document.querySelector('.tbelow'); if (!g) throw new Error('no cards under the main card'); g.append(g.lastElementChild.cloneNode(true)); }); } },
   { name: 'Today, nothing added yet', empty: true, run: go('#today') },
   { name: 'Library', run: go('#library') },
   { name: 'Progress overview', run: go('#progress') },

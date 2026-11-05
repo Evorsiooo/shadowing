@@ -21,7 +21,9 @@ It fails when:
 2. any box draws a scrollbar that is not on the `ALLOW` list (the boxes meant to scroll: the Ask Euno log, windows, sidebars, tables);
 3. a text field, button, link or text block shows a scrollbar at all;
 4. something sticks out past the right edge with no scroller around it;
-5. the page throws a script error.
+5. the page scrolls by only a few pixels (48 or fewer) in a window at least 500px tall;
+6. a filled card in a grid has a big hole under it because its neighbour is taller;
+7. the page throws a script error.
 
 `node scripts/test-layout.mjs --shots out` saves a screenshot of every screen. `--only "laptop Ask"` runs a subset.
 
