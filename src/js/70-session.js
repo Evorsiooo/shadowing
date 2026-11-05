@@ -184,7 +184,6 @@ const Session = {
     }
     this.applyPassRate();
     this.phase = this.recordingThisPass ? 'recording' : 'playing';
-    if (!this.recordingThisPass) { try { Pron.warm(clip); } catch { /* the check is optional */ } } // load the model while the learner listens
     document.body.classList.toggle('calm', st.speak);
     renderSession();
     const ok = await Player.play();
@@ -235,6 +234,8 @@ const Session = {
     Player.v.pause();
     const phase = this.phase;
     this.phase = 'gap';
+    // get the sound-comparison model ready once a listen-only pass has finished, never while the video plays (loading it can make playback stutter)
+    if (phase === 'playing' && clip) { try { Pron.warm(clip); } catch { /* the check is optional */ } }
     let entry = { step: st.key, n: this.pass + 1, recorded: false, lag: null, at: new Date().toISOString() };
     if (this.rec) {
       await sleep(700); // catch the tail of a trailing voice

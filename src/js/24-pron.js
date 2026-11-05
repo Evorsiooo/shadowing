@@ -114,11 +114,11 @@ const Pron = {
     return by[code] || msg || t('Something went wrong.');
   },
 
-  /* get ready while the learner is listening (pass 1): the model, and the speaker's sounds and words if the clip doesn't have them yet (27-prepare.js).
+  /* get ready after a listen-only pass, while the video is paused (never during playback: it yields to the video): the model, and the speaker's sounds and words if the clip doesn't have them yet (27-prepare.js).
      Only started on a pass that is not recorded. */
   warm(clip) {
     if (!clip || !this.on()) return;
-    Prep.ensure(clip).catch((e) => console.info('pronunciation warm-up skipped:', this.reason(e)));
+    Prep.ensure(clip, { background: true, warm: true }).catch((e) => console.info('pronunciation warm-up skipped:', this.reason(e)));
   },
 
   /* tidy what the engine returned: bounded, only the fields we use */
