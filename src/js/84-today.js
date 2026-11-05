@@ -39,7 +39,7 @@ function renderToday() {
     Player.seek(clip.start);
     if (!clip.model) ensureModels(Store.get('videos', clip.videoId));
   }
-  mount(el, h('div', { class: 'peek stage' }, todayEuno(state), todayCard(state, clip, info)), todaySide(info, state));
+  mount(el, h('div', { class: 'stage' }, todayCard(state, clip, info)), todaySide(info, state));
   if (clip) drawThumb(clip);
 }
 
@@ -114,7 +114,7 @@ function todayCard(state, clip, info) {
       h('button', { type: 'button', class: 'linkbtn small', style: { alignSelf: 'flex-start', fontWeight: 500 }, onclick: () => go('library') }, t('Choose another clip'))));
 }
 
-/* a frame of the clip when its video is loaded, otherwise the speaker's melody */
+/* a frame from the start of the clip, once its video can be drawn (until then the box stays plain) */
 function drawThumb(clip) {
   const box = $('#todayThumb');
   if (!box) return;
@@ -129,31 +129,13 @@ function drawThumb(clip) {
     const g = c.getContext('2d');
     const s = Math.max(c.width / v.videoWidth, c.height / v.videoHeight);
     const w = v.videoWidth * s, hh = v.videoHeight * s;
-    try { g.drawImage(v, (c.width - w) / 2, (c.height - hh) / 2, w, hh); return true; } catch { return false; }
+    try { g.drawImage(v, (c.width - w) / 2, (c.height - hh) / 2, w, hh); box.classList.add('drawn'); return true; } catch { return false; }
   };
-  if (sameVideo && v.readyState >= 2 && Math.abs(v.currentTime - clip.start) < 1.5 && paint()) return;
-  if (sameVideo) {
-    if (Math.abs(v.currentTime - clip.start) >= 1.5 && v.paused) Player.seek(clip.start);
-    const once = () => { v.removeEventListener('seeked', once); v.removeEventListener('loadeddata', once); if (!paint()) melodyThumb(box, clip); };
-    v.addEventListener('seeked', once); v.addEventListener('loadeddata', once);
-  }
-  melodyThumb(box, clip);
-}
-function melodyThumb(box, clip) {
-  if (box.querySelector('.melody') || !clip.model || !clip.model.st) return;
-  const st = clip.model.st, n = st.length;
-  let d = '', pen = false;
-  for (let i = 0; i < n; i += 3) {
-    const v = median(st.slice(Math.max(0, i - 4), i + 5).filter((x) => x != null && Math.abs(x) <= 12));
-    if (!isFinite(v) || st[i] == null) { pen = false; continue; }
-    d += `${pen ? 'L' : 'M'}${((i / n) * 300).toFixed(1)} ${(50 - v * 3.6).toFixed(1)} `;
-    pen = true;
-  }
-  if (!d) return;
-  const el = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  el.setAttribute('class', 'melody'); el.setAttribute('viewBox', '0 0 300 100'); el.setAttribute('preserveAspectRatio', 'none'); el.setAttribute('aria-hidden', 'true');
-  el.innerHTML = `<path d="${d}" fill="none" stroke="var(--speaker)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`;
-  box.appendChild(el);
+  if (!sameVideo) return;
+  if (v.readyState >= 2 && Math.abs(v.currentTime - clip.start) < 1.5 && paint()) return;
+  if (Math.abs(v.currentTime - clip.start) >= 1.5 && v.paused) Player.seek(clip.start);
+  const once = () => { v.removeEventListener('seeked', once); v.removeEventListener('loadeddata', once); paint(); };
+  v.addEventListener('seeked', once); v.addEventListener('loadeddata', once);
 }
 
 function todaySide(info, state) {
@@ -175,6 +157,8 @@ function todaySide(info, state) {
     out.push(h('div', { class: 'box' }, h('h3', null, t('Listen for')), h('p', null, focus),
       h('button', { type: 'button', class: 'linkbtn small', style: { alignSelf: 'flex-start' }, onclick: () => go('progress', 'issues') }, t('Your notes on it'))));
   }
+  const fit = fitBox(state);
+  if (fit) out.push(fit);
   out.push(checkinBox());
   const dismissed = lsGet('dismissed', {});
   if (!dismissed.headphones && state === 'plan') {
@@ -184,7 +168,24 @@ function todaySide(info, state) {
   }
   out.push(h('div', { class: 'box' }, h('h3', null, t('Ask Euno')), h('p', { class: 'small' }, t('About a sound, your notes, or what to practise next.')),
     h('button', { type: 'button', class: 'linkbtn', style: { alignSelf: 'flex-start' }, onclick: () => go('ask') }, t('Ask a question'))));
-  return h('aside', { class: 'tside' }, out);
+  // Euno sits behind the This week card, looking over at the main card's Start button
+  return h('aside', { class: 'tside peek' }, todayEuno(state), out);
+}
+
+/* clips that have the sounds the learner keeps getting flagged on (28-rank.js). Only clips whose sounds are saved can be suggested; nothing is shown otherwise.
+   A rough guide: the sound labels come from the pronunciation model and can be wrong. "Queue them" puts them in the queue Today starts from. */
+function fitBox(state) {
+  if (state !== 'plan' || typeof Rank === 'undefined') return null;
+  let picks;
+  try { picks = Rank.pick(Rank.liveClips(), Rank.infoFn(), { today: dayKey(), max: 3 }); } catch { return null; }
+  if (!picks.length) return null;
+  const info = Rank.infoFn();
+  const ids = picks.map((c) => c.id), queued = ids.every((id, i) => UI.queue[i] === id) && UI.queue.length === ids.length;
+  return h('div', { class: 'box' }, h('h3', null, t('Clips for your sounds')),
+    h('p', { class: 'small muted' }, t('These have sounds you’ve been getting flagged on. A rough guide: the labels can be wrong.')),
+    h('ul', { class: 'small', style: { margin: 0, paddingLeft: '18px' } }, picks.map((c) => h('li', null, `${clipName(c)} · ${Rank.soundsText(info(c).match)}`))),
+    queued ? h('p', { class: 'small muted' }, t('Queued. Press Start above.'))
+      : btn(t('Queue them'), () => { UI.queue = ids; renderToday(); }, { size: 'sm', cls: 'self-start' }));
 }
 
 function checkinBox() {

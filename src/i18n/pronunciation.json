@@ -83,10 +83,6 @@
     "fr": "Encore",
     "es": "Otra vez"
   },
-  "The speaker’s snippet ({a}–{b} s) plays {n} times. Shadow it; the last time is recorded. Headphones on.": {
-    "fr": "L’extrait du locuteur ({a}–{b} s) passe {n} fois. Répète-le ; la dernière fois est enregistrée. Casque sur les oreilles.",
-    "es": "El fragmento del hablante ({a}–{b} s) suena {n} veces. Repítelo; la última vez se graba. Con auriculares."
-  },
   "I said {to} where the speaker says {from} in “{words}”.": {
     "fr": "J’ai dit {to} là où le locuteur dit {from} dans « {words} ».",
     "es": "Dije {to} donde el hablante dice {from} en «{words}»."
@@ -191,26 +187,6 @@
     "fr": "Prononciation",
     "es": "Pronunciación"
   },
-  "Which row is big": {
-    "fr": "Quelle ligne est en grand",
-    "es": "Qué fila va en grande"
-  },
-  "Words": {
-    "fr": "Mots",
-    "es": "Palabras"
-  },
-  "Phones": {
-    "fr": "Sons",
-    "es": "Sonidos"
-  },
-  "Words big, sounds small": {
-    "fr": "Mots en grand, sons en petit",
-    "es": "Palabras grandes, sonidos pequeños"
-  },
-  "Sounds big, words small": {
-    "fr": "Sons en grand, mots en petit",
-    "es": "Sonidos grandes, palabras pequeñas"
-  },
   "This browser can’t run the pronunciation check": {
     "fr": "Ce navigateur ne peut pas lancer la vérification de prononciation",
     "es": "Este navegador no puede ejecutar la comprobación de pronunciación"
@@ -255,21 +231,9 @@
     "fr": "Analyse du locuteur…",
     "es": "Analizando al hablante…"
   },
-  "Words of the clip on a time line; press or drag to move through it": {
-    "fr": "Mots du clip sur une ligne de temps ; appuie ou fais glisser pour te déplacer",
-    "es": "Palabras del clip en una línea de tiempo; pulsa o arrastra para moverte"
-  },
-  "Record a pass and the differences from the speaker show up here.": {
-    "fr": "Enregistre un passage et les différences avec le locuteur apparaissent ici.",
-    "es": "Graba una pasada y las diferencias con el hablante aparecerán aquí."
-  },
   "Hard to tell for this take (too quiet, noisy or cut short), so no differences are shown. Try recording again closer to the microphone.": {
     "fr": "Difficile à dire pour cette prise (trop faible, bruyante ou coupée), donc aucune différence n’est affichée. Réessaie plus près du micro.",
     "es": "Difícil de saber con esta toma (muy baja, ruidosa o cortada), así que no se muestran diferencias. Prueba a grabar más cerca del micrófono."
-  },
-  "No clear differences from the speaker this time.": {
-    "fr": "Aucune différence nette avec le locuteur cette fois.",
-    "es": "Ninguna diferencia clara con el hablante esta vez."
   },
   "Hear the speaker say “{word}”": {
     "fr": "Écouter le locuteur dire « {word} »",
@@ -283,18 +247,6 @@
     "fr": "Masquer celui-ci. Il ne reviendra pas pour ce clip.",
     "es": "Ocultar este. No volverá en este clip."
   },
-  "same as the speaker": {
-    "fr": "comme le locuteur",
-    "es": "igual que el hablante"
-  },
-  "differs from the speaker": {
-    "fr": "diffère du locuteur",
-    "es": "difiere del hablante"
-  },
-  "Worth a listen": {
-    "fr": "À écouter",
-    "es": "Vale la pena escuchar"
-  },
   "{n} more possible difference is hidden because it is less certain.|{n} more possible differences are hidden because they are less certain.": {
     "fr": "{n} autre différence possible est masquée car elle est moins sûre.|{n} autres différences possibles sont masquées car elles sont moins sûres.",
     "es": "Se oculta {n} diferencia posible más porque es menos segura.|Se ocultan {n} diferencias posibles más porque son menos seguras."
@@ -302,10 +254,6 @@
   "Not exact. Listen to both and decide.": {
     "fr": "Pas exact. Écoute les deux et décide.",
     "es": "No es exacto. Escucha ambos y decide."
-  },
-  "No words for this clip, only sounds": {
-    "fr": "Pas de mots pour ce clip, seulement des sons",
-    "es": "Sin palabras para este clip, solo sonidos"
   },
   "The speaker’s sound is hard to analyse here (music, noise or overlapping voices), so no differences are shown.": {
     "fr": "Le son du locuteur est difficile à analyser ici (musique, bruit ou voix qui se chevauchent), donc aucune différence n’est affichée.",
@@ -418,5 +366,65 @@
   "Wait until the pass is over, then play it.": {
     "fr": "Attends la fin de la passe, puis écoute.",
     "es": "Espera a que termine la pasada y luego escúchalo."
+  },
+  "Pronunciation analysis isn’t ready on this device.": {
+    "fr": "L’analyse de la prononciation n’est pas prête sur cet appareil.",
+    "es": "El análisis de pronunciación no está listo en este dispositivo."
+  },
+  "The speaker’s audio for this stretch isn’t loaded.": {
+    "fr": "L’audio du locuteur pour ce passage n’est pas chargé.",
+    "es": "El audio del hablante para este tramo no está cargado."
+  },
+  "Too little clear speech in the recording to compare.": {
+    "fr": "Pas assez de voix claire dans l’enregistrement pour comparer.",
+    "es": "No hay suficiente voz clara en la grabación para comparar."
+  },
+  "The snippet didn’t include that sound clearly enough to check it.": {
+    "fr": "L’extrait ne contenait pas ce son assez clairement pour le vérifier.",
+    "es": "El fragmento no incluía ese sonido con suficiente claridad para comprobarlo."
+  },
+  "Drills so far: {ok} not flagged, {bad} flagged again.": {
+    "fr": "Entraînements jusqu’ici : {ok} non signalés, {bad} signalés de nouveau.",
+    "es": "Prácticas hasta ahora: {ok} sin señalar, {bad} señalados otra vez."
+  },
+  "This time {a} wasn’t flagged: the computer didn’t hear it come out as another sound.": {
+    "fr": "Cette fois {a} n’a pas été signalé : l’ordinateur ne l’a pas entendu comme un autre son.",
+    "es": "Esta vez no se señaló {a}: el ordenador no lo oyó como otro sonido."
+  },
+  "{a} was flagged again: the computer still heard {b} where the speaker has {a}.": {
+    "fr": "{a} a été signalé de nouveau : l’ordinateur a encore entendu {b} là où le locuteur dit {a}.",
+    "es": "Se señaló {a} otra vez: el ordenador volvió a oír {b} donde el hablante dice {a}."
+  },
+  "Couldn’t check this one: {why}": {
+    "fr": "Impossible de vérifier celui-ci : {why}",
+    "es": "No se pudo comprobar este: {why}"
+  },
+  "Not flagged this time": {
+    "fr": "Non signalé cette fois",
+    "es": "Sin señalar esta vez"
+  },
+  "Flagged again": {
+    "fr": "Signalé de nouveau",
+    "es": "Señalado otra vez"
+  },
+  "Not checked": {
+    "fr": "Non vérifié",
+    "es": "Sin comprobar"
+  },
+  "Also flagged: {list}.": {
+    "fr": "Aussi signalé : {list}.",
+    "es": "También señalado: {list}."
+  },
+  "Not exact: one short try, judged by a computer that can be wrong. Play both and decide for yourself.": {
+    "fr": "Pas exact : un seul essai court, jugé par un ordinateur qui peut se tromper. Écoute les deux et décide toi-même.",
+    "es": "No es exacto: un solo intento corto, juzgado por un ordenador que puede equivocarse. Escucha ambos y decide tú."
+  },
+  "The speaker’s snippet ({a}–{b} s) plays {n} times. Shadow it; the last time is recorded and compared with the speaker. Headphones on.": {
+    "fr": "L’extrait du locuteur ({a}–{b} s) est lu {n} fois. Répète-le en décalé ; la dernière fois est enregistrée et comparée au locuteur. Casque sur les oreilles.",
+    "es": "El fragmento del hablante ({a}–{b} s) suena {n} veces. Repítelo en diferido; la última vez se graba y se compara con el hablante. Con auriculares."
+  },
+  "No recording was made (is the microphone allowed?).": {
+    "fr": "Aucun enregistrement n’a été fait (le micro est-il autorisé ?).",
+    "es": "No se hizo ninguna grabación (¿está permitido el micrófono?)."
   }
 }

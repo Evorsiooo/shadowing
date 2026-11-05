@@ -18,10 +18,10 @@ const make = ({ L }) => ({
     h1: 'What is Euno Shadowing? What it is, and what it is not',
     crumb: 'What is Euno Shadowing?',
     description: 'Euno Shadowing is a free web app for practising accent by shadowing your own videos. What it does, what it does not do (no lessons, subtitles or transcripts), and how it differs from similarly named things.',
-    lede: 'Euno Shadowing is a free web app that runs a daily shadowing routine on short clips of videos you bring, records you, and shows how your timing and melody compare with the speaker’s.',
+    lede: 'Euno Shadowing is a free web app that runs a daily shadowing routine on short clips of videos you bring, records you, and compares your recording with the speaker’s: for English, the sounds that differ, and for every language, your timing and melody.',
     body: `
     <h2>In one paragraph</h2>
-    <p>You add a video or audio file of a speaker whose accent you want, cut a clip of one or two sentences, and Euno guides you through a 15-minute session: listen, shadow, record, compare, shadow again. After a recorded pass it shows your pitch line next to the speaker’s, your lag, and a few measured differences. For English clips it can also show where the sounds you made differ from the speaker’s. It works in English, French and Spanish, in your browser, and is free.</p>
+    <p>You add a video or audio file of a speaker whose accent you want, cut a clip of one or two sentences, and Euno guides you through a 15-minute session: listen, shadow, record, compare, shadow again. After a recorded pass, for English clips it lines up the sounds you made against the sounds in the speaker’s audio and marks up to three places where they differ. For every language it also shows your pitch line next to the speaker’s, your lag, and a few measured differences. It works in English, French and Spanish, in your browser, and is free.</p>
 
     <h2>What it does</h2>
     <ul>
@@ -29,9 +29,9 @@ const make = ({ L }) => ({
       <li><strong>A guided session.</strong> A four-step routine with a timer, a pass counter and automatic looping. A five-minute bad-day version is built in, and every duration is a setting.</li>
       <li><strong>Playback controls.</strong> Loop the current clip, play at 0.5x, 0.75x or 1x with the pitch kept natural, and use keyboard shortcuts.</li>
       <li><strong>Recording and comparison.</strong> Play the original, yourself, one after the other, or both together. Your step 3 and final recordings are kept for each clip.</li>
+      <li><strong>Pronunciation differences (English only, for now).</strong> After a recorded pass, the Pronunciation tab lines up the sounds you made against the sounds in the speaker’s audio and marks up to three places where they differ. It compares you with the speaker you chose, not with a transcript, a dictionary or a standard accent, and it gives no score and calls nothing a mistake. It runs in your browser: it is off until you turn it on in Settings → Analysis, which downloads a speech model of about 71 MB to your device once (from Hugging Face, a third-party host), and your recording is not uploaded for the analysis. It is a beta feature, it needs a computer, and it shows nothing when the audio is too noisy to judge. It can misread a sound, so treat each item as a place to listen, and dismiss it with “Sounds the same to me” if it sounds the same to you. French and Spanish clips do not have this yet.</li>
       <li><strong>Pitch and lag.</strong> Euno draws the speaker’s melody and yours, each relative to its own voice, and measures how far behind or ahead of the speaker you were.</li>
       <li><strong>Differences from the speaker.</strong> After a pass it can point out stretches where you went faster or slower, where the pitch went the other way, or where the stress differed. These come from measuring the two recordings, not from a language model listening to your voice. If you switch it on in Settings (off by default, Chrome only, your voice goes to Google while it runs), it can also mark clip words the browser’s speech recognition did not hear, which may have been unclear. It can miss clear words too, so treat it as a hint.</li>
-      <li><strong>Pronunciation differences (English only, for now).</strong> After a recorded pass, the Pronunciation tab lines up the sounds you made against the sounds in the speaker’s audio and marks up to three places where they differ. It compares you with the speaker you chose, not with a transcript, a dictionary or a standard accent, and it gives no score and calls nothing a mistake. It runs in your browser: it is off until you turn it on in Settings → Analysis, which downloads a speech model of about 71 MB to your device once (from Hugging Face, a third-party host), and your recording is not uploaded for the analysis. It is a beta feature, it needs a computer, and it shows nothing when the audio is too noisy to judge. It can misread a sound, so treat each item as a place to listen, and dismiss it with “Sounds the same to me” if it sounds the same to you. French and Spanish clips do not have this yet.</li>
       <li><strong>Notes and issues.</strong> Write down what sounded off; recurring problems collect into an issues list.</li>
       <li><strong>12-week check-ins.</strong> A baseline, then the same tasks at weeks 4, 8 and 12.</li>
       <li><strong>Reminders.</strong> Optional Discord and browser push reminders.</li>
@@ -42,14 +42,14 @@ const make = ({ L }) => ({
       <li><strong>It has no lessons or content library.</strong> You bring the videos. There are no built-in lessons, courses or ready-made clips.</li>
       <li><strong>It has no subtitles or transcripts.</strong> It does not transcribe the video, show synchronised subtitles or break it into sentences for you. You choose where each clip starts and ends.</li>
       <li><strong>It does not take content from YouTube or other sites.</strong> You use files you have the right to use for private practice.</li>
-      <li><strong>It does not grade your pronunciation.</strong> There is no score and no verdict on right or wrong. For English, the Pronunciation tab shows sounds that differ from the speaker, and it can be mistaken; for French and Spanish there is no sound-level comparison yet. Pitch and timing are not the same as good pronunciation either.</li>
+      <li><strong>It gives no score.</strong> There is no grade and no verdict on right or wrong. For English, the Pronunciation tab does mark the sounds that differ from the speaker’s, and it can be mistaken; for French and Spanish there is no sound-level comparison yet. It does not coach where to put your tongue or lips, and pitch and timing are not the same as good pronunciation.</li>
       <li><strong>It is not a coach, a course or a guarantee.</strong> It is a practice tool.</li>
     </ul>
 
     <h2>What feedback you get</h2>
     <p>Three kinds, and you can use any of them without the others:</p>
     <ol>
-      <li><strong>Measured feedback:</strong> pitch lines, lag, the differences from the speaker described above and, for English, the Pronunciation tab (which is off until you turn it on in Settings → Analysis and download a model of about 71 MB).</li>
+      <li><strong>Measured feedback:</strong> for English, the Pronunciation tab (which is off until you turn it on in Settings → Analysis and download a model of about 71 MB); for every language, pitch lines, lag and the differences from the speaker described above.</li>
       <li><strong>Your own listening:</strong> side-by-side playback and your notes about what sounded off.</li>
       <li><strong>Optional AI feedback:</strong> if you add your own API key from Anthropic, OpenAI or OpenRouter, you can ask for feedback on your notes. Only text is sent, never audio: your note, plus short lines describing what was measured on the recording (such as a stretch where you went faster than the speaker), which the AI is told not to go beyond. You pay the provider directly. Without a key, Euno writes the prompt for you to paste into any chatbot.</li>
     </ol>
@@ -212,9 +212,9 @@ const make = ({ L }) => ({
       <tbody>
         <tr><td>What it is</td><td>A practice app for shadowing your own clips</td><td>A pronunciation course app with lessons and scoring</td><td>A browser extension for learning from Netflix and YouTube</td></tr>
         <tr><td>Content</td><td>Your own videos and audio: you upload a file or paste a link and cut clips</td><td>Lessons made by the company</td><td>The videos you already watch on streaming sites</td></tr>
-        <tr><td>Main idea</td><td>Copy a real speaker, then compare your pitch and timing with theirs</td><td>Speak a prompt, get feedback on your sounds</td><td>Dual subtitles and a pop-up dictionary to understand what you hear</td></tr>
+        <tr><td>Main idea</td><td>Copy a real speaker, then compare your sounds, timing and melody with theirs</td><td>Speak a prompt, get feedback on your sounds</td><td>Dual subtitles and a pop-up dictionary to understand what you hear</td></tr>
         <tr><td>Languages</td><td>English, French and Spanish accents</td><td>English</td><td>Many languages</td></tr>
-        <tr><td>Feedback</td><td>Your pitch line and lag next to the speaker’s; for English, the sounds that differ from the speaker’s; optional AI feedback with your own API key</td><td>Automated scoring of your pronunciation</td><td>Not a pronunciation tool</td></tr>
+        <tr><td>Feedback</td><td>For English, the sounds that differ from the speaker’s; for every language, your timing and pitch line next to the speaker’s; optional AI feedback with your own API key</td><td>Automated scoring of your pronunciation</td><td>Not a pronunciation tool</td></tr>
         <tr><td>Sound-level feedback</td><td>English only, in beta: up to three places where your sounds differ from the speaker’s audio, with no score. Off by default; a model of about 71 MB is downloaded once and runs in your browser</td><td>Scores your sounds against a standard accent (English)</td><td>None</td></tr>
         <tr><td>Compared against</td><td>The speaker you chose</td><td>A target accent</td><td>Nobody: it doesn’t analyse your voice</td></tr>
         <tr><td>Cost</td><td>Free; AI usage, if you choose it, is billed by your AI provider</td><td>Free tier and paid plans</td><td>Free tier and paid plans</td></tr>
@@ -222,7 +222,7 @@ const make = ({ L }) => ({
     </table>
 
     <h2>Euno Shadowing</h2>
-    <p>Euno runs the shadowing routine for you. You bring a video of a speaker whose accent you want, cut a clip of one or two sentences, and Euno loops it, counts your passes, records you and draws your melody and lag next to the speaker’s. It is built around the real speaker, not a model accent, so it works for any voice you can find.</p>
+    <p>Euno runs the shadowing routine for you. You bring a video of a speaker whose accent you want, cut a clip of one or two sentences, and Euno loops it, counts your passes, records you and, for English, marks where your sounds differ from the speaker’s, with your timing and melody drawn next to theirs. It is built around the real speaker, not a model accent, so it works for any voice you can find.</p>
     <p><strong>What it doesn’t do:</strong> it has no lessons or library of its own, no subtitles or transcripts, no streaming-site integration, and no score or grade. It shows differences from the speaker’s melody and timing and, for English, the sounds that differ from the speaker’s; it doesn’t say you are right or wrong, and it can misread a sound. AI feedback is optional and runs on a key you provide. The sound comparison is a beta feature, English only, and we don’t claim a particular accuracy for it: it is a hint to listen, not a verdict.</p>
 
     <h2>ELSA Speak</h2>

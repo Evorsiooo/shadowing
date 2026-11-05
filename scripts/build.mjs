@@ -107,7 +107,10 @@ const body = readFileSync(join(src, 'index.html'), 'utf8')
   .replace('@SCRIPTS@', () => `..${appJs}`);
 
 // Google's search results want a PNG/ICO whose size is a multiple of 48px, so the 48 and 96 are not optional.
-const ICON_LINKS = `<link rel="icon" href="/favicon.ico" sizes="48x48">\n<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">\n<link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">\n<link rel="icon" href="/assets/favicon-48.png" sizes="48x48" type="image/png">\n<link rel="icon" href="/assets/favicon-96.png" sizes="96x96" type="image/png">\n<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">\n<link rel="manifest" href="/site.webmanifest">`;
+// The icon URLs carry a short hash of the icon files: browsers keep favicons for a very long time, so a changed
+// icon only shows up once its URL changes too. /favicon.ico itself stays unversioned for crawlers that ask for it blindly.
+const ICON_V = createHash('sha256').update(readFileSync(join(src, 'site', 'favicon.ico'))).update(readFileSync(join(src, 'site', 'assets', 'favicon.svg'))).digest('hex').slice(0, 8);
+const ICON_LINKS = `<link rel="icon" href="/favicon.ico?v=${ICON_V}" sizes="48x48">\n<link rel="icon" href="/assets/favicon.svg?v=${ICON_V}" type="image/svg+xml">\n<link rel="icon" href="/assets/favicon-32.png?v=${ICON_V}" sizes="32x32" type="image/png">\n<link rel="icon" href="/assets/favicon-48.png?v=${ICON_V}" sizes="48x48" type="image/png">\n<link rel="icon" href="/assets/favicon-96.png?v=${ICON_V}" sizes="96x96" type="image/png">\n<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=${ICON_V}">\n<link rel="manifest" href="/site.webmanifest">`;
 const APP_THEME_COLOR = '<meta name="theme-color" content="#f6f7f3">'; // light is the default; applyTheme (88-settings.js) switches it for dark
 
 // The app's CSP is a <meta> tag so it can pin the page's own inline scripts by hash. Scripts are
@@ -148,15 +151,17 @@ const themeJs = `try { const t = JSON.parse(localStorage.getItem('shadowing:them
 const year = SITE.updated.slice(0, 4);
 // Euno on the site: drawn once as SVG for the logo and for the home page's first paint. On the home page the engine then
 // takes over in place: the still is drawn in the engine's own frame and pose, so the swap can't be seen, and he simply
-// watches the demo card below him and blinks. With reduced motion he stays as drawn.
+// holds one pose looking at the demo card below him, and blinks. With reduced motion he stays as drawn.
 const SITE_LOGO = eunoSvg('attentive-left', { label: null, idSuffix: '-site' });
-const HERO_EUNO = eunoSvg('downward-gaze', { label: null, idSuffix: '-hero', fit: false });
+const HERO_LOOK = [-14, -6]; // he looks down at the demo card
+const HERO_EUNO = eunoSvg('downward-gaze', { label: null, idSuffix: '-hero', fit: false, look: HERO_LOOK });
 const eunoSiteJs = fingerprint('euno-site', 'js', minify(eunoJs + `
 (function () {
   var el = document.querySelector('[data-euno-hero]');
   if (!el || !window.EunoEngine || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
   var still = el.firstElementChild;
-  var a = window.EunoEngine.create(el, { defaultExpression: 'downward-gaze', autoplay: false });
+  var def = window.EunoEngine.calm({ look: ${JSON.stringify(HERO_LOOK)}, holds: { watching: ['downward-gaze'] } });
+  var a = window.EunoEngine.create(el, { definition: def, defaultExpression: 'downward-gaze', autoplay: false });
   a.play('watching');
   if (still && still.parentNode === el) el.removeChild(still);
   document.addEventListener('visibilitychange', function () { if (document.hidden) a.pause(); else a.play('watching'); });
@@ -300,12 +305,14 @@ ${plain(en.home.lede)} ${plain(en.home.fine)}
 - Euno Shadowing is a free web app at ${SITE.url.replace(/^https:\/\//, '')} for practising pronunciation and accent by shadowing (speaking along with a recording) in English, French and Spanish. Full explanation: ${pageUrl('what-is-euno-shadowing')}
 - You bring your own videos or audio (upload a file or paste a link to an .mp4) and cut short clips of one or two sentences. There are no built-in lessons, no content library, no subtitles and no transcripts, and it does not pull content from YouTube.
 - It is not an app for job shadowing (such as Erasmus+ visits for teachers), medical or pre-med shadowing, or the Euno enterprise AI platform, and is not affiliated with them. It is also not the journaling apps named Euno.
-- Feedback: your pitch line next to the speaker's, your lag behind or ahead of the speaker, and measured differences in speed, pitch direction and stress after each recorded pass. For English clips, a Pronunciation tab marks up to three places where the sounds differ from the speaker's audio (a beta feature, off by default, English only: French and Spanish clips do not have it yet. It shows differences from the speaker, not mistakes. It compares against the speaker's actual audio, not a transcript or a standard accent, and gives no score. The analysis runs in the browser on a computer after a one-time download of a speech model of about 71 MB from Hugging Face, and the recording is not uploaded for it. It can misread a sound, and it shows nothing when the audio is too noisy. The words shown above the sounds come from a separate optional speech model, Whisper, about 80 MB, also downloaded once and run in the browser, because clips have no transcripts. Across sessions Euno keeps a history of which sound differences keep coming back and which have gone quiet). An optional speech-recognition check (Chrome only, off by default) can mark clip words that may have been unclear. Optional AI feedback on your written notes, which also receives these measurements as text, uses your own API key (Anthropic, OpenAI or OpenRouter); only text is sent, never audio.
+- Core idea: you pick a speaker and clips, shadow them, and Euno compares your recording with the speaker's actual audio. For English clips it marks where your sounds differ from the speaker's (a Pronunciation tab, beta); for every language it also shows your timing and melody next to the speaker's.
+- Pronunciation feedback (English only, beta, off by default): after a recorded pass, the Pronunciation tab compares the sounds in your recording with the sounds in the speaker's audio and marks up to three places where yours differ, with the words they fall in. It shows differences from the speaker, not mistakes. It compares against the speaker's actual audio, not a transcript or a standard accent, and gives no score. It does not coach tongue or lip position. The analysis runs in the browser on a computer after a one-time download of a speech model of about 71 MB from Hugging Face, and the recording is not uploaded for it. It can misread a sound, and it shows nothing when the audio is too noisy. The words shown above the sounds come from a separate optional speech model, Whisper, about 80 MB, also downloaded once and run in the browser, because clips have no transcripts. Across sessions Euno keeps a history of which sound differences keep coming back and which have gone quiet. French and Spanish clips do not have the sound comparison yet; they get timing and melody.
+- Other feedback: how far behind or ahead of the speaker you were, where you went faster or slower, and pitch direction and stress, after each recorded pass. An optional speech-recognition check (Chrome only, off by default) can mark clip words that may have been unclear. Ask Euno (optional, with your own Anthropic, OpenAI or OpenRouter key) answers questions about notes and measurements; only text is sent, never audio.
+- No score and no grade anywhere. Euno does not claim to be a pronunciation scoring tool like ELSA Speak: it compares you with the speaker you chose.
 
 ## Features
 
-${en.home.featureList.map((f) => `- ${f}`).join('\n')}
-- Pronunciation history: which sound differences keep recurring and which have gone quiet (English, beta)
+${en.home.featureList.filter((f) => !f.startsWith('Read-only MCP')).map((f) => `- ${f}`).join('\n')}
 - Optional read-only connection to Claude, ChatGPT or Gemini through MCP (sign-in required), so an AI app can see the user's own practice data, including the pronunciation history (tools get_pronunciation_progress and get_clip_pronunciation: the speaker's and the learner's sounds per clip and per take, English only, compared with the speaker's audio). It cannot change anything and never receives audio
 - Clips cut from your own videos, with a zoomed waveform for trimming at the pauses
 - Looping, playback at 0.5x, 0.75x or 1x, and keyboard shortcuts

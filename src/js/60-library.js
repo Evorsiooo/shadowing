@@ -193,7 +193,7 @@ const CLIP_LIMIT = 5;
 function visibleClips(v, live) {
   if (live.length <= CLIP_LIMIT || UI.showAllClips[v.id]) return live;
   const score = (c) => (c.id === UI.clipId ? 0 : UI.queue.includes(c.id) ? 1 : !c.done ? 2 : 3);
-  const keep = new Set(live.slice().sort((a, b) => score(a) - score(b) || a.start - b.start).slice(0, CLIP_LIMIT).map((c) => c.id));
+  const keep = new Set(live.slice().sort((a, b) => score(a) - score(b) || live.indexOf(a) - live.indexOf(b)).slice(0, CLIP_LIMIT).map((c) => c.id));
   return live.filter((c) => keep.has(c.id));
 }
 
@@ -201,7 +201,12 @@ function clipList(v) {
   const all = videoClips(v.id);
   const live = all.filter((c) => !c.archived);
   const arch = all.filter((c) => c.archived);
+  const info = Rank.infoFn(), mode = Rank.mode();
+  const shown = Rank.order(live, mode, info); // 'as cut', 'easier first' or 'fits my sounds'; clip names keep their place on the timeline
   const item = (c, i) => {
+    const rk = c.archived ? {} : info(c);
+    const fit = rk.match && rk.match.n > 0 ? ` · ${t('has {sounds}', { sounds: Rank.soundsText(rk.match) })}` : '';
+    const lvl = mode === 'easy' && rk.diff ? ` · ${Rank.levelText(rk.diff.level)}` : '';
     const queued = UI.queue.includes(c.id);
     return h('div', { class: `citem ${c.id === UI.clipId ? 'sel' : ''}` },
       c.archived ? h('span', { class: 'tick' }, icon('archive'))
@@ -209,16 +214,23 @@ function clipList(v) {
         : h('span', { class: 'tick', title: t('Not done yet'), 'aria-label': t('Not done yet') }),
       h('div', { style: { minWidth: 0 } },
         h('div', { class: 'clabel', role: 'button', tabindex: 0, onclick: () => { selectClip(c.id); closeDrawer(); }, onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectClip(c.id); } } }, clipName(c, i)),
-        h('div', { class: 'cmeta' }, `${fmtTime(c.start)}–${fmtTime(c.end)} · ${fmtSec(c.end - c.start)}${c.noisy ? ` · ${t('noisy')}` : ''}${queued ? ` · ${t('#{n} in queue', { n: UI.queue.indexOf(c.id) + 1 })}` : ''}`)),
+        h('div', { class: 'cmeta' }, `${fmtTime(c.start)}–${fmtTime(c.end)} · ${fmtSec(c.end - c.start)}${c.noisy ? ` · ${t('noisy')}` : ''}${queued ? ` · ${t('#{n} in queue', { n: UI.queue.indexOf(c.id) + 1 })}` : ''}${lvl}${fit}`)),
       h('div', { class: 'row', style: { gap: '2px', flexWrap: 'nowrap' } },
         !c.archived ? btn('', () => { editClip(c.id); closeDrawer(); }, { size: 'sm', kind: 'ghost', icon: 'edit', title: t('Edit clip (start, end, length, label)'), disabled: Session.active }) : null,
         btn('', () => openClipMenu(c), { size: 'sm', kind: 'ghost', icon: 'menu', title: t('Clip options') })));
   };
   return h('div', { class: 'clist' },
-    live.length ? visibleClips(v, live).map((c) => item(c, live.indexOf(c))) : h('p', { class: 'small muted' }, t('No clips yet. Press Cut clips under the video, then drag along the timeline.')),
+    live.length > 2 ? sortRow(mode) : null,
+    live.length ? visibleClips(v, shown).map((c) => item(c, live.indexOf(c))) : h('p', { class: 'small muted' }, t('No clips yet. Press Cut clips under the video, then drag along the timeline.')),
     live.length > CLIP_LIMIT ? btn(UI.showAllClips[v.id] ? t('Show fewer') : t('Show all {n} clips', { n: live.length }), () => { UI.showAllClips[v.id] = !UI.showAllClips[v.id]; renderSidebar(); }, { size: 'sm', kind: 'ghost' }) : null,
     UI.queue.length ? h('div', { class: 'row small' }, h('span', { class: 'muted grow' }, tp(UI.queue.length, '{n} queued', '{n} queued')), btn(t('Clear queue'), () => { UI.queue = []; renderSidebar(); renderSession(); }, { size: 'sm', kind: 'ghost' })) : null,
     arch.length ? h('details', { class: 'archived', open: UI.showArchivedClips, ontoggle: (e) => { UI.showArchivedClips = e.target.open; } }, h('summary', null, t('Archived clips ({n})', { n: arch.length })), h('div', { class: 'clist' }, arch.map(item))) : null);
+}
+
+/* how the clip list is ordered. 'Fits my sounds' needs the speaker's sounds saved on the clips (Settings → Analysis → Prepare my library) */
+function sortRow(mode) {
+  const opt = (m, label) => h('button', { type: 'button', class: mode === m ? 'on' : '', 'aria-pressed': String(mode === m), onclick: () => { Rank.setMode(m); renderSidebar(); } }, label);
+  return h('div', { class: 'seg sm', role: 'group', 'aria-label': t('Order of the clips') }, opt('time', t('As cut')), opt('easy', t('Easier first')), opt('issues', t('Fits my sounds')));
 }
 
 function openClipMenu(c) {

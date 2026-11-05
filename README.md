@@ -4,13 +4,15 @@ A web app for a daily 15-minute shadowing routine: repeat short clips of a model
 
 ## What's in it
 
-All six build stages from the spec are implemented:
+The core of the app: you pick a speaker and cut short clips from your own videos, shadow them in a guided session, and Euno compares your recording with the speaker's audio. For English clips, a Pronunciation tab (beta, off by default, no score) marks up to three places per pass where your sounds differ from the speaker's, runs in the browser on a model downloaded once, and keeps a history of which differences keep coming back ([docs/PRONUNCIATION.md](docs/PRONUNCIATION.md)). Every language also gets timing, pitch and stress comparisons. The app is organised as Today, Library and Progress, with a focus-mode session, **Ask Euno** (a chat page that uses the user's own AI key) and Settings. Euno, the green mascot, is drawn by the avatar engine in `src/euno/`.
+
+The six build stages from the spec, which the app grew out of:
 
 1. **Library, clips, session.** Video library (add by direct .mp4 link, link check, edit, archive/restore). Custom player with speed (pitch preserved), clip loop and volume. Scrubber with `[ ]` clip brackets and ticks. Clips are cut by dragging on the scrubber or with the I/O keys. A zoomed waveform editor has draggable edges, ±0.1 s nudges, snap-to-gap, a length indicator and a mid-word warning. Clip queue. Guided 4-step session with pass counter, timer, pause, repeat, skip, end early, bad-day mode and a "can't keep up" hint. Also a practice log, a streak (one rest day allowed), the weekly target and clip rotation suggestions.
 2. **Recording and comparing.** The microphone starts with the clip. Playback options: original, mine, original then mine, both together. Step 3 and final recordings are kept, with side-by-side compare and per-clip history.
 3. **Pitch and waveform.** YIN pitch tracking, smoothed, with unreliable stretches hidden. Each voice is shown relative to its own average, in two lanes. The model line is worked out once and stored with the clip. Clips can be flagged as noisy.
 4. **Live pitch and sync.** Live pitch line with start detection. After each pass, loudness cross-correlation aligns the recording and measures the lag (behind or ahead). A manual offset is used when auto-alignment is unsure. There is also a device-delay setting.
-5. **Notes and AI.** "What sounded off" notes. Ask AI (with the user's own Anthropic, OpenAI or OpenRouter key, through the server) for the likely feature, what to change and what to listen for, or copy the prompt into any AI chat. An issues list supports tick, rename and merge.
+5. **Notes and AI.** "What sounded off" notes. Ask Euno (with the user's own Anthropic, OpenAI or OpenRouter key, through the server) for the likely feature, what to change and what to listen for, or copy the prompt into any AI chat. An issues list supports tick, rename and merge.
 6. **Check-ins.** Weeks 0, 4, 8 and 12: fixed read-aloud sentences, a 60 s retelling and a 60 s unseen question. Recordings are never overwritten. Includes baseline comparison, rough objective measures (syllable rate, stressed/unstressed length ratio, pitch range, lag) with trends against the speaker's clips, and a blind listener pack export (shuffled WAVs plus a rating sheet) with ratings entry.
 
 Every routine number (passes, minutes, clip length range, loop gap, offsets, review runs and so on) is a setting.
@@ -25,7 +27,7 @@ Everything runs on one Cloudflare account, mostly within the free tier:
 | **Google sign-in** | OpenID Connect with PKCE; sessions in D1 behind an `HttpOnly` cookie. Open sign-up, or invite-only from the admin page ([docs/ACCOUNTS.md](docs/ACCOUNTS.md)) |
 | **D1** | The database: users and sessions, and every practice record as a JSON document keyed by user (`migrations/`) |
 | **Device storage + Google Drive** | Videos and voice recordings live in each user's Google Drive (`drive.file` scope) with a cache in the browser, or only in the browser as an opt-in (`src/js/17-media.js`, `server/drive.js`, [docs/STORAGE.md](docs/STORAGE.md)). The server never holds them. |
-| **AI (optional)** | "Ask AI" on notes, through the server (`server/ai.js`) with each user's own Anthropic, OpenAI or OpenRouter key, stored encrypted under the `KEY_ENCRYPTION_KEY` secret |
+| **AI (optional)** | "Ask Euno" (chat and notes), through the server (`server/ai.js`) with each user's own Anthropic, OpenAI or OpenRouter key, stored encrypted under the `KEY_ENCRYPTION_KEY` secret |
 | **MCP server** | `/mcp` lets each user connect Claude, ChatGPT or Gemini to read their own practice data, signed in with OAuth ([docs/MCP.md](docs/MCP.md)) |
 | **Reminders Worker** | `workers/reminders/`: posts each user's practice reminders to their Discord webhook and as push notifications ([docs/PUSH.md](docs/PUSH.md)). A Durable Object alarm wakes it every 15 minutes (the account's free cron triggers are used elsewhere); the API re-arms it on every app load through the `REMINDERS` service binding. Webhook URLs and push subscriptions sit in D1's `private` table, which the docs API never returns. Deploy changes with `npm run deploy:reminders`. |
 
@@ -35,7 +37,7 @@ Cloudflare Access only guards preview builds (`*.shadowing-9ex.pages.dev`), beca
 
 ### Public site
 
-The landing page, two guides (`/what-is-shadowing/`, `/accent-shadowing/`), privacy, terms and contact pages are static HTML pre-rendered by `scripts/build.mjs`, with titles, descriptions, canonical URLs, Open Graph cards and JSON-LD. The app at `/app/` is `noindex`, and `*.pages.dev` copies send `X-Robots-Tag: noindex` so only shadowing.euno.cc is indexed.
+The landing page, twelve guides (listed on `/guides/`), privacy, terms and contact pages, each in English, French and Spanish, are static HTML pre-rendered by `scripts/build.mjs`, with titles, descriptions, canonical URLs, Open Graph cards and JSON-LD. The app at `/app/` is `noindex`, and `*.pages.dev` copies send `X-Robots-Tag: noindex` so only shadowing.euno.cc is indexed.
 
 Both the public pages and the app have a strict Content-Security-Policy whose inline scripts are pinned by hash: the public pages' in `_headers`, the app's in a `<meta>` tag in `dist/app/index.html`. Both are generated by `npm run build`, so rebuild after any change to `src/` and commit `dist/`.
 
@@ -56,7 +58,7 @@ Everything except `POST /api/support` needs a signed-in user, and every query is
 
 ### MCP tools
 
-All read-only and scoped to the signed-in user: `get_overview`, `list_records`, `get_record`, `search`, `fetch`. See [docs/MCP.md](docs/MCP.md).
+All read-only and scoped to the signed-in user: `get_overview`, `list_records`, `get_record`, `search`, `fetch`, `get_pronunciation_progress`, `get_clip_pronunciation`. See [docs/MCP.md](docs/MCP.md).
 Per-user limits (practice data size, AI calls, key checks, Drive tokens, contact form) are listed in [docs/SPEC.md](docs/SPEC.md#limits).
 
 ## Setting it up

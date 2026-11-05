@@ -986,5 +986,17 @@
   "Save {n} rating|Save {n} ratings": {
     "fr": "Enregistrer {n} note|Enregistrer {n} notes",
     "es": "Guardar {n} puntuación|Guardar {n} puntuaciones"
+  },
+  "Change day": {
+    "fr": "Changer le jour",
+    "es": "Cambiar día"
+  },
+  "Move": {
+    "fr": "Déplacer",
+    "es": "Mover"
+  },
+  "Session moved to {date}.": {
+    "fr": "Séance déplacée au {date}.",
+    "es": "Sesión movida al {date}."
   }
 }
