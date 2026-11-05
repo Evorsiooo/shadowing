@@ -2,7 +2,7 @@
 // and every query is scoped to that user's id.
 import { requireUser, sameOrigin, deleteUser, sha256Hex } from '../../server/auth.js';
 import { json, error, validCol, validId, uuid } from '../../server/util.js';
-import { allDocs, putDoc, deleteDoc } from '../../server/store.js';
+import { allDocs, getDoc, putDoc, deleteDoc } from '../../server/store.js';
 import { driveStatus, driveAccessToken, disconnectDrive } from '../../server/drive.js';
 import { noteFeedback, chatReply, aiAvailable, aiStatus, saveKey, setModel, removeKey, userModels, PROVIDERS } from '../../server/ai.js';
 import { adminRoute } from '../../server/admin.js';
@@ -63,6 +63,7 @@ async function docsRoute(env, user, method, rest, request) {
   if (!rest.length && method === 'GET') return json({ data: await allDocs(env.DB, user.id) });
   const [col, id] = rest;
   if (!validCol(col) || !validId(id)) return error(400, 'Bad collection or id.');
+  if (method === 'GET') return json({ data: await getDoc(env.DB, user.id, col, id) }); // the app re-reads one document that another app may have changed (meta/about)
   if (method === 'PUT') {
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== 'object' || Array.isArray(body)) return error(400, 'Body must be a JSON object.');

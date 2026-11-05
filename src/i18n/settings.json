@@ -491,10 +491,6 @@
     "fr": "Sombre",
     "es": "Oscuro"
   },
-  "Inside Claude, the viewer’s own theme setting can also switch this.": {
-    "fr": "Dans Claude, le réglage de thème de la personne qui regarde peut aussi le changer.",
-    "es": "Dentro de Claude, el ajuste de tema de quien lo ve también puede cambiarlo."
-  },
   "Saving data across devices": {
     "fr": "Enregistrement des données entre appareils",
     "es": "Guardar datos entre dispositivos"
@@ -1646,5 +1642,37 @@
   "Pitch and speech": {
     "fr": "Hauteur et parole",
     "es": "Tono y habla"
+  },
+  "What Euno knows about you": {
+    "fr": "Ce qu’Euno sait de toi",
+    "es": "Lo que Euno sabe de ti"
+  },
+  "Forget this": {
+    "fr": "Oublier ceci",
+    "es": "Olvidar esto"
+  },
+  "Nothing yet. Tell Euno about yourself in a chat, or tell your own AI app connected to Euno, and it appears here.": {
+    "fr": "Rien pour l’instant. Parle de toi à Euno dans une conversation, ou à ton appli d’IA connectée à Euno, et ça apparaît ici.",
+    "es": "Todavía nada. Cuéntale algo sobre ti a Euno en un chat, o a tu app de IA conectada a Euno, y aparecerá aquí."
+  },
+  "e.g. Is C2 in English except for speaking.": {
+    "fr": "p. ex. A un niveau C2 en anglais, sauf à l’oral.",
+    "es": "p. ej. Tiene nivel C2 de inglés, salvo al hablar."
+  },
+  "Add something Euno should know": {
+    "fr": "Ajouter quelque chose qu’Euno devrait savoir",
+    "es": "Añadir algo que Euno deba saber"
+  },
+  "Add": {
+    "fr": "Ajouter",
+    "es": "Añadir"
+  },
+  "Euno saves things you tell him about yourself, such as your level and goals. Your own AI app can too, if you connected one. Edit or forget any of it. It is sent to your AI provider with your questions.": {
+    "fr": "Euno garde ce que tu lui dis de toi, comme ton niveau et tes objectifs. Ton appli d’IA aussi, si tu en as connecté une. Modifie ou oublie ce que tu veux. Cela est envoyé à ton fournisseur d’IA avec tes questions.",
+    "es": "Euno guarda lo que le cuentas sobre ti, como tu nivel y tus objetivos. Tu app de IA también, si conectaste una. Edita u olvida lo que quieras. Se envía a tu proveedor de IA junto con tus preguntas."
+  },
+  "Saved about you: {fact}": {
+    "fr": "Enregistré à ton sujet : {fact}",
+    "es": "Guardado sobre ti: {fact}"
   }
 }

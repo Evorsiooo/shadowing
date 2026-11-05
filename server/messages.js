@@ -146,7 +146,7 @@ export const MESSAGES = {
   '(it calls itself “{name}”)': { fr: '(elle s’appelle « {name} »)', es: '(se llama a sí misma “{name}”)' },
   '{app}{calls} wants to read your Euno Shadowing practice data.': { fr: '{app}{calls} veut lire tes données de pratique Euno Shadowing.', es: '{app}{calls} quiere leer tus datos de práctica de Euno Shadowing.' },
   'Your clips, sessions, notes, issues, check-ins and settings': { fr: 'Tes extraits, séances, notes, points faibles, bilans et réglages', es: 'Tus fragmentos, sesiones, notas, puntos débiles, evaluaciones y ajustes' },
-  'Read only: it can’t change or delete anything': { fr: 'Lecture seule : elle ne peut rien modifier ni supprimer', es: 'Solo lectura: no puede cambiar ni eliminar nada' },
+  'Read only, except short notes about you that it can add or remove': { fr: 'Lecture seule, sauf de courtes notes sur toi qu’elle peut ajouter ou retirer', es: 'Solo lectura, salvo notas cortas sobre ti que puede añadir o quitar' },
   'Not your recordings, AI keys or Discord webhook': { fr: 'Pas tes enregistrements, tes clés d’IA ni ton webhook Discord', es: 'Ni tus grabaciones, ni tus claves de IA, ni tu webhook de Discord' },
   'Signed in as {email}. After you choose, you’ll go back to {host}.': { fr: 'Connecté en tant que {email}. Après ton choix, tu reviendras sur {host}.', es: 'Sesión iniciada como {email}. Después de elegir, volverás a {host}.' },
   'Only allow this if you just started connecting an app on this computer.': { fr: 'N’autorise ça que si tu viens de commencer à connecter une appli sur cet ordinateur.', es: 'Permítelo solo si acabas de empezar a conectar una app en este ordenador.' },

@@ -52,7 +52,7 @@ const make = ({ SITE, L, host }) => ({
     ['¿Puedo pegar un enlace de YouTube?', 'No. Euno no descarga vídeos de YouTube ni de otros sitios. Necesitas un archivo que tengas derecho a usar, subido desde tu dispositivo o un enlace directo a un .mp4. Para practicar con un vídeo de YouTube, una extensión del navegador como Language Reactor actúa sobre la propia página; Euno sirve para recortar un fragmento de un archivo que tienes y comparar tu voz con la del hablante.'],
     ['¿Euno incluye lecciones, vídeos o transcripciones?', 'No. Haces shadowing con tus propios vídeos: sube un archivo desde tu dispositivo o pega un enlace directo a un .mp4 (no un enlace de YouTube), y recorta los fragmentos que quieras practicar. Euno no tiene biblioteca de lecciones, subtítulos ni transcripciones. Hace la rutina de shadowing con tus fragmentos y compara tu voz con la del hablante.'],
     ['¿Necesito una clave de IA?', 'No. Todo funciona sin ella. Con una clave de Anthropic, OpenAI u OpenRouter, puedes preguntar a Euno dentro de la app sobre un sonido, tus notas o tu práctica. Sin clave, las notas te dan un prompt para pegar en cualquier chatbot.'],
-    ['¿Puedo conectar Claude, ChatGPT o Gemini?', 'Sí, de forma opcional. En Ajustes → Conexiones puedes vincular Claude, ChatGPT o Gemini a tus propios datos de práctica mediante MCP. Pueden leer tus notas, sesiones e historial de pronunciación, y nada más: no pueden cambiar nada y nunca reciben audio.'],
+    ['¿Puedo conectar Claude, ChatGPT o Gemini?', 'Sí, de forma opcional. En Ajustes → Conexiones puedes vincular Claude, ChatGPT o Gemini a tus propios datos de práctica mediante MCP. Pueden leer tus notas, sesiones e historial de pronunciación, y nada más: lo único que pueden cambiar son las notas cortas sobre ti en Ajustes → Tú, que puedes editar o borrar. Nunca reciben audio.'],
     ['¿Necesito un micrófono?', 'Sí, para grabar tus pasadas y tus revisiones. Unos auriculares ayudan, para que la voz del hablante no se cuele en tu grabación.'],
   ],
   home: {
@@ -112,7 +112,7 @@ const make = ({ SITE, L, host }) => ({
       ]],
       ['Tu clave de IA, tus apps de IA', [
         'Trae una clave de Anthropic, OpenAI u OpenRouter solo si quieres Preguntar a Euno. Tu clave se cifra en nuestro servidor y no se vuelve a mostrar, ni siquiera a ti.',
-        'También puedes conectar Claude, ChatGPT o Gemini a tus propios datos de práctica, solo lectura, para preguntarles por tu progreso. Nunca reciben audio y no pueden cambiar nada.',
+        'También puedes conectar Claude, ChatGPT o Gemini a tus propios datos de práctica, para preguntarles por tu progreso. Pueden leerlos y añadir notas cortas sobre ti (que puedes borrar), nada más, y nunca reciben audio.',
       ]],
     ],
     limitsH2: 'Lo que no hace',

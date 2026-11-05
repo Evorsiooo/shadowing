@@ -291,8 +291,8 @@ function accentField(draft) {
 }
 
 function notesField(draft) {
-  return h('label', { class: 'field', for: 'pfNotes' }, h('span', null, t('Anything Euno should know when he answers'), ' ', h('span', { class: 'muted' }, t('(optional)'))),
-    h('textarea', { id: 'pfNotes', rows: 2, maxlength: 500, placeholder: t('e.g. I understand everything but only started speaking it recently; rhythm is my weak spot.'), value: draft.notes, oninput: (e) => { draft.notes = e.target.value; } }));
+  return h('label', { class: 'field wide', for: 'pfNotes' }, h('span', null, t('Anything Euno should know when he answers'), ' ', h('span', { class: 'muted' }, t('(optional)'))),
+    h('textarea', { id: 'pfNotes', rows: 3, maxlength: 500, placeholder: t('e.g. I understand everything but only started speaking it recently; rhythm is my weak spot.'), value: draft.notes, oninput: (e) => { draft.notes = e.target.value; } }));
 }
 
 /* the interface language: each language in its own name; onchange redraws whatever is open (a modal isn't redrawn by renderAll) */

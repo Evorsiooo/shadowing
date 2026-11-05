@@ -17,7 +17,8 @@
     "test:prepare": "node scripts/test-prepare.mjs",
     "test:rank": "node scripts/test-rank.mjs",
     "test:words": "node --test src/words/test/*.test.mjs && node scripts/test-words.mjs",
-    "test:pron-late": "node scripts/test-pron-late.mjs"
+    "test:pron-late": "node scripts/test-pron-late.mjs",
+    "test:about": "node scripts/test-about.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.128.0"

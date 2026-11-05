@@ -163,6 +163,7 @@ function profileForAI(p = profile()) {
     accent: a.name,
     spelling: a.spelling,
     notes: String(p.notes || '').slice(0, 500),
+    facts: About.facts().slice(-30).map((f) => f.text), // saved from chats (16-about.js)
     replyLanguage: UI_LANG_NAMES_EN[LANG] || 'English', // the interface language: feedback is written in it
   };
 }
