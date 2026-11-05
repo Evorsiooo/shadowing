@@ -245,6 +245,47 @@ const make = ({ L }) => ({
     <p>New to the technique? Start with <a href="${L('/what-is-shadowing/')}">what shadowing is</a> and <a href="${L('/choosing-shadowing-clips/')}">how to choose clips</a>.</p>`,
   },
 
+  'euno-vs-shadow-talk-praat': {
+    title: 'Euno Shadowing vs Shadow Talk and Praat | Euno Shadowing',
+    h1: 'Euno Shadowing vs Shadow Talk and Praat',
+    crumb: 'Euno vs Shadow Talk and Praat',
+    description: 'An honest comparison of Euno Shadowing, Shadow Talk and Praat: what each tool is for, what it does not do, and how to choose or combine them.',
+    lede: 'These three get recommended together for accent work, but they do different jobs. Shadow Talk drives shadowing on YouTube captions, Praat is a speech-analysis program for looking at recordings yourself, and Euno runs the shadowing routine on clips you choose and compares your voice with the speaker’s.',
+    body: `
+    <p><em>We make Euno Shadowing, so read this with that in mind. We describe the other two from their own public descriptions as we understand them in November 2026; features change, so check their own pages before you decide.</em></p>
+
+    <h2>At a glance</h2>
+    <table class="simple">
+      <thead><tr><th></th><th>Euno Shadowing</th><th>Shadow Talk</th><th>Praat</th></tr></thead>
+      <tbody>
+        <tr><td>What it is</td><td>A web app that runs the shadowing routine on your own clips</td><td>A Chrome extension for shadowing YouTube videos</td><td>A program for analysing, synthesising and manipulating speech, made at the University of Amsterdam</td></tr>
+        <tr><td>Content</td><td>Your own video or audio files (upload, or a direct .mp4 link). No YouTube links</td><td>YouTube videos: it reads the page’s captions and shows sentences to repeat</td><td>Any sound you record or open</td></tr>
+        <tr><td>How it checks you</td><td>Compares your recording with the speaker’s audio: your timing and melody next to theirs, and for English the sounds that differ (beta, no score)</td><td>Uses Chrome’s built-in speech recognition to check what you said</td><td>It checks nothing for you: it shows spectrograms, pitch, formant and intensity contours, and you interpret them</td></tr>
+        <tr><td>Learning curve</td><td>A guided routine</td><td>Quick to try on a YouTube page</td><td>A research tool with many functions and scripting</td></tr>
+        <tr><td>Languages</td><td>English, French and Spanish accents (sound comparison: English only)</td><td>Depends on the video’s captions and Chrome’s speech recognition</td><td>Any language: it analyses sound, not words</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Euno Shadowing</h2>
+    <p>You bring a video of a speaker whose accent you want, cut a clip of one or two sentences, and Euno loops it, counts your passes, records you and compares your recording with the speaker’s. It needs a Google sign-in, and has no lessons, subtitles or transcripts of its own. It gives no score. The English sound comparison is a beta that can misread a sound.</p>
+
+    <h2>Shadow Talk</h2>
+    <p>Shadow Talk is an open-source Chrome extension that works on YouTube. It reads the captions on the page, shows sentences for you to repeat, and uses Chrome’s speech recognition to hear you. That makes it a fast way to shadow almost any captioned YouTube video with no files to prepare.</p>
+    <p><strong>How it differs:</strong> speech recognition checks which words it understood, not how your sounds, timing or melody compare with the speaker’s. It also depends on the video having captions. Euno compares your recording with the speaker’s audio, but it cannot open YouTube videos.</p>
+
+    <h2>Praat</h2>
+    <p>Praat is a speech-analysis program used in phonetics. You can record or open sounds and look at spectrograms and pitch, formant and intensity contours. It is the right tool if you want to measure a recording yourself, or you are doing research.</p>
+    <p><strong>How it differs:</strong> Praat shows you the acoustics and leaves the reading to you; there is no shadowing routine, and learning to use it takes time. Euno draws your timing and melody next to the speaker’s for you and, in English, points at sounds to listen for. If you want exact formant values or custom measurements, use Praat.</p>
+
+    <h2>How to choose</h2>
+    <ul>
+      <li><strong>You want to shadow a YouTube video quickly:</strong> Shadow Talk.</li>
+      <li><strong>You have a clip of one speaker and want to compare your voice with theirs:</strong> Euno.</li>
+      <li><strong>You want to measure sound properties yourself:</strong> Praat.</li>
+    </ul>
+    <p>They combine well: look at a stubborn sound in Praat, then shadow the clip in Euno. See also the <a href="${L('/euno-vs-elsa-and-language-reactor/')}">comparison with ELSA Speak and Language Reactor</a>, and <a href="${L('/what-is-shadowing/')}">what shadowing is</a>.</p>`,
+  },
+
   'english-accents': {
     title: 'Which English accent to shadow: American, British or Australian? | Euno Shadowing',
     h1: 'Which English accent should you shadow?',

@@ -73,6 +73,15 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/euno-vs-elsa-and-language-reactor/"/>
   </url>
   <url>
+    <loc>https://shadowing.euno.cc/euno-vs-shadow-talk-and-praat/</loc>
+    <lastmod>2026-11-05</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/euno-vs-shadow-talk-and-praat/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/euno-vs-shadow-talk-and-praat/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/euno-vs-shadow-talk-and-praat/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/euno-vs-shadow-talk-and-praat/"/>
+  </url>
+  <url>
     <loc>https://shadowing.euno.cc/accent-shadowing/</loc>
     <lastmod>2026-11-02</lastmod>
     <priority>0.8</priority>
@@ -226,6 +235,15 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/euno-vs-elsa-and-language-reactor/"/>
   </url>
   <url>
+    <loc>https://shadowing.euno.cc/fr/euno-vs-shadow-talk-and-praat/</loc>
+    <lastmod>2026-11-05</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/euno-vs-shadow-talk-and-praat/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/euno-vs-shadow-talk-and-praat/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/euno-vs-shadow-talk-and-praat/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/euno-vs-shadow-talk-and-praat/"/>
+  </url>
+  <url>
     <loc>https://shadowing.euno.cc/fr/accent-shadowing/</loc>
     <lastmod>2026-11-02</lastmod>
     <priority>0.8</priority>
@@ -377,6 +395,15 @@
     <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/euno-vs-elsa-and-language-reactor/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/euno-vs-elsa-and-language-reactor/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/euno-vs-elsa-and-language-reactor/"/>
+  </url>
+  <url>
+    <loc>https://shadowing.euno.cc/es/euno-vs-shadow-talk-and-praat/</loc>
+    <lastmod>2026-11-05</lastmod>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shadowing.euno.cc/euno-vs-shadow-talk-and-praat/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://shadowing.euno.cc/fr/euno-vs-shadow-talk-and-praat/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shadowing.euno.cc/es/euno-vs-shadow-talk-and-praat/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shadowing.euno.cc/euno-vs-shadow-talk-and-praat/"/>
   </url>
   <url>
     <loc>https://shadowing.euno.cc/es/accent-shadowing/</loc>

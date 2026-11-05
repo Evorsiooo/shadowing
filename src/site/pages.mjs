@@ -59,6 +59,7 @@ const GUIDES = [
   { key: 'choosing-clips', slug: '/choosing-shadowing-clips/', group: 'start', published: '2026-10-15', updated: '2026-11-02', next: ['what-is-shadowing', 'how-long-shadowing-takes'] },
   { key: 'shadowing-vs-other-methods', slug: '/shadowing-vs-other-methods/', group: 'start', published: '2026-10-15', updated: '2026-11-02', next: ['what-is-shadowing', 'choosing-clips'] },
   { key: 'euno-vs-elsa-language-reactor', slug: '/euno-vs-elsa-and-language-reactor/', group: 'start', published: '2026-10-21', updated: '2026-11-02', next: ['shadowing-vs-other-methods', 'what-is-shadowing'] },
+  { key: 'euno-vs-shadow-talk-praat', slug: '/euno-vs-shadow-talk-and-praat/', group: 'start', published: '2026-11-05', next: ['euno-vs-elsa-language-reactor', 'shadowing-vs-other-methods'] },
   { key: 'accent-shadowing', slug: '/accent-shadowing/', group: 'english', published: '2026-10-14', updated: '2026-11-02', text: (c) => c.howTo, next: ['english-accents', 'choosing-clips'] },
   { key: 'english-accents', slug: '/english-accents/', group: 'english', published: '2026-10-15', next: ['accent-shadowing', 'choosing-clips'] },
   { key: 'french-accent-shadowing', slug: '/french-accent-shadowing/', group: 'french', published: '2026-10-15', updated: '2026-11-02', next: ['french-accents', 'choosing-clips'] },
