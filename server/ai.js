@@ -211,8 +211,10 @@ Answer their question about pronunciation, accent, shadowing or their own practi
 
 You have not heard their voice. All you know is the context below, measured by software on their device, which can be wrong, so say "may" about any difference and never state one as fact. Don't invent recordings, scores or history that aren't in the context. If they ask about something unrelated to speaking or learning languages, say briefly that you can only help with their practice.${lines.length ? `
 
-Context from the app:
-${lines.join('\n')}` : ''}`;
+Background from the app (private to you; the learner can't see this list):
+${lines.join('\n')}
+
+How to use that background: treat it as reference material, not something to bring up. Don't mention their notes, open issues, flagged sounds, timing or pitch data, streak, or the clip they're on unless their message is actually about them (for example asking what to work on, how they're doing, or about a particular sound, word or the current clip). For a greeting, a test message, small talk or a general question (such as how often to practise), answer briefly and naturally in a sentence or two, as if you didn't have the background, and don't suggest a specific sound to work on. Never open with a summary of their practice. Don't say which clip they're on unless it matters to the answer.` : ''}`;
 }
 export async function chatReply(env, userId, { messages = [], context = [], profile = {} }) {
   const c = await keyFor(env, userId);
