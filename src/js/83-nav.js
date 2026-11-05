@@ -2,7 +2,7 @@
    The address keeps the place (#today, #library, #progress/issues, #settings/data, #ask), so reloading or going back
    lands where you were. A session takes the whole screen (focus mode) and has no navigation at all. */
 const TABS = ['today', 'library', 'progress'];
-const PAGES = ['progress', 'settings', 'admin', 'ask'];
+const PAGES = ['progress', 'settings', 'admin', 'ask', 'done'];
 UI.tab = 'today';
 
 function parseHash() {
@@ -21,6 +21,7 @@ function go(tab, sub = null) {
   if (tab === 'settings') { openSettings(sub || undefined); return; }
   if (tab === 'admin') { if (isAdmin()) openAdmin(); else go('today'); return; }
   if (tab === 'ask') { openAsk(); return; }
+  if (tab === 'done') { if (UI.lastSummary) showSessionSummary(...UI.lastSummary); else go('today'); return; }
   showView(TABS.includes(tab) ? tab : 'today');
   setHash(UI.tab);
 }
@@ -120,5 +121,8 @@ function renderFocusbar() {
   mount(el,
     btn(t('End'), () => S.finish(true), { icon: 'close', kind: 'ghost', size: 'sm', title: t('End now; progress so far is saved') }),
     list,
-    h('span', { class: 'ftime', id: 'sessTimer', title: t('Time left in this session') }, S.clockText()));
+    h('span', { class: 'ftime', id: 'sessTimer', title: t('Time left in this session') }, S.clockText()),
+    h('div', { class: 'acct' },
+      btn('', (e) => { e.stopPropagation(); UI.sessMenu = !UI.sessMenu; renderFocusbar(); }, { icon: 'more', kind: 'ghost', size: 'sm', title: t('More'), pressed: !!UI.sessMenu }),
+      UI.sessMenu ? h('div', { class: 'menu', role: 'menu', onclick: (e) => e.stopPropagation() }, sessionMenu()) : null));
 }

@@ -63,6 +63,25 @@ function pvWhy(w) {
   return t('The speaker has {a} here; you may have said {b}.', { a: p.spk, b: p.you });
 }
 
+/* after a recorded pass: timing, stress and melody differences, under the sounds ("everything else in this pass") */
+function pvElse(clip) {
+  const R = Session.active ? Session.review : null;
+  if (!R || R.clipId !== clip.id || !R.analysis) return null;
+  let pro = null;
+  try { pro = Prosody.compare(clip, R.analysis); } catch { pro = null; }
+  if (!pro || !pro.findings.length) return null;
+  const name = speakerName(Store.get('videos', clip.videoId));
+  return h('div', { class: 'pv-else' },
+    h('h3', null, t('Everything else in this pass')),
+    h('ul', null, pro.findings.map((f) => {
+      const kind = f.kind === 'pitch' ? 'melody' : f.kind === 'stress' ? 'stress' : 'timing';
+      const a = Math.max(0, f.a - 0.25), b = Math.min(clip.end - clip.start, f.b + 0.25);
+      return h('li', null, h('span', { class: 'kind' }, t(TRY_KINDS[kind])), h('span', { class: 'grow' }, prosodyLine(f)),
+        btn('', () => playSnippetOriginal(clip, a, b), { size: 'sm', icon: 'play', cls: 'spk', title: t('Hear {name} here', { name }) }),
+        btn('', () => playSynced(clip, R.url, R.analysis, { from: clip.start + a, stopAt: clip.start + b }), { size: 'sm', icon: 'play', cls: 'mine', title: t('Hear yourself here') }));
+    })));
+}
+
 /* a message in the Pronunciation tab; outside a session Euno shows what's going on (in a session he is on the session card) */
 function pvMsg(mood, title, body, ...actions) {
   return h('div', { class: 'panel-msg pv-msg' }, Session.active ? null : Euno.el('panel', mood), h('h3', null, title), body ? h('p', null, body) : null, actions.length ? h('div', { class: 'row' }, actions) : null);
@@ -270,7 +289,7 @@ function buildPronView(clip) {
           btn(t('Sounds the same to me'), () => { PronTab.dismiss(clip, sel); fill(); }, { size: 'sm', kind: 'ghost', title: t('Hide this one. It won’t come back for this clip.') })),
         h('p', { class: 'small muted' }, t('Not exact. Listen to both and decide.')));
     }
-    return [head, line, detail,
+    return [head, line, detail, pvElse(clip),
       h('div', { class: 'pv-foot' },
         hidden ? h('p', { class: 'small muted' }, tp(hidden, '{n} more possible difference is hidden because it is less certain.', '{n} more possible differences are hidden because they are less certain.')) : null,
         wordsBlock(clip))];

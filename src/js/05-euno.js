@@ -33,7 +33,8 @@ const EUNO_MOODS = {
 /* where he faces in each place, [up/down, left/right] in degrees (negative: down, left); his pose stays put there */
 const EUNO_LOOKS = {
   today: [-12, -22], // over the This week card, towards Start
-  session: [-12, -20], // over the step card, towards its buttons
+  session: [-12, -20], // over the review card, towards its buttons
+  focus: [-6, 18], // beside the instruction under the video, towards the words
   player: [-10, 0],
   panel: [-10, 0],
   ask: [-6, 14],

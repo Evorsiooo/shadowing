@@ -417,6 +417,61 @@ button.try-item p { color: var(--muted); }
 .session.active .btn:not(.primary, .blue, .ghost, .spk, .mine, .danger) { background: var(--card); }
 .session.active .btn:not(.primary, .blue, .ghost, .spk, .mine):hover:not([disabled]) { background: var(--sunk); }
 
+/* ---------- focus mode: listening and shadowing ----------
+   The video is the screen. Under it Euno, one instruction, one row of controls and the passes; no library, no chart. */
+.layout.focus { grid-template-columns: minmax(0, 1fr); grid-template-areas: "player" "below"; }
+.layout.focus .side { display: none; }
+.layout.focus .player, .layout.focus .below { width: min(100%, var(--focus-w, 100%)); justify-self: center; }
+.layout.focus .player video { max-height: var(--video-h, 62vh); }
+.layout.focus .ctrl-row, .layout.reviewing .ctrl-row { display: none; }
+.layout.reviewing .controls { padding-bottom: 6px; }
+.layout.focus .controls { padding-bottom: 6px; }
+.focus-wrap { display: flex; justify-content: center; }
+.focus-card { width: min(100%, 780px); display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 6px 0 10px; }
+.focus-head { display: flex; align-items: center; gap: 18px; }
+.focus-head > .euno { width: 96px; height: 96px; margin: -10px 0 -10px -8px; }
+.focus-text { display: flex; flex-direction: column; gap: 4px; max-width: 60ch; }
+.focus-text .sess-title { font-size: 1.6rem; }
+.focus-ctl { display: flex; align-items: center; justify-content: center; gap: 28px; flex-wrap: wrap; }
+.fctl { appearance: none; border: 0; background: none; color: var(--ink); font: 600 0.85rem var(--font); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 84px; padding: 6px 8px; border-radius: var(--r-sm); }
+.fctl:hover { background: var(--sunk); }
+.fctl b { font-size: 1rem; line-height: 18px; }
+.playbig.big { width: 72px; height: 72px; }
+.playbig.big svg { width: 28px; height: 28px; }
+.focus-card .pills + .small, .focus-card .row { justify-content: center; }
+.focus-note { margin-top: -6px; }
+.focus-mic { width: min(100%, 420px); }
+.preflight { display: flex; flex-direction: column; gap: 10px; width: min(100%, 520px); background: var(--card); border-radius: var(--r-lg, 22px); padding: 16px 18px; }
+.pf-row { display: flex; gap: 12px; align-items: flex-start; }
+.pf-row > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; text-align: left; }
+.pf-row > .pf-mic { flex-direction: row; align-items: center; gap: 14px; flex-wrap: wrap; }
+.preflight { padding: 12px 16px; gap: 8px; }
+.pf-row > span svg { margin-top: 3px; color: var(--ink-2); }
+.listen-for { width: min(100%, 620px); background: var(--card); border-radius: var(--r-lg, 22px); padding: 14px 18px; }
+.listen-for h3 { font-size: 1rem; margin-bottom: 6px; }
+.listen-for ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.listen-for li { display: flex; align-items: center; gap: 10px; font-size: 0.92rem; text-align: left; }
+.listen-for li > b { font-weight: 600; white-space: nowrap; }
+.listen-for li > span { color: var(--ink-2); flex: 1 1 auto; }
+.listen-for li > .btn { width: 32px; height: 32px; padding: 0; }
+.listen-for { padding: 12px 16px; }
+.listen-for ul { gap: 4px; }
+/* the review: playback and the note line sit with the chart under the video */
+.rev-wrap { background: var(--card); border-radius: var(--r-xl); padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.rev-play { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.rev-wrap .seg { background: var(--sunk); }
+.rev-wrap .seg button.on { background: var(--ink); color: var(--page); }
+.rev-vol { padding: 4px 0 0; }
+.rev-note { display: flex; align-items: center; gap: 10px; background: var(--page); border-radius: var(--r-md); padding: 10px 12px 10px 14px; }
+.try-n { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--sunk); font-weight: 600; font-size: 0.85rem; flex: none; }
+.try-item.first .try-n { background: var(--diff); color: var(--diff-ink); }
+.try-head { align-items: center; }
+@media (max-width: 640px) {
+  .focus-head { flex-direction: column; text-align: center; gap: 6px; }
+  .focus-head > .euno { width: 72px; height: 72px; margin: 0; }
+  .focus-ctl { gap: 14px; }
+}
+
 /* ---------- analysis panel ---------- */
 .panel { background: var(--card); border-radius: var(--r-xl); padding: 18px 20px 20px; position: relative; }
 .panel-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
@@ -773,3 +828,24 @@ label.check.nest { display: flex; align-items: flex-start; }
 .wiz-body label.check { align-items: flex-start; font-weight: 400; }
 .small.warn, .pv-stall { color: var(--diff-ink); }
 .ok-text { color: var(--ink); font-weight: 500; }
+.layout.fit.reviewing .below { height: auto; }
+.layout.fit.reviewing .below > .panel > canvas.analysis { flex: none; height: 240px; }
+.pv-else { background: var(--page); border-radius: var(--r-md); padding: 14px 18px; }
+.pv-else h3 { font-size: 1rem; margin-bottom: 6px; }
+.pv-else ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pv-else li { display: flex; align-items: center; gap: 10px; }
+.pv-else .kind { min-width: 4.5em; }
+.pv-else .btn { width: 32px; height: 32px; padding: 0; }
+/* ---------- session done: a page, not a window ---------- */
+.done-page { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 16px; }
+.done-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+.done-head .euno { width: 130px; height: 130px; margin-bottom: -4px; }
+.done-head h2 { font-size: 2rem; }
+.done-card { background: var(--card); border-radius: var(--r-lg); padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.done-card h3 { font-size: 1.05rem; }
+.done-recs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+.done-rec { background: var(--page); border-radius: var(--r-md); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.done-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.done-notes { margin: 0; padding-left: 18px; }
+.done-acts { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+@media (max-width: 640px) { .done-recs { grid-template-columns: 1fr; } }

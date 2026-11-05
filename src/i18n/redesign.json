@@ -23,10 +23,6 @@
     "fr": "Fais du shadowing comme avant. À la fin de l’extrait, Euno met ta voix à côté de celle du locuteur.",
     "es": "Haz shadowing como antes. Cuando acabe el fragmento, Euno pone tu voz junto a la del hablante."
   },
-  "Headphones on (wired is best), or the microphone picks up the clip.": {
-    "fr": "Mets un casque (filaire de préférence), sinon le micro capte l’extrait.",
-    "es": "Ponte auriculares (mejor con cable), o el micrófono capta el fragmento."
-  },
   "Try the microphone again": {
     "fr": "Réessayer le micro",
     "es": "Probar el micrófono otra vez"
@@ -43,41 +39,17 @@
     "fr": "Prochain passage dans un instant",
     "es": "Siguiente pasada en un momento"
   },
-  "Shadowing": {
-    "fr": "Shadowing",
-    "es": "Shadowing"
-  },
-  "Listening": {
-    "fr": "Écoute",
-    "es": "Escuchando"
-  },
   "Press play (or Space) to restart this pass.": {
     "fr": "Appuie sur lecture (ou Espace) pour reprendre ce passage.",
     "es": "Pulsa reproducir (o Espacio) para retomar esta pasada."
-  },
-  "Shadow along now. Your line is hidden until the clip ends.": {
-    "fr": "Parle en même temps maintenant. Ta courbe reste cachée jusqu’à la fin de l’extrait.",
-    "es": "Habla a la vez ahora. Tu línea queda oculta hasta que acabe el fragmento."
-  },
-  "Speak along with the speaker, a fraction of a second behind.": {
-    "fr": "Parle en même temps que le locuteur, une fraction de seconde après lui.",
-    "es": "Habla a la vez que el hablante, una fracción de segundo por detrás."
   },
   "Listen only. Take in the rhythm and the melody.": {
     "fr": "Écoute seulement. Imprègne-toi du rythme et de la mélodie.",
     "es": "Solo escucha. Fíjate en el ritmo y la melodía."
   },
-  "Start again": {
-    "fr": "Recommencer",
-    "es": "Empezar de nuevo"
-  },
   "Switch to 5 min": {
     "fr": "Passer à 5 min",
     "es": "Cambiar a 5 min"
-  },
-  "Bad day? The 5-minute version still counts": {
-    "fr": "Mauvais jour ? La version de 5 minutes compte aussi",
-    "es": "¿Mal día? La versión de 5 minutos también cuenta"
   },
   "+{min} min": {
     "fr": "+{min} min",
@@ -122,10 +94,6 @@
   "Compare": {
     "fr": "Comparer",
     "es": "Comparar"
-  },
-  "Volume and notes": {
-    "fr": "Volume et notes",
-    "es": "Volumen y notas"
   },
   "Redo": {
     "fr": "Refaire",
@@ -558,5 +526,97 @@
   "You may have added {b} here.": {
     "fr": "Tu as peut-être ajouté {b} ici.",
     "es": "Quizá añadiste {b} aquí."
+  },
+  "Everything else in this pass": {
+    "fr": "Tout le reste de ce passage",
+    "es": "Todo lo demás de esta pasada"
+  },
+  "Hear {name} here": {
+    "fr": "Écouter {name} ici",
+    "es": "Escuchar a {name} aquí"
+  },
+  "Hear yourself here": {
+    "fr": "T’écouter ici",
+    "es": "Escucharte aquí"
+  },
+  "Wired is best. Otherwise the microphone hears {name} too.": {
+    "fr": "Filaire, c’est mieux. Sinon le micro entend aussi {name}.",
+    "es": "Con cable es mejor. Si no, el micrófono también oye a {name}."
+  },
+  "Not now?": {
+    "fr": "Pas maintenant ?",
+    "es": "¿Ahora no?"
+  },
+  "Speak along with {name}": {
+    "fr": "Parle en même temps que {name}",
+    "es": "Habla a la vez que {name}"
+  },
+  "Listen to {name}": {
+    "fr": "Écoute {name}",
+    "es": "Escucha a {name}"
+  },
+  "Shadow along now. Your line shows when the clip ends.": {
+    "fr": "Suis l’extrait maintenant. Ta courbe s’affiche à la fin de l’extrait.",
+    "es": "Sigue el fragmento ahora. Tu línea aparece cuando termina el fragmento."
+  },
+  "Copy the melody and timing, not just the words. Don’t wait for the sentence to finish.": {
+    "fr": "Copie la mélodie et le rythme, pas seulement les mots. N’attends pas la fin de la phrase.",
+    "es": "Copia la melodía y el ritmo, no solo las palabras. No esperes a que termine la frase."
+  },
+  "Repeat pass": {
+    "fr": "Refaire le passage",
+    "es": "Repetir la pasada"
+  },
+  "Listen for these": {
+    "fr": "Écoute bien ceci",
+    "es": "Fíjate en esto"
+  },
+  "Play {name}, then you": {
+    "fr": "Écouter {name}, puis toi",
+    "es": "Escuchar a {name} y luego a ti"
+  },
+  "Anything sound off to you? Write it down (optional).": {
+    "fr": "Quelque chose te semble bizarre ? Note-le (facultatif).",
+    "es": "¿Algo te suena raro? Anótalo (opcional)."
+  },
+  "not measured": {
+    "fr": "non mesuré",
+    "es": "sin medir"
+  },
+  "First recording and last": {
+    "fr": "Premier et dernier enregistrement",
+    "es": "Primera y última grabación"
+  },
+  "Your recording": {
+    "fr": "Ton enregistrement",
+    "es": "Tu grabación"
+  },
+  "Final pass": {
+    "fr": "Dernier passage",
+    "es": "Última pasada"
+  },
+  "Compare them on one chart": {
+    "fr": "Les comparer sur un graphique",
+    "es": "Compararlas en un gráfico"
+  },
+  "Your notes today": {
+    "fr": "Tes notes du jour",
+    "es": "Tus notas de hoy"
+  },
+  "Tomorrow": {
+    "fr": "Demain",
+    "es": "Mañana"
+  },
+  "Session done": {
+    "fr": "Séance terminée",
+    "es": "Sesión terminada"
+  },
+  "Back to Today": {
+    "fr": "Retour à Aujourd’hui",
+    "es": "Volver a Hoy"
+  },
+  "More": {
+    "fr": "Plus",
+    "es": "Más"
   }
 }

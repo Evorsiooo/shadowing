@@ -9,10 +9,12 @@ function applyLayout() {
   layout.classList.toggle('in-session', mode === 'session');
   layout.classList.toggle('cutting', mode === 'cut');
   layout.classList.toggle('reviewing', mode === 'session' && Session.phase === 'review');
-  if (mode === 'session' && wideLayout.matches) { if (sess.parentElement !== $('#sideSlot')) $('#sideSlot').appendChild(sess); }
+  const focus = mode === 'session' && Session.phase !== 'review';
+  layout.classList.toggle('focus', focus);
+  if (mode === 'session' && !focus && wideLayout.matches) { if (sess.parentElement !== $('#sideSlot')) $('#sideSlot').appendChild(sess); }
   else if (sess.parentElement !== $('#below')) $('#below').insertBefore(sess, panel);
   sess.hidden = mode === 'cut';
-  panel.hidden = mode === 'idle';
+  panel.hidden = mode === 'idle' || (focus && !Session.liveThisPass); // while you listen and shadow there is nothing to read
   if (UI.layoutMode !== mode) { UI.layoutMode = mode; requestAnimationFrame(() => Panel.onTime(Player.time())); }
   scheduleFit();
 }
@@ -24,6 +26,7 @@ function applyLayout() {
    - the library or session card beside the player matches its height;
    - the full-width panel underneath fills down to the bottom of the window. */
 const BELOW_ALLOWANCE = 250;
+const FOCUS_BELOW = 330; // the instruction, the controls and the passes under the video in a session
 const MAX_WIDTH_LIMITED_H = 540;
 let fitQueued = false;
 function scheduleFit() {
@@ -51,9 +54,18 @@ function fitLayout() {
   /* On short windows the panel allowance would squash the video, so there width is the limit instead:
      the video may be as tall as its width allows (right column at its widest), up to MAX_WIDTH_LIMITED_H,
      and the page scrolls to reach the panel. Tall windows keep the window-derived height. */
+  if (L.classList.contains('focus')) {
+    // focus mode: one centred column, the video as large as leaves room for the instruction under it
+    const fvh = Math.max(240, Math.min((L.clientWidth - padX) / ar, avail - FOCUS_BELOW - gapY));
+    L.style.setProperty('--video-h', `${Math.floor(fvh)}px`);
+    L.style.setProperty('--focus-w', `${Math.floor(fvh * ar)}px`);
+    L.style.setProperty('--below-h', 'auto');
+    return;
+  }
   const sideMax = Math.max(360, Math.min(600, totalW * 0.36));
   const widthVh = (totalW - sideMax - 6) / ar;
-  const vh = Math.max(avail * 0.5, avail - BELOW_ALLOWANCE - gapY - 6, Math.min(widthVh, MAX_WIDTH_LIMITED_H));
+  let vh = Math.max(avail * 0.5, avail - BELOW_ALLOWANCE - gapY - 6, Math.min(widthVh, MAX_WIDTH_LIMITED_H));
+  if (L.classList.contains('reviewing')) vh = Math.min(vh, avail * 0.4); // the review is about the chart: the video steps back
   const sideW = clamp(Math.round(totalW - vh * ar - 6), 360, Math.max(360, Math.min(600, totalW * 0.36)));
   L.style.setProperty('--side-w', `${sideW}px`);
   L.style.setProperty('--video-h', `${Math.floor(vh)}px`);
@@ -165,7 +177,7 @@ async function boot() {
   const start = parseHash();
   if (start.tab && start.tab !== 'today') go(start.tab, start.sub); else { UI.tab = 'today'; history.replaceState(null, '', '#today'); renderAll(); }
   document.addEventListener('keydown', onKey);
-  document.addEventListener('click', () => closeMenu());
+  document.addEventListener('click', () => { closeMenu(); if (UI.sessMenu) { UI.sessMenu = false; renderFocusbar(); } });
   window.addEventListener('hashchange', onHashChange);
   window.addEventListener('popstate', onHashChange);
   $('#drawerBack').addEventListener('click', closeDrawer);
