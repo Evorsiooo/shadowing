@@ -65,9 +65,7 @@ function buildAnalysis(clip) {
       h('button', { type: 'button', class: UI.view === 'pitch' ? 'on' : '', onclick: () => { UI.view = 'pitch'; renderPanel(); } }, t('Pitch')),
       h('button', { type: 'button', class: UI.view === 'wave' ? 'on' : '', onclick: () => { UI.view = 'wave'; renderPanel(); } }, t('Waveform')),
       pronOk ? h('button', { type: 'button', class: UI.view === 'pron' ? 'on' : '', onclick: () => { UI.view = 'pron'; renderPanel(); } }, t('Pronunciation')) : null),
-    UI.view === 'pron' ? h('div', { class: 'seg', role: 'group', 'aria-label': t('Which row is big') },
-      h('button', { type: 'button', class: PronTab.top !== 'phones' && !PronTab.noWords ? 'on' : '', disabled: PronTab.noWords || null, title: PronTab.noWords ? t('No words for this clip, only sounds') : t('Words big, sounds small'), onclick: () => setPronTop('words') }, t('Words')),
-      h('button', { type: 'button', class: PronTab.top === 'phones' || PronTab.noWords ? 'on' : '', title: t('Sounds big, words small'), onclick: () => setPronTop('phones') }, t('Phones'))) :
+    UI.view === 'pron' ? (PronTab.noWords ? null : btn(t('All sounds'), () => setPronTop(PronTab.top === 'phones' ? 'words' : 'phones'), { size: 'sm', on: PronTab.top === 'phones', title: t('Show the sounds under every word, not only where yours differ') })) :
     h('div', { class: 'seg', role: 'group', 'aria-label': t('Layout') },
       h('button', { type: 'button', class: UI.overlay ? '' : 'on', title: t('Speaker on top, you below'), onclick: () => setOverlay(false) }, t('Separate')),
       h('button', { type: 'button', class: UI.overlay ? 'on' : '', title: t('Both lines on one chart'), onclick: () => setOverlay(true) }, t('Overlaid'))),

@@ -148,15 +148,17 @@ const themeJs = `try { const t = JSON.parse(localStorage.getItem('shadowing:them
 const year = SITE.updated.slice(0, 4);
 // Euno on the site: drawn once as SVG for the logo and for the home page's first paint. On the home page the engine then
 // takes over in place: the still is drawn in the engine's own frame and pose, so the swap can't be seen, and he simply
-// watches the demo card below him and blinks. With reduced motion he stays as drawn.
+// holds one pose looking at the demo card below him, and blinks. With reduced motion he stays as drawn.
 const SITE_LOGO = eunoSvg('attentive-left', { label: null, idSuffix: '-site' });
-const HERO_EUNO = eunoSvg('downward-gaze', { label: null, idSuffix: '-hero', fit: false });
+const HERO_LOOK = [-14, -6]; // he looks down at the demo card
+const HERO_EUNO = eunoSvg('downward-gaze', { label: null, idSuffix: '-hero', fit: false, look: HERO_LOOK });
 const eunoSiteJs = fingerprint('euno-site', 'js', minify(eunoJs + `
 (function () {
   var el = document.querySelector('[data-euno-hero]');
   if (!el || !window.EunoEngine || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
   var still = el.firstElementChild;
-  var a = window.EunoEngine.create(el, { defaultExpression: 'downward-gaze', autoplay: false });
+  var def = window.EunoEngine.calm({ look: ${JSON.stringify(HERO_LOOK)}, holds: { watching: ['downward-gaze'] } });
+  var a = window.EunoEngine.create(el, { definition: def, defaultExpression: 'downward-gaze', autoplay: false });
   a.play('watching');
   if (still && still.parentNode === el) el.removeChild(still);
   document.addEventListener('visibilitychange', function () { if (document.hidden) a.pause(); else a.play('watching'); });

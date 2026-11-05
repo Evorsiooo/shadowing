@@ -835,21 +835,9 @@
     "fr": "Choisis n’importe quel extrait. Le roulement n’est qu’une suggestion.",
     "es": "Elige cualquier fragmento. La rotación es solo una sugerencia."
   },
-  "Session complete!": {
-    "fr": "Séance terminée !",
-    "es": "¡Sesión completada!"
-  },
   "Session saved": {
     "fr": "Séance enregistrée",
     "es": "Sesión guardada"
-  },
-  "day streak · it grew!|day streak · it grew!": {
-    "fr": "jour de série · elle s’allonge !|jours de série · elle s’allonge !",
-    "es": "día de racha · ¡ha crecido!|días de racha · ¡ha crecido!"
-  },
-  "day streak|day streak": {
-    "fr": "jour de série|jours de série",
-    "es": "día de racha|días de racha"
   },
   "{n} pass · {min} min · {week}/{target} sessions this week|{n} passes · {min} min · {week}/{target} sessions this week": {
     "fr": "{n} passage · {min} min · {week}/{target} séances cette semaine|{n} passages · {min} min · {week}/{target} séances cette semaine",
@@ -862,10 +850,6 @@
   "Progress so far is saved. The clip gets its tick after one complete session.": {
     "fr": "Ta progression est enregistrée. L’extrait obtient sa coche après une séance complète.",
     "es": "Tu progreso se ha guardado. El fragmento recibe su marca tras una sesión completa."
-  },
-  "Compare step 3 with your final pass": {
-    "fr": "Comparer l’étape 3 avec ton dernier passage",
-    "es": "Comparar el paso 3 con tu última pasada"
   },
   "Next clip in the queue": {
     "fr": "Extrait suivant dans la file",
@@ -894,14 +878,6 @@
   "Back to normal speed (1x).": {
     "fr": "Retour à la vitesse normale (1x).",
     "es": "De vuelta a la velocidad normal (1x)."
-  },
-  "Go to 1x": {
-    "fr": "Passer à 1x",
-    "es": "Pasar a 1x"
-  },
-  "Play the rest of this session at normal speed": {
-    "fr": "Jouer le reste de la séance à vitesse normale",
-    "es": "Reproducir el resto de la sesión a velocidad normal"
   },
   "The first pass plays at {rate}x, then normal speed.|The first {n} passes play at {rate}x, then normal speed.": {
     "fr": "Le premier passage est joué à {rate}x, puis à vitesse normale.|Les {n} premiers passages sont joués à {rate}x, puis à vitesse normale.",
@@ -934,10 +910,6 @@
   "Undo": {
     "fr": "Annuler",
     "es": "Deshacer"
-  },
-  "Add more passes to this step": {
-    "fr": "Ajouter des passages à cette étape",
-    "es": "Añadir más repeticiones a este paso"
   },
   "Added {n} more pass.|Added {n} more passes.": {
     "fr": "{n} passage de plus ajouté.|{n} passages de plus ajoutés.",
