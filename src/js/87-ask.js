@@ -104,7 +104,7 @@ function openAsk() {
     sayLogExtras(),
     canAsk && !msgs.length ? h('div', { class: 'ask-starts' }, ASK_STARTS.map((q) => h('button', { type: 'button', class: 'chip', onclick: () => askSend(t(q)) }, t(q)))) : null);
   const box = h('textarea', { id: 'askBox', rows: 1, placeholder: t('Ask Euno about a sound, your notes or your practice'), 'aria-label': t('Your question'),
-    oninput: (e) => { e.target.style.height = 'auto'; e.target.style.height = Math.min(200, e.target.scrollHeight) + 'px'; },
+    oninput: (e) => askFit(e.target),
     onkeydown: (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askSend(box.value); } } });
   const head = h('div', { class: 'askp-head' }, Euno.el('ask', Ask.busy ? 'pondering' : msgs.length ? 'listening' : 'waiting'),
     h('div', { class: 'grow' }, h('h2', { id: 'askTitle' }, t('Ask Euno')),
@@ -128,6 +128,7 @@ function openAsk() {
   const draft = keep ? keep.value : '';
   mount(panel, head, body, foot);
   if (draft && !Ask.busy) box.value = draft;
+  askFit(box);
   root.hidden = false;
   document.body.classList.add('ask-open');
   if (!wasOpen) { Ask.returnFocus = document.activeElement; }
@@ -136,6 +137,12 @@ function openAsk() {
   if (canAsk && !Ask.busy) setTimeout(() => box.focus(), 50);
   const scroller = panel.querySelector('.askp-body');
   if (scroller) scroller.scrollTop = scroller.scrollHeight;
+}
+function askFit(el) {
+  el.style.height = 'auto';
+  const full = el.scrollHeight;
+  el.style.height = Math.min(200, full) + 'px';
+  el.style.overflowY = full > 200 ? 'auto' : 'hidden';
 }
 function closeAsk() {
   const root = $('#askPanel');
