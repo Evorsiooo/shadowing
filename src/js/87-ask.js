@@ -22,7 +22,7 @@ function askContext() {
   const clip = Store.get('clips', UI.clipId);
   if (clip) {
     const v = Store.get('videos', clip.videoId);
-    out.push(`Clip they're on: "${clipName(clip)}"${v && v.speaker ? ` spoken by ${v.speaker}` : ''}, ${round(clip.end - clip.start, 1)} s${clip.sentence ? `, sentence: "${String(clip.sentence).slice(0, 200)}"` : ''}.`);
+    out.push(`Clip open on their screen (mention only if relevant): "${clipName(clip)}"${v && v.speaker ? ` spoken by ${v.speaker}` : ''}, ${round(clip.end - clip.start, 1)} s${clip.sentence ? `, sentence: "${String(clip.sentence).slice(0, 200)}"` : ''}.`);
   }
   return out;
 }
