@@ -1,0 +1,82 @@
+{
+  "easier": {
+    "fr": "plus facile",
+    "es": "más fácil"
+  },
+  "harder": {
+    "fr": "plus difficile",
+    "es": "más difícil"
+  },
+  "medium": {
+    "fr": "moyen",
+    "es": "media"
+  },
+  "has {sounds}": {
+    "fr": "contient {sounds}",
+    "es": "tiene {sounds}"
+  },
+  "Order of the clips": {
+    "fr": "Ordre des extraits",
+    "es": "Orden de los clips"
+  },
+  "As cut": {
+    "fr": "Comme découpés",
+    "es": "Como se cortaron"
+  },
+  "Easier first": {
+    "fr": "Les plus faciles d’abord",
+    "es": "Los más fáciles primero"
+  },
+  "Fits my sounds": {
+    "fr": "Selon mes sons",
+    "es": "Según mis sonidos"
+  },
+  "Clips for your sounds": {
+    "fr": "Extraits pour vos sons",
+    "es": "Clips para tus sonidos"
+  },
+  "These have sounds you’ve been getting flagged on. A rough guide: the labels can be wrong.": {
+    "fr": "Ils contiennent des sons sur lesquels on vous a souvent signalé des écarts. À titre indicatif : les étiquettes peuvent être fausses.",
+    "es": "Contienen sonidos en los que te han señalado diferencias a menudo. Solo una guía aproximada: las etiquetas pueden estar mal."
+  },
+  "Queued. Press Start above.": {
+    "fr": "Ajoutés à la file. Appuyez sur Commencer ci-dessus.",
+    "es": "En cola. Pulsa Empezar arriba."
+  },
+  "Queue them": {
+    "fr": "Les mettre en file",
+    "es": "Ponerlos en cola"
+  },
+  "Prepare my library": {
+    "fr": "Préparer ma bibliothèque",
+    "es": "Preparar mi biblioteca"
+  },
+  "New clips get their sounds worked out automatically. Older clips, or ones made while this was off, only get them when you practise them. This does the rest in the background, one clip at a time, so sorting and suggestions cover every clip.": {
+    "fr": "Les nouveaux extraits voient leurs sons calculés automatiquement. Les anciens, ou ceux créés quand c’était désactivé, ne les ont que lorsque vous les pratiquez. Ceci fait le reste en arrière-plan, un extrait à la fois, pour que le tri et les suggestions couvrent tous les extraits.",
+    "es": "Los clips nuevos reciben sus sonidos automáticamente. Los antiguos, o los creados con esto desactivado, solo los reciben cuando los practicas. Esto hace el resto en segundo plano, un clip cada vez, para que la ordenación y las sugerencias cubran todos los clips."
+  },
+  "Working: {done} of {total} done. It pauses while you record or play a video.": {
+    "fr": "En cours : {done} sur {total} terminés. Pause pendant un enregistrement ou la lecture d’une vidéo.",
+    "es": "En curso: {done} de {total} hechos. Se pausa mientras grabas o reproduces un vídeo."
+  },
+  "{ready} of {total} clips are ready.": {
+    "fr": "{ready} extraits sur {total} sont prêts.",
+    "es": "{ready} de {total} clips están listos."
+  },
+  "{n} couldn’t be read (the video isn’t on this device or the link is down).": {
+    "fr": "{n} n’ont pas pu être lus (la vidéo n’est pas sur cet appareil ou le lien ne répond plus).",
+    "es": "{n} no se pudieron leer (el vídeo no está en este dispositivo o el enlace no funciona)."
+  },
+  "Wait for the pronunciation model to finish downloading first.": {
+    "fr": "Attendez d’abord la fin du téléchargement du modèle de prononciation.",
+    "es": "Espera primero a que termine de descargarse el modelo de pronunciación."
+  },
+  "Nothing to prepare": {
+    "fr": "Rien à préparer",
+    "es": "Nada que preparar"
+  },
+  "Prepare {n} clip|Prepare {n} clips": {
+    "fr": "Préparer {n} extrait|Préparer {n} extraits",
+    "es": "Preparar {n} clip|Preparar {n} clips"
+  }
+}

@@ -175,6 +175,8 @@ function todaySide(info, state) {
     out.push(h('div', { class: 'box' }, h('h3', null, t('Listen for')), h('p', null, focus),
       h('button', { type: 'button', class: 'linkbtn small', style: { alignSelf: 'flex-start' }, onclick: () => go('progress', 'issues') }, t('Your notes on it'))));
   }
+  const fit = fitBox(state);
+  if (fit) out.push(fit);
   out.push(checkinBox());
   const dismissed = lsGet('dismissed', {});
   if (!dismissed.headphones && state === 'plan') {
@@ -185,6 +187,22 @@ function todaySide(info, state) {
   out.push(h('div', { class: 'box' }, h('h3', null, t('Ask Euno')), h('p', { class: 'small' }, t('About a sound, your notes, or what to practise next.')),
     h('button', { type: 'button', class: 'linkbtn', style: { alignSelf: 'flex-start' }, onclick: () => go('ask') }, t('Ask a question'))));
   return h('aside', { class: 'tside' }, out);
+}
+
+/* clips that have the sounds the learner keeps getting flagged on (28-rank.js). Only clips whose sounds are saved can be suggested; nothing is shown otherwise.
+   A rough guide: the sound labels come from the pronunciation model and can be wrong. "Queue them" puts them in the queue Today starts from. */
+function fitBox(state) {
+  if (state !== 'plan' || typeof Rank === 'undefined') return null;
+  let picks;
+  try { picks = Rank.pick(Rank.liveClips(), Rank.infoFn(), { today: dayKey(), max: 3 }); } catch { return null; }
+  if (!picks.length) return null;
+  const info = Rank.infoFn();
+  const ids = picks.map((c) => c.id), queued = ids.every((id, i) => UI.queue[i] === id) && UI.queue.length === ids.length;
+  return h('div', { class: 'box' }, h('h3', null, t('Clips for your sounds')),
+    h('p', { class: 'small muted' }, t('These have sounds you’ve been getting flagged on. A rough guide: the labels can be wrong.')),
+    h('ul', { class: 'small', style: { margin: 0, paddingLeft: '18px' } }, picks.map((c) => h('li', null, `${clipName(c)} · ${Rank.soundsText(info(c).match)}`))),
+    queued ? h('p', { class: 'small muted' }, t('Queued. Press Start above.'))
+      : btn(t('Queue them'), () => { UI.queue = ids; renderToday(); }, { size: 'sm', cls: 'self-start' }));
 }
 
 function checkinBox() {

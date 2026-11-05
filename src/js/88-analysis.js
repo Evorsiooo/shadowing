@@ -31,11 +31,34 @@ function analysisView() {
     mount(box,
       h('p', { class: 'muted' }, t('These features run an AI model inside your browser, on this device. They are off until you turn them on. Turning one on downloads its model straight away (you see the size first), and the rest of the app works the same without them. These switches apply to this device only.')),
       h('div', { class: 'card' }, h('h3', null, t('This device')), h('p', { class: 'small muted' }, dev)),
-      ids.filter((id) => !Heavy.spec(id).parent).map(group));
+      ids.filter((id) => !Heavy.spec(id).parent).map(group),
+      libraryCard(draw));
   };
   draw();
   Heavy.refreshDevice().then(() => { if (box.isConnected) draw(); });
   const stop = Heavy.onChange(() => { if (box.isConnected) draw(); else stop(); });
+  return box;
+}
+
+/* "Prepare my library": works out the speaker's sounds for clips that don't have them yet (older clips, or clips made while Pronunciation analysis was off),
+   so ranking and "Clips for your sounds" cover every clip. Opt-in, one clip at a time in the background (28-rank.js). */
+function libraryCard(redraw) {
+  if (!Heavy.isOn('pronunciation')) return null;
+  const box = h('div', { class: 'card' });
+  const paint = () => {
+    const c = Rank.counts(), j = Rank.job, ready = Pron.on();
+    const missing = c.total - c.ready - c.failed;
+    mount(box,
+      h('h3', null, t('Prepare my library')),
+      h('p', { class: 'small' }, t('New clips get their sounds worked out automatically. Older clips, or ones made while this was off, only get them when you practise them. This does the rest in the background, one clip at a time, so sorting and suggestions cover every clip.')),
+      h('p', { class: 'small muted', role: 'status' }, j.running ? t('Working: {done} of {total} done. It pauses while you record or play a video.', { done: j.done, total: j.total }) : t('{ready} of {total} clips are ready.', { ready: c.ready, total: c.total }) + (c.failed ? ' ' + t('{n} couldn’t be read (the video isn’t on this device or the link is down).', { n: c.failed }) : '')),
+      j.running ? h('div', { class: 'pv-prog', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': j.total, 'aria-valuenow': j.done }, h('i', { style: { width: (j.total ? Math.round((j.done / j.total) * 100) : 0) + '%' } })) : null,
+      j.error ? h('p', { class: 'small warn' }, j.error) : null,
+      !ready ? h('p', { class: 'small muted' }, t('Wait for the pronunciation model to finish downloading first.')) : null,
+      h('div', { class: 'row' }, j.running ? btn(t('Stop'), () => Rank.stopLibrary(), { size: 'sm' }) : btn(missing > 0 ? tp(missing, 'Prepare {n} clip', 'Prepare {n} clips') : t('Nothing to prepare'), () => Rank.prepareLibrary(), { kind: 'primary', size: 'sm', disabled: !ready || missing <= 0 })));
+  };
+  paint();
+  const off = Rank.onChange(() => { if (box.isConnected) paint(); else off(); });
   return box;
 }
 
