@@ -11,7 +11,7 @@
    learner said "sound the same" to, and which automatic notes were made. It is written once per recorded pass. */
 
 const PRON_SHOWN = 3; // at most this many differences in the review card
-const PRON_AUTO = { minDays: 2, minShare: 0.5, minPlaces: 3 }; // guesses until the native-ear check has been done
+const PRON_AUTO = { minDays: 2, minShare: 0.2, minPlaces: 8 }; // guesses until the native-ear check has been done
 /* when a sound has "gone quiet" (all guesses until the native-ear check): chances are places where the speaker has that
    sound, so a week without practice, or clips without the sound, never count towards it */
 const PRON_QUIET = { chances: 10, days: 14, maxRecent: 1, recentDays: 30, easeWindow: 14, easeMin: 6, relapseDays: 14, relapseShare: 0.3, keepDays: 120, trendGap: 0.2 };
@@ -61,16 +61,16 @@ function wordsAt(clip, a, b) {
    substitutions only (not extra or missing sounds yet), model noise (`weak`) left out, the engine's own pick first */
 const PhonesAdapter = {
   ready() { return !!(typeof Phones !== 'undefined' && typeof Phones.analyse === 'function' && Phones.supported().ok); },
-  async diff({ clip, samples, recId, onProgress }) {
+  async diff({ clip, samples, recId, onProgress, background }) {
     if (!samples) return null;
-    return Prep.around(clip, 2, onProgress, (onP) => this.compare(clip, samples, onP, recId));
+    return Prep.around(clip, 2, onProgress, (onP) => this.compare(clip, samples, onP, recId, background));
   },
-  async compare(clip, samples, onProgress, recId) {
+  async compare(clip, samples, onProgress, recId, background) {
     clip = Store.get('clips', clip.id) || clip; // its words and sounds may have just been worked out
     const given = Prep.speakerSeq(clip);
     const speaker = given ? null : VideoAudio.slice(clip.videoId, clip.start, clip.end);
     if (!given && !speaker) return null;
-    const r = await Heavy.run('pronunciation', () => Phones.analyse(speaker, samples, { speakerOriginSec: 0, speakerSeq: given, onProgress }), { timeoutMs: 90000 });
+    const r = await Heavy.run('pronunciation', () => Phones.analyse(speaker, samples, { speakerOriginSec: 0, speakerSeq: given, onProgress }), { timeoutMs: 90000, ...(background ? { background: () => true } : {}) });
     if (r) Prep.saveTake(recId, clip, r, given && given.fp); // every result is kept with the take, also a low-quality one
     if (!r || r.status !== 'ok') return null;
     const syms = (seq, w) => (w == null || !seq.words[w] ? [] : seq.phones.slice(seq.words[w].first, seq.words[w].last + 1).map((p) => p.sym));
@@ -134,36 +134,37 @@ const Pron = {
   },
 
   /* run the engine on a finished pass, keep the result on the recording and add it to the tally. Resolves with the phones or null */
-  async process({ clip, samples, blob, analysis, recId, slot, sessionId, pass, step, onProgress, onError }) {
+  /* day: the day an older take was recorded (a take analysed afterwards, Rank.prepareTakes); background: nobody is waiting, so it steps aside for playback */
+  async process({ clip, samples, blob, analysis, recId, slot, sessionId, pass, step, onProgress, onError, day, background }) {
     if (!this.on() || !clip) return null;
     let res = null;
-    try { res = await this.engine().diff({ clip, samples, blob, analysis, slot, recId, onProgress }); } catch (e) { const why = this.reason(e); console.warn('pronunciation engine failed:', why, e && e.code, e); if (onError) onError(why); return null; }
+    try { res = await this.engine().diff({ clip, samples, blob, analysis, slot, recId, onProgress, background }); } catch (e) { const why = this.reason(e); console.warn('pronunciation engine failed:', why, e && e.code, e); if (onError) onError(why); return null; }
     if (!res || !Array.isArray(res.diffs)) return null;
     const phones = this.clean(res);
     if (recId) Store.patch('recordings', recId, { phones });
-    this.record(phones, { clip, token: recId || `${sessionId}:${pass}`, recId, sessionId, pass, step });
+    this.record(phones, { clip, token: recId || `${sessionId}:${pass}`, recId, sessionId, pass, step, day });
     return phones;
   },
 
   /* add one recorded pass to the per-sound tally (once per pass), and make an automatic note when a pair has come back enough.
      Every tracked pair also gets this pass's "chances" (how often the speaker's sound occurred), flagged or not: that is
      what lets a pair be seen to have stopped, and what the trend is worked out from. */
-  record(phones, { clip, token, recId, sessionId, pass, step }) {
+  record(phones, { clip, token, recId, sessionId, pass, step, day }) {
     const d = this.doc();
     if (d.seen.includes(token)) return;
     d.seen = [...d.seen, token].slice(-300);
-    const today = dayKey();
+    const now = dayKey(), today = day || now, late = today < now; // `late`: an older take analysed afterwards, filed under the day it was recorded
     const pairsNow = new Map();
     for (const x of phones.diffs) pairsNow.set(this.pairOf(x), (pairsNow.get(this.pairOf(x)) || 0) + 1);
     for (const [s, n] of Object.entries(phones.sounds)) d.occ[s] = (d.occ[s] || 0) + n;
     for (const [pair, n] of pairsNow) {
       if (d.blocked.includes(pair)) continue;
       const e = d.tally[pair] || { f: 0, days: [], clips: [], last: today };
-      e.f += n; e.last = today; e.first = e.first || today;
-      if (!e.days.includes(today)) e.days = [...e.days, today].slice(-60);
+      e.f += n; e.last = e.last && e.last > today ? e.last : today; e.first = e.first && e.first < today ? e.first : today;
+      if (!e.days.includes(today)) e.days = [...e.days, today].sort().slice(-60);
       if (clip && !e.clips.includes(clip.id)) e.clips = [...e.clips, clip.id].slice(-30);
       e.ex = [...(e.ex || []), ...phones.diffs.filter((x) => this.pairOf(x) === pair).slice(0, 2).map((x) => ({ d: today, w: x.words || '', c: clip ? clip.id : '' }))].slice(-8);
-      e.recId = recId || e.recId || null; e.sessionId = sessionId || e.sessionId || null; e.clipId = clip ? clip.id : e.clipId; e.pass = pass; e.step = step;
+      if (!late || !e.recId) { e.recId = recId || e.recId || null; e.sessionId = sessionId || e.sessionId || null; e.clipId = clip ? clip.id : e.clipId; e.pass = pass; e.step = step; }
       d.tally[pair] = e;
     }
     for (const [pair, e] of Object.entries(d.tally)) {
@@ -171,8 +172,8 @@ const Pron = {
       const flagged = pairsNow.get(pair) || 0;
       const chances = Math.max(phones.sounds[pair.split('→')[0]] || 0, flagged);
       if (chances) this.addChances(e, today, flagged, chances);
-      e.bk = (e.bk || []).filter((x) => x.d >= addDays(today, -PRON_QUIET.keepDays));
-      this.settle(pair, e, today);
+      e.bk = (e.bk || []).filter((x) => x.d >= addDays(now, -PRON_QUIET.keepDays));
+      this.settle(pair, e, now);
     }
     if (settings().pronAutoNotes) {
       for (const pair of pairsNow.keys()) {
@@ -186,8 +187,8 @@ const Pron = {
   /* ---- history: daily buckets {d, f: flagged, o: chances}, newest last, kept for PRON_QUIET.keepDays ---- */
   addChances(e, day, f, o) {
     e.bk = e.bk || [];
-    let b = e.bk[e.bk.length - 1];
-    if (!b || b.d !== day) { b = { d: day, f: 0, o: 0 }; e.bk.push(b); }
+    let b = e.bk.find((x) => x.d === day);
+    if (!b) { b = { d: day, f: 0, o: 0 }; e.bk.push(b); e.bk.sort((p, q) => (p.d < q.d ? -1 : 1)); } // newest last, also when an older take is added afterwards
     b.f += f; b.o += o;
   },
   sumBuckets(e, from, to) {

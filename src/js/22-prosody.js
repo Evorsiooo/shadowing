@@ -184,7 +184,7 @@ const Prosody = {
       if (M.st[i] != null && U.st[path[i]] != null) { sp += Math.abs(M.st[i] - U.st[path[i]]); np++; }
     }
     const speed = (path[M.n - 1] - path[0]) / Math.max(1, M.n - 1);
-    return { findings: out, speed: round(speed, 2), pitchGap: np > 20 ? round(sp / np, 1) : null, loudGap: round(se / M.n, 2), pitchFrames: np };
+    return { findings: out, speed: round(speed, 2), pitchGap: np > 20 ? round(sp / np, 1) : null, loudGap: round(se / M.n, 2), pitchFrames: np, speechSec: round(mSpeech * PROSODY_STEP, 1), pitchRuns: voicedRuns.length, stressPeaks: peaks.length };
   },
 };
 
@@ -270,26 +270,62 @@ const PROSODY_PLAIN = { rushed: 'running faster than the speaker', dragged: 'run
 /* respects the Analysis (Heavy) switch from the safety work once it is in the build */
 function heavyOk(name) { return typeof Heavy === 'undefined' || !Heavy.isOn || Heavy.isOn(name); }
 
+/* a pass counts as "had this kind of difference" only when it is a real share of the pass, not one short stretch (guesses until checked on real passes).
+   The first version counted a pass if it had ANY such stretch, which is true of almost every pass, so every row read "17 of 17". */
+const PROSODY_COUNT = { speedShare: 0.25, speedMinSec: 1, pitchRuns: 2, pitchShare: 0.4, stressMin: 3, stressShare: 0.3 };
+const PROSODY_LOG_VERSION = 2;
+
 const ProsodyLog = {
   kindOf(f) { return f.kind === 'rushed' || f.kind === 'dragged' || f.kind === 'pitch' ? f.kind : 'stress'; },
-  doc() { return Store.get('meta', 'prosody') || { id: 'prosody', seen: [], kinds: {} }; },
+  /* which kinds count for one pass (a Set), from Prosody.compare's result */
+  significant(res) {
+    const C = PROSODY_COUNT, out = new Set();
+    const by = { rushed: [], dragged: [], pitch: [], stress: [] };
+    for (const f of res.findings) by[this.kindOf(f)].push(f);
+    for (const k of ['rushed', 'dragged']) {
+      const sec = by[k].reduce((s, f) => s + Math.max(0, f.b - f.a), 0);
+      if (sec >= Math.max(C.speedMinSec, C.speedShare * (res.speechSec || 0))) out.add(k);
+    }
+    if (by.pitch.length >= C.pitchRuns && by.pitch.length >= C.pitchShare * (res.pitchRuns || 0)) out.add('pitch');
+    if (by.stress.length >= C.stressMin && by.stress.length >= C.stressShare * (res.stressPeaks || 0)) out.add('stress');
+    return out;
+  },
+  /* the saved history. A history written by the first version (no v: 2) is worked out again from the recordings' stored lines (no audio needed) */
+  doc() {
+    const cur = Store.get('meta', 'prosody');
+    if (cur && cur.v === PROSODY_LOG_VERSION) return cur;
+    const d = this.rebuild();
+    if (!heavyOk('prosody')) return d; // switched off: show nothing new, change nothing
+    try { Store.put('meta', d); } catch (e) { console.warn('prosody history not saved', e); }
+    return d;
+  },
+  rebuild() {
+    const d = { id: 'prosody', v: PROSODY_LOG_VERSION, seen: [], kinds: {} };
+    const recs = Store.all('recordings').filter((r) => r.kind === 'pass' && r.analysis && r.clipId && r.created).sort((a, b) => String(a.created).localeCompare(String(b.created)));
+    for (const r of recs) {
+      const clip = Store.get('clips', r.clipId);
+      if (clip) this.add(d, clip, r.analysis, r.id, dayKey(r.created));
+    }
+    return d;
+  },
+  add(d, clip, analysis, token, day) {
+    let res = null;
+    try { res = Prosody.compare(clip, analysis); } catch { res = null; }
+    if (!res || d.seen.includes(token)) return;
+    d.seen = [...d.seen, token].slice(-300);
+    const found = this.significant(res);
+    for (const kind of PROSODY_KINDS) {
+      const e = d.kinds[kind] || { bk: [] };
+      Pron.addChances(e, day, found.has(kind) ? 1 : 0, 1);
+      e.bk = e.bk.filter((x) => x.d >= addDays(day, -PRON_QUIET.keepDays));
+      d.kinds[kind] = e;
+    }
+  },
   /* add one recorded pass (once per token) */
   record(clip, analysis, token) {
     if (!token || !clip || !analysis || !heavyOk('prosody')) return;
-    let res = null;
-    try { res = Prosody.compare(clip, analysis); } catch { res = null; }
-    if (!res) return;
     const d = this.doc();
-    if (d.seen.includes(token)) return;
-    d.seen = [...d.seen, token].slice(-300);
-    const today = dayKey();
-    const found = new Set(res.findings.map((f) => this.kindOf(f)));
-    for (const kind of PROSODY_KINDS) {
-      const e = d.kinds[kind] || { bk: [] };
-      Pron.addChances(e, today, found.has(kind) ? 1 : 0, 1);
-      e.bk = e.bk.filter((x) => x.d >= addDays(today, -PRON_QUIET.keepDays));
-      d.kinds[kind] = e;
-    }
+    this.add(d, clip, analysis, token, dayKey());
     Store.put('meta', d);
   },
   summary() {

@@ -115,5 +115,45 @@ const Rank = (() => {
   }
   const stopLibrary = () => { job.stop = true; notify(); };
 
-  return { difficulty, focusSounds, matchSounds, order, pick, D, mode, setMode, infoFn, levelText, soundsText, liveClips, job, pending, counts, prepareLibrary, stopLibrary, onChange: (f) => { subs.add(f); return () => subs.delete(f); } };
+  /* ---- "Check my past recordings": takes recorded while Pronunciation analysis was off (or before the comparison existed) ----
+     The recording itself is kept (on this device and your Drive), so the same comparison runs on it afterwards: your take against the SPEAKER's audio
+     (never a transcript), filed under the day it was recorded, oldest first. A take counts as done once a comparison is saved on it (recording.takeAnalysis),
+     even when the model found the take unusable, so it is not tried again. Same background rules as above (Heavy, steps aside for recording and playback). */
+  const tjob = { running: false, stop: false, done: 0, total: 0, failed: new Set(), error: null };
+  const tkey = (r) => `${r.id}`;
+  /* pure: the recordings that still need it (oldest first). clipOk(clip) says whether the clip's video is still in the library. */
+  function pendingTakes(recs, clipOf, skip = new Set()) {
+    return recs.filter((r) => r && r.kind === 'pass' && r.ref && r.clipId && !r.phones && !r.takeAnalysis && !skip.has(tkey(r)) && clipOf(r.clipId))
+      .sort((a, b) => String(a.created || '').localeCompare(String(b.created || '')));
+  }
+  const takesPending = () => pendingTakes(Store.all('recordings'), (id) => { const c = Store.get('clips', id); return c && Store.get('videos', c.videoId) ? c : null; }, tjob.failed);
+  const takeCounts = () => ({ waiting: takesPending().length, failed: tjob.failed.size });
+  async function prepareTakes() {
+    if (tjob.running) return;
+    if (typeof Pron === 'undefined' || !Pron.on()) { tjob.error = t('Pronunciation analysis is off on this device.'); notify(); return; }
+    tjob.running = true; tjob.stop = false; tjob.done = 0; tjob.error = null; tjob.total = takesPending().length; notify();
+    try {
+      for (let r = takesPending()[0]; r && !tjob.stop; r = takesPending()[0]) {
+        try {
+          const clip = Store.get('clips', r.clipId);
+          const blob = await (await fetch(await Store.blobUrl(r.ref))).blob();
+          const samples = await AudioEng.decodeBlob(blob);
+          await Prep.ensure(clip, { background: true }); // the speaker's side (kept on the clip), if it isn't there yet
+          let why = null;
+          await Pron.process({ clip: Store.get('clips', clip.id) || clip, samples, recId: r.id, sessionId: r.sessionId, pass: r.pass, step: r.step, day: r.created ? dayKey(new Date(r.created)) : undefined, background: true, onError: (w) => { why = w; } });
+          if (!(Store.get('recordings', r.id) || {}).takeAnalysis) { // the audio couldn't be read or compared
+            if (!Pron.on()) { tjob.error = why || Pron.reason({ code: 'off' }); break; } // the feature stopped itself: don't keep hammering it
+            tjob.failed.add(tkey(r));
+          }
+        } catch (e) {
+          if (e && (e.code === 'off' || e.code === 'out-of-memory' || e.code === 'cancelled')) { tjob.error = Pron.reason(e); break; }
+          tjob.failed.add(tkey(r));
+        }
+        tjob.done++; notify();
+      }
+    } finally { tjob.running = false; notify(); }
+  }
+  const stopTakes = () => { tjob.stop = true; notify(); };
+
+  return { difficulty, focusSounds, matchSounds, order, pick, D, mode, setMode, infoFn, levelText, soundsText, liveClips, job, pending, counts, prepareLibrary, stopLibrary, tjob, pendingTakes, takesPending, takeCounts, prepareTakes, stopTakes, onChange: (f) => { subs.add(f); return () => subs.delete(f); } };
 })();

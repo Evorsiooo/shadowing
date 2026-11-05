@@ -1,0 +1,174 @@
+{
+  "Finish the pass you are recording first.": {
+    "fr": "Termine d’abord la passe que tu enregistres.",
+    "es": "Termina primero la pasada que estás grabando."
+  },
+  "This take isn’t on this device.": {
+    "fr": "Cette prise n’est pas sur cet appareil.",
+    "es": "Esta toma no está en este dispositivo."
+  },
+  "This clip isn’t in your library any more.": {
+    "fr": "Cet extrait n’est plus dans ta bibliothèque.",
+    "es": "Este clip ya no está en tu biblioteca."
+  },
+  "This take isn’t on this device, so it can’t be compared. Say it again.": {
+    "fr": "Cette prise n’est pas sur cet appareil, donc elle ne peut pas être comparée. Dis-la à nouveau.",
+    "es": "Esta toma no está en este dispositivo, así que no se puede comparar. Dila otra vez."
+  },
+  "too short": {
+    "fr": "trop courte",
+    "es": "demasiado corta"
+  },
+  "not enough speech": {
+    "fr": "pas assez de voix",
+    "es": "poca voz"
+  },
+  "too noisy or unclear": {
+    "fr": "trop de bruit ou pas assez clair",
+    "es": "demasiado ruido o poco clara"
+  },
+  "the speaking rate looked wrong": {
+    "fr": "le débit semblait anormal",
+    "es": "el ritmo del habla parecía raro"
+  },
+  "too noisy": {
+    "fr": "trop de bruit",
+    "es": "demasiado ruido"
+  },
+  "too loud, so it distorted": {
+    "fr": "trop fort, donc déformé",
+    "es": "demasiado fuerte, por lo que se distorsionó"
+  },
+  "The model was less sure of this sound.": {
+    "fr": "Le modèle était moins sûr de ce son.",
+    "es": "El modelo estaba menos seguro de este sonido."
+  },
+  "Compared with {who} in “{clip}”.": {
+    "fr": "Comparé avec {who} dans « {clip} ».",
+    "es": "Comparado con {who} en «{clip}»."
+  },
+  "the speaker": {
+    "fr": "le locuteur",
+    "es": "el hablante"
+  },
+  "The speaker’s sound was too unclear there to compare.": {
+    "fr": "Le son du locuteur était trop peu clair à cet endroit pour comparer.",
+    "es": "El sonido del hablante no era lo bastante claro ahí para comparar."
+  },
+  "Your take was too unclear to compare. Try again closer to the microphone.": {
+    "fr": "Ta prise était trop peu claire pour comparer. Réessaie plus près du micro.",
+    "es": "Tu toma no era lo bastante clara para comparar. Inténtalo de nuevo más cerca del micrófono."
+  },
+  "Euno found no clear differences from the speaker.": {
+    "fr": "Euno n’a trouvé aucune différence nette avec le locuteur.",
+    "es": "Euno no encontró diferencias claras con el hablante."
+  },
+  "A computer comparison of sounds, so it can be wrong.": {
+    "fr": "Une comparaison des sons faite par ordinateur, donc elle peut être fausse.",
+    "es": "Una comparación de sonidos hecha por ordenador, así que puede ser incorrecta."
+  },
+  "The word or words you said": {
+    "fr": "Le ou les mots que tu as dits",
+    "es": "La palabra o palabras que dijiste"
+  },
+  "Type what you said, and Euno looks for a speaker saying it in your clips.": {
+    "fr": "Écris ce que tu as dit, et Euno cherche un locuteur qui le dit dans tes extraits.",
+    "es": "Escribe lo que dijiste y Euno busca en tus clips a un hablante que lo diga."
+  },
+  "Find": {
+    "fr": "Chercher",
+    "es": "Buscar"
+  },
+  "Hear the speaker": {
+    "fr": "Écouter le locuteur",
+    "es": "Escuchar al hablante"
+  },
+  "Comparing…": {
+    "fr": "Comparaison…",
+    "es": "Comparando…"
+  },
+  "No clip in your library has those words.": {
+    "fr": "Aucun extrait de ta bibliothèque ne contient ces mots.",
+    "es": "Ningún clip de tu biblioteca tiene esas palabras."
+  },
+  "Play your take": {
+    "fr": "Écouter ta prise",
+    "es": "Reproducir tu toma"
+  },
+  "You said something ({sec})": {
+    "fr": "Tu as dit quelque chose ({sec})",
+    "es": "Dijiste algo ({sec})"
+  },
+  "These are the sounds the model heard. It is a guess, not a grade; faded sounds are ones it was unsure of.": {
+    "fr": "Voici les sons que le modèle a entendus. C’est une estimation, pas une note ; les sons estompés sont ceux dont il n’était pas sûr.",
+    "es": "Estos son los sonidos que oyó el modelo. Es una suposición, no una nota; los sonidos atenuados son los que no tenía claros."
+  },
+  "The words come from speech recognition and can be wrong.": {
+    "fr": "Les mots viennent de la reconnaissance vocale et peuvent être faux.",
+    "es": "Las palabras vienen del reconocimiento de voz y pueden ser incorrectas."
+  },
+  "Euno couldn’t read sounds from this take ({why}). Try again, a little closer to the microphone.": {
+    "fr": "Euno n’a pas pu lire de sons dans cette prise ({why}). Réessaie, un peu plus près du micro.",
+    "es": "Euno no pudo leer sonidos en esta toma ({why}). Inténtalo de nuevo, un poco más cerca del micrófono."
+  },
+  "Compare with another speaker": {
+    "fr": "Comparer avec un autre locuteur",
+    "es": "Comparar con otro hablante"
+  },
+  "Compare with a speaker": {
+    "fr": "Comparer avec un locuteur",
+    "es": "Comparar con un hablante"
+  },
+  "Listening to your take…": {
+    "fr": "Écoute de ta prise…",
+    "es": "Escuchando tu toma…"
+  },
+  "Comparing with the speaker…": {
+    "fr": "Comparaison avec le locuteur…",
+    "es": "Comparando con el hablante…"
+  },
+  "Turn on Pronunciation analysis first": {
+    "fr": "Active d’abord l’analyse de la prononciation",
+    "es": "Activa primero el análisis de pronunciación"
+  },
+  "Euno reads your sounds with a model that runs on this device (71 MB). It is off until you turn it on in Settings → Analysis.": {
+    "fr": "Euno lit tes sons avec un modèle qui tourne sur cet appareil (71 Mo). Il est désactivé tant que tu ne l’actives pas dans Réglages → Analyse.",
+    "es": "Euno lee tus sonidos con un modelo que funciona en este dispositivo (71 MB). Está desactivado hasta que lo actives en Ajustes → Análisis."
+  },
+  "Open Analysis": {
+    "fr": "Ouvrir Analyse",
+    "es": "Abrir Análisis"
+  },
+  "The sound model isn’t ready yet": {
+    "fr": "Le modèle des sons n’est pas encore prêt",
+    "es": "El modelo de sonidos aún no está listo"
+  },
+  "It is still downloading or loading. Try again in a moment; Settings → Analysis shows how far it is.": {
+    "fr": "Il se télécharge ou se charge encore. Réessaie dans un instant ; Réglages → Analyse montre l’avancement.",
+    "es": "Todavía se está descargando o cargando. Inténtalo en un momento; Ajustes → Análisis muestra el progreso."
+  },
+  "Stop and read my take": {
+    "fr": "Arrêter et lire ma prise",
+    "es": "Parar y leer mi toma"
+  },
+  "Say a word or a sentence": {
+    "fr": "Dire un mot ou une phrase",
+    "es": "Decir una palabra o una frase"
+  },
+  "Say a word or a sentence, then tap the square.": {
+    "fr": "Dis un mot ou une phrase, puis touche le carré.",
+    "es": "Di una palabra o una frase y toca el cuadrado."
+  },
+  "{n} difference from the speaker|{n} differences from the speaker": {
+    "fr": "{n} différence avec le locuteur|{n} différences avec le locuteur",
+    "es": "{n} diferencia con el hablante|{n} diferencias con el hablante"
+  },
+  "{n} more, less certain, not shown.|{n} more, less certain, not shown.": {
+    "fr": "{n} de plus, moins sûre, non affichée.|{n} de plus, moins sûres, non affichées.",
+    "es": "{n} más, menos segura, no se muestra.|{n} más, menos seguras, no se muestran."
+  },
+  "{n} clip has no word labels yet, so it wasn’t searched. Settings → Analysis can prepare your library.|{n} clips have no word labels yet, so they weren’t searched. Settings → Analysis can prepare your library.": {
+    "fr": "{n} extrait n’a pas encore d’étiquettes de mots, donc il n’a pas été fouillé. Réglages → Analyse peut préparer ta bibliothèque.|{n} extraits n’ont pas encore d’étiquettes de mots, donc ils n’ont pas été fouillés. Réglages → Analyse peut préparer ta bibliothèque.",
+    "es": "{n} clip aún no tiene etiquetas de palabras, así que no se buscó en él. Ajustes → Análisis puede preparar tu biblioteca.|{n} clips aún no tienen etiquetas de palabras, así que no se buscó en ellos. Ajustes → Análisis puede preparar tu biblioteca."
+  }
+}

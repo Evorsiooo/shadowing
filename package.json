@@ -12,10 +12,12 @@
     "check:i18n": "node scripts/check-i18n.mjs",
     "test:knowledge": "node scripts/test-knowledge.mjs",
     "test:heavy": "node scripts/test-heavy.mjs",
+    "test:say": "node scripts/test-say.mjs",
     "test:phones": "node --test src/phones/test/*.test.mjs",
     "test:prepare": "node scripts/test-prepare.mjs",
     "test:rank": "node scripts/test-rank.mjs",
-    "test:words": "node --test src/words/test/*.test.mjs && node scripts/test-words.mjs"
+    "test:words": "node --test src/words/test/*.test.mjs && node scripts/test-words.mjs",
+    "test:pron-late": "node scripts/test-pron-late.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.128.0"
