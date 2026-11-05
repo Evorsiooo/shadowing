@@ -368,6 +368,25 @@ async function openCompare(idA, idB, urlB) {
   ]);
 }
 
+/* move a session to another calendar day, to fix a day marked by mistake (or a late-night session) */
+function changeDayButton(s, after) {
+  const wrap = h('span', { class: 'row' });
+  const normal = () => mount(wrap, btn(t('Change day'), () => ask(), { size: 'sm', kind: 'ghost' }));
+  const ask = () => {
+    const input = h('input', { type: 'date', value: s.date, max: dayKey() });
+    mount(wrap, input,
+      btn(t('Move'), async () => {
+        const d = input.value;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || d > dayKey()) return;
+        if (d !== s.date) { moveSessionDay(s.id, d, null); await Store.flushAll().catch(() => {}); toast(t('Session moved to {date}.', { date: fmtDayLong(d) })); renderAll(); }
+        after && after();
+      }, { size: 'sm' }),
+      btn(t('Cancel'), normal, { size: 'sm', kind: 'ghost' }));
+  };
+  normal();
+  return wrap;
+}
+
 /* delete button with an in-place confirm */
 function deleteSessionButton(sessionId, after) {
   const wrap = h('span', { class: 'row' });
@@ -429,6 +448,7 @@ async function openHistory(clipId) {
       h('div', { class: 'row' },
         s.recs && s.recs.step3 && s.recs.final ? btn(t('Compare step 3 and final'), () => openCompare(s.recs.step3, s.recs.final), { size: 'sm', kind: 'blue' }) : null,
         h('span', { class: 'spacer' }),
+        changeDayButton(s, () => openHistory(clipId)),
         deleteSessionButton(s.id, () => openHistory(clipId))),
       ns.map(noteCard));
   }));

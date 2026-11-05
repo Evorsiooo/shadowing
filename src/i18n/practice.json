@@ -1070,5 +1070,9 @@
   "Added {n} more pass.|Added {n} more passes.": {
     "fr": "{n} passage de plus ajouté.|{n} passages de plus ajoutés.",
     "es": "Se añadió {n} repetición más.|Se añadieron {n} repeticiones más."
+  },
+  "Yesterday is already marked as practised. If you meant this session for yesterday, count it there so today stays free. A session started before 10am can do that.": {
+    "fr": "Hier est déjà marqué comme pratiqué. Si cette séance était pour hier, compte-la pour hier afin que la journée d’aujourd’hui reste libre. Une séance commencée avant 10 h peut le faire.",
+    "es": "Ayer ya figura como practicado. Si esta sesión era para ayer, cuéntala ahí para que hoy quede libre. Una sesión empezada antes de las 10 puede hacerlo."
   }
 }

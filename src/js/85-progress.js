@@ -48,7 +48,12 @@ function canCountForYesterday(sessionId) {
   const s = Store.get('sessions', sessionId);
   if (!s || s.empty || s.movedFrom || s.date !== dayKey() || !s.passes || !s.passes.length) return false;
   if (new Date(s.startedAt).getHours() >= LATE_SESSION_HOUR) return false;
-  return !practisedDays(sessionId).has(addDays(s.date, -1));
+  return true;
+}
+/* yesterday already shows a session (maybe a test, or one marked by mistake): the card says so */
+function yesterdayHasSession(sessionId) {
+  const s = Store.get('sessions', sessionId);
+  return !!s && practisedDays(sessionId).has(addDays(s.date, -1));
 }
 /* move a session (and the notes taken in it) to another day; movedFrom remembers the original day for undo */
 function moveSessionDay(sessionId, date, movedFrom = null) {
