@@ -433,6 +433,7 @@ function consentPage(requestId, client, redirectUri, auth, env, lang = 'en') {
 function page(title, body, status = 200) {
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="icon" href="/assets/favicon-48.png" sizes="48x48" type="image/png"><link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <title>${esc(title)} · Euno Shadowing</title>
 <style>
 :root{color-scheme:light;--bg:#f6f7f3;--card:#fff;--fg:#111316;--muted:#5f645b;--green:#45b52a;--sunk:#eceee9;--ctl:#8a9085;--bad:#b3261e}
