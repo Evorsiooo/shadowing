@@ -27,7 +27,7 @@ function applyLayout() {
    - the full-width panel underneath fills down to the bottom of the window. */
 const BELOW_ALLOWANCE = 250;
 const fitFocus = { key: null, below: 0 };
-const FOCUS_BELOW = 250; // the instruction, the controls and the passes under the video in a session
+const FOCUS_BELOW = 290; // the instruction, the controls and the passes under the video in a session
 const MAX_WIDTH_LIMITED_H = 540;
 let fitQueued = false;
 function scheduleFit() {
@@ -78,6 +78,7 @@ function fitLayout() {
   if (L.classList.contains('focus')) {
     // focus mode: one centred column, the video as large as leaves room for the instruction under it
     // what sits under the video is measured (the list of things to listen for makes it taller), and only ever grows within a step, so the video doesn't resize from pass to pass and the page never needs a scrollbar
+    L.style.setProperty('--below-h', 'auto'); // a height left over from the library/clip layout would stretch #below and be measured as if it were content
     const fc = $('.focus-card');
     const ctl = $('#controls');
     const ctlH = ctl && getComputedStyle(ctl).position === 'static' ? ctl.offsetHeight + 8 : 0; // on a phone the timeline sits under the video, not over it
