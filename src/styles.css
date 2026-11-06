@@ -1008,6 +1008,11 @@ body.ask-open { overflow: hidden; }
   .cut-edges { order: 5; flex-basis: 100%; justify-content: flex-start; }
 }
 
+@media (max-width: 360px) {
+  .lib-row { gap: 8px; padding: 10px 12px; }
+  .lib-acts .btn .txt { display: none; }
+}
+
 /* ---------- progress overview ---------- */
 .ov-row { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 14px; align-items: stretch; }
 .ov-row > .card { display: flex; flex-direction: column; gap: 10px; }
