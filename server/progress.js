@@ -8,7 +8,6 @@ const dayOf = (iso) => String(iso || '').slice(0, 10);
 const r2 = (x) => Math.round(x * 100) / 100;
 const pct = (f, o) => (o ? Math.round((f / o) * 100) : null);
 function addDays(k, n) { const d = new Date(k + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
-const mean = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
 
 /* the learner's first two weeks of data against the latest two weeks, for a daily-bucket history [{d, f, o}] */
 function startVsNow(bk, today) {
@@ -38,13 +37,10 @@ export function progressBrief(data, today = new Date().toISOString().slice(0, 10
     const c = data.clips[id], first = l[0], last = l[l.length - 1], v = data.videos[c.videoId];
     return {
       clipId: id, clip: c.label || c.sentence || `clip at ${Math.round(c.start)}s`, speaker: (v && v.speaker) || null, takes: l.length,
-      first: { date: dayOf(first.created), lagSeconds: first.lag != null ? r2(first.lag) : null, ...(takeNumbers(first) || {}) },
-      latest: { date: dayOf(last.created), lagSeconds: last.lag != null ? r2(last.lag) : null, ...(takeNumbers(last) || {}) },
+      first: { date: dayOf(first.created), ...(takeNumbers(first) || {}), lagSecondsBehind: first.lag != null ? r2(first.lag) : null },
+      latest: { date: dayOf(last.created), ...(takeNumbers(last) || {}), lagSecondsBehind: last.lag != null ? r2(last.lag) : null },
     };
   });
-  const lags = takes.filter((r) => r.lag != null);
-  const lagWindow = (list) => (list.length ? { takes: list.length, averageLagSeconds: r2(mean(list.map((r) => r.lag))), averageAbsoluteLagSeconds: r2(mean(list.map((r) => Math.abs(r.lag)))) } : null);
-  const n = Math.min(10, Math.floor(lags.length / 2));
   const pron = data.meta.pron, prosody = data.meta.prosody;
   const blocked = (pron && pron.blocked) || [];
   const sounds = Object.entries((pron && pron.tally) || {}).filter(([p]) => !blocked.includes(p)).map(([pair, e]) => ({ pair, state: e.state || 'active', ...(startVsNow(e.bk, today) || {}) }))
@@ -57,13 +53,12 @@ export function progressBrief(data, today = new Date().toISOString().slice(0, 10
     today,
     practice: { streakDays: ov.streakDays, daysThisWeek: ov.daysPractisedThisWeek, totalMinutes: ov.totalMinutes, sessions: ov.sessions, firstSession: Object.values(data.sessions).map((s) => s.date).filter(Boolean).sort()[0] || null, clipsDone: ov.clips.done, clipsTotal: ov.clips.total, openIssues: ov.openIssues.length },
     recordedTakes: { total: takes.length, first: takes.length ? dayOf(takes[0].created) : null, latest: takes.length ? dayOf(takes[takes.length - 1].created) : null,
-      comparedWithSpeaker: takes.filter((r) => takeNumbers(r)).length,
-      lagFirstTakes: n >= 3 ? lagWindow(lags.slice(0, n)) : null, lagLatestTakes: n >= 3 ? lagWindow(lags.slice(-n)) : null },
+      comparedWithSpeaker: takes.filter((r) => takeNumbers(r)).length },
     clipsPractisedAgain: clips,
     soundDifferences: sounds,
     timingPitchStress: timing,
     checkins,
-    how: 'Every figure was measured by software on the learner’s device when each take was recorded and saved with it. The audio is not available here, so nobody can listen to the takes: say "may" about any difference. Lag is seconds behind the speaker. A sound "flagged" means the sound recogniser heard something different from the speaker at a place where the speaker has that sound (about 90% right per sound). comparable=false means the first and last two weeks overlap or there are too few chances to say anything about progress.',
+    how: 'Every figure was measured by software on the learner’s device when each take was recorded and saved with it. The audio is not available here, so nobody can listen to the takes: say "may" about any difference. Clips differ a lot in difficulty (length, speed, accent, noise), so never compare figures across different clips: there is deliberately no overall average of seconds behind the speaker, because it mostly reflects which clips were practised, not progress. Lead with the per-sound changes and the differences count on a clip practised more than once. Seconds behind (lagSecondsBehind) is only comparable within the same clip, is a weak hint at best (it also moves with the speaker\u2019s speed and the learner\u2019s warm-up) and should not be the headline or repeated. A sound A sound "flagged" means the sound recogniser heard something different from the speaker at a place where the speaker has that sound (about 90% right per sound). The rushed/dragged/pitch/stress tallies add up passes over different clips, so they are a weak hint too. comparable=false means the first and last two weeks overlap or there are too few chances to say anything about progress.',
   };
 }
 
@@ -73,13 +68,13 @@ export function briefLines(b) {
   const p = b.practice, t = b.recordedTakes;
   L.push(`Practice: ${p.sessions} session(s) since ${p.firstSession || 'the start'}, ${p.totalMinutes} minutes, streak ${p.streakDays} day(s), ${p.clipsDone} of ${p.clipsTotal} clips done.`);
   if (t.total) L.push(`Recorded takes saved: ${t.total}, from ${t.first} to ${t.latest}; ${t.comparedWithSpeaker} compared sound by sound with the speaker. You cannot play them, but every take's measurements are saved and listed here.`);
-  if (t.lagFirstTakes && t.lagLatestTakes) L.push(`Timing behind the speaker: first ${t.lagFirstTakes.takes} takes averaged ${t.lagFirstTakes.averageLagSeconds} s, latest ${t.lagLatestTakes.takes} takes ${t.lagLatestTakes.averageLagSeconds} s.`);
+  L.push('Clips differ in difficulty, so do not compare takes of different clips and do not give an overall average of seconds behind the speaker: only compare a clip with its own earlier takes, lead with the sound changes, and treat seconds behind as a weak hint to mention rarely, if at all.');
   for (const c of b.clipsPractisedAgain.slice(0, 4)) {
     const f = c.first, l = c.latest;
-    L.push(`Clip "${String(c.clip).slice(0, 50)}"${c.speaker ? ` (${c.speaker})` : ''}, ${c.takes} takes: first ${f.date}${f.differences != null ? `, ${f.differences} differences from the speaker` : ''}${f.lagSeconds != null ? `, ${f.lagSeconds} s behind` : ''}; latest ${l.date}${l.differences != null ? `, ${l.differences} differences` : ''}${l.lagSeconds != null ? `, ${l.lagSeconds} s behind` : ''}.`);
+    L.push(`Clip "${String(c.clip).slice(0, 50)}"${c.speaker ? ` (${c.speaker})` : ''}, ${c.takes} takes: first ${f.date}${f.differences != null ? `, ${f.differences} differences from the speaker` : ''}${f.lagSecondsBehind != null ? `, ${f.lagSecondsBehind} s behind (weak hint)` : ''}; latest ${l.date}${l.differences != null ? `, ${l.differences} differences` : ''}${l.lagSecondsBehind != null ? `, ${l.lagSecondsBehind} s behind (weak hint)` : ''}.`);
   }
   for (const s of b.soundDifferences.slice(0, 5)) L.push(`Sound "${s.speakerSound}" heard as "${s.heardAs}" (${s.state}): flagged ${s.firstTwoWeeks.flagged} of ${s.firstTwoWeeks.chances} places in the first two weeks (since ${s.trackedSince}), ${s.lastTwoWeeks.flagged} of ${s.lastTwoWeeks.chances} in the last two weeks${s.comparable ? '' : ' (too little or overlapping data to call it progress)'}.`);
-  const kinds = { rushed: 'running faster than the speaker', dragged: 'running slower than the speaker', pitch: 'pitch moving a different way', stress: 'stress in a different place' };
+  const kinds = { rushed: 'running faster than the speaker (mixes clips, weak hint)', dragged: 'running slower than the speaker (mixes clips, weak hint)', pitch: 'pitch moving a different way', stress: 'stress in a different place' };
   for (const s of b.timingPitchStress) L.push(`${kinds[s.kind] || s.kind}: ${s.firstTwoWeeks.passesWithDifference} of ${s.firstTwoWeeks.recordedPasses} passes in the first two weeks, ${s.lastTwoWeeks.passesWithDifference} of ${s.lastTwoWeeks.recordedPasses} in the last two weeks${s.comparable ? '' : ' (not enough to compare)'}.`);
   if (b.checkins.length) L.push(`Check-ins done: weeks ${b.checkins.map((c) => c.week).join(', ')}.`);
   return L;
