@@ -1,19 +1,17 @@
 <div align="center">
 
-<img src="src/site/assets/icon-192.png" alt="Euno, the green mascot" width="96" height="96">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/banner-dark.png">
+  <img src="docs/img/banner-light.png" alt="Euno Shadowing: sound more like the speakers you listen to" width="100%">
+</picture>
 
-# Euno Shadowing
-
-**Sound more like the speakers you listen to.**<br>
-Daily shadowing practice with your own video clips. Free and open source.
+**Daily shadowing practice with your own video clips. Free and open source.**
 
 [**shadowing.euno.cc**](https://shadowing.euno.cc) · [Guides](https://shadowing.euno.cc/guides/) · [Spec](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md)
 
 [![Licence: AGPL-3.0](https://img.shields.io/badge/licence-AGPL--3.0-1d7a2f)](LICENSE)
 [![Runs on Cloudflare Pages](https://img.shields.io/badge/runs%20on-Cloudflare%20Pages-f38020)](docs/ARCHITECTURE.md)
 [![Free](https://img.shields.io/badge/price-free-1d7a2f)](https://shadowing.euno.cc)
-
-<img src="src/site/assets/og.png" alt="Euno Shadowing: Sound more like the speakers you listen to" width="720">
 
 </div>
 
@@ -23,11 +21,22 @@ Shadowing means repeating a speaker a fraction of a second behind them, copying 
 
 Everything is free. There is no subscription, and no paid plan behind it. The only optional cost is [Ask Euno](#ask-euno-with-your-own-ai-key), which uses an AI key you bring yourself.
 
+## A session
+
+One session a day, on one clip of a sentence or two.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/session-dark.png">
+  <img src="docs/img/session-light.png" alt="The four steps of a session: listen for 2 minutes, shadow for 7, record one pass and compare for 2, shadow again for 4" width="100%">
+</picture>
+
+A bad-day mode cuts it to five minutes.
+
 ## What you get
 
 **Your own clips.** Add a video by direct `.mp4` link and mark clips on a scrubber or a zoomed waveform editor. Speed changes keep the pitch. Clips can loop, and the editor warns if a cut lands in the middle of a word.
 
-**A guided session.** Four steps with a pass counter, timer, pause and repeat. There is a bad-day mode for when you have less to give. Today, Library and Progress keep the routine in one place, with a streak that allows one rest day.
+**A guided routine.** The session has a pass counter, timer, pause and repeat. Today, Library and Progress keep everything in one place, with a streak that allows one rest day.
 
 **A recording of every pass.** Replay the original, yours, one after the other, or both together. Euno finds the lag between you and the speaker and shows both pitch lines relative to each voice's own average.
 
