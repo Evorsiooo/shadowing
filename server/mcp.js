@@ -76,7 +76,7 @@ This server shows only the signed-in user's own data and is read-only, with one 
 - checkins {week: 0|4|8|12, date, recs, questions[], measures}
 - meta: settings (routine settings and target accent profile), about (short facts about the learner, best read through get_about_learner), app, voice; pron (sound-level history) and prosody (timing/pitch/stress history), best read through get_pronunciation_progress
 Lag is in seconds (positive = behind the speaker). Pitch lines ("st") are semitones relative to the speaker's own median, at 10 ms hops.
-Start with get_overview, get_progress for whether they have improved (first against recent takes), and get_about_learner to learn who they are. When the learner tells you something lasting about themselves that would help coaching, call save_about_learner (only what they said, never guesses; the learner sees and can delete every fact in the app). Use get_clip_pronunciation for the speaker's and the learner's sounds and words per clip and per take. Use get_pronunciation_progress for how the learner's pronunciation differences are changing over time. Use search to find notes, issues, clips and videos by text.`;
+Start with get_overview, get_progress for whether they have improved (per-sound changes and the same clip against itself; never compare lag across different clips, they differ in difficulty), and get_about_learner to learn who they are. When the learner tells you something lasting about themselves that would help coaching, call save_about_learner (only what they said, never guesses; the learner sees and can delete every fact in the app). Use get_clip_pronunciation for the speaker's and the learner's sounds and words per clip and per take. Use get_pronunciation_progress for how the learner's pronunciation differences are changing over time. Use search to find notes, issues, clips and videos by text.`;
 
 const colProp = { type: 'string', enum: COLLECTIONS, description: 'Collection name' };
 
@@ -84,7 +84,7 @@ const TOOLS = [
   {
     name: 'get_overview',
     title: 'Practice overview',
-    description: 'Summary of the user’s practice: streak, days practised this week, minutes, clips done, open pronunciation issues, check-ins, average lag by week, recent sessions and current settings. Start here.',
+    description: 'Summary of the user’s practice: streak, days practised this week, minutes, clips done, open pronunciation issues, check-ins, recent sessions and current settings. Start here.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     annotations: { title: 'Practice overview', ...READ_ONLY },
     run: async (_a, { env, user }) => overview(await allDocs(env.DB, user.userId)),
@@ -92,7 +92,7 @@ const TOOLS = [
   {
     name: 'get_progress',
     title: 'Progress since the start',
-    description: 'Has the learner improved? Their first against their most recent takes: timing (lag) behind the speaker, the differences from the speaker per clip they practised more than once, each tracked sound flagged in the first two weeks against the last two weeks, timing/pitch/stress tallies the same way, check-ins, and practice totals. Measurements saved with each take, not audio; use "may". Ask Euno inside the app is given the same figures.',
+    description: 'Has the learner improved? Their first against their most recent takes: the differences from the speaker per clip they practised more than once, each tracked sound flagged in the first two weeks against the last two weeks, timing/pitch/stress tallies the same way, check-ins, and practice totals. Clips differ in difficulty, so there is no overall seconds-behind average: seconds behind is given only per clip and is a weak hint. Measurements saved with each take, not audio; use "may". Ask Euno inside the app is given the same figures.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     annotations: { title: 'Progress since the start', ...READ_ONLY },
     run: async (_a, { env, user }) => progressBrief(await allDocs(env.DB, user.userId)),
@@ -283,11 +283,6 @@ export function overview(data, today = dayKey()) {
   while (first && d >= first) { if (days.has(d)) { streak++; gap = 0; } else if (++gap >= 2) break; d = addDays(d, -1); }
   const wd = (new Date(today + 'T00:00:00Z').getUTCDay() + 6) % 7;
   const ws = addDays(today, -wd);
-  const lagByWeek = {};
-  for (const s of sessions) for (const p of s.passes) if (p.lag != null) {
-    const w = addDays(s.date, -((new Date(s.date + 'T00:00:00Z').getUTCDay() + 6) % 7));
-    (lagByWeek[w] ||= []).push(p.lag);
-  }
   const clips = Object.values(data.clips).filter((c) => !c.archived);
   const issues = Object.values(data.issues).filter((i) => !i.mergedInto);
   const clipName = (id) => { const c = data.clips[id]; return c ? c.label || `clip at ${Math.round(c.start)}s` : id; };
@@ -299,7 +294,6 @@ export function overview(data, today = dayKey()) {
     sessions: sessions.length,
     clips: { total: clips.length, done: clips.filter((c) => c.done).length, noisy: clips.filter((c) => c.noisy).length },
     videos: Object.values(data.videos).filter((v) => !v.archived).map((v) => ({ id: v.id, title: v.title, speaker: v.speaker })),
-    averageLagByWeek: Object.fromEntries(Object.entries(lagByWeek).sort().map(([w, a]) => [w, Math.round((a.reduce((x, y) => x + y, 0) / a.length) * 100) / 100])),
     openIssues: issues.filter((i) => i.status !== 'fixed').map((i) => ({ id: i.id, name: i.name, notes: (i.noteIds || []).length, lastSeen: i.lastSeen })),
     checkins: Object.values(data.checkins).map((c) => ({ week: c.week, date: c.date, takes: Object.fromEntries(Object.entries(c.recs || {}).map(([k, v]) => [k, Array.isArray(v) ? v.length : 0])), measures: c.measures })),
     recentSessions: sessions.sort((a, b) => (String(a.startedAt || a.date) < String(b.startedAt || b.date) ? 1 : -1)).slice(0, 10).map((s) => ({
