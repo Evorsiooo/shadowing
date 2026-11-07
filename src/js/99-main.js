@@ -86,8 +86,10 @@ function fitLayout() {
     const fc = $('.focus-card');
     const ctl = $('#controls');
     const ctlH = ctl && getComputedStyle(ctl).position === 'static' ? ctl.offsetHeight + 8 : 0; // on a phone the timeline sits under the video, not over it
-    const stepKey = `${Session.doc && Session.doc.id}:${Session.stepIdx}`;
-    if (fitFocus.key !== stepKey) { fitFocus.key = stepKey; fitFocus.below = FOCUS_BELOW; }
+    const stepKey = `${Session.doc && Session.doc.id}`; // per session, never per step: the video keeps one size from the first pass to the recording
+    if (fitFocus.key !== stepKey) { fitFocus.key = stepKey; fitFocus.below = FOCUS_BELOW; fitFocus.armed = 0; }
+    if (fc && Session.phase !== 'armed' && !fitFocus.armed) fitFocus.armed = armedProbeHeight(fc) || 1; // the recording step is the tallest: leave room for it from the start
+    if (fitFocus.armed > 1) fitFocus.below = Math.max(fitFocus.below, fitFocus.armed + 12);
     if (fc) { const lf = lfSide ? fc.querySelector('.listen-for') : null; const own = fc.offsetHeight - (lf ? lf.offsetHeight + 16 : 0); const bl = $('#below'); fitFocus.below = Math.max(fitFocus.below, Math.ceil(Math.max(own, split || !bl ? 0 : bl.offsetHeight - (lf ? lf.offsetHeight + 16 : 0))) + 12); }
     // the room on each side of the video is kept free in every step, so the video doesn't change size when the list appears
     const sideRoom = lfSide ? 2 * (LF_W + LF_GAP) : 0;
@@ -109,13 +111,19 @@ function fitLayout() {
   const widthVh = (totalW - sideMax - 6) / ar;
   // cutting a clip needs the waveform in view too, so there the video doesn't borrow height from it on short windows
   let vh = Math.max(availW * 0.5, availW - BELOW_ALLOWANCE - gapY - 6, L.classList.contains('cutting') ? 0 : Math.min(widthVh, MAX_WIDTH_LIMITED_H));
-  if (L.classList.contains('reviewing')) vh = Math.min(vh, availW * 0.4); // the review is about the chart: the video steps back
+  if (L.classList.contains('reviewing')) vh = Math.min(vh, availW * 0.4) - (fitFocus.cut || 0); // the review is about the chart: the video steps back
   const sideW = clamp(Math.round(totalW - vh * ar - 6), 360, Math.max(360, Math.min(600, totalW * 0.36)));
   L.style.setProperty('--side-w', `${sideW}px`);
   L.style.setProperty('--video-h', `${Math.floor(vh)}px`);
   const playerH = $('#player').offsetHeight;
   L.style.setProperty('--below-h', `${Math.max(BELOW_ALLOWANCE, Math.floor(availW - playerH - gapY))}px`);
   L.style.setProperty('--top-h', `${playerH}px`); // library / session card: same height as the player
+  if (L.classList.contains('reviewing') && !fitFocus.again) {
+    // the chart has a smallest height of its own: when it pushes the page past the window, the video gives that much back
+    const over = document.documentElement.scrollHeight - window.innerHeight;
+    if (over > 0 && vh - over >= 150) { fitFocus.again = true; fitFocus.cut = over; fitLayout(); fitFocus.again = false; return; }
+    fitFocus.cut = 0;
+  }
   Panel.onTime(Player.time()); // the chart may have changed size
 }
 
