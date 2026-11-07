@@ -213,6 +213,7 @@ const Session = {
   onTick: (t) => {
     const S = Session;
     if (S.preview) {
+      keepRecInStep(t);
       if (t >= S.preview.stopAt - 0.02) { Player.v.pause(); const then = S.preview.then; S.preview = null; then && then(); }
       return;
     }
@@ -588,7 +589,7 @@ function renderSession() {
     h('span', { class: 'grow', style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, [clip ? clipName(clip) : '', vid && vid.speaker].filter(Boolean).join(' · ')),
     S.mode === 'badday' ? h('span', { class: 'queue-pill' }, t('5-minute version')) : S.mode === 'review' ? h('span', { class: 'queue-pill' }, t('Review run')) : null,
     S.queue.length ? h('span', { class: 'queue-pill' }, tp(S.queue.length, '{n} more queued', '{n} more queued')) : null);
-  syncReviewBar();
+  const stale = $('#reviewBar'); if (stale) stale.remove(); // an older build put the playback row under the video
   if (S.phase === 'review') {
     mount(card, top, passReviewCard());
     mount(el, Euno.el('session', mood, { then }), card);
@@ -597,15 +598,6 @@ function renderSession() {
   // focus mode: the video is the screen; under it one instruction, one control row and the passes
   el.className = 'focus-wrap';
   mount(el, focusCard(S, clip, st, mood, then));
-}
-
-/* the playback row and the note line sit with the chart, under the video, while a pass is reviewed */
-function syncReviewBar() {
-  let bar = $('#reviewBar');
-  const on = Session.active && Session.phase === 'review' && Session.review;
-  if (!on) { if (bar) bar.remove(); return; }
-  if (!bar) { bar = h('div', { id: 'reviewBar', class: 'rev-wrap' }); $('#below').appendChild(bar); }
-  if (bar.dataset.for !== String(Session.review.recId || Session.review.url)) { bar.dataset.for = String(Session.review.recId || Session.review.url); mount(bar, reviewBar()); }
 }
 
 /* the part of the session under the video while you listen and shadow: Euno, what to do, one way to act */
@@ -621,17 +613,8 @@ function focusCard(S, clip, st, mood, then) {
     ];
   } else if (S.phase === 'armed') {
     if (!Mic.stream && !Mic.error) Mic.open().then((ok) => { if (!ok) renderSession(); });
-    title = st.recordLast === 'final' ? t('Last pass: Euno records you') : t('Euno records this pass');
-    hint = t('Shadow like before. When the clip ends, Euno puts your voice next to the speaker’s.');
-    body = [
-      h('div', { class: 'preflight' },
-        h('div', { class: 'pf-row' }, icon('headphones'), h('div', null, h('b', null, t('Headphones on')), h('span', { class: 'small muted' }, t('Wired is best. Otherwise the microphone hears {name} too.', { name })))),
-        h('div', { class: 'pf-row' }, icon('mic'), h('div', { class: 'grow pf-mic' }, h('b', null, t('Microphone')), Mic.error ? h('p', { class: 'warnline' }, Mic.error) : micControl({ compact: true })))),
-      h('div', { class: 'focus-ctl' },
-        btn(Mic.error ? t('Try the microphone again') : t('Record this pass'), () => S.go(), { kind: 'primary', size: 'big', icon: 'mic' }),
-        Mic.error ? filePickButton(t('Upload a recording'), 'audio/*,video/*', (f) => uploadPassRecording(f), { icon: 'upload' }) : null),
-      h('p', { class: 'small muted focus-note' }, t('Not now?'), ' ', h('button', { type: 'button', class: 'linkbtn', onclick: () => S.skipRecording() }, t('Skip recording'))),
-    ];
+    [title, hint] = armedText(st);
+    body = armedBody(S, st, name, Mic.error ? null : micControl({ compact: true }));
   } else {
     const paused = S.phase === 'paused';
     const runningNow = S.phase === 'playing' || S.phase === 'recording' || (paused && ['playing', 'recording'].includes(S.pausedFrom));
@@ -654,6 +637,44 @@ function focusCard(S, clip, st, mood, then) {
     h('div', { class: 'focus-head' }, Euno.el('focus', mood, { then }),
       h('div', { class: 'focus-text' }, h('h2', { class: 'sess-title' }, title), hint ? h('p', { class: 'session-hint' }, hint) : null)),
     body);
+}
+
+function armedText(st) {
+  return [st.recordLast === 'final' ? t('Last pass: Euno records you') : t('Euno records this pass'), t('Shadow like before. When the clip ends, Euno puts your voice next to the speaker’s.')];
+}
+/* the recording step's lower half: headphones, microphone, the button. Also built (with a plain stand-in for the microphone control) to measure how much room the video must leave for it */
+function armedBody(S, st, name, micEl) {
+  return [
+    h('div', { class: 'preflight' },
+      h('div', { class: 'pf-row' }, icon('headphones'), h('div', null, h('b', null, t('Headphones on')), h('span', { class: 'small muted' }, t('Wired is best. Otherwise the microphone hears {name} too.', { name })))),
+      h('div', { class: 'pf-row' }, icon('mic'), h('div', { class: 'grow pf-mic' }, h('b', null, t('Microphone')), Mic.error ? h('p', { class: 'warnline' }, Mic.error) : micEl))),
+    h('div', { class: 'focus-ctl' },
+      btn(Mic.error ? t('Try the microphone again') : t('Record this pass'), () => S.go(), { kind: 'primary', size: 'big', icon: 'mic' }),
+      Mic.error ? filePickButton(t('Upload a recording'), 'audio/*,video/*', (f) => uploadPassRecording(f), { icon: 'upload' }) : null),
+    h('p', { class: 'small muted focus-note' }, t('Not now?'), ' ', h('button', { type: 'button', class: 'linkbtn', onclick: () => S.skipRecording() }, t('Skip recording'))),
+  ];
+}
+function probeHead(fc, st) {
+  const hd = fc.querySelector('.focus-head');
+  if (!hd) return null;
+  const c = hd.cloneNode(true), [title, hint] = armedText(st);
+  const a = c.querySelector('.sess-title'), b = c.querySelector('.session-hint');
+  if (a) a.textContent = title;
+  if (b) b.textContent = hint;
+  return c;
+}
+/* how tall the part under the video is on the recording step, so the video can keep one size from the first pass on */
+function armedProbeHeight(fc) {
+  const S = Session, st = S.plan && S.plan.find((x) => x.recordLast);
+  if (!st || !fc) return 0;
+  const clip = S.clip();
+  const probe = h('div', { class: 'focus-card', 'aria-hidden': 'true', style: { position: 'absolute', visibility: 'hidden', pointerEvents: 'none', left: '0', top: '0', width: `${fc.offsetWidth}px` } },
+    probeHead(fc, st),
+    armedBody(S, st, speakerName(clip && Store.get('videos', clip.videoId)), micControl({ compact: true })));
+  fc.parentNode.appendChild(probe);
+  const hgt = probe.offsetHeight;
+  probe.remove();
+  return hgt;
 }
 
 /* what the last recorded pass found, kept for the step after it ("Listen for these") */
@@ -688,14 +709,11 @@ function sessionMenu() {
   return items;
 }
 
-/* the passes of a step as eye pills: done, this one, still to come (a bar when there are too many to count) */
+/* the passes of a step as a bar with "Pass n of total" under it, the same in every step */
 function passPills(st, n, running) {
   const label = t('Pass {n} of {total}', { n: Math.max(1, n), total: st.passes });
-  if (st.passes > 16) return h('div', { class: 'passes' }, h('div', { class: 'bar', 'aria-hidden': 'true' }, h('i', { style: { width: `${(n / st.passes) * 100}%` } })), h('span', { class: 'small muted num' }, label));
-  return h('div', { class: 'passes' },
-    h('div', { class: 'pills', 'aria-hidden': 'true', style: { gap: '5px' } }, Array.from({ length: st.passes }, (_, i) =>
-      h('span', { class: `pill ${i < n - (running ? 1 : 0) ? 'done' : i === n - 1 && running ? 'now' : 'short'}`, style: { width: '9px', height: i < n || (i === n - 1 && running) ? '20px' : '11px' } }))),
-    h('span', { class: 'small muted num' }, label));
+  const done = Math.max(0, n - (running ? 1 : 0));
+  return h('div', { class: 'passes' }, h('div', { class: 'bar', 'aria-hidden': 'true' }, h('i', { style: { width: `${(Math.min(st.passes, done + (running ? 0.5 : 0)) / st.passes) * 100}%` } })), h('span', { class: 'small muted num' }, label));
 }
 
 /* intro of the shadow step: say that the first passes are slowed */
@@ -760,9 +778,26 @@ function playOriginal(clip, then, from = reviewFrom(clip)) {
   Player.seek(from);
   Player.play();
 }
+/* the speed the clip played at while this recording was made (a take's analysis hop is HOP_S x that speed) */
+function recRateOf(analysis) {
+  const r = analysis && analysis.hop ? analysis.hop / HOP_S : 1;
+  return r > 0.2 && r < 4 ? r : 1;
+}
 /* seconds into your recording that line up with clip time `at` (negative: before you started) */
-function recTimeAt(clip, analysis, at, rate) {
-  return ((at - clip.start) - (analysis ? analysis.offset : 0)) / rate;
+function recTimeAt(clip, analysis, at) {
+  return ((at - clip.start) - (analysis ? analysis.offset : 0)) / recRateOf(analysis);
+}
+/* the recording runs at (video speed / speed it was made at), so both move together at any speed */
+function recSpeed(P) { return clamp((Player.v.playbackRate || 1) / recRateOf(P.analysis), 0.25, 4); }
+/* every tick: follow a speed change, and pull the recording back whenever it has drifted from the video */
+function keepRecInStep(at) {
+  const P = Session.previewRec;
+  if (!P || P.wait || Player.v.paused) return;
+  const sp = recSpeed(P);
+  if (P.a.playbackRate !== sp) P.a.playbackRate = sp;
+  const want = recTimeAt(P.clip, P.analysis, at);
+  if (want < 0 || P.a.paused) return;
+  if (Math.abs(P.a.currentTime - want) > 0.08) P.a.currentTime = want;
 }
 /* play your recording lined up with the clip: the video runs alongside (muted for "Mine",
    audible for "Both together"), so the scrub bar and the chart's playhead follow along */
@@ -772,12 +807,11 @@ function playSynced(clip, url, analysis, { withOriginal = false, then, from = re
   Player2.el = a;
   Player2.gainFn = () => MineLevel.gain(analysis, clip);
   MineLevel.attach(a, Player2.gainFn());
-  const rate = Player.v.playbackRate || 1;
   const restoreMute = () => { Player.v.muted = UI.volume === 0; };
   const go = async () => {
     Player.v.muted = !withOriginal || UI.volume === 0;
     Session.preview = { stopAt, then: () => { a.pause(); restoreMute(); Session.previewRec = null; then && then(); } };
-    Session.previewRec = { a, clip, analysis, rate };
+    Session.previewRec = { a, clip, analysis, wait: 0 };
     await Player.seekAndWait(from);
     Player.play();
     syncRecTo(from);
@@ -793,8 +827,10 @@ function syncRecTo(at) {
   if (!P) return;
   const { a } = P;
   clearTimeout(P.wait);
-  const r = recTimeAt(P.clip, P.analysis, at, P.rate);
-  if (r >= 0) { a.currentTime = r; a.play().catch(() => {}); } else { a.pause(); a.currentTime = 0; P.wait = setTimeout(() => a.play().catch(() => {}), -r * 1000); }
+  const r = recTimeAt(P.clip, P.analysis, at);
+  a.playbackRate = recSpeed(P);
+  P.wait = 0;
+  if (r >= 0) { a.currentTime = r; a.play().catch(() => {}); } else { a.pause(); a.currentTime = 0; P.wait = setTimeout(() => { P.wait = 0; a.play().catch(() => {}); }, (-r / a.playbackRate) * 1000); }
 }
 function playMine(clip, url, analysis, then, from) { return playSynced(clip, url, analysis, { then, from }); }
 function playBoth(clip, url, analysis) { return playSynced(clip, url, analysis, { withOriginal: true }); }
@@ -827,20 +863,27 @@ function reviewPlay(mode) {
   else playBoth(clip, R.url, an);
   $$('.review-seg button').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
 }
+/* playing your take next to the speaker, and the note line: in the review card, right above Redo / Continue. Built once per take so a redraw doesn't reset it. */
 function reviewBar() {
+  const R = Session.review;
+  const key = String(R.recId || R.url);
+  if (!R.barEl || R.barKey !== key) { R.barKey = key; R.barEl = buildReviewBar(); }
+  return R.barEl;
+}
+function buildReviewBar() {
   const S = Session, R = S.review, clip = S.clip();
   const name = speakerName(Store.get('videos', clip.videoId));
   const modes = [['spk', name], ['you', t('You')], ['then', t('{name}, then you', { name })], ['both', t('Together')]];
   const stop = () => { stopReviewPlayback(); R.mode = null; $$('.review-seg button').forEach((b) => b.classList.remove('on')); };
   let volOpen = false;
   const vol = h('div', { class: 'rev-vol', hidden: true }, mineVolumeControl());
-  return h('div', { class: 'rev-bar' },
+  return h('div', { class: 'rev-bar rev-wrap' },
     h('div', { class: 'rev-play' },
       h('button', { type: 'button', class: 'playbig', title: t('Play {name}, then you', { name }), 'aria-label': t('Play {name}, then you', { name }), onclick: () => (R.mode ? stop() : reviewPlay('then')) }, icon('play')),
-      h('div', { class: 'seg review-seg', role: 'group', 'aria-label': t('Play') }, modes.map(([k, l]) => h('button', { type: 'button', class: R.mode === k ? 'on' : null, 'data-mode': k, onclick: () => reviewPlay(k) }, l))),
       btn('', stop, { size: 'sm', icon: 'stop', title: t('Stop playback') }),
       h('span', { class: 'grow' }),
       btn(t('Volume'), () => { volOpen = !volOpen; vol.hidden = !volOpen; }, { size: 'sm', kind: 'ghost', icon: 'volume', title: t('Your volume') })),
+    h('div', { class: 'seg review-seg', role: 'group', 'aria-label': t('Play') }, modes.map(([k, l]) => h('button', { type: 'button', class: R.mode === k ? 'on' : null, 'data-mode': k, onclick: () => reviewPlay(k) }, l))),
     vol,
     h('div', { class: 'rev-note' }, icon('note'), h('span', { class: 'grow muted' }, t('Anything sound off to you? Write it down (optional).')),
       btn(t('Add a note'), () => openModal([modalHead(t('What sounded off?'), clipName(clip)), noteForms({ clipId: clip.id, sessionId: S.doc.id, recId: R.recId, pass: S.pass, step: S.step().key })]), { size: 'sm' })));
@@ -874,6 +917,7 @@ function passReviewCard() {
     h('div', { class: 'row' }, h('h3', { class: 'grow' }, toAgain ? t('Try these in step 4') : t('Listen for these next time')), h('span', { class: 'pv-beta' }, t('beta'))),
     tries,
     step3 ? h('p', { class: 'small muted' }, t('Compare with your step 3 recording from this session:'), ' ', h('button', { type: 'button', class: 'linkbtn', onclick: () => openCompare(step3.id, R.recId, R.url) }, t('Compare'))) : null,
+    reviewBar(),
     h('div', { class: 'row', style: { marginTop: '4px' } },
       btn(t('Redo'), () => S.repeatPass(), { size: 'big', icon: 'replay', title: t('Record this pass again, starting now') }),
       btn(toAgain && S.pass >= S.step().passes ? t('Continue to step 4') : t('Continue'), () => S.continueAfterReview(), { kind: 'primary', size: 'big', cls: 'grow' })));
