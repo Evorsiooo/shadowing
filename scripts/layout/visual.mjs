@@ -56,7 +56,7 @@ export function visual(opts) {
       if (r.width < 3 || r.height < 6) continue;
       const v = { l: Math.max(r.left, c.left), t: Math.max(r.top, c.top), r: Math.min(r.right, c.right), b: Math.min(r.bottom, c.bottom) };
       if (v.r - v.l < 3 || v.b - v.t < 6) continue; // not drawn (clipped away)
-      boxes.push({ ...v, el, text: n.nodeValue.trim().slice(0, 24), node: n });
+      boxes.push({ ...v, el, text: n.nodeValue.trim().slice(0, 24), node: n, full: r });
     }
   }
   const inset = (b) => ({ l: b.l + 1, r: b.r - 1, t: b.t + 3, b: b.b - 3 });
@@ -67,6 +67,63 @@ export function visual(opts) {
     if (a.node === b.node || !hit(a, b)) continue;
     if (!!a.el.closest('.rev-go') !== !!b.el.closest('.rev-go') && getComputedStyle(a.el.closest('.rev-go') || b.el.closest('.rev-go')).position === 'sticky') continue; // a pinned bar with its own background sits over the page it scrolls on purpose
     out.push({ kind: 'text-overlaps-text', detail: `“${a.text}” (${sel(a.el)}) and “${b.text}” (${sel(b.el)})` }); reported++;
+  }
+  // 1b. something that is cut off by the box around it: a control or a line of text that runs past the edge of a card (or is hidden under its bottom edge)
+  const clipper = (el) => {
+    let x = { l: -1e9, r: 1e9 }, y = { t: -1e9, b: 1e9 }, who = null, scrolls = false; // (inside a list that scrolls, what is below the fold is reached by scrolling: not cut off)
+    for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+      const cs = getComputedStyle(p);
+      if (cs.position === 'fixed') break;
+      if (cs.overflowY === 'auto' || cs.overflowY === 'scroll') scrolls = true;
+      const b = p.getBoundingClientRect();
+      if (cs.overflowX !== 'visible') { if (b.left > x.l) { x.l = b.left; who = who || p; } if (b.right < x.r) { x.r = b.right; who = who || p; } }
+      if (!scrolls && (cs.overflowY === 'hidden' || cs.overflowY === 'clip')) { if (b.top > y.t) y.t = b.top; if (b.bottom < y.b) y.b = b.bottom; who = who || p; }
+    }
+    return { x, y, who };
+  };
+  const ellipsis = (el) => { for (let e = el; e && e !== document.body; e = e.parentElement) if (getComputedStyle(e).textOverflow === 'ellipsis') return true; return false; };
+  let cutCount = 0;
+  const seen = new Set();
+  const consider = (el, r, label, isText) => {
+    if (cutCount >= 4 || seen.has(el) || r.width < 3 || el.closest('[data-visual-skip], .toasts, .askp-wrap, .sr-only')) return;
+    if (isText && ellipsis(el)) r = el.getBoundingClientRect(); // a line that ends in "…" is cut on purpose inside its own box; the box itself must still fit its card
+    const c = clipper(el);
+    const over = Math.max(r.right - c.x.r, c.x.l - r.left, r.bottom - c.y.b, c.y.t - r.top);
+    if (over > 2) { seen.add(el); cutCount++; out.push({ kind: 'cut-off-by-its-box', el: sel(el), detail: `${label} sticks out ${Math.round(over)}px past ${c.who ? sel(c.who) : 'its box'}` }); }
+  };
+  for (const b of boxes) consider(b.el, b.full, `“${b.text}”`, true);
+  for (const el of document.body.querySelectorAll('button, input, select, textarea, a, .seg, .btn, .playbig')) if (drawn(el) && !el.hidden) consider(el, el.getBoundingClientRect(), (el.textContent || el.className || el.tagName).toString().trim().slice(0, 20));
+  // 3b. empty stretches inside a card, measured on what is drawn in it (text, controls, pictures, boxes with a fill), not on box edges: a stretched
+  // box can hide a hole. Anything more than GAP px tall between two drawn things is a hole.
+  const GAP = 50;
+  for (const col of document.querySelectorAll('.rev-card, .focus-card, .side .session, .listen-for, .preflight, #below, .done-page')) {
+    if (!drawn(col) || col.hidden) continue;
+    const cr = col.getBoundingClientRect();
+    if (cr.height < 120) continue;
+    const view = { t: Math.max(cr.top, 0), b: Math.min(cr.bottom, innerHeight) };
+    const ink = [];
+    const add = (t, b) => { t = Math.max(t, view.t); b = Math.min(b, view.b); if (b - t > 1) ink.push([t, b]); };
+    for (const bx of boxes) if (col.contains(bx.el)) add(bx.t, bx.b);
+    for (const el of col.querySelectorAll('*')) {
+      if (!drawn(el)) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width < 4 || r.height < 4 || r.height > cr.height * 0.98) continue;
+      const cs = getComputedStyle(el);
+      const filled = cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent';
+      const bordered = parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== 'none';
+      if (el.matches('button, input, select, textarea, img, svg, canvas, video, hr') || filled || bordered) { const c = clipper(el); add(Math.max(r.top, c.y.t), Math.min(r.bottom, c.y.b)); }
+    }
+    ink.sort((a, b) => a[0] - b[0]);
+    if (ink.length && col.matches('.rev-card, .side .session')) { // a card that fills its column: its content starts at the top and ends at the bottom
+      const cs = getComputedStyle(col), top = cr.top + (parseFloat(cs.paddingTop) || 0), bot = cr.bottom - (parseFloat(cs.paddingBottom) || 0);
+      if (ink[0][0] - top > GAP) out.push({ kind: 'empty-stretch-in-card', el: sel(col), detail: `${Math.round(ink[0][0] - top)}px of nothing at the top` });
+      if (bot - Math.max(...ink.map((x) => x[1])) > GAP && cr.bottom <= innerHeight) out.push({ kind: 'empty-stretch-in-card', el: sel(col), detail: `${Math.round(bot - Math.max(...ink.map((x) => x[1])))}px of nothing at the bottom` });
+    }
+    let bottom = ink.length ? ink[0][1] : 0;
+    for (let i = 1; i < ink.length; i++) {
+      if (ink[i][0] - bottom > GAP) { out.push({ kind: 'empty-stretch-in-card', el: sel(col), detail: `${Math.round(ink[i][0] - bottom)}px with nothing in it, at ${Math.round(bottom)}–${Math.round(ink[i][0])}px` }); break; }
+      bottom = Math.max(bottom, ink[i][1]);
+    }
   }
   for (const m of document.querySelectorAll('.euno')) {
     if (!drawn(m)) continue; // (the mascot is aria-hidden, but people still see it)

@@ -64,8 +64,7 @@ function spellsSound(word, sound) {
   const w = String(word).toLowerCase().replace(/[^a-z]/g, '');
   return keys.some((k) => w.includes(k));
 }
-/* One word: the one the sound's MIDDLE falls in, or else the nearest one within 0.15 s, as long as it can contain the sound; otherwise the nearest word
-   within 0.25 s that can. Whisper's word times are rough (often 50-150 ms off, and short words get 50 ms). '' when none fits: the card then says when instead. */
+/* One word: the one the sound's MIDDLE falls in, or else the nearest one within 0.15 s, as long as it can contain the sound. Whisper's word times are rough (often 50-150 ms off, and short words get 50 ms). '' when none fits: the card then says when instead. */
 function wordsAt(clip, a, b, sound) {
   const c = Store.get('clips', clip.id) || clip, ws = (c && c.words) || [];
   if (!ws.length) return '';
@@ -74,9 +73,9 @@ function wordsAt(clip, a, b, sound) {
   let best = null;
   for (const x of ws) {
     const d = dist(x);
-    if (d <= 0.25 && spellsSound(x.w, sound) && (!best || d < best.d)) best = { w: x.w, d };
+    if (d <= 0.15 && spellsSound(x.w, sound) && (!best || d < best.d)) best = { w: x.w, d };
   }
-  return best && best.d <= (sound && SPELLED[sound] ? 0.25 : 0.15) ? best.w : '';
+  return best && best.d <= 0.15 ? best.w : '';
 }
 /* turns the engine's ClipResult (global Phones.analyse, src/phones/contract.d.ts) into the shape above:
    substitutions only (not extra or missing sounds yet), model noise (`weak`) left out, the engine's own pick first */

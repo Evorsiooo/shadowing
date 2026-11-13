@@ -37,12 +37,24 @@ screens fail when:
 - text is drawn over other text, or over the mascot (the rectangles of every piece of text are compared);
 - text is cut off by a box that hides its overflow without an ellipsis;
 - a column has a hole of 90px or more between two blocks, or there is more than 40px between the video and the chart;
+- a card has more than 50px with nothing drawn in it (measured on drawn text, controls, pictures and filled boxes, not on box edges, because a stretched box can hide a hole), at the top, bottom or between two things;
+- a control or line of text runs past the box that clips it (a card, a button bar), so something is cut off, such as the "Together" button of a too-wide Oscar / You / Together bar;
 - a screen marked `fits: true` (the review) scrolls the page at 1000x600 or more, or Redo / Continue are below the window;
 - the review's list of things to try scrolls inside its card in a window at least 800px tall;
 - a label drawn on the pitch chart (it is canvas, so the DOM can't see it) is cut off or overlaps another label.
 
 The video is a generated test pattern in `scripts/layout/fixtures/` (served with Range support so seeking works).
 Add a variant there (for example a 4:3 clip) when a layout depends on the video's shape.
+
+The sound differences in the test data are not typed in. They are made by the real matching code (`wordsAt` in `src/js/24-pron.js`),
+so a sound is only named on a word that can contain it, and a sound with no word gets a time instead. `npm run test:wordsat`
+tests that code on its own.
+
+**The check is tested too.** `npm run test:layout-selftest` breaks the review screen on purpose in nine ways (a hole inside the card,
+rows spread apart, an Oscar / You / Together bar wider than the card, buttons wider than the card, a title under the mascot, a hole
+between video and chart, the page scrolling, the card pushed below the window...) and fails if any one is not reported. Run it whenever
+`scripts/layout/visual.mjs` changes. When you find a new kind of defect by looking, add it to that list first, see it pass unnoticed,
+then teach the check.
 
 **These checks do not replace looking.** They found what they were taught to find. Open the screenshots.
 

@@ -375,7 +375,7 @@ function renderScrubber() {
   const clips = videoClips(UI.videoId).filter((c) => !c.archived && c.end > v0 && c.start < v1);
   const pct = (t) => (d && v1 > v0 ? clamp((t - v0) / (v1 - v0), 0, 1) * 100 : 0);
   const rec = recommendedClipId();
-  mount(box, view.zoomed ? h('button', { type: 'button', class: 'scrub-out', onclick: () => zoomOut(), title: t('Back to the whole video (Esc)') }, t('Zoomed on the clip'), icon('close')) : null, d ? clips.map((c) => {
+  mount(box, view.zoomed ? h('button', { type: 'button', class: 'scrub-out', onclick: () => zoomOut(), title: t('Back to the whole video (Esc)') }, h('span', { class: 'txt' }, t('Zoomed on the clip')), icon('close')) : null, d ? clips.map((c) => {
     const left = pct(c.start), width = Math.max(pct(c.end) - pct(c.start), 0);
     const sel = c.id === UI.clipId;
     return [
