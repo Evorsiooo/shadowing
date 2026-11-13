@@ -19,6 +19,8 @@
     "test:words": "node --test src/words/test/*.test.mjs && node scripts/test-words.mjs",
     "test:pron-late": "node scripts/test-pron-late.mjs",
     "test:layout": "node scripts/test-layout.mjs",
+    "test:layout-selftest": "node scripts/test-layout-selftest.mjs",
+    "test:wordsat": "node scripts/test-wordsat.mjs",
     "test:about": "node scripts/test-about.mjs"
   },
   "dependencies": {

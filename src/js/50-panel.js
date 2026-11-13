@@ -71,10 +71,11 @@ function buildAnalysis(clip) {
       h('button', { type: 'button', class: UI.overlay ? 'on' : '', title: t('Both lines on one chart'), onclick: () => setOverlay(true) }, t('Overlaid'))),
     h('span', { class: 'lag', id: 'lagLabel' }),
     h('span', { class: 'spacer' }),
-    h('span', { class: 'small muted', id: 'relLabel' }),
-    !Session.active ? btn(t('Edit clip'), () => editClip(clip.id), { icon: 'scissors', title: t('Change the clip’s start, end, length or label') }) : null,
-    btn(clip.noisy ? t('Flagged noisy') : t('Too noisy?'), () => { Store.patch('clips', clip.id, { noisy: !clip.noisy }); toast(clip.noisy ? t('Clip flagged as too noisy. Its pitch line is shown faded.') : t('Noisy flag removed.')); renderPanel(); renderSidebar(); },
-      { icon: 'flag', on: clip.noisy, title: t('Flag this clip as too noisy for a reliable pitch line') }));
+    h('div', { class: 'panel-end' }, // these stay together: when the row is too narrow they wrap as a pair, never one alone
+      h('span', { class: 'small muted', id: 'relLabel' }),
+      !Session.active ? btn(t('Edit clip'), () => editClip(clip.id), { icon: 'scissors', title: t('Change the clip’s start, end, length or label') }) : null,
+      btn(clip.noisy ? t('Flagged noisy') : t('Too noisy?'), () => { Store.patch('clips', clip.id, { noisy: !clip.noisy }); toast(clip.noisy ? t('Clip flagged as too noisy. Its pitch line is shown faded.') : t('Noisy flag removed.')); renderPanel(); renderSidebar(); },
+        { icon: 'flag', on: clip.noisy, size: 'sm', title: t('Flag this clip as too noisy for a reliable pitch line') })));
   if (!clip.model) {
     let msg;
     if (audio.status === 'loading' || audio.status === 'decoding') msg = h('p', null, t('Reading the video’s sound… {pct}', { pct: audio.progress ? Math.round(audio.progress * 100) + '%' : '' }));
@@ -173,24 +174,25 @@ Panel.drawAnalysis = function (now) {
     g.fillRect(0, L.top + L.h / 2, W, 1 * dpr);
     g.globalAlpha = 1;
   }
+  const pill = (text, right, y) => { // a label on its own small background, so a line drawn under it never makes it unreadable
+    const w = g.measureText(text).width, padX = 6 * dpr;
+    g.save(); g.fillStyle = cssVar('--page'); g.globalAlpha = 0.9;
+    g.beginPath(); g.roundRect(right - w - padX, y - 12 * dpr, w + 2 * padX, 17 * dpr, 6 * dpr); g.fill(); g.restore();
+    g.fillStyle = muted; g.textAlign = 'right'; g.fillText(text, right, y); g.textAlign = 'left';
+  };
+  const labels = [];
   if (ov) {
-    // legend: coloured names
+    // legend: coloured names, and (for the pitch view) what the centre line means, on the same top row so no line is drawn across it
     let lx = 8 * dpr;
     for (const L of lanes) {
       g.fillStyle = L.color; g.fillRect(lx, 7 * dpr, 10 * dpr, 4 * dpr);
       g.fillStyle = muted; g.fillText(L.name, lx + 14 * dpr, 14 * dpr);
       lx += g.measureText(L.name).width + 30 * dpr;
     }
+    if (UI.view === 'pitch') { g.fillStyle = muted; g.fillText('· ' + t('each voice’s own average'), lx - 12 * dpr, 14 * dpr); }
   } else for (const L of lanes) { g.fillStyle = muted; g.fillText(L.name, 8 * dpr, L.top + 14 * dpr); }
-  if (UI.view === 'pitch') {
-    g.fillStyle = muted;
-    g.textAlign = 'right';
-    if (ov) g.fillText(t('each voice’s own average'), W - 8 * dpr, H / 2 - 5 * dpr);
-    else {
-      g.fillText(t('speaker’s average'), W - 8 * dpr, lanes[0].top + lanes[0].h / 2 - 5 * dpr);
-      g.fillText(t('your average'), W - 8 * dpr, lanes[1].top + lanes[1].h / 2 - 5 * dpr);
-    }
-    g.textAlign = 'left';
+  if (UI.view === 'pitch' && !ov) {
+    labels.push([t('speaker’s average'), lanes[0].top + lanes[0].h / 2 - 5 * dpr], [t('your average'), lanes[1].top + lanes[1].h / 2 - 5 * dpr]);
   }
   if (UI.view === 'pitch') pitchHints(g, W, dpr, ov ? [{ top: 0, h: H }] : lanes, muted);
   // time ticks
@@ -276,6 +278,7 @@ Panel.drawAnalysis = function (now) {
     g.textAlign = 'left';
   }
 
+  for (const [text, y] of labels) pill(text, W - 8 * dpr, y);
   // playhead
   if (now >= clip.start - 0.5 && now <= clip.end + 0.5) {
     g.fillStyle = cssVar('--playhead');

@@ -255,12 +255,19 @@ button.chip:hover { background: var(--sunk-2); }
 .self-start { align-self: flex-start; }
 
 /* focus mode: a session has no navigation, only the way out, the steps and the time */
-.focusbar { display: flex; align-items: center; gap: 20px; height: 68px; padding: 0 max(20px, env(safe-area-inset-left, 0px)); max-width: 1320px; margin: 0 auto; }
+.focusbar { display: flex; align-items: center; gap: 20px; height: 68px; padding: 0 max(24px, env(safe-area-inset-left, 0px)); max-width: 1600px; margin: 0 auto; } /* same width and side padding as the screen under it, so End lines up with the video and the menu with the card */
 .fsteps { display: flex; gap: 26px; margin: 0 auto; align-items: center; list-style: none; padding: 0; }
+.fright { display: flex; align-items: center; gap: 8px; }
+@media (min-width: 701px) {
+  .focusbar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .focusbar > .btn { justify-self: start; }
+  .focusbar .fsteps { margin: 0; }
+  .focusbar .fright { justify-self: end; }
+}
 .fsteps li { display: flex; align-items: center; gap: 9px; font-size: 0.92rem; font-weight: 500; color: var(--muted); white-space: nowrap; }
 .fsteps li.cur { color: var(--ink); font-weight: 600; }
 .fsteps .pill { width: 10px; height: 22px; }
-.ftime { font-weight: 600; font-size: 1.05rem; font-variant-numeric: tabular-nums; min-width: 60px; text-align: right; }
+.ftime { font-weight: 600; font-size: 1.05rem; font-variant-numeric: tabular-nums; min-width: 4.2ch; text-align: right; }
 body.focus .topbar, body.focus #todayView, body.focus #pageView { display: none !important; }
 
 /* eye pills: the progress mark */
@@ -384,7 +391,9 @@ body.focus .topbar, body.focus #todayView, body.focus #pageView { display: none 
 @container (max-width: 960px) { #kbBtn { display: none; } }
 .scrub-out { position: absolute; left: 0; top: -22px; display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px 2px 10px; border: 0; border-radius: 999px; background: rgba(17, 19, 22, 0.7); color: #fff; font: 600 0.75rem var(--font); cursor: pointer; z-index: 2; }
 .scrub-out:hover, .scrub-out:focus-visible { background: rgba(17, 19, 22, 0.9); }
-.scrub-out svg { width: 14px; height: 14px; }
+.scrub-out { max-width: 100%; }
+.scrub-out .txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scrub-out svg { width: 14px; height: 14px; flex: none; }
 .hover-time { position: absolute; top: -16px; transform: translateX(-50%); font-size: 0.75rem; font-weight: 600; background: #111316; color: #fff; padding: 1px 7px; border-radius: 999px; pointer-events: none; }
 
 /* ---------- session card ---------- */
@@ -413,10 +422,12 @@ body.focus .topbar, body.focus #todayView, body.focus #pageView { display: none 
 .idle-cta .grow p { margin-top: 2px; }
 .queue-pill { font-size: 0.8rem; font-weight: 500; background: var(--card); color: var(--ink); padding: 3px 10px; border-radius: 999px; }
 /* the review after a recorded pass: three things to try */
-.try-item { background: var(--card); border-radius: 22px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.try-item { background: var(--card); border-radius: 22px; padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 4px; }
 button.try-item { appearance: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; width: 100%; }
 button.try-item:hover { background: color-mix(in srgb, var(--card), var(--sunk) 50%); }
-.try-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.try-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+.try-word { min-width: 0; }
+.try-list > .try-item { flex: 1 1 auto; max-height: 220px; justify-content: center; }
 .try-head b { font-size: 1.1rem; font-weight: 600; overflow-wrap: anywhere; }
 .kind { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
 .try-item p { color: var(--ink-2); font-size: 0.94rem; }
@@ -436,7 +447,8 @@ button.try-item p { color: var(--muted); }
    The video is the screen. Under it Euno, one instruction, one row of controls and the passes; no library, no chart. */
 .layout.focus { grid-template-columns: minmax(0, 1fr); grid-template-areas: "player" "below"; }
 .layout.focus .side { display: none; }
-.layout.focus .player, .layout.focus .below { width: min(100%, var(--focus-w, 100%)); justify-self: center; }
+.layout.focus .player { width: min(100%, var(--focus-w, 100%)); justify-self: center; }
+.layout.focus .below { width: min(100%, max(var(--focus-w, 100%), 780px)); justify-self: center; } /* the text never gets narrower than the video: a tall (phone-shaped) video is narrow, the instructions are not */
 .layout.focus .player video { max-height: var(--video-h, 62vh); }
 .layout.focus .ctrl-row, .layout.reviewing .ctrl-row { display: none; }
 .layout.reviewing .controls { padding-bottom: 6px; }
@@ -488,9 +500,9 @@ button.try-item p { color: var(--muted); }
 /* wide windows: the list stands to the right of the video (set by fitLayout), so the video keeps its size and place in every step */
 .layout.focus.lf-side { position: relative; }
 .layout.focus.lf-side .listen-for { position: absolute; top: var(--lf-top, 0); left: var(--lf-left, 100%); width: var(--lf-w, 300px); max-height: var(--lf-h, none); overflow-y: auto; }
-.layout.focus.lf-side .listen-for li { flex-wrap: wrap; row-gap: 4px; }
-.layout.focus.lf-side .listen-for li > span { flex: 1 1 100%; order: 3; }
-.layout.focus.lf-side .lf-play { margin-left: auto; }
+.layout.focus.lf-side .listen-for li, .layout.focus.split .listen-for li { flex-wrap: wrap; row-gap: 4px; }
+.layout.focus.lf-side .listen-for li > span, .layout.focus.split .listen-for li > span { flex: 1 1 100%; order: 3; } /* the word, then its explanation under it, so the texts line up */
+.layout.focus.lf-side .lf-play, .layout.focus.split .lf-play { margin-left: auto; }
 /* the review: playback and the note line sit with the chart under the video */
 .rev-wrap { display: flex; flex-direction: column; gap: 10px; }
 /* inside the review card (right of the chart, above Redo / Continue): no card of its own, the four ways to play share one row */
@@ -507,7 +519,6 @@ button.try-item p { color: var(--muted); }
 .rev-note { display: flex; align-items: center; gap: 10px; background: var(--page); border-radius: var(--r-md); padding: 10px 12px 10px 14px; }
 .try-n { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--sunk); font-weight: 600; font-size: 0.85rem; flex: none; }
 .try-item.first .try-n { background: var(--diff); color: var(--diff-ink); }
-.try-head { align-items: center; }
 @media (max-width: 640px) {
   .focus-head { flex-direction: column; text-align: center; gap: 6px; }
   .focus-text { min-height: 6.8rem; justify-content: flex-start; }
@@ -532,6 +543,7 @@ button.try-item p { color: var(--muted); }
 /* ---------- analysis panel ---------- */
 .panel { background: var(--card); border-radius: var(--r-xl); padding: 18px 20px 20px; position: relative; }
 .panel-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.panel-end { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; margin-left: auto; }
 .panel canvas { display: block; width: 100%; height: 220px; border-radius: var(--r-md); background: var(--page); touch-action: none; }
 .panel.rec-blur canvas { filter: blur(12px); }
 .panel.rec-blur::after { content: attr(data-blur-text); position: absolute; left: 0; right: 0; top: 50%; text-align: center; font-size: 0.95rem; font-weight: 600; color: var(--ink-2); pointer-events: none; }
@@ -561,9 +573,26 @@ canvas.analysis { cursor: pointer; touch-action: pan-y; }
 .layout.in-session .side .sidebar { display: none; }
 /* the review is longer than the player is tall: the card runs down beside the chart, as in a two-column page */
 .layout.reviewing { grid-template-areas: "player side" "below side"; }
-.layout.fit.reviewing .side { height: auto; }
-.layout.fit.reviewing #sideSlot, .layout.fit.reviewing #sideSlot > .sess-wrap { height: auto; }
-.layout.fit.reviewing .side .session { overflow: visible; }
+/* the review fills the window (set by fitLayout) and never scrolls the page: video, then the chart filling what is left, and the card beside both */
+.layout.fit.reviewing { grid-template-rows: auto minmax(0, 1fr); height: var(--review-h, auto); }
+.layout.fit.reviewing .player { justify-self: center; width: min(100%, var(--focus-w, 100%)); }
+.layout.fit.reviewing .below, .layout.fit.reviewing .side { align-self: stretch; height: auto; min-height: 0; }
+.layout.fit.reviewing .below > .panel { flex: 1 1 auto; min-height: 0; }
+.layout.fit.reviewing #sideSlot, .layout.fit.reviewing #sideSlot > .sess-wrap { height: 100%; min-height: 0; }
+.layout.fit.reviewing .side .session { overflow: hidden; display: flex; flex-direction: column; gap: 0; }
+.layout.reviewing .sess-wrap { padding-top: 0; }
+.layout.reviewing .sess-wrap > .euno { top: 14px; right: 16px; width: 64px; height: 64px; z-index: 2; pointer-events: none; } /* in the card's corner, not hanging off its top */
+.layout.reviewing .session.active { padding-top: 18px; }
+.layout.reviewing .session.active > .row.small { padding-right: 76px; }
+.rev-card { display: flex; flex-direction: column; gap: 12px; flex: 1 1 auto; min-height: 0; }
+.rev-head { display: flex; flex-direction: column; gap: 6px; padding-right: 76px; }
+.rev-scroll { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.layout.fit.reviewing .rev-scroll { flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; }
+.rev-scroll > .try-list { flex: 1 1 auto; }
+.rev-foot { display: flex; flex-direction: column; gap: 10px; flex: none; }
+.rev-go { margin-top: 2px; }
+.try-list:not(.mixed) .kind { display: none; }
+.layout.reviewing #lagLabel { display: none; } /* the card says it already */
 .layout.fit .side { position: static; height: var(--top-h, auto); }
 .layout.fit .side > .sidebar { flex: 1 1 auto; min-height: 0; max-height: none; }
 .layout.fit #sideSlot { height: 100%; }
@@ -754,6 +783,8 @@ body.calm .btn:active { transform: none; }
   .tside { margin-top: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 }
 @media (max-width: 900px) {
+  .rev-foot { display: contents; }
+  .rev-go { position: sticky; bottom: 0; z-index: 3; background: var(--tint); padding: 10px 0 12px; margin: 0 -2px; } /* Redo and Continue stay in reach while the long review scrolls */
   .layout, .layout.in-session { grid-template-columns: minmax(0, 1fr); grid-template-areas: "player" "below" "side"; padding: 4px 16px 20px; }
   .side { position: static; }
   .layout.in-session .side .sidebar { display: flex; }
@@ -895,8 +926,6 @@ label.check.nest { display: flex; align-items: flex-start; }
 .wiz-body label.check { align-items: flex-start; font-weight: 400; }
 .small.warn, .pv-stall { color: var(--diff-ink); }
 .ok-text { color: var(--ink); font-weight: 500; }
-.layout.fit.reviewing .below { height: auto; }
-.layout.fit.reviewing .below > .panel > canvas.analysis { flex: none; height: 240px; }
 .pv-else { background: var(--page); border-radius: var(--r-md); padding: 14px 18px; }
 .pv-else h3 { font-size: 1rem; margin-bottom: 6px; }
 .pv-else ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
@@ -1133,3 +1162,32 @@ body.ask-open { overflow: hidden; }
 .about-row input { flex: 1; min-width: 0; }
 .saved-about { margin-top: 8px; }
 .saved-row { display: flex; align-items: center; gap: 8px; }
+
+/* the review in a short window: the things to try take less height (buttons beside the word, Drill as an icon) */
+.layout.tight .try-list > .try-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 8px 12px 10px; max-height: none; }
+.layout.tight .try-item .try-head { grid-column: 1; grid-row: 1; }
+.layout.tight .try-item > p { grid-column: 1 / -1; grid-row: 2; }
+.layout.tight .try-item > .pair { grid-column: 2; grid-row: 1; flex-wrap: nowrap; gap: 6px; }
+.layout.tight .try-item .pair .btn.ghost .txt { display: none; }
+.pf-row > svg { flex: none; width: 20px; height: 20px; margin-top: 2px; color: var(--ink-2); }
+.layout.tight .session.active > .row.small { display: none; }
+.layout.tight .session.active { padding-top: 16px; }
+.layout.tight .rev-wrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.layout.tight .rev-wrap > .rev-play { grid-column: 1; grid-row: 1; }
+.layout.tight .rev-wrap > .rev-note { grid-column: 2; grid-row: 1; background: none; padding: 0; }
+.layout.tight .rev-wrap > .rev-note > svg, .layout.tight .rev-wrap > .rev-note > span { display: none; }
+.layout.tight .rev-wrap > .seg, .layout.tight .rev-wrap > .rev-vol { grid-column: 1 / -1; }
+.layout.tight .rev-play .btn .txt { display: none; } /* Volume as an icon */
+.layout.fit.reviewing.no-video .player { display: none; }
+.layout.fit.reviewing.no-video { grid-template-rows: minmax(0, 1fr); }
+.layout.fit.reviewing.no-video .below { grid-row: 1; }
+@media (max-width: 420px) {
+  .rev-go { flex-wrap: nowrap; gap: 8px; }
+  .rev-go .btn.big { padding-inline: 14px; font-size: 0.95rem; min-width: 0; }
+  .rev-go .btn.grow { flex: 1 1 0; }
+}
+@media (max-width: 420px) {
+  .layout.reviewing .sess-wrap > .euno { width: 46px; height: 46px; top: 16px; right: 14px; }
+  .rev-head { padding-right: 56px; }
+  .layout.reviewing .session.active > .row.small { padding-right: 58px; }
+}

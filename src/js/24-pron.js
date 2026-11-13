@@ -55,16 +55,27 @@ const PronMock = {
 /* the clip's word (src/js/26-words.js) a sound belongs to, for "in “word”" labels; '' when the clip has none.
    One word: the one the sound's MIDDLE falls in, or else the nearest one within 0.15 s. Whisper's word times are rough
    (often 50-150 ms off, and short words get 50 ms), so a stretch of 0.3 s or more named up to four neighbouring words. */
-function wordsAt(clip, a, b) {
+/* letters that can spell a sound, for the sounds whose spelling is easy to check. A sound is never put on a word that has none of them
+   ("th" in “I”, "ng" in “to”): that came from word times that are off by a word. */
+const SPELLED = { 'θ': ['th'], 'ð': ['th'], 'ʃ': ['sh', 'ti', 'ci', 'ch', 's'], 'ʒ': ['s', 'g', 'z'], 'tʃ': ['ch', 'tch', 't', 'c'], 'dʒ': ['j', 'g', 'dg', 'd'], 'ŋ': ['ng', 'nk', 'n'], 'n': ['n'], 'm': ['m'], 'l': ['l'], 'r': ['r'], 'f': ['f', 'ph', 'gh'], 'v': ['v', 'f'], 'p': ['p'], 'b': ['b'], 'k': ['k', 'c', 'q', 'x'], 'g': ['g', 'x'], 'h': ['h', 'wh'], 'w': ['w', 'u', 'o'], 's': ['s', 'c', 'z', 'x'], 'z': ['z', 's', 'x'] };
+function spellsSound(word, sound) {
+  const keys = sound && SPELLED[sound];
+  if (!keys) return true; // vowels and the rest: no check
+  const w = String(word).toLowerCase().replace(/[^a-z]/g, '');
+  return keys.some((k) => w.includes(k));
+}
+/* One word: the one the sound's MIDDLE falls in, or else the nearest one within 0.15 s, as long as it can contain the sound. Whisper's word times are rough (often 50-150 ms off, and short words get 50 ms). '' when none fits: the card then says when instead. */
+function wordsAt(clip, a, b, sound) {
   const c = Store.get('clips', clip.id) || clip, ws = (c && c.words) || [];
   if (!ws.length) return '';
   const mid = (a + b) / 2;
-  let best = null, bd = 0.15;
+  const dist = (x) => (mid < x.s ? x.s - mid : mid > x.e ? mid - x.e : 0);
+  let best = null;
   for (const x of ws) {
-    const d = mid < x.s ? x.s - mid : mid > x.e ? mid - x.e : 0;
-    if (d < bd || (d === 0 && best && best.d > 0)) { best = { w: x.w, d }; bd = d; if (d === 0) break; }
+    const d = dist(x);
+    if (d <= 0.15 && spellsSound(x.w, sound) && (!best || d < best.d)) best = { w: x.w, d };
   }
-  return best ? best.w : '';
+  return best && best.d <= 0.15 ? best.w : '';
 }
 /* turns the engine's ClipResult (global Phones.analyse, src/phones/contract.d.ts) into the shape above:
    substitutions only (not extra or missing sounds yet), model noise (`weak`) left out, the engine's own pick first */
@@ -85,7 +96,7 @@ const PhonesAdapter = {
     const syms = (seq, w) => (w == null || !seq.words[w] ? [] : seq.phones.slice(seq.words[w].first, seq.words[w].last + 1).map((p) => p.sym));
     const diffs = r.comparison.diffs.filter((d) => d.kind === 'sub' && !d.weak).map((d) => {
       const [from, to] = d.pair.split('→');
-      return { a: d.t0, b: Math.max(d.t1, d.t0 + 0.3), words: wordsAt(clip, d.t0, d.t1), speaker: syms(r.speaker, d.speakerWord), you: syms(r.learner, d.learnerWord), from, to, conf: d.confidence + (r.suggested.includes(d.id) ? 1 : 0) };
+      return { a: d.t0, b: Math.max(d.t1, d.t0 + 0.3), words: wordsAt(clip, d.t0, d.t1, d.pair.split('→')[0]), speaker: syms(r.speaker, d.speakerWord), you: syms(r.learner, d.learnerWord), from, to, conf: d.confidence + (r.suggested.includes(d.id) ? 1 : 0) };
     });
     const sounds = {};
     for (const p of r.speaker.phones) sounds[p.sym] = (sounds[p.sym] || 0) + 1;
