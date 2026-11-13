@@ -107,23 +107,41 @@ function fitLayout() {
     L.style.setProperty('--below-h', 'auto');
     return;
   }
+  if (L.classList.contains('reviewing')) {
+    /* the review fills the window exactly and never scrolls: the video takes what the chart doesn't need, the chart fills the rest of the
+       left column, and the card on the right is as tall as both (its list of things to try scrolls inside it if the window is very short) */
+    const PANEL_MIN = clamp(Math.round(avail * 0.36), 250, 300);
+    const apply = (tight) => {
+      const sideW = clamp(Math.round(totalW * (tight ? 0.42 : 0.3)), tight ? 440 : 380, tight ? 560 : 460);
+      const room = avail - PANEL_MIN - gapY;
+      const noVideo = room < 190; // a very short window (a 1366x768 laptop at 150%): the chart and the card matter here, so the video steps out of the way
+      const vh = noVideo ? 0 : Math.floor(clamp(room, 190, (totalW - sideW) / ar));
+      L.classList.toggle('no-video', noVideo);
+      L.classList.toggle('tight', tight);
+      L.style.setProperty('--side-w', `${sideW}px`);
+      L.style.setProperty('--video-h', `${vh}px`);
+      L.style.setProperty('--focus-w', `${Math.floor(vh * ar)}px`);
+      L.style.setProperty('--review-h', `${Math.floor(avail + padT + padB)}px`);
+    };
+    // roomy first; when the things to try don't fit the card, the same content goes into a tighter form (the buttons beside the word) in a wider card
+    apply(false);
+    const sc = $('.rev-scroll');
+    if (sc && sc.scrollHeight > sc.clientHeight + 1) apply(true);
+    L.style.setProperty('--below-h', 'auto');
+    L.style.setProperty('--top-h', 'auto');
+    Panel.onTime(Player.time());
+    return;
+  }
   const sideMax = Math.max(360, Math.min(600, totalW * 0.36));
   const widthVh = (totalW - sideMax - 6) / ar;
   // cutting a clip needs the waveform in view too, so there the video doesn't borrow height from it on short windows
   let vh = Math.max(availW * 0.5, availW - BELOW_ALLOWANCE - gapY - 6, L.classList.contains('cutting') ? 0 : Math.min(widthVh, MAX_WIDTH_LIMITED_H));
-  if (L.classList.contains('reviewing')) vh = Math.min(vh, availW * 0.4) - (fitFocus.cut || 0); // the review is about the chart: the video steps back
   const sideW = clamp(Math.round(totalW - vh * ar - 6), 360, Math.max(360, Math.min(600, totalW * 0.36)));
   L.style.setProperty('--side-w', `${sideW}px`);
   L.style.setProperty('--video-h', `${Math.floor(vh)}px`);
   const playerH = $('#player').offsetHeight;
   L.style.setProperty('--below-h', `${Math.max(BELOW_ALLOWANCE, Math.floor(availW - playerH - gapY))}px`);
   L.style.setProperty('--top-h', `${playerH}px`); // library / session card: same height as the player
-  if (L.classList.contains('reviewing') && !fitFocus.again) {
-    // the chart has a smallest height of its own: when it pushes the page past the window, the video gives that much back
-    const over = document.documentElement.scrollHeight - window.innerHeight;
-    if (over > 0 && vh - over >= 150) { fitFocus.again = true; fitFocus.cut = over; fitLayout(); fitFocus.again = false; return; }
-    fitFocus.cut = 0;
-  }
   Panel.onTime(Player.time()); // the chart may have changed size
 }
 

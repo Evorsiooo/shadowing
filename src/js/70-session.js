@@ -668,9 +668,14 @@ function armedProbeHeight(fc) {
   const S = Session, st = S.plan && S.plan.find((x) => x.recordLast);
   if (!st || !fc) return 0;
   const clip = S.clip();
-  const probe = h('div', { class: 'focus-card', 'aria-hidden': 'true', style: { position: 'absolute', visibility: 'hidden', pointerEvents: 'none', left: '0', top: '0', width: `${fc.offsetWidth}px` } },
-    probeHead(fc, st),
-    armedBody(S, st, speakerName(clip && Store.get('videos', clip.videoId)), micControl({ compact: true })));
+  // measured in the tallest state (a microphone problem: a line of explanation and a second button), so the video never has to shrink when one shows up
+  const err = Mic.error; Mic.error = err || t('No microphone was found.');
+  let probe;
+  try {
+    probe = h('div', { class: 'focus-card', 'aria-hidden': 'true', style: { position: 'absolute', visibility: 'hidden', pointerEvents: 'none', left: '0', top: '0', width: `${fc.offsetWidth}px` } },
+      probeHead(fc, st),
+      armedBody(S, st, speakerName(clip && Store.get('videos', clip.videoId)), micControl({ compact: true })));
+  } finally { Mic.error = err; }
   fc.parentNode.appendChild(probe);
   const hgt = probe.offsetHeight;
   probe.remove();
@@ -898,7 +903,7 @@ function passReviewCard() {
   const step3 = R.slot === 'final' ? Store.get('recordings', S.doc.recs.step3) : null;
   const nextStep = S.plan[S.stepIdx + (S.pass >= S.step().passes ? 1 : 0)];
   const toAgain = nextStep && nextStep.key === 'again';
-  const tries = h('div', { class: 'stack', style: { gap: '10px' } });
+  const tries = h('div', { class: 'stack try-list', style: { gap: '8px' } });
   const drawTries = () => {
     const items = tryItems(clip, R);
     const pending = Pron.on() && R.phones === undefined;
@@ -910,17 +915,21 @@ function passReviewCard() {
         items.total > items.shown.length || items.extra ? h('button', { type: 'button', class: 'linkbtn', onclick: () => openAllDifferences(clip, R) }, tp(items.total, 'See it in full', 'All {n} differences')) : null));
   };
   drawTries();
-  return h('div', { class: 'stack' },
-    h('div', { class: 'row' },
-      h('h2', { class: 'sess-title grow' }, R.slot === 'final' ? t('Your last pass next to {name}', { name }) : t('Your pass next to {name}', { name })),
-      an ? h('span', { class: 'lag', title: an.manual ? (settings().alignMode === 'manual' ? t('(manual offset)') : t('(auto-alignment unsure; manual offset used)')) : null }, fmtLag(an.lag)) : null),
-    h('div', { class: 'row' }, h('h3', { class: 'grow' }, toAgain ? t('Try these in step 4') : t('Listen for these next time')), h('span', { class: 'pv-beta' }, t('beta'))),
-    tries,
-    step3 ? h('p', { class: 'small muted' }, t('Compare with your step 3 recording from this session:'), ' ', h('button', { type: 'button', class: 'linkbtn', onclick: () => openCompare(step3.id, R.recId, R.url) }, t('Compare'))) : null,
-    reviewBar(),
-    h('div', { class: 'row', style: { marginTop: '4px' } },
-      btn(t('Redo'), () => S.repeatPass(), { size: 'big', icon: 'replay', title: t('Record this pass again, starting now') }),
-      btn(toAgain && S.pass >= S.step().passes ? t('Continue to step 4') : t('Continue'), () => S.continueAfterReview(), { kind: 'primary', size: 'big', cls: 'grow' })));
+  const mixed = new Set(tryItems(clip, R).shown.map((x) => x.type)).size > 1;
+  tries.classList.toggle('mixed', mixed);
+  return h('div', { class: 'rev-card' },
+    h('div', { class: 'rev-head' },
+      h('div', { class: 'row' },
+        h('h2', { class: 'sess-title grow' }, R.slot === 'final' ? t('Your last pass next to {name}', { name }) : t('Your pass next to {name}', { name })),
+        an ? h('span', { class: 'lag', title: an.manual ? (settings().alignMode === 'manual' ? t('(manual offset)') : t('(auto-alignment unsure; manual offset used)')) : null }, fmtLag(an.lag)) : null),
+      h('div', { class: 'row' }, h('h3', { class: 'grow' }, toAgain ? t('Try these in step 4') : t('Listen for these next time')), h('span', { class: 'pv-beta' }, t('beta')))),
+    h('div', { class: 'rev-scroll' }, tries,
+      step3 ? h('p', { class: 'small muted' }, t('Compare with your step 3 recording from this session:'), ' ', h('button', { type: 'button', class: 'linkbtn', onclick: () => openCompare(step3.id, R.recId, R.url) }, t('Compare'))) : null),
+    h('div', { class: 'rev-foot' },
+      reviewBar(),
+      h('div', { class: 'row rev-go' },
+        btn(t('Redo'), () => S.repeatPass(), { size: 'big', icon: 'replay', title: t('Record this pass again, starting now') }),
+        btn(toAgain && S.pass >= S.step().passes ? t('Continue to step 4') : t('Continue'), () => S.continueAfterReview(), { kind: 'primary', size: 'big', cls: 'grow' }))));
 }
 function speakerName(vid) {
   const n = vid && vid.speaker ? vid.speaker.trim().split(/\s+/)[0] : '';
@@ -977,7 +986,7 @@ function tryItem(it, i, clip, R) {
     : [btn(name, () => playSnippetOriginal(clip, x.a, x.b), { size: 'sm', icon: 'play', cls: 'spk' }),
       btn(t('You'), () => playSynced(clip, R.url, R.analysis, { from: clip.start + x.a, stopAt: clip.start + x.b }), { size: 'sm', icon: 'play', cls: 'mine' })];
   return h('div', { class: `try-item${i === 0 ? ' first' : ''}` },
-    h('div', { class: 'try-head' }, h('span', { class: 'try-n num' }, String(i + 1)), h('b', { class: 'grow' }, x.word), h('span', { class: 'kind' }, t(TRY_KINDS[it.type]))),
+    h('div', { class: 'try-head' }, h('span', { class: 'try-n num' }, String(i + 1)), h('b', { class: 'try-word grow' }, x.word), h('span', { class: 'kind' }, t(TRY_KINDS[it.type]))),
     h('p', null, x.text), h('div', { class: 'pair' }, play));
 }
 /* "See all": the Pronunciation tab under the video, which has every difference word by word */

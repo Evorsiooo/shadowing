@@ -126,8 +126,9 @@ function renderFocusbar() {
   mount(el,
     btn(t('End'), () => S.finish(true), { icon: 'close', kind: 'ghost', size: 'sm', title: t('End now; progress so far is saved') }),
     list,
-    h('span', { class: 'ftime', id: 'sessTimer', title: t('Time left in this session') }, S.clockText()),
-    h('div', { class: 'acct' },
-      btn('', (e) => { e.stopPropagation(); UI.sessMenu = !UI.sessMenu; renderFocusbar(); }, { icon: 'more', kind: 'ghost', size: 'sm', title: t('More'), pressed: !!UI.sessMenu }),
-      UI.sessMenu ? h('div', { class: 'menu', role: 'menu', onclick: (e) => e.stopPropagation() }, sessionMenu()) : null));
+    h('div', { class: 'fright' },
+      h('span', { class: 'ftime', id: 'sessTimer', title: t('Time left in this session') }, S.clockText()),
+      h('div', { class: 'acct' },
+        btn('', (e) => { e.stopPropagation(); UI.sessMenu = !UI.sessMenu; renderFocusbar(); }, { icon: 'more', kind: 'ghost', size: 'sm', title: t('More'), pressed: !!UI.sessMenu }),
+        UI.sessMenu ? h('div', { class: 'menu', role: 'menu', onclick: (e) => e.stopPropagation() }, sessionMenu()) : null)));
 }

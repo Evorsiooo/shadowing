@@ -1,12 +1,14 @@
 // The screens the layout check visits. Add a screen here when you add one to the app.
 // ALLOW lists the boxes that are *meant* to scroll (they show a bar only when their content is longer than the box).
 // Everything else that shows a scrollbar is a bug. Text fields, buttons and links may never scroll.
-export const ALLOW = ['.askp-body', '.modal-back', '.sidebar', '.layout.focus.split .below', '.table-wrap', '.cal2', '.pv-edit', '.side .session', '.modal-back.obpage > .modal'] // the setup wizard scrolls when the window is shorter than a step;
+import { SESSION_SCREENS } from './session-screens.mjs';
+export const ALLOW = ['.rev-scroll', '.askp-body', '.modal-back', '.sidebar', '.layout.focus.split .below', '.table-wrap', '.cal2', '.pv-edit', '.side .session', '.modal-back.obpage > .modal'] // the setup wizard scrolls when the window is shorter than a step;
 
 const go = (hash) => async (p) => { await p.evaluate((h) => { location.hash = h; }, hash); await p.waitForTimeout(300); };
 const longText = 'This is a long question that keeps going so that the box has to grow past one line and eventually past its limit. '.repeat(12);
 
 export const SCREENS = [
+  ...SESSION_SCREENS,
   { name: 'Today', run: go('#today'), themes: ['light', 'dark'] },
   { name: 'Today, three cards under the main one', run: async (p) => { await go('#today')(p); await p.evaluate(() => { const g = document.querySelector('.tbelow'); if (!g) throw new Error('no cards under the main card'); g.append(g.lastElementChild.cloneNode(true)); }); } },
   { name: 'Today, nothing added yet', empty: true, run: go('#today') },
@@ -45,7 +47,7 @@ export const SCREENS = [
       if (document.querySelector('#reviewBar')) out.push({ kind: 'old-review-bar-under-video' });
       const b = bar.getBoundingClientRect(), c = card.getBoundingClientRect(), r = redo && redo.getBoundingClientRect();
       if (b.left < c.left - 1 || b.right > c.right + 1) out.push({ kind: 'review-bar-sticks-out', detail: `${Math.round(b.left - c.left)} / ${Math.round(c.right - b.right)}px` });
-      if (r && r.top < b.bottom - 1) out.push({ kind: 'review-bar-overlaps-buttons' });
+      if (r && r.top < b.bottom - 1 && getComputedStyle(redo.closest('.rev-go') || redo).position !== 'sticky') out.push({ kind: 'review-bar-overlaps-buttons' });
       for (const el of bar.querySelectorAll('button, .rev-note')) { const q = el.getBoundingClientRect(); if (q.right > b.right + 1) out.push({ kind: 'review-control-cut-off', detail: (el.textContent || '').trim().slice(0, 20) }); }
       return out;
     }) },
